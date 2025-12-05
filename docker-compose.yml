@@ -1,61 +1,13 @@
-version: '3.8'
+# SafeDNS - Docker Compose for Local Development
+# Usage: docker compose up -d
+
+version: "3.8"
 
 services:
-  # PostgreSQL - Control plane database
-  postgres:
-    image: postgres:15-alpine
-    container_name: safedns-postgres
-    environment:
-      POSTGRES_USER: safedns
-      POSTGRES_PASSWORD: safedns_dev_password
-      POSTGRES_DB: safedns
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U safedns"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+  # ============================================
+  # CONTROL PLANE
+  # ============================================
 
-  # Redis - Policy cache and rate limiting
-  redis:
-    image: redis:7-alpine
-    container_name: safedns-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
-  # ClickHouse - DNS query logs
-  clickhouse:
-    image: clickhouse/clickhouse-server:latest
-    container_name: safedns-clickhouse
-    ports:
-      - "8123:8123" # HTTP interface
-      - "9000:9000" # Native interface
-    volumes:
-      - clickhouse_data:/var/lib/clickhouse
-      - ./scripts/init-clickhouse.sql:/docker-entrypoint-initdb.d/init.sql
-    environment:
-      CLICKHOUSE_DB: safedns
-      CLICKHOUSE_USER: safedns
-      CLICKHOUSE_PASSWORD: safedns_dev_password
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # NestJS API Service
   api:
     build:
       context: ./api
@@ -65,22 +17,30 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: development
-      DATABASE_URL: postgresql://safedns:safedns_dev_password@postgres:5432/safedns
+      PORT: 3000
+      DATABASE_URL: postgresql://safedns:safedns@postgres:5432/safedns
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: dev_jwt_secret_change_in_production
-      JWT_EXPIRES_IN: 3600
       CLICKHOUSE_URL: http://clickhouse:8123
-    volumes:
-      - ./api:/app
-      - /app/node_modules
+      JWT_SECRET: dev-jwt-secret-change-in-production
+      JWT_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      HMAC_SECRET: dev-hmac-secret-change-in-production
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: npm run start:dev
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+    networks:
+      - safedns-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # Next.js Web UI
   ui:
     build:
       context: ./ui
@@ -90,71 +50,177 @@ services:
       - "3001:3000"
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:3000
-      NODE_ENV: development
+    depends_on:
+      - api
     volumes:
       - ./ui:/app
       - /app/node_modules
       - /app/.next
-    depends_on:
-      - api
+    networks:
+      - safedns-network
 
-  # Policy Decision Service (Go)
-  policy-service:
-    build:
-      context: ./policy-service
-      dockerfile: Dockerfile
-    container_name: safedns-policy-service
-    ports:
-      - "8053:8053"
-    environment:
-      REDIS_URL: redis://redis:6379
-      LOG_LEVEL: info
-    volumes:
-      - ./policy-service:/app
-    depends_on:
-      redis:
-        condition: service_healthy
-    command: ./policy-service
+  # ============================================
+  # DATA PLANE
+  # ============================================
 
-  # Unbound - Recursive DNS resolver
-  unbound:
-    image: mvance/unbound:latest
-    container_name: safedns-unbound
-    ports:
-      - "5300:53/udp"
-      - "5300:53/tcp"
-    volumes:
-      - ./config/unbound/unbound.conf:/etc/unbound/unbound.conf
-    command: unbound -d -v
-    healthcheck:
-      test: ["CMD", "dig", "@127.0.0.1", "-p", "53", "example.com"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-  # dnsdist - DNS edge router
   dnsdist:
     build:
-      context: ./dnsdist
+      context: ./config/dnsdist
       dockerfile: Dockerfile
     container_name: safedns-dnsdist
     ports:
-      - "53:53/udp"
-      - "53:53/tcp"
-      - "443:443/tcp" # DoH
-      - "853:853/tcp" # DoT
-    environment:
-      REDIS_URL: redis://redis:6379
-      POLICY_SERVICE_URL: http://policy-service:8053
-    volumes:
-      - ./config/dnsdist:/etc/dnsdist
+      - "853:853/tcp"   # DoT
+      - "443:443/tcp"   # DoH
+      - "8083:8083/tcp" # Metrics (internal)
     depends_on:
-      - policy-service
+      - policy-svc
       - unbound
       - redis
-    command: dnsdist --uid=dnsdist --gid=dnsdist --supervised --disable-syslog
+    volumes:
+      - ./config/dnsdist/dnsdist.conf:/etc/dnsdist/dnsdist.conf:ro
+      - ./config/certs:/etc/dnsdist/certs:ro
+    networks:
+      - safedns-network
+    cap_add:
+      - NET_BIND_SERVICE
+
+  policy-svc:
+    build:
+      context: ./policy-svc
+      dockerfile: Dockerfile
+    container_name: safedns-policy-svc
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      REDIS_URL: redis:6379
+      CLICKHOUSE_URL: http://clickhouse:8123
+      POSTGRES_URL: postgresql://safedns:safedns@postgres:5432/safedns
+      LOG_LEVEL: debug
+      FAIL_MODE: open
+    depends_on:
+      redis:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    networks:
+      - safedns-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  unbound:
+    build:
+      context: ./config/unbound
+      dockerfile: Dockerfile
+    container_name: safedns-unbound
+    ports:
+      - "5353:53/udp"
+      - "5353:53/tcp"
+    volumes:
+      - ./config/unbound/unbound.conf:/etc/unbound/unbound.conf:ro
+    networks:
+      - safedns-network
+    healthcheck:
+      test: ["CMD", "drill", "@127.0.0.1", "google.com"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # STORAGE
+  # ============================================
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: safedns-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: safedns
+      POSTGRES_PASSWORD: safedns
+      POSTGRES_DB: safedns
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/init-postgres.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - safedns-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U safedns -d safedns"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: safedns-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - safedns-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.1
+    container_name: safedns-clickhouse
+    ports:
+      - "8123:8123"  # HTTP
+      - "9000:9000"  # Native
+    environment:
+      CLICKHOUSE_USER: safedns
+      CLICKHOUSE_PASSWORD: safedns
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+      - ./scripts/init-clickhouse.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - safedns-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8123/ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # DEVELOPMENT TOOLS
+  # ============================================
+
+  # Adminer for PostgreSQL management
+  adminer:
+    image: adminer:latest
+    container_name: safedns-adminer
+    ports:
+      - "8081:8080"
+    networks:
+      - safedns-network
+    profiles:
+      - dev-tools
+
+  # RedisInsight for Redis management
+  redis-insight:
+    image: redislabs/redisinsight:latest
+    container_name: safedns-redis-insight
+    ports:
+      - "8082:8001"
+    networks:
+      - safedns-network
+    profiles:
+      - dev-tools
+
+networks:
+  safedns-network:
+    driver: bridge
 
 volumes:
-  postgres_data:
-  redis_data:
-  clickhouse_data:
+  postgres-data:
+  redis-data:
+  clickhouse-data:

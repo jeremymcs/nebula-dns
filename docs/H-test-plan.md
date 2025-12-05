@@ -2,331 +2,662 @@
 
 ## Overview
 
-This test plan covers unit tests, integration tests, and multi-tenant isolation tests for SafeDNS. All tests must ensure tenant isolation and correct policy enforcement.
+This document outlines the testing strategy for SafeDNS, covering unit tests, integration tests, and end-to-end tests. The goal is to ensure tenant isolation, policy enforcement correctness, and system reliability.
 
 ## Test Categories
 
 ### 1. Unit Tests
 
-#### Policy Evaluation Tests
+#### 1.1 Policy Evaluation Tests (`policy-svc/internal/policy/*_test.go`)
 
-**File**: `policy-service/policy_test.go`
-
-**Test Cases**:
-1. **Allowlist exact match**: Domain in allowlist should return ALLOW
-2. **Allowlist wildcard match**: Subdomain matching wildcard should return ALLOW
-3. **Blocklist exact match**: Domain in blocklist should return BLOCK with NXDOMAIN
-4. **Blocklist wildcard match**: Subdomain matching wildcard should return BLOCK
-5. **Threat blocking**: Domain in threat map should return BLOCK with threat reason
-6. **Category blocking**: Domain in blocked category should return BLOCK with category reason
-7. **Priority order**: Allowlist > Blocklist > Threat > Category > Default ALLOW
-8. **SafeSearch rewrite**: Search engine domain should return REWRITE when enabled
-9. **Case insensitivity**: Domain matching should be case-insensitive
-10. **Trailing dot normalization**: Domain with trailing dot should match without dot
-
-**Example Test**:
 ```go
-func TestPolicyEvaluation_AllowlistExact(t *testing.T) {
-    policy := &PolicySnapshot{
-        Allowlist: map[string][]string{
-            "exact": {"example.com"},
+// Test priority order
+func TestEvaluationPriority(t *testing.T) {
+    tests := []struct {
+        name           string
+        domain         string
+        inAllowlist    bool
+        inBlocklist    bool
+        inThreatFeed   bool
+        expectedAction string
+        expectedReason string
+    }{
+        {
+            name:           "allowlist takes precedence over blocklist",
+            domain:         "example.com",
+            inAllowlist:    true,
+            inBlocklist:    true,
+            expectedAction: "ALLOW",
+            expectedReason: "allowlist",
+        },
+        {
+            name:           "blocklist takes precedence over threat feed",
+            domain:         "blocked.com",
+            inBlocklist:    true,
+            inThreatFeed:   true,
+            expectedAction: "BLOCK",
+            expectedReason: "blocklist",
+        },
+        {
+            name:           "threat feed blocks when not in lists",
+            domain:         "malware.com",
+            inThreatFeed:   true,
+            expectedAction: "BLOCK",
+            expectedReason: "threat:malware",
+        },
+        {
+            name:           "default allow for unknown domains",
+            domain:         "unknown.com",
+            expectedAction: "ALLOW",
+            expectedReason: "default",
         },
     }
     
-    req := &QueryRequest{
-        QName: "example.com",
-        QType: 1,
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            // Setup policy and cache mocks
+            // Execute evaluation
+            // Assert result matches expected
+        })
+    }
+}
+
+// Test wildcard matching
+func TestWildcardMatching(t *testing.T) {
+    tests := []struct {
+        pattern string
+        domain  string
+        match   bool
+    }{
+        {"*.example.com", "sub.example.com", true},
+        {"*.example.com", "example.com", false},
+        {"*.example.com", "deep.sub.example.com", true},
+        {"example.com", "example.com", true},
+        {"example.com", "sub.example.com", false},
     }
     
-    decision := evaluatePolicy(policy, req)
+    for _, tt := range tests {
+        t.Run(tt.pattern+"_"+tt.domain, func(t *testing.T) {
+            trie := models.NewSuffixTrie()
+            trie.Insert(tt.pattern)
+            assert.Equal(t, tt.match, trie.Match(tt.domain))
+        })
+    }
+}
+
+// Test schedule evaluation
+func TestScheduleEvaluation(t *testing.T) {
+    schedule := models.Schedule{
+        Name:      "Work Hours",
+        Days:      []string{"mon", "tue", "wed", "thu", "fri"},
+        StartTime: "09:00",
+        EndTime:   "17:00",
+        Timezone:  "America/New_York",
+    }
     
-    assert.Equal(t, "ALLOW", decision.Action)
-    assert.Equal(t, "allowlist_exact", decision.Reason)
-    assert.Equal(t, uint8(0), decision.RCode)
+    tests := []struct {
+        name     string
+        time     time.Time
+        expected bool
+    }{
+        {"monday 10am", time.Date(2024, 1, 8, 10, 0, 0, 0, nyLoc), true},
+        {"monday 8am", time.Date(2024, 1, 8, 8, 0, 0, 0, nyLoc), false},
+        {"saturday 10am", time.Date(2024, 1, 6, 10, 0, 0, 0, nyLoc), false},
+    }
+    
+    // ... implement tests
 }
 ```
 
-#### API Service Tests
+#### 1.2 API Service Tests (`api/src/**/*.spec.ts`)
 
-**File**: `api/src/policies/policies.service.spec.ts`
-
-**Test Cases**:
-1. **Create policy**: Creates new version with incremented version number
-2. **Activate policy**: Deactivates previous active policy and activates new one
-3. **Tenant isolation**: Cannot access policies from other tenants
-4. **Policy versioning**: Each edit creates new immutable version
-5. **Validation**: Invalid policy config should be rejected
-
-**Example Test**:
 ```typescript
-describe('PoliciesService', () => {
-  it('should create new policy version', async () => {
-    const tenantId = 'test-tenant-id';
-    const userId = 'test-user-id';
-    const dto = {
-      name: 'Test Policy',
-      config: { block_categories: ['malware'] },
-    };
-    
-    const policy = await service.create(tenantId, userId, dto);
-    
-    expect(policy.version).toBe(1);
-    expect(policy.isActive).toBe(false);
+// Auth service tests
+describe('AuthService', () => {
+  describe('login', () => {
+    it('should return tokens for valid credentials', async () => {
+      const result = await authService.login({
+        email: 'admin@test.com',
+        password: 'ValidP@ssw0rd!',
+      });
+      
+      expect(result.accessToken).toBeDefined();
+      expect(result.refreshToken).toBeDefined();
+      expect(result.user.email).toBe('admin@test.com');
+    });
+
+    it('should reject invalid credentials', async () => {
+      await expect(
+        authService.login({
+          email: 'admin@test.com',
+          password: 'wrong',
+        }),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should lock account after 5 failed attempts', async () => {
+      for (let i = 0; i < 5; i++) {
+        await expect(
+          authService.login({
+            email: 'admin@test.com',
+            password: 'wrong',
+          }),
+        ).rejects.toThrow();
+      }
+      
+      await expect(
+        authService.login({
+          email: 'admin@test.com',
+          password: 'ValidP@ssw0rd!',
+        }),
+      ).rejects.toThrow(/Account locked/);
+    });
   });
-  
-  it('should enforce tenant isolation', async () => {
-    const tenant1Id = 'tenant-1';
-    const tenant2Id = 'tenant-2';
-    
-    const policy1 = await service.create(tenant1Id, 'user-1', createDto);
-    
-    await expect(
-      service.findOne(policy1.id, tenant2Id)
-    ).rejects.toThrow(NotFoundException);
+});
+
+// Policy versioning tests
+describe('PoliciesService', () => {
+  describe('update', () => {
+    it('should create new version on config change', async () => {
+      const policy = await policiesService.create(tenantId, {
+        name: 'Test Policy',
+        config: { blockCategories: ['malware'] },
+      }, userId);
+      
+      expect(policy.currentVersion).toBe(1);
+      
+      await policiesService.update(tenantId, policy.id, {
+        config: { blockCategories: ['malware', 'phishing'] },
+      }, userId);
+      
+      const updated = await policiesService.findOne(tenantId, policy.id);
+      expect(updated.currentVersion).toBe(2);
+      
+      const versions = await policiesService.getVersions(tenantId, policy.id);
+      expect(versions).toHaveLength(2);
+    });
+
+    it('should not create version for metadata-only changes', async () => {
+      const policy = await policiesService.create(...);
+      
+      await policiesService.update(tenantId, policy.id, {
+        name: 'Renamed Policy',
+        // No config change
+      }, userId);
+      
+      expect(policy.currentVersion).toBe(1);
+    });
   });
 });
 ```
-
-#### Authentication Tests
-
-**File**: `api/src/auth/auth.service.spec.ts`
-
-**Test Cases**:
-1. **Valid login**: Returns JWT token and user info
-2. **Invalid password**: Rejects with 401
-3. **Account lockout**: Locks account after 5 failed attempts
-4. **Locked account**: Rejects login when account is locked
-5. **Password hashing**: Passwords are hashed with bcrypt
 
 ### 2. Integration Tests
 
-#### DoH Decision Flow Tests
+#### 2.1 DoH Decision Flow Tests
 
-**File**: `tests/integration/doh-decision.test.ts`
-
-**Test Cases**:
-1. **ALLOW decision**: Query for allowed domain returns upstream answer
-2. **BLOCK decision**: Query for blocked domain returns NXDOMAIN
-3. **REWRITE decision**: Query for search engine returns SafeSearch rewrite
-4. **Invalid token**: Request with invalid token returns error
-5. **Missing token**: Request without token returns error
-6. **Rate limiting**: Requests exceeding rate limit return SERVFAIL
-
-**Example Test**:
-```typescript
-describe('DoH Decision Flow', () => {
-  it('should BLOCK domain in blocklist', async () => {
-    const token = 'valid-location-token';
-    const response = await fetch('https://localhost:443/dns-query', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/dns-message',
-      },
-      body: dnsQuery('blocked-domain.com'),
-    });
+```go
+// Test complete DoH request flow
+func TestDoHDecisionFlow(t *testing.T) {
+    // Setup: Create tenant, location, policy, token
+    tenant := setupTestTenant(t)
+    location := setupTestLocation(t, tenant.ID)
+    token := setupTestToken(t, location.ID)
     
-    const dnsResponse = parseDNSMessage(response.body);
-    expect(dnsResponse.rcode).toBe(RCODE_NXDOMAIN);
-  });
-});
+    tests := []struct {
+        name           string
+        domain         string
+        token          string
+        expectedStatus int
+        expectedAction string
+    }{
+        {
+            name:           "valid token allows query",
+            domain:         "google.com",
+            token:          token.Value,
+            expectedStatus: 200,
+            expectedAction: "ALLOW",
+        },
+        {
+            name:           "invalid token rejected",
+            domain:         "google.com",
+            token:          "invalid-token",
+            expectedStatus: 401,
+        },
+        {
+            name:           "blocked domain returns BLOCK",
+            domain:         "malware.test.com",
+            token:          token.Value,
+            expectedStatus: 200,
+            expectedAction: "BLOCK",
+        },
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            req := createDoHRequest(tt.domain, tt.token)
+            resp := executeDoHQuery(req)
+            
+            assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+            if tt.expectedAction != "" {
+                assert.Equal(t, tt.expectedAction, resp.Decision)
+            }
+        })
+    }
+}
 ```
 
-#### Policy Service Integration Tests
+#### 2.2 Cache Invalidation Tests
 
-**File**: `tests/integration/policy-service.test.ts`
+```go
+func TestCacheInvalidation(t *testing.T) {
+    // Setup
+    location := setupTestLocation(t, tenantID)
+    policy := setupTestPolicy(t, tenantID)
+    
+    // Prime the cache
+    _, err := cache.GetPolicy(ctx, location.ID)
+    require.NoError(t, err)
+    
+    // Update policy via API
+    newConfig := PolicyConfig{BlockCategories: []string{"malware", "phishing"}}
+    updatePolicy(t, policy.ID, newConfig)
+    
+    // Wait for invalidation to propagate
+    time.Sleep(100 * time.Millisecond)
+    
+    // Verify cache was updated
+    cachedPolicy, err := cache.GetPolicy(ctx, location.ID)
+    require.NoError(t, err)
+    assert.Contains(t, cachedPolicy.BlockedCategories, "phishing")
+}
+```
 
-**Test Cases**:
-1. **Policy snapshot loading**: Loads policy from Redis
-2. **Cache hit**: Returns cached policy without Redis query
-3. **Cache miss**: Fetches from Redis and caches result
-4. **Redis failure**: Falls back to ALLOW with error logging
-5. **Policy update**: Picks up new policy snapshot after update
+### 3. Tenant Isolation Tests
 
-#### End-to-End Policy Update Flow
+#### 3.1 Cross-Tenant Data Access Prevention
 
-**File**: `tests/integration/policy-update-flow.test.ts`
-
-**Test Cases**:
-1. **Create policy**: Policy created via API
-2. **Compile snapshot**: Background worker compiles snapshot
-3. **Redis update**: Snapshot stored in Redis
-4. **Policy service pickup**: Policy service loads new snapshot
-5. **Query enforcement**: New queries use updated policy
-
-### 3. Multi-Tenant Isolation Tests
-
-#### Tenant Data Isolation
-
-**File**: `tests/integration/tenant-isolation.test.ts`
-
-**Test Cases**:
-1. **User access**: User from tenant A cannot access tenant B's data
-2. **Policy access**: Policies are scoped to tenant
-3. **Location access**: Locations are scoped to tenant
-4. **Query isolation**: DNS queries are isolated by tenant/location
-5. **Report isolation**: Reports only show data for user's tenant
-
-**Example Test**:
 ```typescript
 describe('Tenant Isolation', () => {
-  it('should prevent cross-tenant policy access', async () => {
-    const tenant1Token = await login('tenant1@example.com', 'password');
-    const tenant2Token = await login('tenant2@example.com', 'password');
+  let tenant1User: TestUser;
+  let tenant2User: TestUser;
+  let tenant1Policy: Policy;
+  let tenant2Policy: Policy;
+
+  beforeAll(async () => {
+    tenant1User = await createTestUser('tenant1');
+    tenant2User = await createTestUser('tenant2');
+    tenant1Policy = await createPolicy(tenant1User);
+    tenant2Policy = await createPolicy(tenant2User);
+  });
+
+  it('tenant1 cannot read tenant2 policies', async () => {
+    const response = await request(app)
+      .get(`/policies/${tenant2Policy.id}`)
+      .set('Authorization', `Bearer ${tenant1User.token}`);
     
-    const policy1 = await createPolicy(tenant1Token, { name: 'Policy 1' });
+    expect(response.status).toBe(404);
+  });
+
+  it('tenant1 cannot update tenant2 policies', async () => {
+    const response = await request(app)
+      .patch(`/policies/${tenant2Policy.id}`)
+      .set('Authorization', `Bearer ${tenant1User.token}`)
+      .send({ name: 'Hacked' });
     
-    // Tenant 2 should not see Tenant 1's policy
-    const policies = await getPolicies(tenant2Token);
-    expect(policies).not.toContainEqual(
-      expect.objectContaining({ id: policy1.id })
-    );
+    expect(response.status).toBe(404);
+  });
+
+  it('tenant1 cannot delete tenant2 policies', async () => {
+    const response = await request(app)
+      .delete(`/policies/${tenant2Policy.id}`)
+      .set('Authorization', `Bearer ${tenant1User.token}`);
+    
+    expect(response.status).toBe(404);
+  });
+
+  it('tenant1 cannot list tenant2 users', async () => {
+    const response = await request(app)
+      .get('/users')
+      .set('Authorization', `Bearer ${tenant1User.token}`);
+    
+    expect(response.status).toBe(200);
+    const userIds = response.body.data.map((u: any) => u.id);
+    expect(userIds).not.toContain(tenant2User.id);
+  });
+
+  it('tenant1 token cannot query on tenant2 location', async () => {
+    const tenant1Token = await createLocationToken(tenant1User);
+    const tenant2Location = await createLocation(tenant2User);
+    
+    const response = await evaluatePolicy({
+      tenantId: tenant2User.tenantId,
+      locationId: tenant2Location.id,
+      token: tenant1Token.value,
+    });
+    
+    expect(response.valid).toBe(false);
   });
 });
 ```
 
-#### Location Token Isolation
+#### 3.2 Query Log Isolation
 
-**File**: `tests/integration/location-isolation.test.ts`
+```typescript
+describe('Query Log Isolation', () => {
+  it('tenant1 cannot see tenant2 query logs', async () => {
+    // Generate queries for both tenants
+    await generateTestQueries(tenant1);
+    await generateTestQueries(tenant2);
+    
+    const response = await request(app)
+      .get('/logs/queries')
+      .set('Authorization', `Bearer ${tenant1User.token}`);
+    
+    expect(response.status).toBe(200);
+    const tenantIds = response.body.data.map((l: any) => l.tenantId);
+    expect(tenantIds.every((id: string) => id === tenant1.id)).toBe(true);
+  });
 
-**Test Cases**:
-1. **Token scope**: Location token only works for its location
-2. **Token rotation**: Old token invalidated after rotation
-3. **Cross-tenant token**: Token from tenant A cannot access tenant B
-4. **Certificate isolation**: DoT certificates are location-scoped
+  it('reports only include tenant-specific data', async () => {
+    const response = await request(app)
+      .get('/reports/summary?period=7d')
+      .set('Authorization', `Bearer ${tenant1User.token}`);
+    
+    expect(response.status).toBe(200);
+    // Verify counts match tenant1's queries only
+  });
+});
+```
 
-#### DNS Query Isolation
+### 4. RBAC Tests
 
-**File**: `tests/integration/dns-isolation.test.ts`
+```typescript
+describe('Role-Based Access Control', () => {
+  const actions = [
+    { method: 'POST', path: '/policies', minRole: 'admin' },
+    { method: 'PATCH', path: '/policies/:id', minRole: 'admin' },
+    { method: 'DELETE', path: '/policies/:id', minRole: 'owner' },
+    { method: 'POST', path: '/users', minRole: 'admin' },
+    { method: 'DELETE', path: '/users/:id', minRole: 'owner' },
+    { method: 'GET', path: '/reports/summary', minRole: 'readonly' },
+  ];
+  
+  const roles = ['owner', 'admin', 'analyst', 'readonly'];
+  const roleHierarchy = { owner: 0, admin: 1, analyst: 2, readonly: 3 };
 
-**Test Cases**:
-1. **Policy enforcement**: Each location uses its assigned policy
-2. **Query logging**: Logs include correct tenant_id and location_id
-3. **Report accuracy**: Reports only show queries for tenant's locations
+  for (const action of actions) {
+    for (const role of roles) {
+      const shouldAllow = roleHierarchy[role] <= roleHierarchy[action.minRole];
+      
+      it(`${role} ${shouldAllow ? 'can' : 'cannot'} ${action.method} ${action.path}`, async () => {
+        const user = await createUserWithRole(tenantId, role);
+        
+        const response = await request(app)
+          [action.method.toLowerCase()](action.path.replace(':id', testResourceId))
+          .set('Authorization', `Bearer ${user.token}`)
+          .send(getTestPayload(action));
+        
+        if (shouldAllow) {
+          expect(response.status).not.toBe(403);
+        } else {
+          expect(response.status).toBe(403);
+        }
+      });
+    }
+  }
+});
+```
 
-### 4. Performance Tests
+### 5. Performance Tests
 
-#### Policy Evaluation Performance
+```go
+func BenchmarkPolicyEvaluation(b *testing.B) {
+    // Setup large policy with many rules
+    policy := createLargePolicy(
+        allowlistSize: 1000,
+        blocklistSize: 5000,
+        categories: 50,
+    )
+    
+    cache := setupCacheWithPolicy(policy)
+    service := policy.NewService(cache, logger, false)
+    
+    b.ResetTimer()
+    
+    for i := 0; i < b.N; i++ {
+        domain := fmt.Sprintf("test%d.example.com", i)
+        service.Evaluate(ctx, &models.EvaluateRequest{
+            TenantID:   "test-tenant",
+            LocationID: "test-location",
+            QName:      domain,
+            QType:      1,
+        })
+    }
+}
 
-**File**: `tests/performance/policy-evaluation.benchmark.go`
+func BenchmarkWildcardMatching(b *testing.B) {
+    trie := models.NewSuffixTrie()
+    for i := 0; i < 10000; i++ {
+        trie.Insert(fmt.Sprintf("*.subdomain%d.example.com", i))
+    }
+    
+    b.ResetTimer()
+    
+    for i := 0; i < b.N; i++ {
+        trie.Match("test.subdomain500.example.com")
+    }
+}
+```
 
-**Benchmarks**:
-1. **Exact match lookup**: O(1) hash map lookup
-2. **Wildcard matching**: Trie traversal performance
-3. **Full evaluation**: End-to-end policy evaluation latency
-4. **Cache hit rate**: Policy snapshot cache effectiveness
+### 6. Security Tests
 
-**Target Metrics**:
-- Policy evaluation: < 1ms p99 latency
-- Cache hit rate: > 99%
-- Throughput: > 10,000 QPS per policy service instance
+```typescript
+describe('Security', () => {
+  describe('Authentication', () => {
+    it('rejects expired JWT tokens', async () => {
+      const expiredToken = createExpiredToken(user);
+      
+      const response = await request(app)
+        .get('/policies')
+        .set('Authorization', `Bearer ${expiredToken}`);
+      
+      expect(response.status).toBe(401);
+    });
 
-#### API Performance
+    it('rejects tampered JWT tokens', async () => {
+      const tamperedToken = user.token.slice(0, -5) + 'XXXXX';
+      
+      const response = await request(app)
+        .get('/policies')
+        .set('Authorization', `Bearer ${tamperedToken}`);
+      
+      expect(response.status).toBe(401);
+    });
+  });
 
-**File**: `tests/performance/api.benchmark.ts`
+  describe('Input Validation', () => {
+    it('rejects SQL injection in domain names', async () => {
+      const response = await request(app)
+        .post('/lists/entries')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          entries: [{ domain: "'; DROP TABLE users; --" }],
+        });
+      
+      expect(response.status).toBe(400);
+    });
 
-**Benchmarks**:
-1. **Policy creation**: < 100ms
-2. **Policy activation**: < 200ms
-3. **Report queries**: < 500ms for 1-day window
+    it('sanitizes XSS in policy names', async () => {
+      const response = await request(app)
+        .post('/policies')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          name: '<script>alert("xss")</script>',
+          config: { blockCategories: [] },
+        });
+      
+      expect(response.status).toBe(201);
+      expect(response.body.name).not.toContain('<script>');
+    });
+  });
 
-### 5. Security Tests
-
-#### Authentication Security
-
-**File**: `tests/security/auth-security.test.ts`
-
-**Test Cases**:
-1. **Password strength**: Weak passwords rejected
-2. **JWT expiration**: Expired tokens rejected
-3. **Token tampering**: Modified tokens rejected
-4. **Brute force protection**: Account locked after failed attempts
-
-#### Input Validation
-
-**File**: `tests/security/input-validation.test.ts`
-
-**Test Cases**:
-1. **SQL injection**: Malicious input sanitized
-2. **XSS prevention**: User input escaped in responses
-3. **Domain validation**: Invalid domains rejected
-4. **Policy config validation**: Invalid configs rejected
-
-#### Rate Limiting
-
-**File**: `tests/security/rate-limiting.test.ts`
-
-**Test Cases**:
-1. **Per-location limit**: 1000 QPS limit enforced
-2. **Per-tenant limit**: 10000 QPS limit enforced
-3. **Burst handling**: Burst requests handled correctly
-4. **Recovery**: Rate limits reset after window
+  describe('Rate Limiting', () => {
+    it('enforces API rate limits', async () => {
+      const requests = Array(100).fill(null).map(() =>
+        request(app)
+          .get('/policies')
+          .set('Authorization', `Bearer ${userToken}`)
+      );
+      
+      const responses = await Promise.all(requests);
+      const rateLimited = responses.filter(r => r.status === 429);
+      
+      expect(rateLimited.length).toBeGreaterThan(0);
+    });
+  });
+});
+```
 
 ## Test Execution
 
-### Running Unit Tests
+### Running Tests
 
 ```bash
-# API tests
-cd api
-npm test
+# API unit tests
+cd api && npm test
+
+# API integration tests
+cd api && npm run test:e2e
 
 # Policy service tests
-cd policy-service
-go test ./...
-```
+cd policy-svc && go test ./...
 
-### Running Integration Tests
-
-```bash
-# Start test environment
-docker-compose -f docker-compose.test.yml up -d
-
-# Run integration tests
-npm run test:integration
-
-# Cleanup
-docker-compose -f docker-compose.test.yml down
-```
-
-### Running Performance Tests
-
-```bash
 # Policy service benchmarks
-cd policy-service
-go test -bench=. -benchmem
+cd policy-svc && go test -bench=. ./...
 
-# API benchmarks
-cd api
-npm run test:benchmark
+# All tests with coverage
+npm run test:coverage
+go test -coverprofile=coverage.out ./...
 ```
 
-## Test Coverage Goals
+### CI Pipeline
 
-- **Unit tests**: > 80% code coverage
-- **Integration tests**: All critical paths covered
-- **Security tests**: All security controls tested
-- **Performance tests**: All performance targets validated
+```yaml
+# .github/workflows/test.yml
+name: Tests
 
-## Continuous Integration
+on: [push, pull_request]
 
-All tests run in CI pipeline:
-1. Lint checks
-2. Unit tests
-3. Integration tests (against test database)
-4. Security scans
-5. Performance benchmarks (on schedule)
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: cd api && npm ci
+      - run: cd api && npm test
+      - run: cd api && npm run test:e2e
 
-## Test Data
+  policy-svc-tests:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      - run: cd policy-svc && go test -v -race ./...
+      - run: cd policy-svc && go test -bench=. ./...
+```
 
-Test data fixtures:
-- `tests/fixtures/tenants.json`: Test tenant data
-- `tests/fixtures/policies.json`: Test policy configurations
-- `tests/fixtures/threat-feeds.json`: Sample threat feed data
+## Test Data Management
 
-## Test Maintenance
+### Fixtures
 
-- Tests updated with each feature addition
-- Flaky tests identified and fixed
-- Performance regressions detected and addressed
-- Security tests updated for new threats
+```typescript
+// test/fixtures/policies.ts
+export const defaultPolicy = {
+  name: 'Test Policy',
+  config: {
+    blockCategories: ['malware', 'phishing'],
+    threatBlocking: { enabled: true, feeds: ['malware'] },
+    safesearch: { enabled: false, services: [] },
+    schedules: [],
+  },
+};
+
+export const strictPolicy = {
+  name: 'Strict Policy',
+  config: {
+    blockCategories: ['malware', 'phishing', 'adult', 'gambling', 'social_media'],
+    threatBlocking: { enabled: true, feeds: ['malware', 'phishing', 'c2'] },
+    safesearch: { enabled: true, services: ['google', 'youtube', 'bing'] },
+    schedules: [
+      {
+        name: 'Work Hours',
+        days: ['mon', 'tue', 'wed', 'thu', 'fri'],
+        startTime: '09:00',
+        endTime: '17:00',
+        timezone: 'UTC',
+        additionalCategories: ['streaming', 'gaming'],
+      },
+    ],
+  },
+};
+```
+
+### Database Seeding
+
+```typescript
+// test/setup/seed.ts
+export async function seedTestDatabase() {
+  await dataSource.query('TRUNCATE TABLE users CASCADE');
+  await dataSource.query('TRUNCATE TABLE tenants CASCADE');
+  
+  const tenant = await createTestTenant();
+  const owner = await createTestUser(tenant.id, 'owner');
+  const admin = await createTestUser(tenant.id, 'admin');
+  const analyst = await createTestUser(tenant.id, 'analyst');
+  const readonly = await createTestUser(tenant.id, 'readonly');
+  
+  return { tenant, owner, admin, analyst, readonly };
+}
+```
+
+## Coverage Requirements
+
+| Component | Minimum Coverage |
+|-----------|------------------|
+| Policy evaluation | 95% |
+| Authentication/Authorization | 90% |
+| API controllers | 80% |
+| Data access layer | 85% |
+| Cache management | 80% |
+
+## Test Environment
+
+- Tests run against isolated database instances
+- Redis is flushed between test suites
+- ClickHouse uses test database with auto-cleanup
+- Network isolation between test containers

@@ -2,343 +2,306 @@
 
 ## Overview
 
-SafeDNS MVP will be delivered in 4-6 iterations, each with clear acceptance criteria. Each milestone builds on the previous one.
-
-## Milestone 1: Foundation & Authentication (Week 1-2)
-
-### Goals
-- Set up development environment
-- Implement authentication and authorization
-- Basic tenant and user management
-
-### Deliverables
-- [x] Docker Compose setup with all services
-- [x] PostgreSQL schema with migrations
-- [x] NestJS API skeleton with auth module
-- [x] JWT-based authentication
-- [x] RBAC (Owner, Admin, Analyst, Read-only)
-- [x] User CRUD endpoints
-- [x] Tenant management endpoints
-- [x] Password hashing and account lockout
-
-### Acceptance Criteria
-- ✅ User can register/login via API
-- ✅ JWT tokens issued and validated
-- ✅ Role-based access control enforced
-- ✅ Account lockout after 5 failed attempts
-- ✅ All API endpoints require authentication
-- ✅ Tenant isolation enforced at API layer
-
-### Testing
-- Unit tests for auth service (>80% coverage)
-- Integration tests for login/logout flow
-- Security tests for password hashing and JWT validation
+This document outlines the development milestones for SafeDNS MVP, broken into 6 iterations with clear acceptance criteria.
 
 ---
 
-## Milestone 2: Policy Management (Week 3-4)
+## Iteration 1: Foundation (Week 1-2)
 
-### Goals
-- Policy CRUD operations
-- Policy versioning (immutable versions)
-- Policy activation workflow
-- Basic policy configuration
+### Objective
+Set up core infrastructure and basic authentication.
 
 ### Deliverables
-- [ ] Policy entity and repository
-- [ ] Policy CRUD API endpoints
-- [ ] Policy versioning logic (auto-increment)
-- [ ] Policy activation endpoint (deactivates previous)
-- [ ] Policy configuration validation
-- [ ] Policy-to-location assignment
-- [ ] Basic category taxonomy (seed data)
+
+1. **Development Environment**
+   - [ ] Docker Compose runs all services
+   - [ ] Database migrations execute successfully
+   - [ ] Services can communicate on internal network
+
+2. **Authentication System**
+   - [ ] User registration (owner creates initial account)
+   - [ ] Email/password login with JWT tokens
+   - [ ] Token refresh mechanism
+   - [ ] Password change endpoint
+
+3. **Tenant & User Management**
+   - [ ] Tenant CRUD (internal only)
+   - [ ] User CRUD with RBAC enforcement
+   - [ ] Role assignment (owner, admin, analyst, readonly)
 
 ### Acceptance Criteria
-- ✅ Admin can create policy with config
-- ✅ Policy edits create new version (immutable)
-- ✅ Only one active policy per tenant
-- ✅ Policy can be assigned to location
-- ✅ Policy config validated on creation
-- ✅ Policy history visible (all versions)
 
-### Testing
-- Unit tests for policy versioning
-- Integration tests for policy activation
-- Tenant isolation tests (cross-tenant policy access blocked)
+- [ ] `docker compose up` starts all services without errors
+- [ ] User can login and receive valid JWT
+- [ ] User can refresh tokens before expiration
+- [ ] Owner can create users with different roles
+- [ ] Non-owners cannot create owner accounts
+- [ ] Failed login attempts trigger account lockout after 5 tries
+
+### Definition of Done
+
+- All unit tests pass
+- API endpoints documented in Swagger
+- Basic audit logging for auth events
 
 ---
 
-## Milestone 3: Location & Credential Management (Week 5-6)
+## Iteration 2: Policy Engine (Week 3-4)
 
-### Goals
-- Location CRUD operations
-- DoH token generation and rotation
-- DoT certificate generation (simplified)
-- Location-to-policy assignment
+### Objective
+Implement policy management and evaluation engine.
 
 ### Deliverables
-- [ ] Location entity and repository
-- [ ] Location CRUD API endpoints
-- [ ] DoH token generation (cryptographically random)
-- [ ] Token hashing and storage
-- [ ] Token rotation endpoint
-- [ ] DoT certificate generation (placeholder)
-- [ ] Certificate rotation endpoint
-- [ ] Location-to-policy assignment
+
+1. **Policy Management API**
+   - [ ] Create policy with configuration
+   - [ ] Update policy (creates new version)
+   - [ ] View policy version history
+   - [ ] Rollback to previous version
+   - [ ] Set default policy for tenant
+
+2. **Policy Evaluation Service**
+   - [ ] Policy compilation to fast lookup structures
+   - [ ] Allowlist/blocklist evaluation (exact + wildcard)
+   - [ ] Category blocking
+   - [ ] Threat feed checking
+   - [ ] Schedule evaluation
+
+3. **Caching Layer**
+   - [ ] Policy caching in Redis
+   - [ ] Cache invalidation on policy update
+   - [ ] In-memory caching for hot paths
 
 ### Acceptance Criteria
-- ✅ Admin can create location
-- ✅ Location receives DoH token (shown once)
-- ✅ Location receives DoT certificate (shown once)
-- ✅ Tokens can be rotated (old token invalidated)
-- ✅ Certificates can be rotated
-- ✅ Location assigned to policy
-- ✅ Token validation works (for data plane integration)
 
-### Testing
-- Unit tests for token generation and hashing
-- Integration tests for token rotation
-- Security tests for token isolation
+- [ ] Policy update creates new version (immutable history)
+- [ ] Rollback restores previous config as new version
+- [ ] Allowlist takes precedence over blocklist
+- [ ] Wildcard matching works for subdomains
+- [ ] Schedules activate/deactivate categories by time
+- [ ] Policy evaluation completes in <5ms average
+
+### Definition of Done
+
+- Policy evaluation has 95% test coverage
+- Benchmark shows O(1) average lookup time
+- Cache invalidation verified with integration tests
 
 ---
 
-## Milestone 4: Policy Decision Service (Week 7-8)
+## Iteration 3: Data Plane Integration (Week 5-6)
 
-### Goals
-- Go policy service implementation
-- Policy snapshot compilation
-- Policy evaluation logic
-- Redis integration for caching
+### Objective
+Connect DNS resolution with policy decisions.
 
 ### Deliverables
-- [ ] Go policy service HTTP server
-- [ ] Policy evaluation endpoint (`/v1/evaluate`)
-- [ ] Policy snapshot structure
-- [ ] Redis client integration
-- [ ] In-memory policy cache
-- [ ] Policy evaluation algorithm (allowlist > blocklist > threat > category)
-- [ ] Domain normalization
-- [ ] Health check endpoint
+
+1. **Location Management**
+   - [ ] Location CRUD
+   - [ ] Assign policy to location
+   - [ ] Generate DoH tokens
+   - [ ] Token rotation
+
+2. **dnsdist Integration**
+   - [ ] Token validation endpoint
+   - [ ] Policy evaluation endpoint
+   - [ ] Response handling (BLOCK/ALLOW/REWRITE)
+
+3. **DNS Resolution**
+   - [ ] Unbound configured for recursive resolution
+   - [ ] DNSSEC validation enabled
+   - [ ] Response caching
 
 ### Acceptance Criteria
-- ✅ Policy service accepts evaluation requests
-- ✅ Loads policy snapshot from Redis
-- ✅ Evaluates policy correctly (ALLOW/BLOCK/REWRITE)
-- ✅ Returns decision with reason code
-- ✅ Cache policy snapshots in memory
-- ✅ Fallback to ALLOW if Redis unavailable
-- ✅ Evaluation latency < 10ms p99
 
-### Testing
-- Unit tests for policy evaluation (>80% coverage)
-- Integration tests for Redis integration
-- Performance tests for evaluation latency
-- Test all decision paths (allowlist, blocklist, threat, category)
+- [ ] DoH query with valid token returns policy decision
+- [ ] Invalid token returns 401/REFUSED
+- [ ] BLOCK decision returns NXDOMAIN or null-route
+- [ ] ALLOW decision forwards to Unbound
+- [ ] REWRITE decision returns SafeSearch target
+- [ ] DNSSEC-invalid responses are rejected
+
+### Definition of Done
+
+- End-to-end DoH flow tested with real DNS queries
+- Token creation/validation documented
+- Rate limiting configured and tested
 
 ---
 
-## Milestone 5: Data Plane Integration (Week 9-10)
+## Iteration 4: Custom Lists & Threat Feeds (Week 7-8)
 
-### Goals
-- dnsdist configuration
-- Tenant identification (DoH token)
-- Policy service integration
-- Unbound integration
-- Basic DNS query flow
+### Objective
+Enable tenant customization and threat intelligence.
 
 ### Deliverables
-- [ ] dnsdist configuration with Lua scripts
-- [ ] DoH endpoint (port 443)
-- [ ] Token extraction from DoH requests
-- [ ] Tenant/location resolution from token
-- [ ] Rate limiting per location
-- [ ] Policy service HTTP calls
-- [ ] Unbound pool configuration
-- [ ] Query routing (BLOCK vs ALLOW)
-- [ ] Basic logging to ClickHouse
+
+1. **Custom Lists**
+   - [ ] Create allowlist/blocklist
+   - [ ] Add/remove entries (exact + wildcard)
+   - [ ] Bulk import from text file
+   - [ ] Enable/disable lists
+
+2. **Threat Feed Ingestion**
+   - [ ] Background worker for feed updates
+   - [ ] Support for domain list format
+   - [ ] Feed enable/disable per tenant
+   - [ ] Last update timestamp tracking
+
+3. **SafeSearch Implementation**
+   - [ ] Google SafeSearch rewrite
+   - [ ] YouTube Restricted Mode
+   - [ ] Bing SafeSearch
+   - [ ] Enable/disable per policy
 
 ### Acceptance Criteria
-- ✅ DoH endpoint accepts DNS queries
-- ✅ Token validated and tenant identified
-- ✅ Policy service called for each query
-- ✅ BLOCK decisions return NXDOMAIN
-- ✅ ALLOW decisions forwarded to Unbound
-- ✅ Rate limiting enforced (1000 QPS per location)
-- ✅ Queries logged to ClickHouse
 
-### Testing
-- Integration tests for DoH flow
-- End-to-end tests: query → policy → response
-- Rate limiting tests
-- Tenant isolation tests (token scope)
+- [ ] Custom list entries affect policy decisions immediately
+- [ ] Bulk import handles 10,000+ entries
+- [ ] Threat feeds update on schedule
+- [ ] SafeSearch rewrites return correct CNAME
+- [ ] Lists can be enabled/disabled without deletion
+
+### Definition of Done
+
+- Import tested with malformed data
+- Feed ingestion has error handling and retry
+- SafeSearch verified with real DNS queries
 
 ---
 
-## Milestone 6: Lists & Threat Feeds (Week 11-12)
+## Iteration 5: Logging & Reporting (Week 9-10)
 
-### Goals
-- Allowlist/blocklist management
-- Threat feed ingestion
-- Domain-to-category mapping
-- Policy snapshot compilation with lists
+### Objective
+Implement query logging and analytics.
 
 ### Deliverables
-- [ ] Allowlist CRUD endpoints
-- [ ] Blocklist CRUD endpoints
-- [ ] Wildcard domain support
-- [ ] Threat feed entity and storage
-- [ ] Background worker for feed ingestion
-- [ ] Domain-to-category mapping table
-- [ ] Policy snapshot compilation (includes lists)
-- [ ] Redis snapshot updates on list changes
+
+1. **Query Logging**
+   - [ ] Log all queries to ClickHouse
+   - [ ] Include tenant_id, location_id, qname, action, reason
+   - [ ] Latency tracking
+   - [ ] Async logging (no impact on query latency)
+
+2. **Query Log Viewer**
+   - [ ] Filter by date range, location, action
+   - [ ] Search by domain
+   - [ ] Pagination
+   - [ ] Export to CSV
+
+3. **Reports Dashboard**
+   - [ ] Summary statistics (total/blocked/allowed)
+   - [ ] Top blocked domains
+   - [ ] Blocks by category
+   - [ ] Threat trends over time
+   - [ ] Per-location breakdown
 
 ### Acceptance Criteria
-- ✅ Admin can add/remove domains from allowlist
-- ✅ Admin can add/remove domains from blocklist
-- ✅ Wildcard domains supported (`*.example.com`)
-- ✅ Threat feeds can be configured
-- ✅ Background worker ingests feeds periodically
-- ✅ Policy snapshots include allowlist/blocklist
-- ✅ Policy evaluation uses lists correctly
 
-### Testing
-- Unit tests for list matching (exact + wildcard)
-- Integration tests for feed ingestion
-- Policy evaluation tests with lists
+- [ ] All queries logged with <1ms overhead
+- [ ] Query logs filterable by all fields
+- [ ] Reports load within 3 seconds
+- [ ] CSV export includes all visible columns
+- [ ] 90-day retention with auto-cleanup
+
+### Definition of Done
+
+- ClickHouse materialized views for fast aggregation
+- Reports verified against raw log counts
+- Export tested with large datasets
 
 ---
 
-## Milestone 7: Reporting & Logging (Week 13-14)
+## Iteration 6: Production Readiness (Week 11-12)
 
-### Goals
-- ClickHouse query logging
-- Report API endpoints
-- Basic dashboard UI
+### Objective
+Harden for production deployment.
 
 ### Deliverables
-- [ ] ClickHouse schema and initialization
-- [ ] Query logging from dnsdist/policy service
-- [ ] Report API endpoints:
-  - Top blocked domains
-  - Blocks by category
-  - Threat trends
-- [ ] Basic Next.js dashboard
-- [ ] Login page
-- [ ] Policy management UI
-- [ ] Location management UI
-- [ ] Report visualization
+
+1. **Security Hardening**
+   - [ ] TLS 1.2+ only
+   - [ ] HSTS headers
+   - [ ] Rate limiting on all endpoints
+   - [ ] Input validation audit
+   - [ ] Dependency vulnerability scan
+
+2. **Monitoring & Alerting**
+   - [ ] Health check endpoints
+   - [ ] Prometheus metrics
+   - [ ] Structured logging
+   - [ ] Error tracking (Sentry)
+
+3. **Documentation**
+   - [ ] API documentation complete
+   - [ ] Deployment guide
+   - [ ] Configuration reference
+   - [ ] Troubleshooting guide
+
+4. **Admin UI Polish**
+   - [ ] Responsive design
+   - [ ] Error handling UX
+   - [ ] Loading states
+   - [ ] Form validation feedback
 
 ### Acceptance Criteria
-- ✅ All DNS queries logged to ClickHouse
-- ✅ Logs include tenant_id, location_id, action, reason
-- ✅ Report endpoints return aggregated data
-- ✅ Dashboard shows policy status
-- ✅ Dashboard shows recent blocks
-- ✅ Reports filtered by tenant (isolation)
 
-### Testing
-- Integration tests for ClickHouse logging
-- Report query tests (correct aggregations)
-- UI tests for dashboard pages
+- [ ] Security scan passes with no critical findings
+- [ ] Health endpoints return detailed status
+- [ ] Metrics cover key performance indicators
+- [ ] Documentation reviewed by non-author
+- [ ] UI works on mobile devices
+
+### Definition of Done
+
+- Penetration test completed (basic)
+- Load test shows 10,000 QPS per node
+- Runbook for common operations
+- Demo environment deployed
 
 ---
 
-## Milestone 8: Polish & Production Readiness (Week 15-16)
+## Post-MVP Roadmap
 
-### Goals
-- Security hardening
-- Performance optimization
-- Documentation
-- Deployment guides
+### Phase 2: Enterprise Features
+- Multi-user SSO (SAML/OIDC)
+- Advanced scheduling (recurring, exceptions)
+- Custom categories
+- API access for automation
 
-### Deliverables
-- [ ] Security audit and fixes
-- [ ] Performance tuning (caching, indexes)
-- [ ] Error handling and logging improvements
-- [ ] API documentation (OpenAPI/Swagger)
-- [ ] Deployment documentation
-- [ ] Monitoring and alerting setup
-- [ ] Backup and recovery procedures
-
-### Acceptance Criteria
-- ✅ All security tests pass
-- ✅ Performance targets met (<1ms policy eval, >10k QPS)
-- ✅ Comprehensive error handling
-- ✅ Structured logging throughout
-- ✅ Documentation complete
-- ✅ Deployment guide available
-
-### Testing
-- Security penetration testing
-- Load testing (10k+ QPS)
-- Disaster recovery testing
-
----
-
-## Post-MVP Enhancements (Future)
-
-### Phase 2 Features
-- DoT (DNS-over-TLS) full implementation
-- Advanced scheduling (time-based policies)
-- SafeSearch rewrites
+### Phase 3: Scale & Distribution
 - Multi-region deployment
-- Certificate management (proper CA)
-- Advanced reporting (custom queries)
-- API rate limiting
-- Webhook notifications
+- Anycast DNS
+- Enhanced threat intelligence
+- Machine learning categorization
 
-### Phase 3 Features
-- Machine learning threat detection
-- Custom category creation
-- Policy templates
-- Bulk operations
-- Advanced analytics
-- Mobile app
-- SSO integration
+### Phase 4: Compliance & Reporting
+- Scheduled report delivery
+- Compliance reports (CIPA, etc.)
+- Data residency options
+- Enhanced audit logging
+
+---
+
+## Risk Register
+
+| Risk | Impact | Likelihood | Mitigation |
+|------|--------|------------|------------|
+| ClickHouse performance at scale | High | Medium | Pre-aggregate with materialized views |
+| Policy evaluation latency | High | Low | Benchmark early, optimize data structures |
+| dnsdist Lua complexity | Medium | Medium | Start simple, add features incrementally |
+| Token security | High | Low | HMAC signing, short expiry, rotation |
+| Tenant data leakage | Critical | Low | RLS, thorough testing, code review |
 
 ---
 
 ## Success Metrics
 
-### Technical Metrics
-- **Availability**: 99.9% uptime
-- **Latency**: <10ms policy evaluation p99
-- **Throughput**: >10,000 QPS per region
-- **Error Rate**: <0.1%
-
-### Business Metrics
-- **Time to First Query**: <5 minutes from signup
-- **Policy Update Latency**: <30 seconds to propagate
-- **Report Query Time**: <500ms for 1-day window
-
----
-
-## Risk Mitigation
-
-### High-Risk Items
-1. **Policy evaluation performance**: Mitigated by caching and O(1) algorithms
-2. **Tenant isolation**: Mitigated by comprehensive testing and code review
-3. **Redis availability**: Mitigated by fail-open strategy and monitoring
-4. **dnsdist complexity**: Mitigated by incremental implementation and testing
-
-### Contingency Plans
-- If policy service too slow: Add more caching layers
-- If Redis fails: Fallback to database (slower but functional)
-- If dnsdist issues: Simplify Lua scripts, use HTTP API directly
-
----
-
-## Timeline Summary
-
-| Milestone | Duration | Key Deliverable |
-|-----------|----------|----------------|
-| M1: Foundation | 2 weeks | Auth & RBAC |
-| M2: Policies | 2 weeks | Policy CRUD & versioning |
-| M3: Locations | 2 weeks | Credential management |
-| M4: Policy Service | 2 weeks | Evaluation engine |
-| M5: Data Plane | 2 weeks | DNS query flow |
-| M6: Lists | 2 weeks | Allowlist/blocklist/threats |
-| M7: Reporting | 2 weeks | Logging & dashboard |
-| M8: Polish | 2 weeks | Production readiness |
-
-**Total**: 16 weeks (4 months) for MVP
+| Metric | Target | Measurement |
+|--------|--------|-------------|
+| Query latency (p99) | <50ms | Prometheus metrics |
+| Policy evaluation time | <5ms | Go benchmarks |
+| Uptime | 99.9% | Health check monitoring |
+| Block accuracy | >99% | Manual sampling |
+| False positive rate | <0.1% | User reports |
+| API response time (p95) | <200ms | APM tracking |

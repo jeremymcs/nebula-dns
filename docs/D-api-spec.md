@@ -1,760 +1,1414 @@
 # D. API Specification
 
-## Base URL
+## Overview
+
+The SafeDNS Control Plane API is a RESTful JSON API built with NestJS. All endpoints require authentication except `/auth/login` and `/auth/register`.
+
+### Base URL
 ```
-https://api.safedns.io/v1
+https://api.safedns.example.com/v1
 ```
 
-## Authentication
-All endpoints require authentication via Bearer token (JWT) obtained from `/auth/login`.
+### Authentication
+All authenticated endpoints require a Bearer token in the `Authorization` header:
+```
+Authorization: Bearer <jwt_token>
+```
 
-## Common Response Format
+### Common Response Codes
+| Code | Description |
+|------|-------------|
+| 200  | Success |
+| 201  | Created |
+| 400  | Bad Request - validation error |
+| 401  | Unauthorized - missing/invalid token |
+| 403  | Forbidden - insufficient permissions |
+| 404  | Not Found |
+| 409  | Conflict - resource already exists |
+| 422  | Unprocessable Entity |
+| 429  | Too Many Requests |
+| 500  | Internal Server Error |
 
-### Success Response
+### Pagination
+List endpoints support cursor-based pagination:
+```
+?cursor=<base64_cursor>&limit=50
+```
+
+Response includes:
 ```json
 {
-  "data": { ... },
-  "meta": {
-    "request_id": "uuid",
-    "timestamp": "2024-01-15T10:30:00Z"
+  "data": [...],
+  "pagination": {
+    "next_cursor": "eyJpZCI6IjEyMyJ9",
+    "has_more": true
   }
 }
 ```
 
-### Error Response
-```json
-{
-  "error": {
-    "code": "RESOURCE_NOT_FOUND",
-    "message": "Policy not found",
-    "details": { ... }
-  },
-  "meta": {
-    "request_id": "uuid",
-    "timestamp": "2024-01-15T10:30:00Z"
-  }
-}
-```
+---
 
-## Authentication Endpoints
+## 1. Authentication
 
 ### POST /auth/login
-Authenticate user and receive JWT token.
+Authenticate user and obtain JWT token.
 
-**Request**:
+**Request:**
 ```json
 {
   "email": "admin@example.com",
-  "password": "secure-password"
+  "password": "SecureP@ssw0rd!"
 }
 ```
 
-**Response** (200):
+**Response (200):**
 ```json
 {
-  "data": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "user": {
-      "id": "550e8400-e29b-41d4-a716-446655440000",
-      "email": "admin@example.com",
-      "role": "owner",
-      "tenant_id": "660e8400-e29b-41d4-a716-446655440000"
-    },
-    "expires_at": "2024-01-15T11:30:00Z"
+  "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh_token": "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4...",
+  "expires_in": 3600,
+  "token_type": "Bearer",
+  "user": {
+    "id": "usr_01H8EXAMPLE",
+    "email": "admin@example.com",
+    "tenant_id": "tnt_01H8EXAMPLE",
+    "roles": ["admin"]
   }
 }
 ```
 
-**Errors**:
-- `401 UNAUTHORIZED`: Invalid credentials
-- `423 LOCKED`: Account locked due to failed attempts
+**Response (401):**
+```json
+{
+  "error": "invalid_credentials",
+  "message": "Invalid email or password"
+}
+```
 
----
+### POST /auth/refresh
+Refresh access token.
+
+**Request:**
+```json
+{
+  "refresh_token": "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4..."
+}
+```
+
+**Response (200):**
+```json
+{
+  "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expires_in": 3600,
+  "token_type": "Bearer"
+}
+```
 
 ### POST /auth/logout
-Invalidate current session token.
+Invalidate refresh token.
 
-**Response** (200):
+**Request:**
 ```json
 {
-  "data": {
-    "message": "Logged out successfully"
+  "refresh_token": "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4..."
+}
+```
+
+**Response (204):** No content
+
+### POST /auth/password/change
+Change current user's password.
+
+**Request:**
+```json
+{
+  "current_password": "OldP@ssw0rd!",
+  "new_password": "NewSecureP@ss!"
+}
+```
+
+**Response (204):** No content
+
+---
+
+## 2. Tenants
+
+### GET /tenants/current
+Get current tenant details (scoped by JWT).
+
+**Response (200):**
+```json
+{
+  "id": "tnt_01H8EXAMPLE",
+  "name": "Acme Corporation",
+  "slug": "acme-corp",
+  "plan": "professional",
+  "settings": {
+    "default_block_page_enabled": true,
+    "block_page_url": "https://block.acme.com",
+    "timezone": "America/New_York"
+  },
+  "created_at": "2024-01-15T10:30:00Z",
+  "updated_at": "2024-06-01T14:22:00Z"
+}
+```
+
+### PATCH /tenants/current
+Update current tenant settings.
+
+**Request:**
+```json
+{
+  "name": "Acme Corporation Inc.",
+  "settings": {
+    "timezone": "America/Los_Angeles",
+    "block_page_url": "https://blocked.acme.com"
   }
 }
 ```
 
----
-
-## Tenant Endpoints
-
-### GET /tenants/me
-Get current tenant information.
-
-**Response** (200):
-```json
-{
-  "data": {
-    "id": "660e8400-e29b-41d4-a716-446655440000",
-    "name": "Acme Corp",
-    "domain": "acme-corp",
-    "status": "active",
-    "created_at": "2024-01-01T00:00:00Z"
-  }
-}
-```
-
-**Required Role**: Any authenticated user
+**Response (200):** Updated tenant object
 
 ---
 
-## User Management Endpoints
+## 3. Users
 
 ### GET /users
 List users in current tenant.
 
-**Query Parameters**:
-- `role` (optional): Filter by role
-- `status` (optional): Filter by status
-- `page` (optional, default: 1): Page number
-- `limit` (optional, default: 50): Results per page
+**Required Role:** admin, owner
 
-**Response** (200):
+**Query Parameters:**
+- `role` (optional): Filter by role
+- `status` (optional): `active`, `suspended`, `pending`
+- `cursor`, `limit`: Pagination
+
+**Response (200):**
 ```json
 {
   "data": [
     {
-      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "id": "usr_01H8EXAMPLE",
       "email": "admin@example.com",
-      "role": "owner",
+      "name": "John Admin",
+      "roles": ["admin"],
       "status": "active",
-      "last_login_at": "2024-01-15T09:00:00Z",
-      "created_at": "2024-01-01T00:00:00Z"
+      "last_login_at": "2024-06-15T09:00:00Z",
+      "created_at": "2024-01-15T10:30:00Z"
     }
   ],
-  "meta": {
-    "pagination": {
-      "page": 1,
-      "limit": 50,
-      "total": 1,
-      "pages": 1
-    }
+  "pagination": {
+    "next_cursor": null,
+    "has_more": false
   }
 }
 ```
 
-**Required Role**: `admin`, `owner`
-
----
-
 ### POST /users
-Create a new user.
+Create a new user (sends invite email).
 
-**Request**:
+**Required Role:** admin, owner
+
+**Request:**
 ```json
 {
   "email": "analyst@example.com",
-  "password": "secure-password",
-  "role": "analyst"
+  "name": "Jane Analyst",
+  "roles": ["analyst"]
 }
 ```
 
-**Response** (201):
+**Response (201):**
 ```json
 {
-  "data": {
-    "id": "770e8400-e29b-41d4-a716-446655440000",
-    "email": "analyst@example.com",
-    "role": "analyst",
-    "status": "active",
-    "created_at": "2024-01-15T10:30:00Z"
-  }
+  "id": "usr_01H8NEWUSER",
+  "email": "analyst@example.com",
+  "name": "Jane Analyst",
+  "roles": ["analyst"],
+  "status": "pending",
+  "invite_expires_at": "2024-06-22T10:30:00Z",
+  "created_at": "2024-06-15T10:30:00Z"
 }
 ```
 
-**Required Role**: `admin`, `owner`
+### GET /users/:id
+Get user by ID.
+
+**Response (200):** User object
+
+### PATCH /users/:id
+Update user.
+
+**Required Role:** admin, owner
+
+**Request:**
+```json
+{
+  "name": "Jane Senior Analyst",
+  "roles": ["analyst", "admin"]
+}
+```
+
+**Response (200):** Updated user object
+
+### DELETE /users/:id
+Deactivate user (soft delete).
+
+**Required Role:** owner (for admins), admin (for others)
+
+**Response (204):** No content
+
+### POST /users/:id/suspend
+Suspend user account.
+
+**Required Role:** admin, owner
+
+**Response (204):** No content
+
+### POST /users/:id/reactivate
+Reactivate suspended user.
+
+**Required Role:** admin, owner
+
+**Response (204):** No content
 
 ---
 
-### PATCH /users/{userId}
-Update user (role, status).
+## 4. Roles
 
-**Request**:
-```json
-{
-  "role": "admin",
-  "status": "suspended"
-}
-```
+### GET /roles
+List available roles.
 
-**Response** (200):
-```json
-{
-  "data": {
-    "id": "770e8400-e29b-41d4-a716-446655440000",
-    "email": "analyst@example.com",
-    "role": "admin",
-    "status": "suspended",
-    "updated_at": "2024-01-15T10:35:00Z"
-  }
-}
-```
-
-**Required Role**: `admin`, `owner`
-
----
-
-### DELETE /users/{userId}
-Delete user (soft delete).
-
-**Response** (204): No content
-
-**Required Role**: `admin`, `owner`
-
----
-
-## Policy Endpoints
-
-### GET /policies
-List policies for current tenant.
-
-**Query Parameters**:
-- `is_active` (optional): Filter by active status
-- `page`, `limit`: Pagination
-
-**Response** (200):
+**Response (200):**
 ```json
 {
   "data": [
     {
-      "id": "880e8400-e29b-41d4-a716-446655440000",
-      "name": "Default Policy",
-      "version": 1,
-      "is_active": true,
-      "config": {
-        "block_categories": ["malware", "phishing"],
-        "block_threats": true,
-        "safe_search_enabled": true
-      },
-      "created_at": "2024-01-01T00:00:00Z",
-      "created_by": "550e8400-e29b-41d4-a716-446655440000"
-    }
-  ],
-  "meta": {
-    "pagination": { ... }
-  }
-}
-```
-
-**Required Role**: `analyst`, `admin`, `owner`, `read_only`
-
----
-
-### GET /policies/{policyId}
-Get specific policy version.
-
-**Response** (200):
-```json
-{
-  "data": {
-    "id": "880e8400-e29b-41d4-a716-446655440000",
-    "name": "Default Policy",
-    "version": 1,
-    "is_active": true,
-    "config": {
-      "block_categories": ["malware", "phishing", "adult"],
-      "block_threats": true,
-      "safe_search_enabled": true,
-      "schedule": {
-        "timezone": "America/New_York",
-        "windows": [
-          {
-            "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
-            "start": "09:00",
-            "end": "17:00"
-          }
-        ]
-      }
+      "name": "owner",
+      "description": "Full access, can manage billing and delete tenant",
+      "permissions": ["*"]
     },
-    "created_at": "2024-01-01T00:00:00Z",
-    "created_by": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
-**Required Role**: `analyst`, `admin`, `owner`, `read_only`
-
----
-
-### POST /policies
-Create a new policy version.
-
-**Request**:
-```json
-{
-  "name": "Strict Policy",
-  "description": "Block all threats and adult content",
-  "config": {
-    "block_categories": ["malware", "phishing", "adult", "gambling"],
-    "block_threats": true,
-    "safe_search_enabled": true,
-    "allowlist_enabled": true,
-    "blocklist_enabled": true
-  }
-}
-```
-
-**Response** (201):
-```json
-{
-  "data": {
-    "id": "990e8400-e29b-41d4-a716-446655440000",
-    "name": "Strict Policy",
-    "version": 1,
-    "is_active": false,
-    "config": { ... },
-    "created_at": "2024-01-15T10:40:00Z",
-    "created_by": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
-**Required Role**: `admin`, `owner`
-
-**Note**: Creates new version. Does not automatically activate.
-
----
-
-### POST /policies/{policyId}/versions
-Create a new version from existing policy.
-
-**Request**:
-```json
-{
-  "config": {
-    "block_categories": ["malware", "phishing", "adult", "gambling", "social_media"],
-    "block_threats": true,
-    "safe_search_enabled": true
-  }
-}
-```
-
-**Response** (201):
-```json
-{
-  "data": {
-    "id": "aa0e8400-e29b-41d4-a716-446655440000",
-    "name": "Strict Policy",
-    "version": 2,
-    "is_active": false,
-    "config": { ... },
-    "created_at": "2024-01-15T10:45:00Z"
-  }
-}
-```
-
-**Required Role**: `admin`, `owner`
-
----
-
-### POST /policies/{policyId}/activate
-Activate a policy version (deactivates previous active version).
-
-**Response** (200):
-```json
-{
-  "data": {
-    "id": "aa0e8400-e29b-41d4-a716-446655440000",
-    "is_active": true,
-    "activated_at": "2024-01-15T10:50:00Z"
-  }
-}
-```
-
-**Required Role**: `admin`, `owner`
-
----
-
-## Location Endpoints
-
-### GET /locations
-List locations for current tenant.
-
-**Response** (200):
-```json
-{
-  "data": [
     {
-      "id": "bb0e8400-e29b-41d4-a716-446655440000",
-      "name": "Headquarters",
-      "description": "Main office network",
-      "status": "active",
-      "doh_token_issued_at": "2024-01-01T00:00:00Z",
-      "dot_cert_issued_at": "2024-01-01T00:00:00Z",
-      "dot_cert_expires_at": "2025-01-01T00:00:00Z",
-      "policy_id": "880e8400-e29b-41d4-a716-446655440000",
-      "created_at": "2024-01-01T00:00:00Z"
+      "name": "admin",
+      "description": "Manage users, policies, locations",
+      "permissions": [
+        "users:read", "users:write",
+        "policies:read", "policies:write",
+        "locations:read", "locations:write",
+        "lists:read", "lists:write",
+        "reports:read",
+        "audit:read"
+      ]
+    },
+    {
+      "name": "analyst",
+      "description": "View reports and logs",
+      "permissions": [
+        "policies:read",
+        "locations:read",
+        "lists:read",
+        "reports:read",
+        "logs:read"
+      ]
+    },
+    {
+      "name": "readonly",
+      "description": "View-only access",
+      "permissions": [
+        "policies:read",
+        "locations:read",
+        "reports:read"
+      ]
     }
   ]
 }
 ```
 
-**Required Role**: `analyst`, `admin`, `owner`, `read_only`
+---
+
+## 5. Policies
+
+### GET /policies
+List policies.
+
+**Query Parameters:**
+- `status` (optional): `active`, `archived`
+- `cursor`, `limit`: Pagination
+
+**Response (200):**
+```json
+{
+  "data": [
+    {
+      "id": "pol_01H8EXAMPLE",
+      "name": "Default Security Policy",
+      "description": "Standard protection for all locations",
+      "current_version": 3,
+      "status": "active",
+      "locations_count": 5,
+      "created_at": "2024-01-20T10:00:00Z",
+      "updated_at": "2024-06-10T15:00:00Z"
+    }
+  ],
+  "pagination": {
+    "next_cursor": null,
+    "has_more": false
+  }
+}
+```
+
+### POST /policies
+Create a new policy.
+
+**Required Role:** admin, owner
+
+**Request:**
+```json
+{
+  "name": "Strict Security Policy",
+  "description": "Enhanced protection for sensitive networks",
+  "config": {
+    "block_categories": [
+      "malware",
+      "phishing",
+      "adult",
+      "gambling",
+      "social_media"
+    ],
+    "threat_blocking": {
+      "enabled": true,
+      "feeds": ["malware", "phishing", "c2"]
+    },
+    "safesearch": {
+      "enabled": true,
+      "services": ["google", "bing", "youtube"]
+    },
+    "schedules": [
+      {
+        "name": "Block Social Media During Work",
+        "days": ["mon", "tue", "wed", "thu", "fri"],
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "timezone": "America/New_York",
+        "additional_categories": ["social_media", "streaming"]
+      }
+    ]
+  }
+}
+```
+
+**Response (201):**
+```json
+{
+  "id": "pol_01H8NEWPOL",
+  "name": "Strict Security Policy",
+  "description": "Enhanced protection for sensitive networks",
+  "current_version": 1,
+  "version_id": "pv_01H8VER001",
+  "status": "active",
+  "config": { ... },
+  "created_at": "2024-06-15T10:30:00Z",
+  "updated_at": "2024-06-15T10:30:00Z"
+}
+```
+
+### GET /policies/:id
+Get policy by ID.
+
+**Response (200):** Full policy object with current config
+
+### PATCH /policies/:id
+Update policy (creates new version).
+
+**Required Role:** admin, owner
+
+**Request:**
+```json
+{
+  "name": "Strict Security Policy v2",
+  "config": {
+    "block_categories": [
+      "malware",
+      "phishing",
+      "adult",
+      "gambling"
+    ],
+    "threat_blocking": {
+      "enabled": true,
+      "feeds": ["malware", "phishing", "c2", "cryptomining"]
+    }
+  }
+}
+```
+
+**Response (200):**
+```json
+{
+  "id": "pol_01H8NEWPOL",
+  "name": "Strict Security Policy v2",
+  "current_version": 2,
+  "version_id": "pv_01H8VER002",
+  "previous_version_id": "pv_01H8VER001",
+  "config": { ... },
+  "updated_at": "2024-06-15T11:00:00Z"
+}
+```
+
+### GET /policies/:id/versions
+List policy versions.
+
+**Response (200):**
+```json
+{
+  "data": [
+    {
+      "version_id": "pv_01H8VER002",
+      "version_number": 2,
+      "config": { ... },
+      "created_by": "usr_01H8EXAMPLE",
+      "created_at": "2024-06-15T11:00:00Z"
+    },
+    {
+      "version_id": "pv_01H8VER001",
+      "version_number": 1,
+      "config": { ... },
+      "created_by": "usr_01H8EXAMPLE",
+      "created_at": "2024-06-15T10:30:00Z"
+    }
+  ],
+  "pagination": { ... }
+}
+```
+
+### GET /policies/:id/versions/:version_id
+Get specific policy version.
+
+**Response (200):** Full policy version object
+
+### POST /policies/:id/rollback
+Rollback to a previous version.
+
+**Required Role:** admin, owner
+
+**Request:**
+```json
+{
+  "target_version_id": "pv_01H8VER001"
+}
+```
+
+**Response (200):** New policy object (creates new version with old config)
+
+### DELETE /policies/:id
+Archive policy (soft delete).
+
+**Required Role:** admin, owner
+
+**Response (204):** No content
 
 ---
+
+## 6. Locations
+
+### GET /locations
+List locations.
+
+**Query Parameters:**
+- `policy_id` (optional): Filter by policy
+- `status` (optional): `active`, `inactive`
+- `cursor`, `limit`: Pagination
+
+**Response (200):**
+```json
+{
+  "data": [
+    {
+      "id": "loc_01H8EXAMPLE",
+      "name": "Main Office",
+      "description": "Headquarters network",
+      "policy_id": "pol_01H8EXAMPLE",
+      "policy_name": "Default Security Policy",
+      "status": "active",
+      "auth_method": "doh_token",
+      "doh_endpoint": "https://dns.safedns.example.com/dns-query/loc_01H8EXAMPLE",
+      "dot_hostname": "loc_01H8EXAMPLE.dns.safedns.example.com",
+      "stats": {
+        "queries_today": 15420,
+        "blocks_today": 342
+      },
+      "created_at": "2024-02-01T09:00:00Z",
+      "updated_at": "2024-06-10T14:00:00Z"
+    }
+  ],
+  "pagination": { ... }
+}
+```
 
 ### POST /locations
 Create a new location.
 
-**Request**:
-```json
-{
-  "name": "Branch Office",
-  "description": "Remote office network"
-}
-```
+**Required Role:** admin, owner
 
-**Response** (201):
+**Request:**
 ```json
 {
-  "data": {
-    "id": "cc0e8400-e29b-41d4-a716-446655440000",
-    "name": "Branch Office",
-    "description": "Remote office network",
-    "status": "active",
-    "doh_token": "safedns_abc123def456...", // Only shown once
-    "doh_token_issued_at": "2024-01-15T11:00:00Z",
-    "dot_cert_pem": "-----BEGIN CERTIFICATE-----\n...", // Only shown once
-    "dot_cert_key_pem": "-----BEGIN PRIVATE KEY-----\n...", // Only shown once
-    "dot_cert_issued_at": "2024-01-15T11:00:00Z",
-    "dot_cert_expires_at": "2025-01-15T11:00:00Z",
-    "created_at": "2024-01-15T11:00:00Z"
+  "name": "Branch Office NYC",
+  "description": "New York branch network",
+  "policy_id": "pol_01H8EXAMPLE",
+  "auth_method": "doh_token",
+  "settings": {
+    "block_response": "nxdomain",
+    "edns_client_subnet": false
   }
 }
 ```
 
-**Required Role**: `admin`, `owner`
-
-**Note**: Token and cert are only returned on creation. Use rotate endpoints to regenerate.
-
----
-
-### POST /locations/{locationId}/rotate-doh-token
-Rotate DoH token (invalidates old token).
-
-**Response** (200):
+**Response (201):**
 ```json
 {
-  "data": {
-    "doh_token": "safedns_newxyz789...",
-    "doh_token_issued_at": "2024-01-15T11:05:00Z"
+  "id": "loc_01H8NEWLOC",
+  "name": "Branch Office NYC",
+  "description": "New York branch network",
+  "policy_id": "pol_01H8EXAMPLE",
+  "status": "active",
+  "auth_method": "doh_token",
+  "doh_endpoint": "https://dns.safedns.example.com/dns-query/loc_01H8NEWLOC",
+  "dot_hostname": "loc_01H8NEWLOC.dns.safedns.example.com",
+  "token": {
+    "id": "tok_01H8NEWTOK",
+    "token": "safedns_loc_a1b2c3d4e5f6...",
+    "created_at": "2024-06-15T10:30:00Z",
+    "expires_at": null
+  },
+  "settings": {
+    "block_response": "nxdomain",
+    "edns_client_subnet": false
+  },
+  "created_at": "2024-06-15T10:30:00Z"
+}
+```
+
+> **Note:** The `token` field is only returned on creation. Store it securely.
+
+### GET /locations/:id
+Get location by ID.
+
+**Response (200):** Location object (without token)
+
+### PATCH /locations/:id
+Update location.
+
+**Required Role:** admin, owner
+
+**Request:**
+```json
+{
+  "name": "Branch Office - NYC",
+  "policy_id": "pol_01H8OTHERPOL",
+  "settings": {
+    "block_response": "null_route"
   }
 }
 ```
 
-**Required Role**: `admin`, `owner`
+**Response (200):** Updated location object
 
----
+### DELETE /locations/:id
+Deactivate location.
 
-### POST /locations/{locationId}/rotate-dot-cert
-Rotate DoT certificate (invalidates old cert).
+**Required Role:** admin, owner
 
-**Response** (200):
+**Response (204):** No content
+
+### POST /locations/:id/tokens
+Generate new DoH token (rotates existing).
+
+**Required Role:** admin, owner
+
+**Request:**
 ```json
 {
-  "data": {
-    "dot_cert_pem": "-----BEGIN CERTIFICATE-----\n...",
-    "dot_cert_key_pem": "-----BEGIN PRIVATE KEY-----\n...",
-    "dot_cert_issued_at": "2024-01-15T11:05:00Z",
-    "dot_cert_expires_at": "2025-01-15T11:05:00Z"
-  }
+  "expires_in_days": 365,
+  "revoke_existing": true
 }
 ```
 
-**Required Role**: `admin`, `owner`
-
----
-
-### PATCH /locations/{locationId}/policy
-Assign policy to location.
-
-**Request**:
+**Response (201):**
 ```json
 {
-  "policy_id": "aa0e8400-e29b-41d4-a716-446655440000"
+  "id": "tok_01H8ROTTOK",
+  "token": "safedns_loc_x9y8z7w6v5u4...",
+  "created_at": "2024-06-15T12:00:00Z",
+  "expires_at": "2025-06-15T12:00:00Z",
+  "previous_token_revoked": true
 }
 ```
 
-**Response** (200):
-```json
-{
-  "data": {
-    "id": "bb0e8400-e29b-41d4-a716-446655440000",
-    "policy_id": "aa0e8400-e29b-41d4-a716-446655440000",
-    "activated_at": "2024-01-15T11:10:00Z"
-  }
-}
-```
+### GET /locations/:id/tokens
+List location tokens.
 
-**Required Role**: `admin`, `owner`
-
----
-
-## List Management Endpoints
-
-### GET /allowlists
-Get allowlist for current tenant.
-
-**Response** (200):
+**Response (200):**
 ```json
 {
   "data": [
     {
-      "id": "dd0e8400-e29b-41d4-a716-446655440000",
-      "domain": "*.internal.example.com",
-      "description": "Internal domains",
-      "created_at": "2024-01-01T00:00:00Z",
-      "created_by": "550e8400-e29b-41d4-a716-446655440000"
+      "id": "tok_01H8ROTTOK",
+      "prefix": "safedns_loc_x9y8...",
+      "status": "active",
+      "created_at": "2024-06-15T12:00:00Z",
+      "expires_at": "2025-06-15T12:00:00Z",
+      "last_used_at": "2024-06-15T14:30:00Z"
     }
   ]
 }
 ```
 
-**Required Role**: `analyst`, `admin`, `owner`, `read_only`
+### DELETE /locations/:id/tokens/:token_id
+Revoke specific token.
 
----
+**Required Role:** admin, owner
 
-### POST /allowlists
-Add domain to allowlist.
+**Response (204):** No content
 
-**Request**:
+### POST /locations/:id/certificates
+Generate mTLS client certificate for DoT.
+
+**Required Role:** admin, owner
+
+**Request:**
 ```json
 {
-  "domain": "example.com",
-  "description": "Allowed domain"
+  "common_name": "branch-nyc-router",
+  "expires_in_days": 730,
+  "key_type": "ecdsa-p256"
 }
 ```
 
-**Response** (201):
+**Response (201):**
 ```json
 {
-  "data": {
-    "id": "ee0e8400-e29b-41d4-a716-446655440000",
-    "domain": "example.com",
-    "description": "Allowed domain",
-    "created_at": "2024-01-15T11:15:00Z"
-  }
+  "id": "cert_01H8NEWCRT",
+  "common_name": "branch-nyc-router",
+  "fingerprint_sha256": "AB:CD:EF:12:34:...",
+  "not_before": "2024-06-15T12:00:00Z",
+  "not_after": "2026-06-15T12:00:00Z",
+  "certificate_pem": "-----BEGIN CERTIFICATE-----\n...",
+  "private_key_pem": "-----BEGIN EC PRIVATE KEY-----\n...",
+  "ca_certificate_pem": "-----BEGIN CERTIFICATE-----\n..."
 }
 ```
 
-**Required Role**: `admin`, `owner`
+> **Warning:** The `private_key_pem` is only returned once. Store it securely.
 
----
+### GET /locations/:id/certificates
+List location certificates.
 
-### DELETE /allowlists/{allowlistId}
-Remove domain from allowlist.
-
-**Response** (204): No content
-
-**Required Role**: `admin`, `owner`
-
----
-
-### GET /blocklists
-Get blocklist for current tenant.
-
-**Response** (200): Same format as allowlists
-
-**Required Role**: `analyst`, `admin`, `owner`, `read_only`
-
----
-
-### POST /blocklists
-Add domain to blocklist.
-
-**Request**:
+**Response (200):**
 ```json
 {
-  "domain": "malicious-site.com",
-  "description": "Known malicious domain"
+  "data": [
+    {
+      "id": "cert_01H8NEWCRT",
+      "common_name": "branch-nyc-router",
+      "fingerprint_sha256": "AB:CD:EF:12:34:...",
+      "status": "active",
+      "not_before": "2024-06-15T12:00:00Z",
+      "not_after": "2026-06-15T12:00:00Z",
+      "last_used_at": "2024-06-15T18:00:00Z"
+    }
+  ]
 }
 ```
 
-**Response** (201): Same format as allowlists
+### DELETE /locations/:id/certificates/:cert_id
+Revoke certificate.
 
-**Required Role**: `admin`, `owner`
+**Required Role:** admin, owner
 
----
-
-### DELETE /blocklists/{blocklistId}
-Remove domain from blocklist.
-
-**Response** (204): No content
-
-**Required Role**: `admin`, `owner`
+**Response (204):** No content
 
 ---
 
-## Report Endpoints
+## 7. Custom Lists (Allowlist/Blocklist)
 
-### GET /reports/blocked-domains
+### GET /lists
+List custom lists.
+
+**Query Parameters:**
+- `type` (optional): `allowlist`, `blocklist`
+- `cursor`, `limit`: Pagination
+
+**Response (200):**
+```json
+{
+  "data": [
+    {
+      "id": "lst_01H8EXAMPLE",
+      "name": "Company Approved Sites",
+      "type": "allowlist",
+      "description": "Manually approved domains",
+      "entries_count": 42,
+      "policies": [
+        { "id": "pol_01H8EXAMPLE", "name": "Default Security Policy" }
+      ],
+      "created_at": "2024-02-01T09:00:00Z",
+      "updated_at": "2024-06-14T16:00:00Z"
+    }
+  ],
+  "pagination": { ... }
+}
+```
+
+### POST /lists
+Create a new list.
+
+**Required Role:** admin, owner
+
+**Request:**
+```json
+{
+  "name": "Blocked Competitors",
+  "type": "blocklist",
+  "description": "Block access to competitor domains"
+}
+```
+
+**Response (201):**
+```json
+{
+  "id": "lst_01H8NEWLST",
+  "name": "Blocked Competitors",
+  "type": "blocklist",
+  "description": "Block access to competitor domains",
+  "entries_count": 0,
+  "created_at": "2024-06-15T10:30:00Z"
+}
+```
+
+### GET /lists/:id
+Get list by ID.
+
+**Response (200):** List object
+
+### PATCH /lists/:id
+Update list metadata.
+
+**Required Role:** admin, owner
+
+**Request:**
+```json
+{
+  "name": "Blocked Competitor Sites",
+  "description": "Updated description"
+}
+```
+
+**Response (200):** Updated list object
+
+### DELETE /lists/:id
+Delete list.
+
+**Required Role:** admin, owner
+
+**Response (204):** No content
+
+### GET /lists/:id/entries
+List entries in a list.
+
+**Query Parameters:**
+- `search` (optional): Search domain pattern
+- `cursor`, `limit`: Pagination
+
+**Response (200):**
+```json
+{
+  "data": [
+    {
+      "id": "ent_01H8ENT001",
+      "domain": "example.com",
+      "type": "exact",
+      "comment": "Main competitor site",
+      "created_at": "2024-06-15T10:35:00Z",
+      "created_by": "usr_01H8EXAMPLE"
+    },
+    {
+      "id": "ent_01H8ENT002",
+      "domain": "*.competitor.com",
+      "type": "wildcard",
+      "comment": "All competitor subdomains",
+      "created_at": "2024-06-15T10:36:00Z",
+      "created_by": "usr_01H8EXAMPLE"
+    }
+  ],
+  "pagination": { ... }
+}
+```
+
+### POST /lists/:id/entries
+Add entries to list.
+
+**Required Role:** admin, owner
+
+**Request:**
+```json
+{
+  "entries": [
+    {
+      "domain": "newcompetitor.com",
+      "comment": "New competitor"
+    },
+    {
+      "domain": "*.newcompetitor.com",
+      "comment": "New competitor subdomains"
+    }
+  ]
+}
+```
+
+**Response (201):**
+```json
+{
+  "added": 2,
+  "duplicates": 0,
+  "entries": [
+    {
+      "id": "ent_01H8ENT003",
+      "domain": "newcompetitor.com",
+      "type": "exact"
+    },
+    {
+      "id": "ent_01H8ENT004",
+      "domain": "*.newcompetitor.com",
+      "type": "wildcard"
+    }
+  ]
+}
+```
+
+### DELETE /lists/:id/entries/:entry_id
+Remove entry from list.
+
+**Required Role:** admin, owner
+
+**Response (204):** No content
+
+### POST /lists/:id/entries/bulk-delete
+Remove multiple entries.
+
+**Required Role:** admin, owner
+
+**Request:**
+```json
+{
+  "entry_ids": ["ent_01H8ENT001", "ent_01H8ENT002"]
+}
+```
+
+**Response (200):**
+```json
+{
+  "deleted": 2
+}
+```
+
+### POST /lists/:id/import
+Import entries from file/text.
+
+**Required Role:** admin, owner
+
+**Request (multipart/form-data or JSON):**
+```json
+{
+  "format": "domains",
+  "content": "domain1.com\ndomain2.com\n*.domain3.com",
+  "replace_existing": false
+}
+```
+
+**Response (200):**
+```json
+{
+  "imported": 3,
+  "duplicates": 0,
+  "invalid": 0,
+  "errors": []
+}
+```
+
+---
+
+## 8. Categories
+
+### GET /categories
+List available domain categories.
+
+**Response (200):**
+```json
+{
+  "data": [
+    {
+      "id": "cat_malware",
+      "name": "Malware",
+      "description": "Sites hosting or distributing malware",
+      "group": "security",
+      "is_threat": true
+    },
+    {
+      "id": "cat_phishing",
+      "name": "Phishing",
+      "description": "Phishing and credential theft sites",
+      "group": "security",
+      "is_threat": true
+    },
+    {
+      "id": "cat_adult",
+      "name": "Adult Content",
+      "description": "Pornography and explicit content",
+      "group": "content",
+      "is_threat": false
+    },
+    {
+      "id": "cat_social_media",
+      "name": "Social Media",
+      "description": "Social networking sites",
+      "group": "productivity",
+      "is_threat": false
+    },
+    {
+      "id": "cat_gambling",
+      "name": "Gambling",
+      "description": "Online gambling and betting sites",
+      "group": "content",
+      "is_threat": false
+    },
+    {
+      "id": "cat_streaming",
+      "name": "Streaming Media",
+      "description": "Video and audio streaming services",
+      "group": "productivity",
+      "is_threat": false
+    }
+  ]
+}
+```
+
+### GET /categories/:id/domains
+Lookup domains in a category (for debugging).
+
+**Required Role:** admin, owner
+
+**Query Parameters:**
+- `search`: Domain search pattern
+- `limit`: Max results (default 100)
+
+**Response (200):**
+```json
+{
+  "category": "adult",
+  "domains": [
+    { "domain": "example-adult.com", "source": "feed" },
+    { "domain": "*.adult-site.com", "source": "feed" }
+  ],
+  "total_count": 1542000,
+  "showing": 100
+}
+```
+
+---
+
+## 9. Reports & Analytics
+
+### GET /reports/summary
+Get high-level statistics.
+
+**Query Parameters:**
+- `start_date` (required): ISO date (e.g., `2024-06-01`)
+- `end_date` (required): ISO date (e.g., `2024-06-15`)
+- `location_id` (optional): Filter by location
+- `granularity` (optional): `hour`, `day`, `week` (default: `day`)
+
+**Response (200):**
+```json
+{
+  "period": {
+    "start": "2024-06-01T00:00:00Z",
+    "end": "2024-06-15T23:59:59Z"
+  },
+  "totals": {
+    "total_queries": 1542890,
+    "allowed_queries": 1498234,
+    "blocked_queries": 44656,
+    "rewritten_queries": 2341,
+    "block_rate_percent": 2.89
+  },
+  "by_action": [
+    { "action": "allow", "count": 1498234 },
+    { "action": "block", "count": 44656 },
+    { "action": "rewrite", "count": 2341 }
+  ],
+  "timeline": [
+    {
+      "timestamp": "2024-06-01T00:00:00Z",
+      "total": 98234,
+      "blocked": 2841
+    },
+    {
+      "timestamp": "2024-06-02T00:00:00Z",
+      "total": 102456,
+      "blocked": 3102
+    }
+  ]
+}
+```
+
+### GET /reports/top-blocked
 Get top blocked domains.
 
-**Query Parameters**:
-- `location_id` (optional): Filter by location
-- `start_time` (required): ISO 8601 timestamp
-- `end_time` (required): ISO 8601 timestamp
-- `limit` (optional, default: 100): Number of results
+**Query Parameters:**
+- `start_date`, `end_date` (required)
+- `location_id` (optional)
+- `limit` (optional, default 25, max 100)
 
-**Response** (200):
+**Response (200):**
 ```json
 {
-  "data": [
+  "period": {
+    "start": "2024-06-01T00:00:00Z",
+    "end": "2024-06-15T23:59:59Z"
+  },
+  "domains": [
     {
-      "domain": "malicious-site.com",
-      "block_count": 1523,
-      "first_blocked": "2024-01-15T08:00:00Z",
-      "last_blocked": "2024-01-15T12:00:00Z",
-      "reason": "threat:malware"
+      "domain": "malware-domain.com",
+      "count": 1542,
+      "category": "malware",
+      "reason": "threat_feed",
+      "first_seen": "2024-06-01T08:23:00Z",
+      "last_seen": "2024-06-15T22:41:00Z"
+    },
+    {
+      "domain": "facebook.com",
+      "count": 892,
+      "category": "social_media",
+      "reason": "category_block",
+      "first_seen": "2024-06-01T09:00:00Z",
+      "last_seen": "2024-06-15T17:00:00Z"
     }
-  ],
-  "meta": {
-    "start_time": "2024-01-15T00:00:00Z",
-    "end_time": "2024-01-15T23:59:59Z",
-    "total_blocks": 1523
-  }
+  ]
 }
 ```
-
-**Required Role**: `analyst`, `admin`, `owner`, `read_only`
-
----
 
 ### GET /reports/blocks-by-category
-Get blocks grouped by category.
+Get block counts grouped by category.
 
-**Query Parameters**:
+**Query Parameters:**
+- `start_date`, `end_date` (required)
 - `location_id` (optional)
-- `start_time` (required)
-- `end_time` (required)
 
-**Response** (200):
+**Response (200):**
+```json
+{
+  "period": {
+    "start": "2024-06-01T00:00:00Z",
+    "end": "2024-06-15T23:59:59Z"
+  },
+  "categories": [
+    { "category": "malware", "count": 12456, "percent": 27.9 },
+    { "category": "phishing", "count": 8923, "percent": 20.0 },
+    { "category": "adult", "count": 7234, "percent": 16.2 },
+    { "category": "social_media", "count": 6543, "percent": 14.6 },
+    { "category": "gambling", "count": 4521, "percent": 10.1 },
+    { "category": "other", "count": 4979, "percent": 11.2 }
+  ]
+}
+```
+
+### GET /reports/threats
+Get threat detection summary.
+
+**Query Parameters:**
+- `start_date`, `end_date` (required)
+- `location_id` (optional)
+- `threat_type` (optional): `malware`, `phishing`, `c2`, `cryptomining`
+
+**Response (200):**
+```json
+{
+  "period": {
+    "start": "2024-06-01T00:00:00Z",
+    "end": "2024-06-15T23:59:59Z"
+  },
+  "summary": {
+    "total_threats_blocked": 21379,
+    "unique_threat_domains": 423,
+    "locations_affected": 8
+  },
+  "by_type": [
+    { "type": "malware", "count": 12456, "unique_domains": 234 },
+    { "type": "phishing", "count": 8923, "unique_domains": 189 }
+  ],
+  "trend": [
+    { "date": "2024-06-01", "malware": 823, "phishing": 612 },
+    { "date": "2024-06-02", "malware": 756, "phishing": 589 }
+  ],
+  "top_threats": [
+    {
+      "domain": "malicious-download.xyz",
+      "type": "malware",
+      "count": 342,
+      "feed_source": "malwarebazaar"
+    }
+  ]
+}
+```
+
+### GET /reports/locations
+Get per-location statistics.
+
+**Query Parameters:**
+- `start_date`, `end_date` (required)
+
+**Response (200):**
+```json
+{
+  "period": {
+    "start": "2024-06-01T00:00:00Z",
+    "end": "2024-06-15T23:59:59Z"
+  },
+  "locations": [
+    {
+      "location_id": "loc_01H8EXAMPLE",
+      "location_name": "Main Office",
+      "total_queries": 892456,
+      "blocked_queries": 24532,
+      "block_rate_percent": 2.75,
+      "top_blocked_category": "social_media"
+    }
+  ]
+}
+```
+
+---
+
+## 10. Query Logs
+
+### GET /logs/queries
+Query DNS logs (with filters).
+
+**Required Role:** analyst, admin, owner
+
+**Query Parameters:**
+- `start_time`, `end_time` (required): ISO timestamps
+- `location_id` (optional)
+- `action` (optional): `allow`, `block`, `rewrite`
+- `domain` (optional): Search pattern (supports `*` wildcard)
+- `category` (optional)
+- `cursor`, `limit`: Pagination (max 1000)
+
+**Response (200):**
 ```json
 {
   "data": [
     {
+      "id": "log_01H8LOG001",
+      "timestamp": "2024-06-15T14:32:01.234Z",
+      "location_id": "loc_01H8EXAMPLE",
+      "location_name": "Main Office",
+      "qname": "malware-site.com",
+      "qtype": "A",
+      "action": "block",
+      "reason": "threat_feed:malware",
       "category": "malware",
-      "block_count": 5234,
-      "percentage": 45.2
-    },
-    {
-      "category": "phishing",
-      "block_count": 3121,
-      "percentage": 27.0
+      "policy_version": "pv_01H8VER001",
+      "response_code": "NXDOMAIN",
+      "latency_ms": 2.3
     }
   ],
-  "meta": {
-    "start_time": "2024-01-15T00:00:00Z",
-    "end_time": "2024-01-15T23:59:59Z",
-    "total_blocks": 11567
+  "pagination": {
+    "next_cursor": "eyJ0cyI6IjIwMjQtMDYtMTVUMTQ6MzI6MDAuMDAwWiJ9",
+    "has_more": true
   }
 }
 ```
 
-**Required Role**: `analyst`, `admin`, `owner`, `read_only`
+### GET /logs/queries/export
+Export query logs (async).
 
----
+**Required Role:** admin, owner
 
-### GET /reports/threat-trends
-Get threat blocking trends over time.
+**Query Parameters:**
+- Same filters as `/logs/queries`
+- `format`: `csv`, `json`
 
-**Query Parameters**:
-- `location_id` (optional)
-- `start_time` (required)
-- `end_time` (required)
-- `interval` (optional, default: "1h"): Aggregation interval (1h, 1d)
-
-**Response** (200):
+**Response (202):**
 ```json
 {
-  "data": [
-    {
-      "timestamp": "2024-01-15T00:00:00Z",
-      "malware_blocks": 234,
-      "phishing_blocks": 156,
-      "c2_blocks": 12,
-      "total_blocks": 402
-    },
-    {
-      "timestamp": "2024-01-15T01:00:00Z",
-      "malware_blocks": 198,
-      "phishing_blocks": 142,
-      "c2_blocks": 8,
-      "total_blocks": 348
-    }
-  ],
-  "meta": {
-    "start_time": "2024-01-15T00:00:00Z",
-    "end_time": "2024-01-15T23:59:59Z",
-    "interval": "1h"
-  }
+  "export_id": "exp_01H8EXPORT",
+  "status": "processing",
+  "estimated_rows": 150000,
+  "expires_at": "2024-06-16T14:32:00Z"
 }
 ```
 
-**Required Role**: `analyst`, `admin`, `owner`, `read_only`
+### GET /logs/queries/export/:export_id
+Check export status / download.
+
+**Response (200) - Processing:**
+```json
+{
+  "export_id": "exp_01H8EXPORT",
+  "status": "processing",
+  "progress_percent": 45
+}
+```
+
+**Response (200) - Complete:**
+```json
+{
+  "export_id": "exp_01H8EXPORT",
+  "status": "complete",
+  "download_url": "https://exports.safedns.example.com/exp_01H8EXPORT.csv?token=...",
+  "expires_at": "2024-06-16T14:32:00Z",
+  "file_size_bytes": 15234567,
+  "row_count": 150234
+}
+```
 
 ---
 
-## Audit Log Endpoints
+## 11. Audit Logs
 
 ### GET /audit-logs
-Get audit logs for current tenant.
+List admin action audit logs.
 
-**Query Parameters**:
-- `user_id` (optional): Filter by user
-- `action` (optional): Filter by action
-- `resource_type` (optional): Filter by resource type
-- `start_time` (optional)
-- `end_time` (optional)
-- `page`, `limit`: Pagination
+**Required Role:** admin, owner
 
-**Response** (200):
+**Query Parameters:**
+- `start_time`, `end_time` (optional)
+- `user_id` (optional)
+- `resource_type` (optional): `user`, `policy`, `location`, `list`
+- `action` (optional): `create`, `update`, `delete`
+- `cursor`, `limit`: Pagination
+
+**Response (200):**
 ```json
 {
   "data": [
     {
-      "id": "ff0e8400-e29b-41d4-a716-446655440000",
-      "user_id": "550e8400-e29b-41d4-a716-446655440000",
-      "action": "policy.created",
+      "id": "aud_01H8AUDIT01",
+      "timestamp": "2024-06-15T10:30:00Z",
+      "user_id": "usr_01H8EXAMPLE",
+      "user_email": "admin@example.com",
+      "action": "update",
       "resource_type": "policy",
-      "resource_id": "aa0e8400-e29b-41d4-a716-446655440000",
-      "details": {
-        "policy_name": "Strict Policy",
-        "version": 2
+      "resource_id": "pol_01H8EXAMPLE",
+      "resource_name": "Default Security Policy",
+      "changes": {
+        "config.block_categories": {
+          "added": ["gambling"],
+          "removed": []
+        }
       },
       "ip_address": "192.168.1.100",
-      "created_at": "2024-01-15T10:45:00Z"
+      "user_agent": "Mozilla/5.0..."
     }
   ],
-  "meta": {
-    "pagination": { ... }
-  }
+  "pagination": { ... }
 }
 ```
 
-**Required Role**: `admin`, `owner`
+---
+
+## 12. System / Health
+
+### GET /health
+Health check (unauthenticated).
+
+**Response (200):**
+```json
+{
+  "status": "healthy",
+  "version": "1.2.3",
+  "timestamp": "2024-06-15T14:32:00Z"
+}
+```
+
+### GET /health/detailed
+Detailed health check.
+
+**Required Role:** admin, owner
+
+**Response (200):**
+```json
+{
+  "status": "healthy",
+  "version": "1.2.3",
+  "components": {
+    "database": { "status": "healthy", "latency_ms": 2 },
+    "redis": { "status": "healthy", "latency_ms": 1 },
+    "clickhouse": { "status": "healthy", "latency_ms": 5 }
+  },
+  "timestamp": "2024-06-15T14:32:00Z"
+}
+```
 
 ---
 
-## Rate Limiting
+## Error Response Format
 
-- **Authentication endpoints**: 5 requests per minute per IP
-- **Read endpoints**: 100 requests per minute per user
-- **Write endpoints**: 20 requests per minute per user
-- **Report endpoints**: 10 requests per minute per user
+All error responses follow this structure:
 
-Rate limit headers:
+```json
+{
+  "error": "error_code",
+  "message": "Human-readable error message",
+  "details": {
+    "field": "Additional context if applicable"
+  },
+  "request_id": "req_01H8REQID"
+}
+```
+
+### Common Error Codes
+| Code | Description |
+|------|-------------|
+| `validation_error` | Request body validation failed |
+| `invalid_credentials` | Authentication failed |
+| `token_expired` | JWT has expired |
+| `forbidden` | Insufficient permissions |
+| `not_found` | Resource not found |
+| `conflict` | Resource already exists |
+| `rate_limited` | Too many requests |
+| `internal_error` | Server error |
+
+---
+
+## Rate Limits
+
+Control Plane API rate limits:
+
+| Endpoint Type | Limit |
+|---------------|-------|
+| Authentication | 10 req/min per IP |
+| Read operations | 100 req/min per user |
+| Write operations | 30 req/min per user |
+| Report queries | 20 req/min per user |
+| Log exports | 5 req/hour per tenant |
+
+Rate limit headers are included in all responses:
 ```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95
-X-RateLimit-Reset: 1642248000
+X-RateLimit-Reset: 1718458320
 ```
+
+---
+
+## Webhooks (Future)
+
+Webhook support for events:
+- `policy.updated`
+- `location.created`
+- `location.token.rotated`
+- `threat.detected` (batch)
+
+Configuration via `/webhooks` endpoints (to be documented).
