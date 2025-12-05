@@ -1,0 +1,160 @@
+version: '3.8'
+
+services:
+  # PostgreSQL - Control plane database
+  postgres:
+    image: postgres:15-alpine
+    container_name: safedns-postgres
+    environment:
+      POSTGRES_USER: safedns
+      POSTGRES_PASSWORD: safedns_dev_password
+      POSTGRES_DB: safedns
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U safedns"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis - Policy cache and rate limiting
+  redis:
+    image: redis:7-alpine
+    container_name: safedns-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ClickHouse - DNS query logs
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: safedns-clickhouse
+    ports:
+      - "8123:8123" # HTTP interface
+      - "9000:9000" # Native interface
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./scripts/init-clickhouse.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      CLICKHOUSE_DB: safedns
+      CLICKHOUSE_USER: safedns
+      CLICKHOUSE_PASSWORD: safedns_dev_password
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NestJS API Service
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: safedns-api
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://safedns:safedns_dev_password@postgres:5432/safedns
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev_jwt_secret_change_in_production
+      JWT_EXPIRES_IN: 3600
+      CLICKHOUSE_URL: http://clickhouse:8123
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: npm run start:dev
+
+  # Next.js Web UI
+  ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    container_name: safedns-ui
+    ports:
+      - "3001:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+      NODE_ENV: development
+    volumes:
+      - ./ui:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - api
+
+  # Policy Decision Service (Go)
+  policy-service:
+    build:
+      context: ./policy-service
+      dockerfile: Dockerfile
+    container_name: safedns-policy-service
+    ports:
+      - "8053:8053"
+    environment:
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: info
+    volumes:
+      - ./policy-service:/app
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: ./policy-service
+
+  # Unbound - Recursive DNS resolver
+  unbound:
+    image: mvance/unbound:latest
+    container_name: safedns-unbound
+    ports:
+      - "5300:53/udp"
+      - "5300:53/tcp"
+    volumes:
+      - ./config/unbound/unbound.conf:/etc/unbound/unbound.conf
+    command: unbound -d -v
+    healthcheck:
+      test: ["CMD", "dig", "@127.0.0.1", "-p", "53", "example.com"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # dnsdist - DNS edge router
+  dnsdist:
+    build:
+      context: ./dnsdist
+      dockerfile: Dockerfile
+    container_name: safedns-dnsdist
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+      - "443:443/tcp" # DoH
+      - "853:853/tcp" # DoT
+    environment:
+      REDIS_URL: redis://redis:6379
+      POLICY_SERVICE_URL: http://policy-service:8053
+    volumes:
+      - ./config/dnsdist:/etc/dnsdist
+    depends_on:
+      - policy-service
+      - unbound
+      - redis
+    command: dnsdist --uid=dnsdist --gid=dnsdist --supervised --disable-syslog
+
+volumes:
+  postgres_data:
+  redis_data:
+  clickhouse_data:
