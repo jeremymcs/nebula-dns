@@ -1,3 +1,8 @@
+// Nebula DNS - Enterprise DNS Security Platform
+// Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
+//
+// Policy Decision Service - Main Entry Point
+
 package main
 
 import (
@@ -13,9 +18,9 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 
-	"github.com/safedns/policy-svc/internal/cache"
-	"github.com/safedns/policy-svc/internal/handlers"
-	"github.com/safedns/policy-svc/internal/policy"
+	"github.com/nebuladns/policy-svc/internal/cache"
+	"github.com/nebuladns/policy-svc/internal/handlers"
+	"github.com/nebuladns/policy-svc/internal/policy"
 )
 
 func main() {
@@ -95,7 +100,7 @@ func main() {
 
 	// Graceful shutdown
 	go func() {
-		sugar.Infow("Starting policy service", "port", port, "failMode", failMode)
+		sugar.Infow("Starting Nebula DNS policy service", "port", port, "failMode", failMode)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			sugar.Fatalw("Failed to start server", "error", err)
 		}

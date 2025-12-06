@@ -1,3 +1,8 @@
+// Nebula DNS - Enterprise DNS Security Platform
+// Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
+//
+// HTTP Handlers for Policy Service
+
 package handlers
 
 import (
@@ -9,8 +14,8 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/safedns/policy-svc/internal/models"
-	"github.com/safedns/policy-svc/internal/policy"
+	"github.com/nebuladns/policy-svc/internal/models"
+	"github.com/nebuladns/policy-svc/internal/policy"
 )
 
 // Handlers contains HTTP handlers for the policy service

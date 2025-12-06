@@ -1,6 +1,7 @@
 {
-  "name": "safedns-ui",
+  "name": "nebula-dns-ui",
   "version": "0.1.0",
+  "author": "Jeremy McSpadden <jeremy@fluxlabs.net>",
   "private": true,
   "scripts": {
     "dev": "next dev",

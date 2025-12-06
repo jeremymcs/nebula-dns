@@ -1,3 +1,10 @@
+/**
+ * Nebula DNS - Enterprise DNS Security Platform
+ * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
+ * 
+ * Global Styles
+ */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

@@ -1,16 +1,19 @@
-# SafeDNS API Dockerfile
+# Nebula DNS API Dockerfile
+# Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 # Development stage
 FROM node:20-alpine AS development
 
 WORKDIR /app
 
+# Install nest CLI globally for development
+RUN npm install -g @nestjs/cli
+
+# Only copy package files initially - source will be mounted as volume
 COPY package*.json ./
-RUN npm ci
 
-COPY . .
-
-CMD ["npm", "run", "start:dev"]
+# Install deps and start dev server
+CMD npm install && npm run start:dev
 
 # Build stage
 FROM node:20-alpine AS build

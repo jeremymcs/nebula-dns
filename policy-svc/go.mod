@@ -1,4 +1,4 @@
-module github.com/safedns/policy-svc
+module github.com/nebuladns/policy-svc
 
 go 1.21
 

@@ -7,6 +7,9 @@ export const CurrentTenant = createParamDecorator(
   },
 );
 
+// Alias for backward compatibility
+export const Tenant = CurrentTenant;
+
 export const CurrentUser = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();

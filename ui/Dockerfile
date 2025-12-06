@@ -1,16 +1,16 @@
-# SafeDNS UI Dockerfile
+# Nebula DNS UI Dockerfile
+# Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 # Development stage
 FROM node:20-alpine AS development
 
 WORKDIR /app
 
+# Only copy package files initially - source will be mounted as volume
 COPY package*.json ./
-RUN npm ci
 
-COPY . .
-
-CMD ["npm", "run", "dev"]
+# Install deps and start dev server
+CMD npm install && npm run dev
 
 # Build stage
 FROM node:20-alpine AS builder

@@ -1,7 +1,6 @@
-# SafeDNS - Docker Compose for Local Development
+# Nebula DNS - Docker Compose for Local Development
+# Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
 # Usage: docker compose up -d
-
-version: "3.8"
 
 services:
   # ============================================
@@ -12,13 +11,14 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-    container_name: safedns-api
+      target: development
+    container_name: nebula-api
     ports:
       - "3000:3000"
     environment:
       NODE_ENV: development
       PORT: 3000
-      DATABASE_URL: postgresql://safedns:safedns@postgres:5432/safedns
+      DATABASE_URL: postgresql://nebula:nebula@postgres:5432/nebula
       REDIS_URL: redis://redis:6379
       CLICKHOUSE_URL: http://clickhouse:8123
       JWT_SECRET: dev-jwt-secret-change-in-production
@@ -34,18 +34,20 @@ services:
       - ./api:/app
       - /app/node_modules
     networks:
-      - safedns-network
+      - nebula-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   ui:
     build:
       context: ./ui
       dockerfile: Dockerfile
-    container_name: safedns-ui
+      target: development
+    container_name: nebula-ui
     ports:
       - "3001:3000"
     environment:
@@ -55,9 +57,8 @@ services:
     volumes:
       - ./ui:/app
       - /app/node_modules
-      - /app/.next
     networks:
-      - safedns-network
+      - nebula-network
 
   # ============================================
   # DATA PLANE
@@ -67,7 +68,7 @@ services:
     build:
       context: ./config/dnsdist
       dockerfile: Dockerfile
-    container_name: safedns-dnsdist
+    container_name: nebula-dnsdist
     ports:
       - "853:853/tcp"   # DoT
       - "443:443/tcp"   # DoH
@@ -80,7 +81,7 @@ services:
       - ./config/dnsdist/dnsdist.conf:/etc/dnsdist/dnsdist.conf:ro
       - ./config/certs:/etc/dnsdist/certs:ro
     networks:
-      - safedns-network
+      - nebula-network
     cap_add:
       - NET_BIND_SERVICE
 
@@ -88,14 +89,14 @@ services:
     build:
       context: ./policy-svc
       dockerfile: Dockerfile
-    container_name: safedns-policy-svc
+    container_name: nebula-policy-svc
     ports:
       - "8080:8080"
     environment:
       PORT: 8080
       REDIS_URL: redis:6379
       CLICKHOUSE_URL: http://clickhouse:8123
-      POSTGRES_URL: postgresql://safedns:safedns@postgres:5432/safedns
+      POSTGRES_URL: postgresql://nebula:nebula@postgres:5432/nebula
       LOG_LEVEL: debug
       FAIL_MODE: open
     depends_on:
@@ -104,7 +105,7 @@ services:
       clickhouse:
         condition: service_healthy
     networks:
-      - safedns-network
+      - nebula-network
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
       interval: 10s
@@ -115,14 +116,14 @@ services:
     build:
       context: ./config/unbound
       dockerfile: Dockerfile
-    container_name: safedns-unbound
+    container_name: nebula-unbound
     ports:
-      - "5353:53/udp"
-      - "5353:53/tcp"
+      - "5354:53/udp"
+      - "5354:53/tcp"
     volumes:
       - ./config/unbound/unbound.conf:/etc/unbound/unbound.conf:ro
     networks:
-      - safedns-network
+      - nebula-network
     healthcheck:
       test: ["CMD", "drill", "@127.0.0.1", "google.com"]
       interval: 10s
@@ -135,34 +136,34 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: safedns-postgres
+    container_name: nebula-postgres
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: safedns
-      POSTGRES_PASSWORD: safedns
-      POSTGRES_DB: safedns
+      POSTGRES_USER: nebula
+      POSTGRES_PASSWORD: nebula
+      POSTGRES_DB: nebula
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./scripts/init-postgres.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
-      - safedns-network
+      - nebula-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U safedns -d safedns"]
+      test: ["CMD-SHELL", "pg_isready -U nebula -d nebula"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: safedns-redis
+    container_name: nebula-redis
     ports:
       - "6379:6379"
     command: redis-server --appendonly yes
     volumes:
       - redis-data:/data
     networks:
-      - safedns-network
+      - nebula-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -171,19 +172,19 @@ services:
 
   clickhouse:
     image: clickhouse/clickhouse-server:24.1
-    container_name: safedns-clickhouse
+    container_name: nebula-clickhouse
     ports:
       - "8123:8123"  # HTTP
-      - "9000:9000"  # Native
+      - "9440:9000"  # Native (mapped to 9440 to avoid conflicts)
     environment:
-      CLICKHOUSE_USER: safedns
-      CLICKHOUSE_PASSWORD: safedns
+      CLICKHOUSE_USER: nebula
+      CLICKHOUSE_PASSWORD: nebula
       CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
     volumes:
       - clickhouse-data:/var/lib/clickhouse
       - ./scripts/init-clickhouse.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
-      - safedns-network
+      - nebula-network
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:8123/ping"]
       interval: 5s
@@ -197,27 +198,27 @@ services:
   # Adminer for PostgreSQL management
   adminer:
     image: adminer:latest
-    container_name: safedns-adminer
+    container_name: nebula-adminer
     ports:
       - "8081:8080"
     networks:
-      - safedns-network
+      - nebula-network
     profiles:
       - dev-tools
 
   # RedisInsight for Redis management
   redis-insight:
     image: redislabs/redisinsight:latest
-    container_name: safedns-redis-insight
+    container_name: nebula-redis-insight
     ports:
       - "8082:8001"
     networks:
-      - safedns-network
+      - nebula-network
     profiles:
       - dev-tools
 
 networks:
-  safedns-network:
+  nebula-network:
     driver: bridge
 
 volumes:

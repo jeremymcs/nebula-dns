@@ -1,3 +1,10 @@
+/**
+ * Nebula DNS - Enterprise DNS Security Platform
+ * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
+ * 
+ * Login Page Component
+ */
+
 'use client'
 
 import { useState } from 'react'
@@ -49,10 +56,10 @@ export default function LoginPage() {
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-          SafeDNS
+          Nebula DNS
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          DNS Security & Content Filtering
+          Enterprise DNS Security & Content Filtering
         </p>
       </div>
 

@@ -10,7 +10,7 @@ export class TenantsService {
     private tenantsRepository: Repository<Tenant>,
   ) {}
 
-  async findOne(id: string): Promise<Tenant> {
+  async findOne(id: string): Promise<Tenant | null> {
     return this.tenantsRepository.findOne({ where: { id } });
   }
 }

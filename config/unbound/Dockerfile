@@ -1,4 +1,5 @@
-# Unbound Dockerfile for SafeDNS
+# Nebula DNS - Unbound Dockerfile
+# Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 FROM alpine:3.19
 
