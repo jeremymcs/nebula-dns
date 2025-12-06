@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
@@ -12,6 +13,10 @@ import { ReportsModule } from './modules/reports/reports.module';
 import { HealthModule } from './modules/health/health.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { EmailModule } from './modules/email/email.module';
+import { MfaModule } from './modules/mfa/mfa.module';
+import { ScheduledReportsModule } from './modules/scheduled-reports/scheduled-reports.module';
+import { SsoModule } from './modules/sso/sso.module';
+import { AgentsModule } from './modules/agents/agents.module';
 
 @Module({
   imports: [
@@ -20,6 +25,9 @@ import { EmailModule } from './modules/email/email.module';
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
     }),
+
+    // Task Scheduling
+    ScheduleModule.forRoot(),
 
     // Database
     TypeOrmModule.forRootAsync({
@@ -49,6 +57,12 @@ import { EmailModule } from './modules/email/email.module';
     HealthModule,
     SubscriptionsModule,
     EmailModule,
+    
+    // P1 Features
+    MfaModule,
+    ScheduledReportsModule,
+    SsoModule,
+    AgentsModule,
   ],
 })
 export class AppModule {}
