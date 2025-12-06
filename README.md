@@ -15,6 +15,8 @@ Nebula DNS is an enterprise-grade DNS security and content filtering platform th
 - **Webhooks** - Real-time event notifications
 - **MFA & SSO** - Multi-factor authentication and SAML/OIDC single sign-on
 - **Scheduled Reports** - Automated email reports
+- **Stripe Payments** - Subscription billing with Stripe
+- **Metrics & Monitoring** - Prometheus-compatible metrics endpoint
 
 ## Architecture
 
@@ -47,50 +49,33 @@ Nebula DNS is an enterprise-grade DNS security and content filtering platform th
 ### Prerequisites
 
 - Docker and Docker Compose
-- Node.js 18+ (for local development)
+- Node.js 20+ (for local development)
 - Go 1.21+ (for policy service development)
 
 ### Environment Setup
 
-1. Copy the example environment file:
+1. Copy the example environment files:
 
 ```bash
 cp .env.example .env
+cp api/.env.example api/.env
+cp ui/.env.example ui/.env
 ```
 
-2. Configure the environment variables in `.env`:
-
-```env
-# PostgreSQL
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=your-secure-password
-POSTGRES_DB=nebula_dns
-
-# Redis
-REDIS_URL=redis://redis:6379
-
-# ClickHouse
-CLICKHOUSE_HOST=clickhouse
-CLICKHOUSE_PORT=8123
-CLICKHOUSE_DATABASE=nebula_dns
-CLICKHOUSE_USER=default
-CLICKHOUSE_PASSWORD=
-
-# JWT
-JWT_SECRET=your-jwt-secret-min-32-chars
-JWT_EXPIRES_IN=1h
-
-# API
-API_URL=http://localhost:3000
-FRONTEND_URL=http://localhost:3001
-```
+2. Configure the environment variables (see `.env.example` for all options)
 
 ### Running with Docker Compose
 
-Start all services:
+#### Development
 
 ```bash
 docker-compose up -d
+```
+
+#### Production
+
+```bash
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
 This will start:
@@ -100,7 +85,7 @@ This will start:
 - **API** (port 3000) - NestJS backend
 - **UI** (port 3001) - Next.js frontend
 - **Policy Service** (port 8080) - Go-based policy engine
-- **dnsdist** (port 53) - DNS load balancer
+- **dnsdist** (port 853/443) - DNS frontend (DoT/DoH)
 - **Unbound** (internal) - Recursive resolver
 
 ### Local Development
@@ -129,36 +114,82 @@ go mod download
 go run cmd/main.go
 ```
 
-## Configuration
+## Production Deployment
 
-### DNS Configuration
+### Kubernetes
 
-Point your DNS to the Nebula DNS resolvers:
+Deploy to Kubernetes using Kustomize:
 
-- **Primary**: Your server IP, port 53
-- **DoH**: `https://your-server/dns-query?token=<location-token>`
-- **DoT**: `your-server:853`
+```bash
+# Apply base configuration
+kubectl apply -k k8s/base
 
-### Policy Configuration
+# Apply production overlay
+kubectl apply -k k8s/overlays/production
+```
 
-Policies support:
-- Category-based blocking (adult, gambling, malware, etc.)
-- Threat feeds (malware, phishing, C2)
-- SafeSearch enforcement
-- Custom allow/block lists
-- Block response types (NXDOMAIN, REFUSED, custom IP)
+### Environment Variables
 
-### Block Page Configuration
+Required for production:
 
-Customize the block page with:
-- Company branding (logo, colors)
-- Custom messages
-- Access request forms
-- Contact information
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `REDIS_URL` | Redis connection string |
+| `JWT_SECRET` | Secret for JWT signing (min 64 chars) |
+| `SENDGRID_API_KEY` | SendGrid API key for emails |
+| `STRIPE_SECRET_KEY` | Stripe secret key for payments |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
+| `SENTRY_DSN` | Sentry DSN for error tracking |
+
+### Database Migrations
+
+Run database migrations:
+
+```bash
+cd api
+npm run migration:run
+```
+
+Generate a new migration:
+
+```bash
+npm run migration:generate -- src/database/migrations/MigrationName
+```
+
+## Monitoring & Observability
+
+### Health Checks
+
+- API: `GET /health`
+- Policy Service: `GET /health`
+
+### Prometheus Metrics
+
+Metrics are exposed at `/metrics` on the API:
+
+```bash
+curl http://localhost:3000/metrics
+```
+
+Available metrics:
+- `http_requests_total` - Total HTTP requests
+- `http_request_duration_seconds` - Request latency histogram
+- `nodejs_heap_size_bytes` - Memory usage
+- `process_uptime_seconds` - Service uptime
+
+### Sentry Error Tracking
+
+Enable Sentry by setting `SENTRY_DSN` in your environment.
+
+### Logging
+
+- Development: Human-readable colored output
+- Production: JSON-formatted logs for log aggregators
 
 ## API Documentation
 
-The API documentation is available at `http://localhost:3000/api/docs` when running in development mode.
+The API documentation is available at `http://localhost:3000/api/docs` (Swagger UI).
 
 ### Authentication
 
@@ -177,47 +208,64 @@ curl -H "Authorization: Bearer <token>" http://localhost:3000/api/v1/policies
 | `GET /locations` | List locations |
 | `GET /reports/summary` | Get dashboard statistics |
 | `GET /reports/logs` | Get query logs |
+| `POST /payments/checkout` | Create Stripe checkout session |
+| `GET /metrics` | Prometheus metrics |
 
-## Database Migrations
+## Testing
 
-Run database migrations:
+### API Tests
 
 ```bash
 cd api
-npm run migration:run
+npm run test          # Unit tests
+npm run test:e2e      # E2E tests
+npm run test:cov      # Coverage report
 ```
 
-Generate a new migration:
+### Policy Service Tests
 
 ```bash
-npm run migration:generate src/database/migrations/MigrationName
+cd policy-svc
+go test ./...         # All tests
+go test -bench=.      # Benchmarks
 ```
 
-## Monitoring
+## CI/CD
 
-### Health Checks
+GitHub Actions workflows are provided for:
 
-- API: `http://localhost:3000/health`
-- Policy Service: `http://localhost:8080/health`
+- **CI** (`.github/workflows/ci.yml`): Runs on PRs and pushes to main
+  - API linting and tests
+  - UI type checking and build
+  - Policy service tests
+  - Docker image builds
+  - Security scanning (Trivy)
 
-### Logs
+- **Release** (`.github/workflows/release.yml`): Runs on version tags
+  - Builds and pushes Docker images
+  - Creates GitHub releases
 
-View logs with Docker Compose:
+## Security
 
-```bash
-docker-compose logs -f api
-docker-compose logs -f policy-svc
-docker-compose logs -f dnsdist
-```
+### Built-in Security Features
 
-## Security Considerations
+- **Rate Limiting** - Configurable per-endpoint rate limits
+- **Security Headers** - HSTS, CSP, X-Frame-Options, etc.
+- **JWT Authentication** - Short-lived access tokens with refresh
+- **Password Hashing** - bcrypt with configurable rounds
+- **MFA Support** - TOTP-based two-factor authentication
+- **RBAC** - Role-based access control (owner, admin, analyst, readonly)
 
-1. **Change default passwords** in production
-2. **Enable HTTPS** using a reverse proxy (nginx, Caddy)
-3. **Configure firewall** rules for DNS ports
-4. **Enable MFA** for admin accounts
-5. **Rotate JWT secrets** periodically
-6. **Encrypt sensitive data** at rest
+### Production Checklist
+
+- [ ] Change all default passwords
+- [ ] Use real TLS certificates (not self-signed)
+- [ ] Enable MFA for admin accounts
+- [ ] Configure firewall rules
+- [ ] Set up log aggregation
+- [ ] Configure backup strategy
+- [ ] Enable Sentry error tracking
+- [ ] Set up monitoring alerts
 
 ## License
 

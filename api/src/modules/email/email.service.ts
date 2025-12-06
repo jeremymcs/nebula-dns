@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as sgMail from '@sendgrid/mail';
 
 export interface WelcomeEmailData {
   to: string;
@@ -39,11 +40,12 @@ export interface InviteUserEmailData {
 }
 
 @Injectable()
-export class EmailService {
+export class EmailService implements OnModuleInit {
   private readonly logger = new Logger(EmailService.name);
   private readonly fromEmail: string;
   private readonly fromName: string;
   private readonly sendgridApiKey: string;
+  private isConfigured = false;
 
   constructor(private configService: ConfigService) {
     this.fromEmail = this.configService.get('EMAIL_FROM_ADDRESS', 'noreply@safedns.example.com');
@@ -51,44 +53,52 @@ export class EmailService {
     this.sendgridApiKey = this.configService.get('SENDGRID_API_KEY', '');
   }
 
+  onModuleInit() {
+    if (this.sendgridApiKey) {
+      sgMail.setApiKey(this.sendgridApiKey);
+      this.isConfigured = true;
+      this.logger.log('SendGrid email service initialized');
+    } else {
+      this.logger.warn('SendGrid API key not configured - emails will be logged only');
+    }
+  }
+
   private async sendEmail(to: string, subject: string, htmlContent: string, textContent?: string): Promise<boolean> {
-    if (!this.sendgridApiKey) {
+    if (!this.isConfigured) {
       // Development mode - log the email
       this.logger.log(`[DEV] Email to: ${to}`);
       this.logger.log(`[DEV] Subject: ${subject}`);
-      this.logger.log(`[DEV] Content preview: ${textContent?.substring(0, 200) || htmlContent.substring(0, 200)}...`);
+      this.logger.log(`[DEV] Content preview: ${(textContent || htmlContent).substring(0, 200)}...`);
       return true;
     }
 
     try {
-      const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.sendgridApiKey}`,
-          'Content-Type': 'application/json',
+      const msg = {
+        to,
+        from: {
+          email: this.fromEmail,
+          name: this.fromName,
         },
-        body: JSON.stringify({
-          personalizations: [{ to: [{ email: to }] }],
-          from: { email: this.fromEmail, name: this.fromName },
-          subject,
-          content: [
-            { type: 'text/plain', value: textContent || htmlContent.replace(/<[^>]*>/g, '') },
-            { type: 'text/html', value: htmlContent },
-          ],
-        }),
-      });
+        subject,
+        text: textContent || this.stripHtml(htmlContent),
+        html: htmlContent,
+      };
 
-      if (!response.ok) {
-        const error = await response.text();
-        this.logger.error(`Failed to send email: ${error}`);
-        return false;
-      }
-
+      await sgMail.send(msg);
+      this.logger.log(`Email sent successfully to ${to}`);
       return true;
-    } catch (error) {
-      this.logger.error('Email sending error:', error);
+    } catch (error: any) {
+      this.logger.error(`Failed to send email to ${to}:`, error?.response?.body || error);
       return false;
     }
+  }
+
+  private stripHtml(html: string): string {
+    return html
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<[^>]+>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   async sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean> {

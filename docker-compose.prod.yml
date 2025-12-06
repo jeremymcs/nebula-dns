@@ -1,0 +1,227 @@
+# Nebula DNS - Production Docker Compose
+# Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
+#
+# NOTE: This is for production-like environments (staging, testing).
+# For actual production, use Kubernetes with the provided manifests.
+
+version: '3.8'
+
+services:
+  # ============================================
+  # API Service
+  # ============================================
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    image: ghcr.io/nebuladns/api:${TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL:-https://app.example.com}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      SENTRY_DSN: ${SENTRY_DSN}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # ============================================
+  # UI Service
+  # ============================================
+  ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${API_URL:-https://api.example.com}
+    image: ghcr.io/nebuladns/ui:${TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      NODE_ENV: production
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  # ============================================
+  # Policy Service
+  # ============================================
+  policy-svc:
+    build:
+      context: ./policy-svc
+      dockerfile: Dockerfile
+    image: ghcr.io/nebuladns/policy-svc:${TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      REDIS_URL: redis://redis:6379
+      CLICKHOUSE_URL: ${CLICKHOUSE_URL:-http://clickhouse:8123}
+      LOG_LEVEL: info
+      FAIL_CLOSED: "false"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  # ============================================
+  # dnsdist (DNS Frontend)
+  # ============================================
+  dnsdist:
+    build:
+      context: ./config/dnsdist
+      dockerfile: Dockerfile
+    image: ghcr.io/nebuladns/dnsdist:${TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "443:443/tcp"      # DoH
+      - "853:853/tcp"      # DoT
+    volumes:
+      - ./config/dnsdist/dnsdist.prod.conf:/etc/dnsdist/dnsdist.conf:ro
+      - ./config/certs:/etc/dnsdist/certs:ro
+    environment:
+      POLICY_SVC_URL: http://policy-svc:8080
+      DNSDIST_API_KEY: ${DNSDIST_API_KEY}
+    depends_on:
+      - policy-svc
+      - unbound
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+
+  # ============================================
+  # Unbound (DNS Resolver)
+  # ============================================
+  unbound:
+    build:
+      context: ./config/unbound
+      dockerfile: Dockerfile
+    image: ghcr.io/nebuladns/unbound:${TAG:-latest}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  # ============================================
+  # PostgreSQL
+  # ============================================
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-postgres.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+
+  # ============================================
+  # Redis
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 768M
+
+  # ============================================
+  # ClickHouse (Query Logs)
+  # ============================================
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.8
+    restart: unless-stopped
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./scripts/init-clickhouse-retention.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    environment:
+      CLICKHOUSE_DB: nebula_dns
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-default}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+
+volumes:
+  postgres_data:
+  redis_data:
+  clickhouse_data:
+
+networks:
+  default:
+    name: nebula-dns

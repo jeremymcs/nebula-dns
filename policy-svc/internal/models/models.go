@@ -2,6 +2,14 @@ package models
 
 import "time"
 
+// TokenInfo contains validated token information
+type TokenInfo struct {
+	TenantID   string
+	LocationID string
+	RateLimit  int
+	ExpiresAt  time.Time
+}
+
 // EvaluateRequest represents a DNS query evaluation request from dnsdist
 type EvaluateRequest struct {
 	TenantID   string `json:"tenant_id"`

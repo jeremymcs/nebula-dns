@@ -21,6 +21,8 @@ import { ClickHouseModule } from './modules/clickhouse/clickhouse.module';
 import { MetricsModule } from './modules/metrics/metrics.module';
 import { MetricsMiddleware } from './modules/metrics/metrics.middleware';
 import { SecurityHeadersMiddleware, RateLimitMiddleware } from './common/middleware';
+import { SentryModule, SentryInterceptor } from './common/sentry/sentry.module';
+import { LoggerModule } from './common/logger/logger.module';
 
 // P2 Features
 import { BlockPagesModule } from './modules/block-pages/block-pages.module';
@@ -28,13 +30,27 @@ import { ApiKeysModule } from './modules/api-keys/api-keys.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
 import { SiemModule } from './modules/siem/siem.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
-    // Configuration
+    // Configuration with validation
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
+      load: [require('./config/configuration').default],
+      validate: (config) => {
+        // Only validate in production for required vars
+        if (process.env.NODE_ENV === 'production') {
+          const required = ['DATABASE_URL', 'REDIS_URL', 'JWT_SECRET'];
+          for (const key of required) {
+            if (!config[key]) {
+              throw new Error(`Missing required environment variable: ${key}`);
+            }
+          }
+        }
+        return config;
+      },
     }),
 
     // Task Scheduling
@@ -48,8 +64,11 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
         type: 'postgres',
         url: configService.get<string>('DATABASE_URL'),
         autoLoadEntities: true,
-        synchronize: configService.get<string>('NODE_ENV') === 'development',
-        logging: configService.get<string>('NODE_ENV') === 'development',
+        // NEVER use synchronize in production - use migrations instead
+        synchronize: false,
+        migrationsRun: configService.get<string>('NODE_ENV') === 'production',
+        migrations: ['dist/database/migrations/*.js'],
+        logging: configService.get<string>('NODE_ENV') === 'development' ? true : ['error'],
         ssl:
           configService.get<string>('NODE_ENV') === 'production'
             ? { rejectUnauthorized: false }
@@ -84,9 +103,12 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     InvitationsModule,
     SiemModule,
     WebhooksModule,
+    PaymentsModule,
 
-    // Observability
+    // Observability & Logging
     MetricsModule,
+    SentryModule.forRootAsync(),
+    LoggerModule,
   ],
 })
 export class AppModule implements NestModule {
