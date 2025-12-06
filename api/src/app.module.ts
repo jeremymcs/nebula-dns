@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -18,6 +18,9 @@ import { ScheduledReportsModule } from './modules/scheduled-reports/scheduled-re
 import { SsoModule } from './modules/sso/sso.module';
 import { AgentsModule } from './modules/agents/agents.module';
 import { ClickHouseModule } from './modules/clickhouse/clickhouse.module';
+import { MetricsModule } from './modules/metrics/metrics.module';
+import { MetricsMiddleware } from './modules/metrics/metrics.middleware';
+import { SecurityHeadersMiddleware, RateLimitMiddleware } from './common/middleware';
 
 // P2 Features
 import { BlockPagesModule } from './modules/block-pages/block-pages.module';
@@ -81,6 +84,15 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     InvitationsModule,
     SiemModule,
     WebhooksModule,
+
+    // Observability
+    MetricsModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(SecurityHeadersMiddleware, RateLimitMiddleware, MetricsMiddleware)
+      .forRoutes('*');
+  }
+}
