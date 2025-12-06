@@ -7,18 +7,57 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { 
-  CalendarIcon,
   ArrowDownTrayIcon,
-  ChartBarIcon,
   ShieldExclamationIcon,
   GlobeAltIcon,
-  ClockIcon
+  ClockIcon,
+  CalendarDaysIcon
 } from '@heroicons/react/24/outline'
+import { LineChart, DonutChart, BarChart, ProgressRing } from '@/components/Charts'
+
+// Generate mock trend data for the charts
+const generateTrendData = (days: number) => {
+  const data = []
+  const now = new Date()
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date(now)
+    date.setDate(date.getDate() - i)
+    data.push({
+      label: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      value: Math.floor(Math.random() * 50000) + 100000,
+    })
+  }
+  return data
+}
 
 export default function ReportsPage() {
   const [dateRange, setDateRange] = useState('7d')
+
+  const trendData = useMemo(() => {
+    const days = dateRange === '24h' ? 24 : dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90
+    return generateTrendData(days)
+  }, [dateRange])
+
+  const blockReasonData = [
+    { label: 'Adult Content', value: 15000, color: '#ef4444' },
+    { label: 'Social Media', value: 12000, color: '#3b82f6' },
+    { label: 'Malware', value: 8000, color: '#f97316' },
+    { label: 'Advertising', value: 7500, color: '#eab308' },
+    { label: 'Phishing', value: 3500, color: '#8b5cf6' },
+    { label: 'Other', value: 2500, color: '#6b7280' },
+  ]
+
+  const threatTrendData = [
+    { label: 'Mon', value: 120 },
+    { label: 'Tue', value: 145 },
+    { label: 'Wed', value: 98 },
+    { label: 'Thu', value: 167 },
+    { label: 'Fri', value: 132 },
+    { label: 'Sat', value: 78 },
+    { label: 'Sun', value: 56 },
+  ]
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -30,16 +69,19 @@ export default function ReportsPage() {
           </p>
         </div>
         <div className="mt-4 sm:mt-0 flex items-center space-x-3">
-          <select
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
-            className="input"
-          >
-            <option value="24h">Last 24 hours</option>
-            <option value="7d">Last 7 days</option>
-            <option value="30d">Last 30 days</option>
-            <option value="90d">Last 90 days</option>
-          </select>
+          <div className="relative">
+            <CalendarDaysIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <select
+              value={dateRange}
+              onChange={(e) => setDateRange(e.target.value)}
+              className="input pl-10"
+            >
+              <option value="24h">Last 24 hours</option>
+              <option value="7d">Last 7 days</option>
+              <option value="30d">Last 30 days</option>
+              <option value="90d">Last 90 days</option>
+            </select>
+          </div>
           <button className="btn-secondary inline-flex items-center">
             <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
             Export
@@ -52,12 +94,14 @@ export default function ReportsPage() {
         <div className="card p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <GlobeAltIcon className="h-8 w-8 text-blue-600" />
+              <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                <GlobeAltIcon className="h-7 w-7 text-blue-600" />
+              </div>
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Total Queries</p>
               <p className="text-2xl font-semibold text-gray-900">1.2M</p>
-              <p className="text-sm text-green-600">+12% from last period</p>
+              <p className="text-sm text-green-600">↑ 12% from last period</p>
             </div>
           </div>
         </div>
@@ -65,12 +109,14 @@ export default function ReportsPage() {
         <div className="card p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <ShieldExclamationIcon className="h-8 w-8 text-red-600" />
+              <div className="h-12 w-12 rounded-lg bg-red-100 flex items-center justify-center">
+                <ShieldExclamationIcon className="h-7 w-7 text-red-600" />
+              </div>
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Blocked</p>
               <p className="text-2xl font-semibold text-gray-900">48.5K</p>
-              <p className="text-sm text-red-600">4.0% of total</p>
+              <p className="text-sm text-gray-500">4.0% of total</p>
             </div>
           </div>
         </div>
@@ -78,7 +124,9 @@ export default function ReportsPage() {
         <div className="card p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <ShieldExclamationIcon className="h-8 w-8 text-orange-600" />
+              <div className="h-12 w-12 rounded-lg bg-orange-100 flex items-center justify-center">
+                <ShieldExclamationIcon className="h-7 w-7 text-orange-600" />
+              </div>
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Threats Blocked</p>
@@ -91,12 +139,14 @@ export default function ReportsPage() {
         <div className="card p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <ClockIcon className="h-8 w-8 text-green-600" />
+              <div className="h-12 w-12 rounded-lg bg-green-100 flex items-center justify-center">
+                <ClockIcon className="h-7 w-7 text-green-600" />
+              </div>
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Avg Response</p>
               <p className="text-2xl font-semibold text-gray-900">12ms</p>
-              <p className="text-sm text-green-600">-2ms from last period</p>
+              <p className="text-sm text-green-600">↓ 2ms from last period</p>
             </div>
           </div>
         </div>
@@ -104,43 +154,73 @@ export default function ReportsPage() {
 
       {/* Charts Section */}
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Query Trends Chart Placeholder */}
+        {/* Query Trends Chart */}
         <div className="card p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Query Trends</h3>
-          <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-            <div className="text-center">
-              <ChartBarIcon className="h-12 w-12 text-gray-400 mx-auto" />
-              <p className="mt-2 text-sm text-gray-500">Query trend chart</p>
-              <p className="text-xs text-gray-400">Shows queries over time</p>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-medium text-gray-900">Query Trends</h3>
+            <div className="flex items-center space-x-4 text-sm">
+              <span className="flex items-center">
+                <span className="h-2 w-2 rounded-full bg-primary-500 mr-2" />
+                Total Queries
+              </span>
+            </div>
+          </div>
+          <LineChart data={trendData} height={260} color="#4f46e5" />
+        </div>
+
+        {/* Block Reasons Donut Chart */}
+        <div className="card p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Blocks by Category</h3>
+          <div className="flex items-center justify-center py-4">
+            <DonutChart data={blockReasonData} size={180} thickness={35} />
+          </div>
+        </div>
+      </div>
+
+      {/* Secondary Charts */}
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Threat Trends */}
+        <div className="card p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Threat Activity</h3>
+          <BarChart 
+            data={threatTrendData.map(d => ({ ...d, color: '#f97316' }))} 
+            height={200} 
+          />
+        </div>
+
+        {/* Block Rate */}
+        <div className="card p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Block Rate</h3>
+          <div className="flex items-center justify-center py-4">
+            <ProgressRing value={4} max={100} size={140} strokeWidth={12} color="#ef4444" label="of queries" />
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-4 text-center">
+            <div>
+              <p className="text-2xl font-semibold text-gray-900">48.5K</p>
+              <p className="text-sm text-gray-500">Blocked</p>
+            </div>
+            <div>
+              <p className="text-2xl font-semibold text-gray-900">1.15M</p>
+              <p className="text-sm text-gray-500">Allowed</p>
             </div>
           </div>
         </div>
 
-        {/* Block Reasons Chart Placeholder */}
+        {/* Cache Performance */}
         <div className="card p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Block Reasons</h3>
-          <div className="space-y-4">
-            {[
-              { reason: 'Category: Adult', count: 15000, percentage: 31, color: 'bg-red-500' },
-              { reason: 'Category: Social Media', count: 12000, percentage: 25, color: 'bg-blue-500' },
-              { reason: 'Threat: Malware', count: 8000, percentage: 16, color: 'bg-orange-500' },
-              { reason: 'Category: Advertising', count: 7500, percentage: 15, color: 'bg-yellow-500' },
-              { reason: 'Threat: Phishing', count: 3500, percentage: 7, color: 'bg-purple-500' },
-              { reason: 'Other', count: 2500, percentage: 6, color: 'bg-gray-500' },
-            ].map((item) => (
-              <div key={item.reason}>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-700">{item.reason}</span>
-                  <span className="text-gray-500">{item.count.toLocaleString()} ({item.percentage}%)</span>
-                </div>
-                <div className="mt-1 h-2 rounded-full bg-gray-200">
-                  <div
-                    className={`h-2 rounded-full ${item.color}`}
-                    style={{ width: `${item.percentage}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Cache Performance</h3>
+          <div className="flex items-center justify-center py-4">
+            <ProgressRing value={78} max={100} size={140} strokeWidth={12} color="#22c55e" label="hit rate" />
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-4 text-center">
+            <div>
+              <p className="text-2xl font-semibold text-gray-900">936K</p>
+              <p className="text-sm text-gray-500">Cache Hits</p>
+            </div>
+            <div>
+              <p className="text-2xl font-semibold text-gray-900">264K</p>
+              <p className="text-sm text-gray-500">Cache Misses</p>
+            </div>
           </div>
         </div>
       </div>
