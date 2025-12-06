@@ -19,6 +19,8 @@ import {
   ChartBarIcon,
   UsersIcon,
   Cog6ToothIcon,
+  NoSymbolIcon,
+  ComputerDesktopIcon,
 } from '@heroicons/react/24/outline'
 
 const navigation = [
@@ -26,6 +28,8 @@ const navigation = [
   { name: 'Policies', href: '/dashboard/policies', icon: ShieldCheckIcon },
   { name: 'Locations', href: '/dashboard/locations', icon: MapPinIcon },
   { name: 'Custom Lists', href: '/dashboard/lists', icon: ListBulletIcon },
+  { name: 'Block Pages', href: '/dashboard/block-pages', icon: NoSymbolIcon },
+  { name: 'Agents', href: '/dashboard/agents', icon: ComputerDesktopIcon },
   { name: 'Query Logs', href: '/dashboard/logs', icon: DocumentTextIcon },
   { name: 'Reports', href: '/dashboard/reports', icon: ChartBarIcon },
   { name: 'Users', href: '/dashboard/users', icon: UsersIcon },

@@ -18,6 +18,13 @@ import { ScheduledReportsModule } from './modules/scheduled-reports/scheduled-re
 import { SsoModule } from './modules/sso/sso.module';
 import { AgentsModule } from './modules/agents/agents.module';
 
+// P2 Features
+import { BlockPagesModule } from './modules/block-pages/block-pages.module';
+import { ApiKeysModule } from './modules/api-keys/api-keys.module';
+import { InvitationsModule } from './modules/invitations/invitations.module';
+import { SiemModule } from './modules/siem/siem.module';
+import { WebhooksModule } from './modules/webhooks/webhooks.module';
+
 @Module({
   imports: [
     // Configuration
@@ -63,6 +70,13 @@ import { AgentsModule } from './modules/agents/agents.module';
     ScheduledReportsModule,
     SsoModule,
     AgentsModule,
+
+    // P2 Features
+    BlockPagesModule,
+    ApiKeysModule,
+    InvitationsModule,
+    SiemModule,
+    WebhooksModule,
   ],
 })
 export class AppModule {}

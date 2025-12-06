@@ -457,4 +457,298 @@ CREATE INDEX idx_onboarding_tenant ON onboarding_progress(tenant_id);
 INSERT INTO subscriptions (tenant_id, plan_id, status, billing_cycle, current_period_start, current_period_end) VALUES
     ('550e8400-e29b-41d4-a716-446655440000', 'pro', 'active', 'monthly', NOW(), NOW() + INTERVAL '30 days');
 
+-- ============================================
+-- P1 FEATURES: MFA
+-- ============================================
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS mfa_enabled BOOLEAN DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS mfa_enforced BOOLEAN DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMP WITH TIME ZONE;
+
+CREATE TABLE IF NOT EXISTS user_mfa (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+    secret_encrypted TEXT NOT NULL,
+    is_enabled BOOLEAN DEFAULT FALSE,
+    verified_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS mfa_backup_codes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    code_hash VARCHAR(255) NOT NULL,
+    is_used BOOLEAN DEFAULT FALSE,
+    used_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_mfa_backup_codes_user ON mfa_backup_codes(user_id);
+
+-- ============================================
+-- P1 FEATURES: SCHEDULED REPORTS
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS scheduled_reports (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    created_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    report_type VARCHAR(50) NOT NULL,
+    schedule_frequency VARCHAR(20) NOT NULL CHECK (schedule_frequency IN ('daily', 'weekly', 'monthly')),
+    schedule_time TIME NOT NULL DEFAULT '09:00',
+    schedule_day INTEGER,
+    schedule_timezone VARCHAR(50) DEFAULT 'UTC',
+    recipients JSONB NOT NULL DEFAULT '[]',
+    format VARCHAR(20) DEFAULT 'pdf' CHECK (format IN ('pdf', 'csv', 'xlsx')),
+    filters JSONB DEFAULT '{}',
+    is_enabled BOOLEAN DEFAULT TRUE,
+    last_run_at TIMESTAMP WITH TIME ZONE,
+    next_run_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_scheduled_reports_tenant ON scheduled_reports(tenant_id);
+
+CREATE TABLE IF NOT EXISTS report_history (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    scheduled_report_id UUID NOT NULL REFERENCES scheduled_reports(id) ON DELETE CASCADE,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('pending', 'generating', 'completed', 'failed')),
+    file_url TEXT,
+    file_size INTEGER,
+    error_message TEXT,
+    recipients_notified JSONB,
+    started_at TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_report_history_scheduled ON report_history(scheduled_report_id);
+
+-- ============================================
+-- P1 FEATURES: SSO
+-- ============================================
+
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS sso_enabled BOOLEAN DEFAULT FALSE;
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS sso_enforced BOOLEAN DEFAULT FALSE;
+
+CREATE TABLE IF NOT EXISTS sso_configurations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE UNIQUE,
+    provider_type VARCHAR(20) NOT NULL CHECK (provider_type IN ('saml', 'oidc')),
+    is_enabled BOOLEAN DEFAULT FALSE,
+    allow_password_login BOOLEAN DEFAULT TRUE,
+    auto_provision_users BOOLEAN DEFAULT TRUE,
+    default_role VARCHAR(20) DEFAULT 'readonly',
+    saml_entity_id TEXT,
+    saml_sso_url TEXT,
+    saml_certificate TEXT,
+    saml_name_id_format VARCHAR(100),
+    oidc_issuer TEXT,
+    oidc_client_id VARCHAR(255),
+    oidc_client_secret_encrypted TEXT,
+    oidc_scopes TEXT,
+    attribute_mapping JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================
+-- P1 FEATURES: CLIENT AGENTS
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS agent_installations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    location_id UUID REFERENCES locations(id) ON DELETE SET NULL,
+    device_id VARCHAR(255) NOT NULL,
+    device_name VARCHAR(255),
+    platform VARCHAR(20) NOT NULL CHECK (platform IN ('windows', 'macos', 'linux', 'ios', 'android')),
+    agent_version VARCHAR(20) NOT NULL,
+    os_version VARCHAR(100),
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'uninstalled')),
+    last_seen_at TIMESTAMP WITH TIME ZONE,
+    ip_address INET,
+    enrolled_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_agent_installations_tenant ON agent_installations(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_agent_installations_device ON agent_installations(device_id);
+
+-- ============================================
+-- P2 FEATURES: BLOCK PAGES
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS block_pages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    is_default BOOLEAN DEFAULT FALSE,
+    logo_url TEXT,
+    background_color VARCHAR(7) DEFAULT '#f3f4f6',
+    primary_color VARCHAR(7) DEFAULT '#4f46e5',
+    text_color VARCHAR(7) DEFAULT '#1f2937',
+    title VARCHAR(255) DEFAULT 'Access Blocked',
+    message TEXT DEFAULT 'This website has been blocked by your organization''s security policy.',
+    show_category BOOLEAN DEFAULT TRUE,
+    show_domain BOOLEAN DEFAULT TRUE,
+    show_timestamp BOOLEAN DEFAULT TRUE,
+    show_request_access BOOLEAN DEFAULT TRUE,
+    custom_css TEXT,
+    custom_html TEXT,
+    footer_text VARCHAR(255),
+    support_email VARCHAR(255),
+    support_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_block_pages_tenant ON block_pages(tenant_id);
+
+CREATE TABLE IF NOT EXISTS access_requests (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    location_id UUID REFERENCES locations(id) ON DELETE SET NULL,
+    domain VARCHAR(255) NOT NULL,
+    category VARCHAR(50),
+    reason TEXT,
+    requester_ip INET,
+    requester_email VARCHAR(255),
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'denied', 'expired')),
+    reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    reviewed_at TIMESTAMP WITH TIME ZONE,
+    review_note TEXT,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_access_requests_tenant ON access_requests(tenant_id);
+
+-- ============================================
+-- P2 FEATURES: API KEYS
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS api_keys (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    name VARCHAR(255) NOT NULL,
+    key_hash VARCHAR(255) NOT NULL UNIQUE,
+    key_prefix VARCHAR(12) NOT NULL,
+    scopes JSONB NOT NULL DEFAULT '["read"]',
+    rate_limit INTEGER DEFAULT 1000,
+    is_active BOOLEAN DEFAULT TRUE,
+    last_used_at TIMESTAMP WITH TIME ZONE,
+    last_used_ip INET,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_api_keys_tenant ON api_keys(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_api_keys_prefix ON api_keys(key_prefix);
+
+CREATE TABLE IF NOT EXISTS api_key_usage (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    api_key_id UUID NOT NULL REFERENCES api_keys(id) ON DELETE CASCADE,
+    endpoint VARCHAR(255) NOT NULL,
+    method VARCHAR(10) NOT NULL,
+    status_code INTEGER,
+    response_time_ms INTEGER,
+    ip_address INET,
+    user_agent TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_api_key_usage_key ON api_key_usage(api_key_id);
+
+-- ============================================
+-- P2 FEATURES: TEAM INVITATIONS
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS team_invitations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    invited_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    email VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL CHECK (role IN ('owner', 'admin', 'analyst', 'readonly')),
+    token_hash VARCHAR(255) NOT NULL UNIQUE,
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'expired', 'revoked')),
+    message TEXT,
+    accepted_at TIMESTAMP WITH TIME ZONE,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_team_invitations_tenant ON team_invitations(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_team_invitations_email ON team_invitations(email);
+
+-- ============================================
+-- P2 FEATURES: SIEM INTEGRATIONS
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS siem_integrations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    integration_type VARCHAR(20) NOT NULL CHECK (integration_type IN ('splunk', 'elastic', 'sentinel', 'syslog', 'webhook')),
+    is_enabled BOOLEAN DEFAULT TRUE,
+    config_encrypted JSONB NOT NULL DEFAULT '{}',
+    log_types JSONB DEFAULT '["blocked", "threats"]',
+    include_allowed BOOLEAN DEFAULT FALSE,
+    min_severity VARCHAR(20) DEFAULT 'low',
+    last_sent_at TIMESTAMP WITH TIME ZONE,
+    last_error TEXT,
+    error_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_siem_integrations_tenant ON siem_integrations(tenant_id);
+
+-- ============================================
+-- P2 FEATURES: WEBHOOKS
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS webhooks (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    url TEXT NOT NULL,
+    secret_hash VARCHAR(255),
+    events JSONB NOT NULL DEFAULT '[]',
+    is_enabled BOOLEAN DEFAULT TRUE,
+    headers JSONB DEFAULT '{}',
+    last_triggered_at TIMESTAMP WITH TIME ZONE,
+    last_status_code INTEGER,
+    last_error TEXT,
+    failure_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_webhooks_tenant ON webhooks(tenant_id);
+
+CREATE TABLE IF NOT EXISTS webhook_deliveries (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    webhook_id UUID NOT NULL REFERENCES webhooks(id) ON DELETE CASCADE,
+    event_type VARCHAR(50) NOT NULL,
+    payload JSONB NOT NULL,
+    status_code INTEGER,
+    response_body TEXT,
+    response_time_ms INTEGER,
+    error TEXT,
+    retry_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_webhook_deliveries_webhook ON webhook_deliveries(webhook_id);
+
+-- Add block_page_id to locations
+ALTER TABLE locations ADD COLUMN IF NOT EXISTS block_page_id UUID REFERENCES block_pages(id) ON DELETE SET NULL;
+
 -- Done!
