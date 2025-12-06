@@ -1,0 +1,2 @@
+# Data Loader Dependencies
+redis>=4.0.0

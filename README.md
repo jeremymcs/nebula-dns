@@ -116,16 +116,43 @@ go run cmd/main.go
 
 ## Production Deployment
 
+See the full [Production Deployment Guide](docs/N-production-deployment.md) for detailed instructions.
+
 ### Kubernetes
 
 Deploy to Kubernetes using Kustomize:
 
 ```bash
+# Install prerequisites
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.yaml
+
 # Apply base configuration
 kubectl apply -k k8s/base
 
+# Configure secrets (copy and edit first)
+cp k8s/overlays/production/secrets.yaml.example k8s/overlays/production/secrets.yaml
+# Edit secrets.yaml with your values
+
 # Apply production overlay
 kubectl apply -k k8s/overlays/production
+```
+
+### Optional Components
+
+Enable additional Kubernetes resources as needed:
+
+```bash
+# TLS certificates with cert-manager
+kubectl apply -k k8s/base/cert-manager
+
+# External secrets management
+kubectl apply -k k8s/base/external-secrets
+
+# Automated database backups
+kubectl apply -k k8s/base/backups
+
+# Prometheus alerts and Grafana dashboards
+kubectl apply -k k8s/base/monitoring
 ```
 
 ### Environment Variables
@@ -266,6 +293,57 @@ GitHub Actions workflows are provided for:
 - [ ] Configure backup strategy
 - [ ] Enable Sentry error tracking
 - [ ] Set up monitoring alerts
+- [ ] Load threat intelligence data
+- [ ] Load domain categorization data
+- [ ] Run load tests before launch
+
+## Load Testing
+
+Load test scripts are provided using [k6](https://k6.io):
+
+```bash
+# Install k6
+brew install k6  # macOS
+
+# Run API load test
+k6 run scripts/load-testing/api-load-test.js
+
+# Run DNS load test
+k6 run scripts/load-testing/dns-load-test.js
+```
+
+See [scripts/load-testing/README.md](scripts/load-testing/README.md) for more details.
+
+## Data Loading
+
+### Threat Intelligence
+
+Load threat feeds for real-time malware/phishing blocking:
+
+```bash
+cd scripts/data-loaders
+pip install -r requirements.txt
+
+# Load all available threat feeds
+python threat-feed-loader.py --all-feeds --redis-url=redis://localhost:6379
+
+# List available feeds
+python threat-feed-loader.py --list-feeds
+```
+
+### Domain Categorization
+
+Load domain categories for content filtering:
+
+```bash
+# Load Shallalist (free)
+python category-loader.py --source=shallalist --redis-url=redis://localhost:6379
+
+# Check statistics
+python category-loader.py --stats-only
+```
+
+See [scripts/data-loaders/README.md](scripts/data-loaders/README.md) for more details.
 
 ## License
 

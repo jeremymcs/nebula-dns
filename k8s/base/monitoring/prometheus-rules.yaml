@@ -1,0 +1,242 @@
+# Nebula DNS - Prometheus Alerting Rules
+# Apply with: kubectl apply -f prometheus-rules.yaml
+# Requires Prometheus Operator
+
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: nebula-dns-alerts
+  namespace: nebula-dns
+  labels:
+    app: nebula-dns
+    prometheus: main
+spec:
+  groups:
+    # ============================================
+    # API Service Alerts
+    # ============================================
+    - name: nebula-dns-api
+      rules:
+        - alert: APIHighErrorRate
+          expr: |
+            sum(rate(http_requests_total{job="api",status=~"5.."}[5m])) 
+            / sum(rate(http_requests_total{job="api"}[5m])) > 0.01
+          for: 5m
+          labels:
+            severity: critical
+            service: api
+          annotations:
+            summary: "High API error rate"
+            description: "API error rate is {{ $value | humanizePercentage }} (threshold: 1%)"
+
+        - alert: APIHighLatency
+          expr: |
+            histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job="api"}[5m])) by (le)) > 1
+          for: 5m
+          labels:
+            severity: warning
+            service: api
+          annotations:
+            summary: "High API latency"
+            description: "API p95 latency is {{ $value | humanizeDuration }} (threshold: 1s)"
+
+        - alert: APIDown
+          expr: up{job="api"} == 0
+          for: 1m
+          labels:
+            severity: critical
+            service: api
+          annotations:
+            summary: "API service is down"
+            description: "API instance {{ $labels.instance }} is unreachable"
+
+        - alert: APIHighMemory
+          expr: |
+            nodejs_heap_size_used_bytes{job="api"} / nodejs_heap_size_total_bytes{job="api"} > 0.9
+          for: 10m
+          labels:
+            severity: warning
+            service: api
+          annotations:
+            summary: "High API memory usage"
+            description: "API heap usage is {{ $value | humanizePercentage }}"
+
+    # ============================================
+    # Policy Service Alerts
+    # ============================================
+    - name: nebula-dns-policy-svc
+      rules:
+        - alert: PolicyServiceDown
+          expr: up{job="policy-svc"} == 0
+          for: 1m
+          labels:
+            severity: critical
+            service: policy-svc
+          annotations:
+            summary: "Policy service is down"
+            description: "Policy service instance {{ $labels.instance }} is unreachable"
+
+        - alert: PolicyServiceHighLatency
+          expr: |
+            histogram_quantile(0.95, sum(rate(policy_evaluation_duration_seconds_bucket{job="policy-svc"}[5m])) by (le)) > 0.05
+          for: 5m
+          labels:
+            severity: warning
+            service: policy-svc
+          annotations:
+            summary: "High policy evaluation latency"
+            description: "Policy evaluation p95 latency is {{ $value | humanizeDuration }} (threshold: 50ms)"
+
+        - alert: PolicyCacheHitRateLow
+          expr: |
+            sum(rate(policy_cache_hits_total{job="policy-svc"}[5m])) 
+            / (sum(rate(policy_cache_hits_total{job="policy-svc"}[5m])) + sum(rate(policy_cache_misses_total{job="policy-svc"}[5m]))) < 0.8
+          for: 10m
+          labels:
+            severity: warning
+            service: policy-svc
+          annotations:
+            summary: "Low policy cache hit rate"
+            description: "Cache hit rate is {{ $value | humanizePercentage }} (threshold: 80%)"
+
+    # ============================================
+    # dnsdist Alerts
+    # ============================================
+    - name: nebula-dns-dnsdist
+      rules:
+        - alert: DNSDistDown
+          expr: up{job="dnsdist"} == 0
+          for: 1m
+          labels:
+            severity: critical
+            service: dnsdist
+          annotations:
+            summary: "dnsdist is down"
+            description: "dnsdist instance {{ $labels.instance }} is unreachable"
+
+        - alert: DNSHighQueryRate
+          expr: |
+            sum(rate(dnsdist_queries_total[1m])) > 50000
+          for: 5m
+          labels:
+            severity: warning
+            service: dnsdist
+          annotations:
+            summary: "High DNS query rate"
+            description: "DNS query rate is {{ $value | humanize }}/s"
+
+        - alert: DNSHighServfailRate
+          expr: |
+            sum(rate(dnsdist_responses_total{rcode="SERVFAIL"}[5m])) 
+            / sum(rate(dnsdist_queries_total[5m])) > 0.01
+          for: 5m
+          labels:
+            severity: warning
+            service: dnsdist
+          annotations:
+            summary: "High SERVFAIL rate"
+            description: "SERVFAIL rate is {{ $value | humanizePercentage }}"
+
+    # ============================================
+    # Database Alerts
+    # ============================================
+    - name: nebula-dns-database
+      rules:
+        - alert: PostgresDown
+          expr: pg_up{job="postgres"} == 0
+          for: 1m
+          labels:
+            severity: critical
+            service: postgres
+          annotations:
+            summary: "PostgreSQL is down"
+            description: "PostgreSQL instance {{ $labels.instance }} is unreachable"
+
+        - alert: PostgresHighConnections
+          expr: |
+            pg_stat_activity_count{job="postgres"} / pg_settings_max_connections{job="postgres"} > 0.8
+          for: 10m
+          labels:
+            severity: warning
+            service: postgres
+          annotations:
+            summary: "High PostgreSQL connection usage"
+            description: "Connection usage is {{ $value | humanizePercentage }}"
+
+        - alert: PostgresReplicationLag
+          expr: pg_replication_lag_seconds{job="postgres"} > 30
+          for: 5m
+          labels:
+            severity: warning
+            service: postgres
+          annotations:
+            summary: "PostgreSQL replication lag"
+            description: "Replication lag is {{ $value | humanizeDuration }}"
+
+        - alert: RedisDown
+          expr: redis_up{job="redis"} == 0
+          for: 1m
+          labels:
+            severity: critical
+            service: redis
+          annotations:
+            summary: "Redis is down"
+            description: "Redis instance {{ $labels.instance }} is unreachable"
+
+        - alert: RedisHighMemory
+          expr: |
+            redis_memory_used_bytes{job="redis"} / redis_memory_max_bytes{job="redis"} > 0.9
+          for: 10m
+          labels:
+            severity: warning
+            service: redis
+          annotations:
+            summary: "High Redis memory usage"
+            description: "Redis memory usage is {{ $value | humanizePercentage }}"
+
+    # ============================================
+    # Kubernetes Alerts
+    # ============================================
+    - name: nebula-dns-kubernetes
+      rules:
+        - alert: PodCrashLooping
+          expr: |
+            rate(kube_pod_container_status_restarts_total{namespace="nebula-dns"}[15m]) * 60 * 15 > 3
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod is crash looping"
+            description: "Pod {{ $labels.pod }} is crash looping"
+
+        - alert: PodNotReady
+          expr: |
+            kube_pod_status_ready{namespace="nebula-dns",condition="true"} == 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod not ready"
+            description: "Pod {{ $labels.pod }} is not ready"
+
+        - alert: DeploymentReplicasMismatch
+          expr: |
+            kube_deployment_spec_replicas{namespace="nebula-dns"} 
+            != kube_deployment_status_replicas_available{namespace="nebula-dns"}
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Deployment replicas mismatch"
+            description: "Deployment {{ $labels.deployment }} has {{ $value }} unavailable replicas"
+
+        - alert: HPAMaxedOut
+          expr: |
+            kube_horizontalpodautoscaler_status_current_replicas{namespace="nebula-dns"} 
+            == kube_horizontalpodautoscaler_spec_max_replicas{namespace="nebula-dns"}
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "HPA at maximum replicas"
+            description: "HPA {{ $labels.horizontalpodautoscaler }} is at max replicas"
