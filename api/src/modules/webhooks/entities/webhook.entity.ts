@@ -26,7 +26,7 @@ export class Webhook extends BaseEntity {
   url: string;
 
   @Column({ name: 'secret_hash', length: 255, nullable: true })
-  secretHash: string;
+  secretHash: string | null;
 
   @Column({ type: 'jsonb', default: [] })
   events: WebhookEvent[];
@@ -38,13 +38,13 @@ export class Webhook extends BaseEntity {
   headers: Record<string, string>;
 
   @Column({ name: 'last_triggered_at', type: 'timestamptz', nullable: true })
-  lastTriggeredAt: Date;
+  lastTriggeredAt: Date | null;
 
   @Column({ name: 'last_status_code', nullable: true })
-  lastStatusCode: number;
+  lastStatusCode: number | null;
 
   @Column({ name: 'last_error', type: 'text', nullable: true })
-  lastError: string;
+  lastError: string | null;
 
   @Column({ name: 'failure_count', default: 0 })
   failureCount: number;

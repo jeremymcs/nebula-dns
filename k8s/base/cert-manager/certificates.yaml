@@ -1,0 +1,45 @@
+# Nebula DNS - TLS Certificates
+# These certificates are automatically provisioned by cert-manager
+
+---
+# API and UI certificate (via Ingress)
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: nebula-dns-web-tls
+  namespace: nebula-dns
+spec:
+  secretName: nebula-dns-web-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: app.example.com
+  dnsNames:
+    - app.example.com
+    - api.example.com
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+
+---
+# DNS resolver certificate (DoT/DoH)
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: nebula-dns-resolver-tls
+  namespace: nebula-dns
+spec:
+  secretName: dnsdist-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: dns.example.com
+  dnsNames:
+    - dns.example.com
+    - doh.example.com
+    - dot.example.com
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  # Renew 30 days before expiry
+  renewBefore: 720h

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nebula-dns
+  labels:
+    app.kubernetes.io/name: nebula-dns
+    app.kubernetes.io/part-of: nebula-dns

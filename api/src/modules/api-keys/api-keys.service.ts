@@ -41,7 +41,7 @@ export class ApiKeysService {
       expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
     });
 
-    const saved = await this.apiKeyRepository.save(apiKey);
+    const saved = await this.apiKeyRepository.save(apiKey) as ApiKey;
 
     return {
       id: saved.id,

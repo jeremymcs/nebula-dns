@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid'
@@ -25,7 +25,42 @@ const defaultPlans: Plan[] = [
   { id: 'enterprise', name: 'Enterprise', priceMonthly: 99.99, priceYearly: 999.99, description: 'For organizations' },
 ]
 
-export default function SignupPage() {
+// Loading fallback for Suspense
+function SignupFormSkeleton() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="animate-pulse">
+          <div className="h-10 bg-gray-200 rounded w-1/2 mx-auto mb-8" />
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-2xl shadow-xl p-8">
+                <div className="space-y-6">
+                  <div className="h-8 bg-gray-200 rounded w-2/3" />
+                  <div className="h-12 bg-gray-200 rounded" />
+                  <div className="h-12 bg-gray-200 rounded" />
+                  <div className="h-12 bg-gray-200 rounded" />
+                </div>
+              </div>
+            </div>
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-2xl shadow-xl p-6">
+                <div className="h-6 bg-gray-200 rounded w-1/2 mb-4" />
+                <div className="space-y-3">
+                  <div className="h-16 bg-gray-200 rounded" />
+                  <div className="h-16 bg-gray-200 rounded" />
+                  <div className="h-16 bg-gray-200 rounded" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SignupFormContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
@@ -585,5 +620,13 @@ export default function SignupPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<SignupFormSkeleton />}>
+      <SignupFormContent />
+    </Suspense>
   )
 }

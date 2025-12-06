@@ -1,0 +1,144 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dnsdist
+  namespace: nebula-dns
+  labels:
+    app: dnsdist
+    app.kubernetes.io/name: dnsdist
+    app.kubernetes.io/component: dns-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: dnsdist
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: dnsdist
+    spec:
+      serviceAccountName: dnsdist
+      securityContext:
+        runAsUser: 0  # Required for binding to ports < 1024
+      containers:
+        - name: dnsdist
+          image: ghcr.io/nebuladns/dnsdist:latest
+          imagePullPolicy: Always
+          ports:
+            - name: dot
+              containerPort: 853
+              protocol: TCP
+            - name: doh
+              containerPort: 443
+              protocol: TCP
+            - name: metrics
+              containerPort: 8083
+              protocol: TCP
+          env:
+            - name: POLICY_SVC_URL
+              value: "http://policy-svc:80"
+            - name: DNSDIST_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: dnsdist-secrets
+                  key: api-key
+          volumeMounts:
+            - name: config
+              mountPath: /etc/dnsdist/dnsdist.conf
+              subPath: dnsdist.conf
+              readOnly: true
+            - name: certs
+              mountPath: /etc/dnsdist/certs
+              readOnly: true
+          resources:
+            requests:
+              cpu: 500m
+              memory: 256Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+          livenessProbe:
+            tcpSocket:
+              port: dot
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: dot
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+      volumes:
+        - name: config
+          configMap:
+            name: dnsdist-config
+        - name: certs
+          secret:
+            secretName: dnsdist-tls
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: dnsdist
+              topologyKey: kubernetes.io/hostname
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dnsdist
+  namespace: nebula-dns
+  labels:
+    app: dnsdist
+  annotations:
+    # For cloud providers with load balancer support
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  ports:
+    - port: 853
+      targetPort: dot
+      protocol: TCP
+      name: dot
+    - port: 443
+      targetPort: doh
+      protocol: TCP
+      name: doh
+  selector:
+    app: dnsdist
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dnsdist
+  namespace: nebula-dns
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: dnsdist
+  namespace: nebula-dns
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: dnsdist
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60

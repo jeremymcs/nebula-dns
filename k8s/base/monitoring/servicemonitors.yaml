@@ -1,0 +1,56 @@
+# Nebula DNS - ServiceMonitors for Prometheus
+# Requires Prometheus Operator
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api
+  namespace: nebula-dns
+  labels:
+    app: api
+spec:
+  selector:
+    matchLabels:
+      app: api
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: policy-svc
+  namespace: nebula-dns
+  labels:
+    app: policy-svc
+spec:
+  selector:
+    matchLabels:
+      app: policy-svc
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: dnsdist
+  namespace: nebula-dns
+  labels:
+    app: dnsdist
+spec:
+  selector:
+    matchLabels:
+      app: dnsdist
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s

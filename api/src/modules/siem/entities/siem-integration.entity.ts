@@ -35,10 +35,10 @@ export class SiemIntegration extends BaseEntity {
   minSeverity: string;
 
   @Column({ name: 'last_sent_at', type: 'timestamptz', nullable: true })
-  lastSentAt: Date;
+  lastSentAt: Date | null;
 
   @Column({ name: 'last_error', type: 'text', nullable: true })
-  lastError: string;
+  lastError: string | null;
 
   @Column({ name: 'error_count', default: 0 })
   errorCount: number;

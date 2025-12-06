@@ -56,11 +56,11 @@ export class SsoService {
     config.providerType = 'saml';
     config.samlEntityId = dto.entityId;
     config.samlSsoUrl = dto.ssoUrl;
-    config.samlSloUrl = dto.sloUrl;
+    config.samlSloUrl = dto.sloUrl || null;
     config.samlCertificate = dto.certificate;
     config.autoProvisionUsers = dto.autoProvisionUsers ?? true;
     config.defaultRole = dto.defaultRole || 'readonly';
-    config.domainRestriction = dto.domainRestriction;
+    config.domainRestriction = dto.domainRestriction || null;
     config.attributeMapping = dto.attributeMapping || { email: 'email', name: 'name' };
 
     return this.ssoConfigRepository.save(config);
@@ -77,13 +77,13 @@ export class SsoService {
     config.oidcIssuer = dto.issuer;
     config.oidcClientId = dto.clientId;
     config.oidcClientSecretEncrypted = this.encrypt(dto.clientSecret);
-    config.oidcAuthorizationUrl = dto.authorizationUrl;
-    config.oidcTokenUrl = dto.tokenUrl;
-    config.oidcUserinfoUrl = dto.userinfoUrl;
+    config.oidcAuthorizationUrl = dto.authorizationUrl || null;
+    config.oidcTokenUrl = dto.tokenUrl || null;
+    config.oidcUserinfoUrl = dto.userinfoUrl || null;
     config.oidcScopes = dto.scopes || 'openid profile email';
     config.autoProvisionUsers = dto.autoProvisionUsers ?? true;
     config.defaultRole = dto.defaultRole || 'readonly';
-    config.domainRestriction = dto.domainRestriction;
+    config.domainRestriction = dto.domainRestriction || null;
     config.attributeMapping = dto.attributeMapping || { email: 'email', name: 'name' };
 
     return this.ssoConfigRepository.save(config);
@@ -246,6 +246,10 @@ export class SsoService {
       authUrl = `${config.oidcIssuer}/authorize`;
     }
 
+    if (!config.oidcClientId) {
+      throw new BadRequestException('OIDC client ID not configured');
+    }
+    
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: config.oidcClientId,
@@ -277,6 +281,10 @@ export class SsoService {
       tokenUrl = `${config.oidcIssuer}/token`;
     }
 
+    if (!config.oidcClientId || !config.oidcClientSecretEncrypted) {
+      throw new BadRequestException('OIDC not properly configured');
+    }
+    
     const callbackUrl = `${this.configService.get('API_URL')}/sso/oidc/callback`;
     const clientSecret = this.decrypt(config.oidcClientSecretEncrypted);
 

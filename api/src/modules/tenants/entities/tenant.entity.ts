@@ -5,7 +5,7 @@ import { Policy } from '../../policies/entities/policy.entity';
 import { Location } from '../../locations/entities/location.entity';
 
 export type TenantStatus = 'active' | 'suspended' | 'cancelled';
-export type TenantPlan = 'free' | 'pro' | 'enterprise';
+export type TenantPlan = 'free' | 'starter' | 'pro' | 'enterprise';
 
 @Entity('tenants')
 export class Tenant extends BaseEntity {

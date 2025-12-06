@@ -1,0 +1,45 @@
+# Nebula DNS - Let's Encrypt Cluster Issuers
+# Prerequisites: Install cert-manager first
+# kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.yaml
+
+---
+# Staging issuer for testing (high rate limits, but untrusted certs)
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    email: admin@example.com  # Change to your email
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-staging-account-key
+    solvers:
+      # HTTP-01 solver for web services
+      - http01:
+          ingress:
+            class: nginx
+      # DNS-01 solver for wildcard certs (requires cloud provider config)
+      # - dns01:
+      #     cloudflare:
+      #       email: admin@example.com
+      #       apiTokenSecretRef:
+      #         name: cloudflare-api-token
+      #         key: api-token
+
+---
+# Production issuer (strict rate limits, trusted certs)
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    email: admin@example.com  # Change to your email
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-prod-account-key
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
