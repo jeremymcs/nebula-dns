@@ -10,6 +10,11 @@ resources:
   - dnsdist-deployment.yaml
   - ui-deployment.yaml
   - ingress.yaml
+  # Optional: Enable these as needed
+  # - cert-manager/
+  # - external-secrets/
+  # - backups/
+  # - monitoring/
 
 commonLabels:
   app.kubernetes.io/part-of: nebula-dns

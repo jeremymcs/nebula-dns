@@ -1,0 +1,155 @@
+# Nebula DNS - PostgreSQL Backup CronJob
+# Backs up the database to S3/GCS/Azure Blob every 6 hours
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-scripts
+  namespace: nebula-dns
+data:
+  backup.sh: |
+    #!/bin/bash
+    set -euo pipefail
+
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    BACKUP_FILE="nebula_dns_${TIMESTAMP}.sql.gz"
+    
+    echo "Starting PostgreSQL backup at $(date)"
+    
+    # Create backup
+    PGPASSWORD="${POSTGRES_PASSWORD}" pg_dump \
+      -h "${POSTGRES_HOST}" \
+      -U "${POSTGRES_USER}" \
+      -d "${POSTGRES_DB}" \
+      --format=custom \
+      --compress=9 \
+      --file="/tmp/${BACKUP_FILE}"
+    
+    echo "Backup created: ${BACKUP_FILE}"
+    
+    # Upload to S3
+    if [ -n "${S3_BUCKET:-}" ]; then
+      aws s3 cp "/tmp/${BACKUP_FILE}" "s3://${S3_BUCKET}/postgres/${BACKUP_FILE}"
+      echo "Uploaded to S3: s3://${S3_BUCKET}/postgres/${BACKUP_FILE}"
+    fi
+    
+    # Upload to GCS (alternative)
+    if [ -n "${GCS_BUCKET:-}" ]; then
+      gsutil cp "/tmp/${BACKUP_FILE}" "gs://${GCS_BUCKET}/postgres/${BACKUP_FILE}"
+      echo "Uploaded to GCS: gs://${GCS_BUCKET}/postgres/${BACKUP_FILE}"
+    fi
+    
+    # Cleanup old backups (keep last 30 days)
+    if [ -n "${S3_BUCKET:-}" ]; then
+      aws s3 ls "s3://${S3_BUCKET}/postgres/" | \
+        awk '{print $4}' | \
+        sort -r | \
+        tail -n +121 | \
+        xargs -I {} aws s3 rm "s3://${S3_BUCKET}/postgres/{}" 2>/dev/null || true
+    fi
+    
+    # Cleanup local
+    rm -f "/tmp/${BACKUP_FILE}"
+    
+    echo "Backup completed successfully at $(date)"
+
+  restore.sh: |
+    #!/bin/bash
+    set -euo pipefail
+    
+    if [ -z "${1:-}" ]; then
+      echo "Usage: restore.sh <backup-file>"
+      echo "Example: restore.sh nebula_dns_20240101_120000.sql.gz"
+      exit 1
+    fi
+    
+    BACKUP_FILE="$1"
+    
+    echo "Downloading backup: ${BACKUP_FILE}"
+    
+    if [ -n "${S3_BUCKET:-}" ]; then
+      aws s3 cp "s3://${S3_BUCKET}/postgres/${BACKUP_FILE}" "/tmp/${BACKUP_FILE}"
+    elif [ -n "${GCS_BUCKET:-}" ]; then
+      gsutil cp "gs://${GCS_BUCKET}/postgres/${BACKUP_FILE}" "/tmp/${BACKUP_FILE}"
+    fi
+    
+    echo "Restoring database..."
+    
+    PGPASSWORD="${POSTGRES_PASSWORD}" pg_restore \
+      -h "${POSTGRES_HOST}" \
+      -U "${POSTGRES_USER}" \
+      -d "${POSTGRES_DB}" \
+      --clean \
+      --if-exists \
+      "/tmp/${BACKUP_FILE}"
+    
+    echo "Restore completed successfully"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: nebula-dns
+spec:
+  schedule: "0 */6 * * *"  # Every 6 hours
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 3600  # 1 hour timeout
+      template:
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: backup-sa
+          containers:
+            - name: backup
+              image: postgres:16-alpine
+              command: ["/bin/bash", "/scripts/backup.sh"]
+              env:
+                - name: POSTGRES_HOST
+                  value: postgres
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-credentials
+                      key: username
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-credentials
+                      key: password
+                - name: POSTGRES_DB
+                  value: nebula_dns
+                - name: S3_BUCKET
+                  value: your-backup-bucket  # Change this
+                - name: AWS_DEFAULT_REGION
+                  value: us-east-1
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+          volumes:
+            - name: scripts
+              configMap:
+                name: backup-scripts
+                defaultMode: 0755
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backup-sa
+  namespace: nebula-dns
+  annotations:
+    # For AWS IRSA
+    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/nebula-dns-backup-role
