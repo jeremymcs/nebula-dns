@@ -8,23 +8,33 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { 
   BuildingOfficeIcon,
   BellIcon,
   ShieldCheckIcon,
   KeyIcon,
   GlobeAltIcon,
-  CreditCardIcon
+  CreditCardIcon,
+  UsersIcon,
+  LinkIcon,
+  FingerPrintIcon,
 } from '@heroicons/react/24/outline'
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general')
 
+  const settingsSections = [
+    { href: '/dashboard/settings/team', name: 'Team Members', description: 'Manage users and invitations', icon: UsersIcon },
+    { href: '/dashboard/settings/api-keys', name: 'API Keys', description: 'Manage API access tokens', icon: KeyIcon },
+    { href: '/dashboard/settings/integrations', name: 'Integrations', description: 'SIEM, webhooks, and third-party apps', icon: LinkIcon },
+    { href: '/dashboard/settings/security', name: 'Security', description: 'MFA, sessions, and access control', icon: FingerPrintIcon },
+    { href: '/dashboard/settings/sso', name: 'Single Sign-On', description: 'Configure SAML and OIDC', icon: ShieldCheckIcon },
+  ]
+
   const tabs = [
     { id: 'general', name: 'General', icon: BuildingOfficeIcon },
-    { id: 'security', name: 'Security', icon: ShieldCheckIcon },
     { id: 'notifications', name: 'Notifications', icon: BellIcon },
-    { id: 'api', name: 'API Keys', icon: KeyIcon },
     { id: 'dns', name: 'DNS Settings', icon: GlobeAltIcon },
     { id: 'billing', name: 'Billing', icon: CreditCardIcon },
   ]
@@ -38,7 +48,28 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <div className="mt-6 flex flex-col lg:flex-row gap-6">
+      {/* Quick Links to Settings Sub-Pages */}
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {settingsSections.map((section) => (
+          <Link
+            key={section.href}
+            href={section.href}
+            className="card p-4 hover:border-primary-300 hover:shadow-md transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary-50 rounded-lg group-hover:bg-primary-100 transition-colors">
+                <section.icon className="h-5 w-5 text-primary-600" />
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900">{section.name}</h3>
+                <p className="text-sm text-gray-500">{section.description}</p>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      <div className="mt-8 flex flex-col lg:flex-row gap-6">
         {/* Sidebar Navigation */}
         <nav className="lg:w-64 flex-shrink-0">
           <div className="card p-2">
@@ -101,68 +132,6 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {activeTab === 'security' && (
-            <div className="space-y-6">
-              <div className="card p-6">
-                <h2 className="text-lg font-medium text-gray-900 mb-6">Security Settings</h2>
-                
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-900">Two-Factor Authentication</h3>
-                      <p className="text-sm text-gray-500">Require 2FA for all users</p>
-                    </div>
-                    <button className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 transition-colors duration-200 ease-in-out">
-                      <span className="translate-x-0 inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" />
-                    </button>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-900">Session Timeout</h3>
-                      <p className="text-sm text-gray-500">Auto-logout after inactivity</p>
-                    </div>
-                    <select className="input w-32">
-                      <option>15 minutes</option>
-                      <option>30 minutes</option>
-                      <option>1 hour</option>
-                      <option>4 hours</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-900">IP Allowlist</h3>
-                      <p className="text-sm text-gray-500">Restrict dashboard access by IP</p>
-                    </div>
-                    <button className="btn-secondary text-sm">Configure</button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="card p-6">
-                <h2 className="text-lg font-medium text-gray-900 mb-4">Audit Log</h2>
-                <p className="text-sm text-gray-500 mb-4">Recent security events</p>
-                <div className="space-y-3">
-                  {[
-                    { action: 'User login', user: 'admin@demo.local', time: '2 minutes ago', ip: '192.168.1.1' },
-                    { action: 'Policy updated', user: 'admin@demo.local', time: '1 hour ago', ip: '192.168.1.1' },
-                    { action: 'User invited', user: 'admin@demo.local', time: '2 hours ago', ip: '192.168.1.1' },
-                  ].map((event, idx) => (
-                    <div key={idx} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{event.action}</p>
-                        <p className="text-xs text-gray-500">{event.user} • {event.ip}</p>
-                      </div>
-                      <span className="text-xs text-gray-400">{event.time}</span>
-                    </div>
-                  ))}
-                </div>
-                <button className="mt-4 text-sm text-primary-600 hover:text-primary-500">View all audit logs →</button>
-              </div>
-            </div>
-          )}
-
           {activeTab === 'notifications' && (
             <div className="card p-6">
               <h2 className="text-lg font-medium text-gray-900 mb-6">Notification Preferences</h2>
@@ -206,53 +175,6 @@ export default function SettingsPage() {
                 <div className="pt-4 border-t border-gray-200">
                   <button className="btn-primary">Save Preferences</button>
                 </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'api' && (
-            <div className="card p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-6">API Keys</h2>
-              
-              <div className="mb-6">
-                <p className="text-sm text-gray-500 mb-4">
-                  API keys allow you to access the Nebula DNS API programmatically. Keep your keys secure.
-                </p>
-                <button className="btn-primary">Generate New API Key</button>
-              </div>
-
-              <div className="border rounded-lg overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Key Prefix</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Used</th>
-                      <th className="px-4 py-3"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    <tr>
-                      <td className="px-4 py-3 text-sm text-gray-900">Production Key</td>
-                      <td className="px-4 py-3 text-sm font-mono text-gray-500">sk_live_xxxx...xxxx</td>
-                      <td className="px-4 py-3 text-sm text-gray-500">Jan 1, 2024</td>
-                      <td className="px-4 py-3 text-sm text-gray-500">Today</td>
-                      <td className="px-4 py-3 text-sm text-right">
-                        <button className="text-red-600 hover:text-red-800">Revoke</button>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-3 text-sm text-gray-900">Development Key</td>
-                      <td className="px-4 py-3 text-sm font-mono text-gray-500">sk_test_xxxx...xxxx</td>
-                      <td className="px-4 py-3 text-sm text-gray-500">Jan 5, 2024</td>
-                      <td className="px-4 py-3 text-sm text-gray-500">Yesterday</td>
-                      <td className="px-4 py-3 text-sm text-right">
-                        <button className="text-red-600 hover:text-red-800">Revoke</button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
               </div>
             </div>
           )}
