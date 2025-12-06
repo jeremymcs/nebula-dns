@@ -52,8 +52,8 @@ export class ApiKeyResponseDto {
   scopes: string[];
   rateLimit: number;
   isActive: boolean;
-  lastUsedAt?: Date;
-  expiresAt?: Date;
+  lastUsedAt?: Date | null;
+  expiresAt?: Date | null;
   createdAt: Date;
 }
 

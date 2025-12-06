@@ -48,11 +48,11 @@ export class AccessRequest extends BaseEntity {
   reviewedBy: User;
 
   @Column({ name: 'reviewed_at', type: 'timestamptz', nullable: true })
-  reviewedAt: Date;
+  reviewedAt: Date | null;
 
   @Column({ name: 'review_note', type: 'text', nullable: true })
-  reviewNote: string;
+  reviewNote: string | null;
 
   @Column({ name: 'expires_at', type: 'timestamptz', nullable: true })
-  expiresAt: Date;
+  expiresAt: Date | null;
 }

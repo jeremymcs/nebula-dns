@@ -6,7 +6,7 @@ import { AgentInstallation, AgentPlatform } from './entities/agent-installation.
 import { Tenant } from '../tenants/entities/tenant.entity';
 import { CreateDownloadLinkDto, RegisterAgentDto, AgentHeartbeatDto, UpdateAgentDto } from './dto/agent.dto';
 
-interface AgentVersion {
+export interface AgentVersion {
   version: string;
   releaseDate: string;
   downloadUrl: string;
@@ -125,7 +125,7 @@ export class AgentsService {
     if (agent) {
       // Update existing registration
       agent.agentVersion = dto.agentVersion;
-      agent.osVersion = dto.osVersion;
+      agent.osVersion = dto.osVersion || null;
       agent.status = 'active';
       agent.lastSeenAt = new Date();
       agent.errorMessage = null;

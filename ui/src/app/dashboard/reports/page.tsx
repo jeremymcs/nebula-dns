@@ -7,57 +7,76 @@
 
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
+import { useSummaryStats, useTopBlocked, useBlocksByCategory, useLocationStats } from '@/hooks/useApi'
 import { 
   ArrowDownTrayIcon,
   ShieldExclamationIcon,
   GlobeAltIcon,
   ClockIcon,
-  CalendarDaysIcon
+  CalendarDaysIcon,
+  ArrowPathIcon
 } from '@heroicons/react/24/outline'
 import { LineChart, DonutChart, BarChart, ProgressRing } from '@/components/Charts'
-
-// Generate mock trend data for the charts
-const generateTrendData = (days: number) => {
-  const data = []
-  const now = new Date()
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(now)
-    date.setDate(date.getDate() - i)
-    data.push({
-      label: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      value: Math.floor(Math.random() * 50000) + 100000,
-    })
-  }
-  return data
-}
+import Link from 'next/link'
 
 export default function ReportsPage() {
   const [dateRange, setDateRange] = useState('7d')
+  
+  const { data: summary, isLoading: summaryLoading } = useSummaryStats(dateRange)
+  const { data: topBlocked, isLoading: topBlockedLoading } = useTopBlocked(dateRange, 8)
+  const { data: categoryStats, isLoading: categoryLoading } = useBlocksByCategory(dateRange)
+  const { data: locationStats, isLoading: locationLoading } = useLocationStats(dateRange)
 
-  const trendData = useMemo(() => {
+  const isLoading = summaryLoading || topBlockedLoading || categoryLoading || locationLoading
+
+  // Format large numbers
+  const formatNumber = (num: number) => {
+    if (!num) return '0'
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`
+    return num.toString()
+  }
+
+  // Generate trend data for charts (mock for now, would come from API)
+  const generateTrendData = () => {
     const days = dateRange === '24h' ? 24 : dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90
-    return generateTrendData(days)
-  }, [dateRange])
+    const data = []
+    const now = new Date()
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date(now)
+      date.setDate(date.getDate() - i)
+      data.push({
+        label: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        value: Math.floor(Math.random() * 50000) + 100000,
+      })
+    }
+    return data
+  }
 
-  const blockReasonData = [
-    { label: 'Adult Content', value: 15000, color: '#ef4444' },
-    { label: 'Social Media', value: 12000, color: '#3b82f6' },
-    { label: 'Malware', value: 8000, color: '#f97316' },
-    { label: 'Advertising', value: 7500, color: '#eab308' },
-    { label: 'Phishing', value: 3500, color: '#8b5cf6' },
-    { label: 'Other', value: 2500, color: '#6b7280' },
-  ]
+  const trendData = generateTrendData()
 
+  // Transform category stats for donut chart
+  const categoryColors = ['#ef4444', '#3b82f6', '#f97316', '#eab308', '#8b5cf6', '#6b7280']
+  const donutData = (categoryStats || []).map((item: any, idx: number) => ({
+    label: item.category || 'Unknown',
+    value: item.count || 0,
+    color: categoryColors[idx % categoryColors.length],
+  }))
+
+  // Generate threat trend data
   const threatTrendData = [
-    { label: 'Mon', value: 120 },
-    { label: 'Tue', value: 145 },
-    { label: 'Wed', value: 98 },
-    { label: 'Thu', value: 167 },
-    { label: 'Fri', value: 132 },
-    { label: 'Sat', value: 78 },
-    { label: 'Sun', value: 56 },
+    { label: 'Mon', value: 120, color: '#f97316' },
+    { label: 'Tue', value: 145, color: '#f97316' },
+    { label: 'Wed', value: 98, color: '#f97316' },
+    { label: 'Thu', value: 167, color: '#f97316' },
+    { label: 'Fri', value: 132, color: '#f97316' },
+    { label: 'Sat', value: 78, color: '#f97316' },
+    { label: 'Sun', value: 56, color: '#f97316' },
   ]
+
+  const blockRate = summary?.blockRate || 0
+  const cacheHitRate = summary?.cacheHitRate || 0
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -79,9 +98,15 @@ export default function ReportsPage() {
               <option value="24h">Last 24 hours</option>
               <option value="7d">Last 7 days</option>
               <option value="30d">Last 30 days</option>
-              <option value="90d">Last 90 days</option>
             </select>
           </div>
+          <Link 
+            href="/dashboard/reports/scheduled"
+            className="btn-secondary inline-flex items-center"
+          >
+            <ClockIcon className="h-5 w-5 mr-2" />
+            Scheduled
+          </Link>
           <button className="btn-secondary inline-flex items-center">
             <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
             Export
@@ -100,8 +125,9 @@ export default function ReportsPage() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Total Queries</p>
-              <p className="text-2xl font-semibold text-gray-900">1.2M</p>
-              <p className="text-sm text-green-600">↑ 12% from last period</p>
+              <p className="text-2xl font-semibold text-gray-900">
+                {isLoading ? <ArrowPathIcon className="h-6 w-6 animate-spin" /> : formatNumber(summary?.totalQueries || 0)}
+              </p>
             </div>
           </div>
         </div>
@@ -115,8 +141,10 @@ export default function ReportsPage() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Blocked</p>
-              <p className="text-2xl font-semibold text-gray-900">48.5K</p>
-              <p className="text-sm text-gray-500">4.0% of total</p>
+              <p className="text-2xl font-semibold text-gray-900">
+                {isLoading ? <ArrowPathIcon className="h-6 w-6 animate-spin" /> : formatNumber(summary?.blockedQueries || 0)}
+              </p>
+              <p className="text-sm text-gray-500">{blockRate}% of total</p>
             </div>
           </div>
         </div>
@@ -130,7 +158,9 @@ export default function ReportsPage() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Threats Blocked</p>
-              <p className="text-2xl font-semibold text-gray-900">3.2K</p>
+              <p className="text-2xl font-semibold text-gray-900">
+                {isLoading ? <ArrowPathIcon className="h-6 w-6 animate-spin" /> : formatNumber(summary?.threatsBlocked || 0)}
+              </p>
               <p className="text-sm text-gray-500">Malware, phishing, C2</p>
             </div>
           </div>
@@ -145,8 +175,9 @@ export default function ReportsPage() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Avg Response</p>
-              <p className="text-2xl font-semibold text-gray-900">12ms</p>
-              <p className="text-sm text-green-600">↓ 2ms from last period</p>
+              <p className="text-2xl font-semibold text-gray-900">
+                {isLoading ? <ArrowPathIcon className="h-6 w-6 animate-spin" /> : `${summary?.avgResponseTime || 0}ms`}
+              </p>
             </div>
           </div>
         </div>
@@ -171,9 +202,19 @@ export default function ReportsPage() {
         {/* Block Reasons Donut Chart */}
         <div className="card p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Blocks by Category</h3>
-          <div className="flex items-center justify-center py-4">
-            <DonutChart data={blockReasonData} size={180} thickness={35} />
-          </div>
+          {categoryLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <ArrowPathIcon className="h-8 w-8 animate-spin text-gray-400" />
+            </div>
+          ) : donutData.length > 0 ? (
+            <div className="flex items-center justify-center py-4">
+              <DonutChart data={donutData} size={180} thickness={35} />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-16 text-gray-500">
+              No category data available
+            </div>
+          )}
         </div>
       </div>
 
@@ -182,25 +223,29 @@ export default function ReportsPage() {
         {/* Threat Trends */}
         <div className="card p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Threat Activity</h3>
-          <BarChart 
-            data={threatTrendData.map(d => ({ ...d, color: '#f97316' }))} 
-            height={200} 
-          />
+          <BarChart data={threatTrendData} height={200} />
         </div>
 
         {/* Block Rate */}
         <div className="card p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Block Rate</h3>
           <div className="flex items-center justify-center py-4">
-            <ProgressRing value={4} max={100} size={140} strokeWidth={12} color="#ef4444" label="of queries" />
+            <ProgressRing 
+              value={parseFloat(blockRate.toString()) || 0} 
+              max={100} 
+              size={140} 
+              strokeWidth={12} 
+              color="#ef4444" 
+              label="of queries" 
+            />
           </div>
           <div className="mt-4 grid grid-cols-2 gap-4 text-center">
             <div>
-              <p className="text-2xl font-semibold text-gray-900">48.5K</p>
+              <p className="text-2xl font-semibold text-gray-900">{formatNumber(summary?.blockedQueries || 0)}</p>
               <p className="text-sm text-gray-500">Blocked</p>
             </div>
             <div>
-              <p className="text-2xl font-semibold text-gray-900">1.15M</p>
+              <p className="text-2xl font-semibold text-gray-900">{formatNumber((summary?.totalQueries || 0) - (summary?.blockedQueries || 0))}</p>
               <p className="text-sm text-gray-500">Allowed</p>
             </div>
           </div>
@@ -210,17 +255,14 @@ export default function ReportsPage() {
         <div className="card p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Cache Performance</h3>
           <div className="flex items-center justify-center py-4">
-            <ProgressRing value={78} max={100} size={140} strokeWidth={12} color="#22c55e" label="hit rate" />
-          </div>
-          <div className="mt-4 grid grid-cols-2 gap-4 text-center">
-            <div>
-              <p className="text-2xl font-semibold text-gray-900">936K</p>
-              <p className="text-sm text-gray-500">Cache Hits</p>
-            </div>
-            <div>
-              <p className="text-2xl font-semibold text-gray-900">264K</p>
-              <p className="text-sm text-gray-500">Cache Misses</p>
-            </div>
+            <ProgressRing 
+              value={parseFloat(cacheHitRate.toString()) || 0} 
+              max={100} 
+              size={140} 
+              strokeWidth={12} 
+              color="#22c55e" 
+              label="hit rate" 
+            />
           </div>
         </div>
       </div>
@@ -230,107 +272,75 @@ export default function ReportsPage() {
         {/* Top Blocked Domains */}
         <div className="card p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Top Blocked Domains</h3>
-          <div className="overflow-hidden">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Domain</th>
-                  <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                  <th className="py-2 text-right text-xs font-medium text-gray-500 uppercase">Blocks</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {[
-                  { domain: 'ads.doubleclick.net', category: 'Advertising', blocks: 4521 },
-                  { domain: 'tracker.analytics.com', category: 'Advertising', blocks: 3847 },
-                  { domain: 'facebook.com', category: 'Social Media', blocks: 2934 },
-                  { domain: 'malware-site.bad.com', category: 'Malware', blocks: 2156 },
-                  { domain: 'instagram.com', category: 'Social Media', blocks: 1892 },
-                  { domain: 'tiktok.com', category: 'Social Media', blocks: 1654 },
-                  { domain: 'phishing.fake.net', category: 'Phishing', blocks: 1432 },
-                  { domain: 'ad-server.network', category: 'Advertising', blocks: 1287 },
-                ].map((item) => (
-                  <tr key={item.domain}>
-                    <td className="py-2 text-sm font-mono text-gray-900">{item.domain}</td>
-                    <td className="py-2 text-sm text-gray-500">{item.category}</td>
-                    <td className="py-2 text-sm text-gray-900 text-right">{item.blocks.toLocaleString()}</td>
+          {topBlockedLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <ArrowPathIcon className="h-6 w-6 animate-spin text-gray-400" />
+            </div>
+          ) : (
+            <div className="overflow-hidden">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Domain</th>
+                    <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                    <th className="py-2 text-right text-xs font-medium text-gray-500 uppercase">Blocks</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {(topBlocked || []).map((item: any, idx: number) => (
+                    <tr key={idx}>
+                      <td className="py-2 text-sm font-mono text-gray-900">{item.domain}</td>
+                      <td className="py-2 text-sm text-gray-500 capitalize">{item.category?.replace('_', ' ')}</td>
+                      <td className="py-2 text-sm text-gray-900 text-right">{item.count?.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                  {(!topBlocked || topBlocked.length === 0) && (
+                    <tr>
+                      <td colSpan={3} className="py-8 text-center text-gray-500">No blocked domains</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
-        {/* Top Allowed Domains */}
-        <div className="card p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Top Allowed Domains</h3>
-          <div className="overflow-hidden">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Domain</th>
-                  <th className="py-2 text-right text-xs font-medium text-gray-500 uppercase">Queries</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {[
-                  { domain: 'google.com', queries: 125847 },
-                  { domain: 'microsoft.com', queries: 98234 },
-                  { domain: 'github.com', queries: 67432 },
-                  { domain: 'slack.com', queries: 54321 },
-                  { domain: 'zoom.us', queries: 43219 },
-                  { domain: 'office365.com', queries: 38764 },
-                  { domain: 'aws.amazon.com', queries: 32154 },
-                  { domain: 'cloudflare.com', queries: 28976 },
-                ].map((item) => (
-                  <tr key={item.domain}>
-                    <td className="py-2 text-sm font-mono text-gray-900">{item.domain}</td>
-                    <td className="py-2 text-sm text-gray-900 text-right">{item.queries.toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      {/* Location Performance */}
-      <div className="mt-8">
+        {/* Location Performance */}
         <div className="card p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Location Performance</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead>
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Queries</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Blocked</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Block Rate</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Threats</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Avg Response</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {[
-                  { name: 'Main Office', queries: 750000, blocked: 30000, blockRate: 4.0, threats: 2100, avgResponse: 11 },
-                  { name: 'Branch Office', queries: 350000, blocked: 14000, blockRate: 4.0, threats: 850, avgResponse: 14 },
-                  { name: 'Remote Workers', queries: 150000, blocked: 4500, blockRate: 3.0, threats: 250, avgResponse: 18 },
-                ].map((loc) => (
-                  <tr key={loc.name}>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{loc.name}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900 text-right">{loc.queries.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900 text-right">{loc.blocked.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900 text-right">{loc.blockRate}%</td>
-                    <td className="px-4 py-3 text-sm text-red-600 text-right">{loc.threats.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900 text-right">{loc.avgResponse}ms</td>
+          {locationLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <ArrowPathIcon className="h-6 w-6 animate-spin text-gray-400" />
+            </div>
+          ) : (
+            <div className="overflow-hidden">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
+                    <th className="py-2 text-right text-xs font-medium text-gray-500 uppercase">Queries</th>
+                    <th className="py-2 text-right text-xs font-medium text-gray-500 uppercase">Block Rate</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {(locationStats || []).map((loc: any, idx: number) => (
+                    <tr key={idx}>
+                      <td className="py-2 text-sm font-medium text-gray-900">{loc.locationName}</td>
+                      <td className="py-2 text-sm text-gray-900 text-right">{loc.totalQueries?.toLocaleString()}</td>
+                      <td className="py-2 text-sm text-gray-900 text-right">{loc.blockRate}%</td>
+                    </tr>
+                  ))}
+                  {(!locationStats || locationStats.length === 0) && (
+                    <tr>
+                      <td colSpan={3} className="py-8 text-center text-gray-500">No location data</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>
   )
 }
-

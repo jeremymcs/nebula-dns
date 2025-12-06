@@ -29,7 +29,14 @@ export class MfaService {
 
   // Generate a TOTP secret
   private generateSecret(): string {
-    return crypto.randomBytes(20).toString('base32').substring(0, 32);
+    // Generate a random secret for TOTP (base32 encoding done manually)
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    let secret = '';
+    const bytes = crypto.randomBytes(32);
+    for (let i = 0; i < 32; i++) {
+      secret += chars[bytes[i] % 32];
+    }
+    return secret;
   }
 
   // Encrypt the secret for storage

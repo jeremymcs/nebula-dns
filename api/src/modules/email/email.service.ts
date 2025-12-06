@@ -29,9 +29,13 @@ export interface EmailVerificationData {
 
 export interface InviteUserEmailData {
   to: string;
+  tenantName: string;
   inviterName: string;
-  companyName: string;
+  inviterEmail: string;
+  role: string;
+  message?: string;
   inviteUrl: string;
+  expiresAt: Date;
 }
 
 @Injectable()
@@ -270,7 +274,7 @@ If you didn't sign up for this account, please ignore this email.
   }
 
   async sendInviteUserEmail(data: InviteUserEmailData): Promise<boolean> {
-    const subject = `You've been invited to join ${data.companyName} on SafeDNS`;
+    const subject = `You've been invited to join ${data.tenantName} on SafeDNS`;
     
     const htmlContent = `
 <!DOCTYPE html>
@@ -283,7 +287,7 @@ If you didn't sign up for this account, please ignore this email.
   <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 30px;">
     <h2 style="color: #667eea; margin-top: 0;">You're Invited!</h2>
     
-    <p><strong>${data.inviterName}</strong> has invited you to join <strong>${data.companyName}</strong> on SafeDNS.</p>
+    <p><strong>${data.inviterName}</strong> has invited you to join <strong>${data.tenantName}</strong> on SafeDNS.</p>
     
     <p>SafeDNS provides enterprise-grade DNS security and content filtering to protect your network.</p>
     

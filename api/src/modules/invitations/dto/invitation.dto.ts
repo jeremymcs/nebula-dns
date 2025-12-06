@@ -43,7 +43,7 @@ export class InvitationResponseDto {
     id: string;
     name: string;
     email: string;
-  };
+  } | null;
   expiresAt: Date;
   createdAt: Date;
 }

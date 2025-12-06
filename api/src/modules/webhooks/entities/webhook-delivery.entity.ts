@@ -20,16 +20,16 @@ export class WebhookDelivery {
   payload: Record<string, any>;
 
   @Column({ name: 'status_code', nullable: true })
-  statusCode: number;
+  statusCode: number | null;
 
   @Column({ name: 'response_body', type: 'text', nullable: true })
-  responseBody: string;
+  responseBody: string | null;
 
   @Column({ name: 'response_time_ms', nullable: true })
-  responseTimeMs: number;
+  responseTimeMs: number | null;
 
   @Column({ type: 'text', nullable: true })
-  error: string;
+  error: string | null;
 
   @Column({ name: 'retry_count', default: 0 })
   retryCount: number;

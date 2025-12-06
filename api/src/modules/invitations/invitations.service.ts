@@ -73,7 +73,7 @@ export class InvitationsService {
 
     // Send invitation email
     const inviteUrl = `${process.env.APP_URL || 'http://localhost:3000'}/invite/accept?token=${token}`;
-    const sent = await this.emailService.sendInviteEmail({
+    const sent = await this.emailService.sendInviteUserEmail({
       to: dto.email,
       tenantName: tenant?.name || 'SafeDNS',
       inviterName: inviter?.name || 'A team member',
@@ -194,10 +194,8 @@ export class InvitationsService {
       tenantId: invitation.tenantId,
       email: invitation.email,
       name: dto.name,
-      password: hashedPassword,
-      role: invitation.role,
-      emailVerified: true, // Verified via invitation
-      emailVerifiedAt: new Date(),
+      passwordHash: hashedPassword,
+      role: invitation.role as any,
     });
 
     await this.userRepository.save(user);
@@ -254,7 +252,7 @@ export class InvitationsService {
 
     // Resend email
     const inviteUrl = `${process.env.APP_URL || 'http://localhost:3000'}/invite/accept?token=${token}`;
-    const sent = await this.emailService.sendInviteEmail({
+    const sent = await this.emailService.sendInviteUserEmail({
       to: invitation.email,
       tenantName: invitation.tenant?.name || 'SafeDNS',
       inviterName: currentUser?.name || invitation.invitedBy?.name || 'A team member',

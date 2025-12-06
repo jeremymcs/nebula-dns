@@ -32,7 +32,7 @@ export class AgentInstallation extends BaseEntity {
   platform: AgentPlatform;
 
   @Column({ name: 'os_version', length: 50, nullable: true })
-  osVersion: string;
+  osVersion: string | null;
 
   @Column({ name: 'agent_version', length: 20 })
   agentVersion: string;
@@ -41,13 +41,13 @@ export class AgentInstallation extends BaseEntity {
   status: AgentStatus;
 
   @Column({ name: 'last_seen_at', type: 'timestamptz', nullable: true })
-  lastSeenAt: Date;
+  lastSeenAt: Date | null;
 
   @Column({ name: 'ip_address', type: 'inet', nullable: true })
-  ipAddress: string;
+  ipAddress: string | null;
 
   @Column({ name: 'error_message', type: 'text', nullable: true })
-  errorMessage: string;
+  errorMessage: string | null;
 
   @Column({ type: 'jsonb', default: {} })
   settings: {
