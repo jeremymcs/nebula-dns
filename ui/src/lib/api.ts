@@ -108,10 +108,28 @@ export const api = {
       `/lists${type ? `?type=${type}` : ''}`
     ),
   
+  createList: (data: { name: string; description?: string; type: 'allowlist' | 'blocklist' }) =>
+    request<any>('/lists', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  
   getListEntries: (listId: string, cursor?: string) =>
     request<{ data: any[]; pagination: { cursor: string | null; hasMore: boolean } }>(
       `/lists/${listId}/entries${cursor ? `?cursor=${cursor}` : ''}`
     ),
+  
+  addListEntry: (listId: string, data: { domain: string; comment?: string }) =>
+    request<any>(`/lists/${listId}/entries`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  
+  bulkAddListEntries: (listId: string, domains: string[]) =>
+    request<{ added: number; skipped: number }>(`/lists/${listId}/entries/bulk`, {
+      method: 'POST',
+      body: JSON.stringify({ domains }),
+    }),
   
   addListEntries: (listId: string, entries: any[]) =>
     request<{ added: number; skipped: number }>(`/lists/${listId}/entries`, {

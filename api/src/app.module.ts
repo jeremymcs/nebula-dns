@@ -17,6 +17,7 @@ import { MfaModule } from './modules/mfa/mfa.module';
 import { ScheduledReportsModule } from './modules/scheduled-reports/scheduled-reports.module';
 import { SsoModule } from './modules/sso/sso.module';
 import { AgentsModule } from './modules/agents/agents.module';
+import { ClickHouseModule } from './modules/clickhouse/clickhouse.module';
 
 // P2 Features
 import { BlockPagesModule } from './modules/block-pages/block-pages.module';
@@ -52,6 +53,9 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
             : false,
       }),
     }),
+
+    // Analytics
+    ClickHouseModule,
 
     // Feature modules
     AuthModule,
