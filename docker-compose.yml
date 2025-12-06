@@ -20,11 +20,15 @@ services:
       PORT: 3000
       DATABASE_URL: postgresql://nebula:nebula@postgres:5432/nebula
       REDIS_URL: redis://redis:6379
-      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: 8123
+      CLICKHOUSE_DATABASE: nebula_dns
+      CLICKHOUSE_USER: nebula
+      CLICKHOUSE_PASSWORD: nebula
       JWT_SECRET: dev-jwt-secret-change-in-production
+      JWT_REFRESH_SECRET: dev-jwt-refresh-secret-change-in-production
       JWT_EXPIRES_IN: 15m
       JWT_REFRESH_EXPIRES_IN: 7d
-      HMAC_SECRET: dev-hmac-secret-change-in-production
     depends_on:
       postgres:
         condition: service_healthy
