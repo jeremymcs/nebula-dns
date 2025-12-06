@@ -147,8 +147,8 @@ export class SiemIntegrationResponseDto {
   logTypes: string[];
   includeAllowed: boolean;
   minSeverity: string;
-  lastSentAt?: Date;
-  lastError?: string;
+  lastSentAt?: Date | null;
+  lastError?: string | null;
   errorCount: number;
   createdAt: Date;
 }

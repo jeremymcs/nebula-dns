@@ -54,16 +54,26 @@ export default function ScheduledReportsPage() {
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editingReport, setEditingReport] = useState<ScheduledReport | null>(null)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string
+    description: string
+    reportType: string
+    scheduleType: string
+    scheduleDay: number
+    scheduleTime: string
+    timezone: string
+    recipients: string
+    format: string
+  }>({
     name: '',
     description: '',
-    reportType: 'summary' as const,
-    scheduleType: 'weekly' as const,
+    reportType: 'summary',
+    scheduleType: 'weekly',
     scheduleDay: 1,
     scheduleTime: '08:00',
     timezone: 'UTC',
     recipients: '',
-    format: 'pdf' as const,
+    format: 'pdf',
   })
 
   useEffect(() => {

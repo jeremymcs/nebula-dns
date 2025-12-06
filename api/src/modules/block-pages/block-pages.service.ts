@@ -308,7 +308,7 @@ export class BlockPagesService {
     request.status = dto.status;
     request.reviewedById = userId;
     request.reviewedAt = new Date();
-    request.reviewNote = dto.reviewNote;
+    request.reviewNote = dto.reviewNote || null;
 
     if (dto.status === 'approved' && dto.expiresInHours) {
       request.expiresAt = new Date(Date.now() + dto.expiresInHours * 60 * 60 * 1000);

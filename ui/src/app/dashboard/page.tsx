@@ -76,7 +76,7 @@ export default function DashboardPage() {
           />
           <StatsCard
             title="Threats Blocked"
-            value={isLoading ? '...' : formatNumber(summary?.threatsBlocked || summary?.blockedQueries * 0.1 || 0)}
+            value={isLoading ? '...' : formatNumber(summary?.threatsBlocked || (summary?.blockedQueries || 0) * 0.1 || 0)}
             icon={ExclamationTriangleIcon}
             color="yellow"
           />

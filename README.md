@@ -1,141 +1,111 @@
-# Nebula DNS
+# Nebula DNS - Enterprise DNS Security Platform
 
-**Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>**
+Nebula DNS is an enterprise-grade DNS security and content filtering platform that provides comprehensive protection for organizations of all sizes.
 
-A multi-tenant SaaS platform for enterprise DNS security and content filtering.
+## Features
 
-## Overview
-
-Nebula DNS provides:
-- **DNS-based threat protection** - Block malware, phishing, and C2 domains
-- **Content filtering** - Category-based filtering with customizable policies
-- **Custom lists** - Tenant-specific allowlists and blocklists
-- **SafeSearch enforcement** - Force safe search on popular search engines
-- **Comprehensive logging** - Query logs with analytics and reporting
-- **Multi-tenant architecture** - Isolated data per organization
+- **Policy-based DNS Filtering** - Create and apply policies for content filtering and security
+- **Location-based Rules** - Different policies for different network locations
+- **Custom Allow/Block Lists** - Maintain custom domain lists for precise control
+- **Real-time Query Logging** - Monitor and analyze DNS queries with ClickHouse
+- **Threat Intelligence** - Block malware, phishing, and C2 domains
+- **Custom Block Pages** - Branded block pages with access request workflows
+- **Client Agents** - Desktop and mobile agents for remote devices
+- **SIEM Integration** - Forward logs to Splunk, Elasticsearch, and more
+- **Webhooks** - Real-time event notifications
+- **MFA & SSO** - Multi-factor authentication and SAML/OIDC single sign-on
+- **Scheduled Reports** - Automated email reports
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Control Plane                            │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────────┐│
-│  │ Next.js  │  │ NestJS   │  │ Postgres │  │ Background       ││
-│  │ Admin UI │──│ API      │──│          │  │ Workers          ││
-│  └──────────┘  └──────────┘  └──────────┘  └──────────────────┘│
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                         Data Plane                              │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────────┐│
-│  │ dnsdist  │──│ Policy   │──│ Unbound  │  │ ClickHouse       ││
-│  │ DoH/DoT  │  │ Service  │  │ Resolver │  │ Query Logs       ││
-│  └──────────┘  └──────────┘  └──────────┘  └──────────────────┘│
-│                     │                                           │
-│                     ▼                                           │
-│               ┌──────────┐                                      │
-│               │  Redis   │                                      │
-│               │  Cache   │                                      │
-│               └──────────┘                                      │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+│   Clients   │──────│   dnsdist   │──────│   Unbound   │
+└─────────────┘      └─────────────┘      └─────────────┘
+                            │
+                    ┌───────┴───────┐
+                    │  Policy Svc   │
+                    └───────────────┘
+                            │
+    ┌───────────────────────┼───────────────────────┐
+    │                       │                       │
+┌───┴───┐           ┌───────┴───────┐       ┌──────┴──────┐
+│ Redis │           │   API (NestJS) │       │  ClickHouse │
+└───────┘           └───────────────┘       └─────────────┘
+                            │
+                    ┌───────┴───────┐
+                    │   PostgreSQL  │
+                    └───────────────┘
+                            │
+                    ┌───────┴───────┐
+                    │  UI (Next.js)  │
+                    └───────────────┘
 ```
 
 ## Quick Start
 
 ### Prerequisites
 
-- Docker & Docker Compose
-- Node.js 20+ (for local development)
+- Docker and Docker Compose
+- Node.js 18+ (for local development)
 - Go 1.21+ (for policy service development)
 
-### Running Locally
+### Environment Setup
+
+1. Copy the example environment file:
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-org/nebula-dns.git
-cd nebula-dns
-
-# Start all services
-docker compose up -d
-
-# View logs
-docker compose logs -f
-
-# Access the services:
-# - Admin UI: http://localhost:3001
-# - API: http://localhost:3000
-# - API Docs: http://localhost:3000/api/docs
-# - DNS (non-TLS): localhost:53
+cp .env.example .env
 ```
 
-### Default Credentials
+2. Configure the environment variables in `.env`:
 
-- **Admin UI**: `admin@demo.local` / `Admin@12345!`
-- **Tenant**: Demo Company (slug: `demo`)
+```env
+# PostgreSQL
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your-secure-password
+POSTGRES_DB=nebula_dns
 
-## Project Structure
+# Redis
+REDIS_URL=redis://redis:6379
 
-```
-nebula-dns/
-├── api/                    # NestJS Control Plane API
-│   ├── src/
-│   │   ├── modules/       # Feature modules
-│   │   ├── common/        # Shared utilities
-│   │   └── config/        # Configuration
-│   └── Dockerfile
-│
-├── policy-svc/            # Go Policy Decision Service
-│   ├── cmd/               # Entry point
-│   ├── internal/
-│   │   ├── handlers/      # HTTP handlers
-│   │   ├── policy/        # Evaluation logic
-│   │   ├── cache/         # Caching layer
-│   │   └── models/        # Data structures
-│   └── Dockerfile
-│
-├── ui/                    # Next.js Admin Dashboard
-│   ├── src/
-│   │   ├── app/           # App router pages
-│   │   ├── components/    # React components
-│   │   └── lib/           # Utilities
-│   └── Dockerfile
-│
-├── config/
-│   ├── dnsdist/           # dnsdist configuration
-│   └── unbound/           # Unbound configuration
-│
-├── scripts/
-│   ├── init-postgres.sql  # PostgreSQL schema
-│   └── init-clickhouse.sql # ClickHouse schema
-│
-├── docs/                  # Design documentation
-│   ├── A-system-design.md
-│   ├── B-threat-model.md
-│   ├── C-database-schema.md
-│   ├── D-api-spec.md
-│   ├── E-policy-evaluation.md
-│   ├── F-dnsdist-routing.md
-│   ├── H-test-plan.md
-│   └── I-mvp-milestones.md
-│
-└── docker-compose.yml
+# ClickHouse
+CLICKHOUSE_HOST=clickhouse
+CLICKHOUSE_PORT=8123
+CLICKHOUSE_DATABASE=nebula_dns
+CLICKHOUSE_USER=default
+CLICKHOUSE_PASSWORD=
+
+# JWT
+JWT_SECRET=your-jwt-secret-min-32-chars
+JWT_EXPIRES_IN=1h
+
+# API
+API_URL=http://localhost:3000
+FRONTEND_URL=http://localhost:3001
 ```
 
-## Documentation
+### Running with Docker Compose
 
-- [A. System Design](docs/A-system-design.md) - Architecture overview
-- [B. Threat Model](docs/B-threat-model.md) - Security considerations
-- [C. Database Schema](docs/C-database-schema.md) - Data model
-- [D. API Specification](docs/D-api-spec.md) - REST API reference
-- [E. Policy Evaluation](docs/E-policy-evaluation.md) - Decision algorithm
-- [F. dnsdist Routing](docs/F-dnsdist-routing.md) - DNS flow
-- [H. Test Plan](docs/H-test-plan.md) - Testing strategy
-- [I. MVP Milestones](docs/I-mvp-milestones.md) - Development roadmap
+Start all services:
 
-## Development
+```bash
+docker-compose up -d
+```
 
-### API Development
+This will start:
+- **PostgreSQL** (port 5432) - Main database
+- **Redis** (port 6379) - Caching and rate limiting
+- **ClickHouse** (port 8123) - Query logging and analytics
+- **API** (port 3000) - NestJS backend
+- **UI** (port 3001) - Next.js frontend
+- **Policy Service** (port 8080) - Go-based policy engine
+- **dnsdist** (port 53) - DNS load balancer
+- **Unbound** (internal) - Recursive resolver
+
+### Local Development
+
+#### API (NestJS)
 
 ```bash
 cd api
@@ -143,14 +113,7 @@ npm install
 npm run start:dev
 ```
 
-### Policy Service Development
-
-```bash
-cd policy-svc
-go run cmd/main.go
-```
-
-### UI Development
+#### UI (Next.js)
 
 ```bash
 cd ui
@@ -158,99 +121,106 @@ npm install
 npm run dev
 ```
 
-### Running Tests
+#### Policy Service (Go)
 
 ```bash
-# API tests
-cd api && npm test
-
-# Policy service tests
-cd policy-svc && go test ./...
-
-# E2E tests
-cd api && npm run test:e2e
+cd policy-svc
+go mod download
+go run cmd/main.go
 ```
-
-## API Endpoints
-
-| Endpoint | Description |
-|----------|-------------|
-| `POST /auth/login` | Authenticate user |
-| `GET /policies` | List policies |
-| `POST /policies` | Create policy |
-| `GET /locations` | List locations |
-| `POST /locations/:id/tokens` | Generate DoH token |
-| `GET /reports/summary` | Get statistics |
-| `GET /logs/queries` | Query DNS logs |
-
-See [API Specification](docs/D-api-spec.md) for complete documentation.
-
-## Security
-
-Nebula DNS is designed with security as a priority:
-
-- **Tenant Isolation**: All data scoped by `tenant_id`
-- **RBAC**: Role-based access control (Owner, Admin, Analyst, Read-only)
-- **Audit Logging**: All admin actions logged
-- **Secure Auth**: JWT with refresh tokens, bcrypt password hashing
-- **Rate Limiting**: Protection against abuse
-- **DNSSEC**: Validated responses from upstream
-
-See [Threat Model](docs/B-threat-model.md) for detailed security analysis.
 
 ## Configuration
 
-### Environment Variables
+### DNS Configuration
 
-**API Service:**
-```
-DATABASE_URL=postgresql://user:pass@host:5432/db
-REDIS_URL=redis://host:6379
-JWT_SECRET=your-secret-key
-HMAC_SECRET=your-hmac-secret
-```
+Point your DNS to the Nebula DNS resolvers:
 
-**Policy Service:**
-```
-PORT=8080
-REDIS_URL=redis:6379
-FAIL_MODE=open  # or "closed"
-LOG_LEVEL=debug
-```
+- **Primary**: Your server IP, port 53
+- **DoH**: `https://your-server/dns-query?token=<location-token>`
+- **DoT**: `your-server:853`
 
-## Deployment
+### Policy Configuration
 
-### Production Considerations
+Policies support:
+- Category-based blocking (adult, gambling, malware, etc.)
+- Threat feeds (malware, phishing, C2)
+- SafeSearch enforcement
+- Custom allow/block lists
+- Block response types (NXDOMAIN, REFUSED, custom IP)
 
-1. **TLS Certificates**: Configure valid certificates for DoH/DoT
-2. **Secrets Management**: Use a secrets manager for sensitive config
-3. **Database**: Use managed PostgreSQL and Redis
-4. **Scaling**: Policy service scales horizontally
-5. **Monitoring**: Configure Prometheus/Grafana
+### Block Page Configuration
 
-### Docker Build
+Customize the block page with:
+- Company branding (logo, colors)
+- Custom messages
+- Access request forms
+- Contact information
+
+## API Documentation
+
+The API documentation is available at `http://localhost:3000/api/docs` when running in development mode.
+
+### Authentication
+
+All API requests require a Bearer token:
 
 ```bash
-# Build all images
-docker compose build
-
-# Build specific service
-docker compose build api
+curl -H "Authorization: Bearer <token>" http://localhost:3000/api/v1/policies
 ```
 
-## Contributing
+### Key Endpoints
 
-1. Fork the repository
-2. Create a feature branch
-3. Make changes with tests
-4. Submit a pull request
+| Endpoint | Description |
+|----------|-------------|
+| `POST /auth/login` | Authenticate and get tokens |
+| `GET /policies` | List policies |
+| `GET /locations` | List locations |
+| `GET /reports/summary` | Get dashboard statistics |
+| `GET /reports/logs` | Get query logs |
+
+## Database Migrations
+
+Run database migrations:
+
+```bash
+cd api
+npm run migration:run
+```
+
+Generate a new migration:
+
+```bash
+npm run migration:generate src/database/migrations/MigrationName
+```
+
+## Monitoring
+
+### Health Checks
+
+- API: `http://localhost:3000/health`
+- Policy Service: `http://localhost:8080/health`
+
+### Logs
+
+View logs with Docker Compose:
+
+```bash
+docker-compose logs -f api
+docker-compose logs -f policy-svc
+docker-compose logs -f dnsdist
+```
+
+## Security Considerations
+
+1. **Change default passwords** in production
+2. **Enable HTTPS** using a reverse proxy (nginx, Caddy)
+3. **Configure firewall** rules for DNS ports
+4. **Enable MFA** for admin accounts
+5. **Rotate JWT secrets** periodically
+6. **Encrypt sensitive data** at rest
 
 ## License
 
 Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 All rights reserved.
-
-## Support
-
-For support inquiries, contact: jeremy@fluxlabs.net

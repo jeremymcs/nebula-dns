@@ -41,11 +41,11 @@ export class Subscription extends BaseEntity {
   currentPeriodEnd: Date;
 
   @Column({ type: 'timestamptz', nullable: true, name: 'trial_end' })
-  trialEnd: Date;
+  trialEnd: Date | null;
 
   @Column({ default: false, name: 'cancel_at_period_end' })
   cancelAtPeriodEnd: boolean;
 
   @Column({ type: 'timestamptz', nullable: true, name: 'canceled_at' })
-  canceledAt: Date;
+  canceledAt: Date | null;
 }

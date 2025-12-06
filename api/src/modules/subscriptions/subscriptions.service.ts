@@ -138,6 +138,10 @@ export class SubscriptionsService {
       where: { tenantId: tenant.id, email: signupRequest.email },
     });
 
+    if (!user) {
+      throw new NotFoundException('User not found after signup');
+    }
+
     // Send welcome email
     await this.emailService.sendWelcomeEmail({
       to: signupRequest.email,
@@ -333,7 +337,7 @@ export class SubscriptionsService {
 
   // ==================== SUBSCRIPTION MANAGEMENT ====================
 
-  async getSubscription(tenantId: string): Promise<Subscription> {
+  async getSubscription(tenantId: string): Promise<Subscription | null> {
     return this.subscriptionsRepository.findOne({
       where: { tenantId },
       relations: ['plan'],

@@ -64,9 +64,9 @@ export class WebhookResponseDto {
   events: string[];
   isEnabled: boolean;
   headers: Record<string, string>;
-  lastTriggeredAt?: Date;
-  lastStatusCode?: number;
-  lastError?: string;
+  lastTriggeredAt?: Date | null;
+  lastStatusCode?: number | null;
+  lastError?: string | null;
   failureCount: number;
   createdAt: Date;
 }
@@ -75,9 +75,9 @@ export class WebhookDeliveryResponseDto {
   id: string;
   eventType: string;
   payload: Record<string, any>;
-  statusCode?: number;
-  responseTimeMs?: number;
-  error?: string;
+  statusCode?: number | null;
+  responseTimeMs?: number | null;
+  error?: string | null;
   retryCount: number;
   createdAt: Date;
 }
@@ -92,5 +92,5 @@ export class TestWebhookResultDto {
   success: boolean;
   statusCode?: number;
   responseTimeMs: number;
-  error?: string;
+  error?: string | null;
 }

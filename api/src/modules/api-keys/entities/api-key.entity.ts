@@ -40,11 +40,11 @@ export class ApiKey extends BaseEntity {
   isActive: boolean;
 
   @Column({ name: 'last_used_at', type: 'timestamptz', nullable: true })
-  lastUsedAt: Date;
+  lastUsedAt: Date | null;
 
   @Column({ name: 'last_used_ip', type: 'inet', nullable: true })
-  lastUsedIp: string;
+  lastUsedIp: string | null;
 
   @Column({ name: 'expires_at', type: 'timestamptz', nullable: true })
-  expiresAt: Date;
+  expiresAt: Date | null;
 }

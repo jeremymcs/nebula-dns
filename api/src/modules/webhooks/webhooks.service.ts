@@ -44,7 +44,7 @@ export class WebhooksService {
       secretHash: dto.secret ? crypto.createHash('sha256').update(dto.secret).digest('hex') : null,
       events: dto.events as WebhookEvent[],
       headers: dto.headers || {},
-    });
+    } as Partial<Webhook>);
 
     return this.webhookRepository.save(webhook);
   }
@@ -192,9 +192,9 @@ export class WebhooksService {
       headers['X-Webhook-Signature'] = `sha256=${this.generateSignature(payloadString, webhook.secretHash)}`;
     }
 
-    let statusCode: number;
-    let responseBody: string;
-    let error: string;
+    let statusCode: number = 0;
+    let responseBody: string = '';
+    let error: string | null = null;
 
     try {
       // In production, use actual HTTP request
@@ -211,7 +211,7 @@ export class WebhooksService {
       responseBody = '{"received": true}';
       console.log(`[Webhook] Delivered ${eventType} to ${webhook.name} (${webhook.url})`);
 
-    } catch (err) {
+    } catch (err: any) {
       statusCode = 0;
       error = err.message || 'Failed to deliver webhook';
     }

@@ -46,7 +46,7 @@ export class SsoController {
   ) {
     const { user, token } = await this.ssoService.handleSamlCallback(
       body.SAMLResponse,
-      body.RelayState,
+      body.RelayState || '',
     );
 
     // Redirect to frontend with token

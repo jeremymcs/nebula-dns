@@ -254,7 +254,7 @@ export class ClickHouseService implements OnModuleInit {
         query: `SELECT count() as total FROM query_logs WHERE ${whereClause}`,
         format: 'JSONEachRow',
       });
-      const countData = await countResult.json();
+      const countData = await countResult.json() as any[];
       const total = countData[0]?.total || 0;
 
       const result = await this.client.query({
@@ -283,7 +283,7 @@ export class ClickHouseService implements OnModuleInit {
         format: 'JSONEachRow',
       });
 
-      const data = await result.json();
+      const data = await result.json() as any[];
 
       return {
         data: data.map((row: any) => ({
@@ -337,7 +337,7 @@ export class ClickHouseService implements OnModuleInit {
         format: 'JSONEachRow',
       });
 
-      const data = await result.json();
+      const data = await result.json() as any[];
       const stats = data[0] || {};
 
       return {
@@ -413,7 +413,7 @@ export class ClickHouseService implements OnModuleInit {
         format: 'JSONEachRow',
       });
 
-      const data = await result.json();
+      const data = await result.json() as any[];
       const total = data.reduce((sum: number, item: any) => sum + Number(item.count), 0);
 
       return data.map((item: any) => ({
@@ -450,7 +450,7 @@ export class ClickHouseService implements OnModuleInit {
         format: 'JSONEachRow',
       });
 
-      const data = await result.json();
+      const data = await result.json() as any[];
 
       return data.map((item: any) => ({
         locationId: item.location_id,
