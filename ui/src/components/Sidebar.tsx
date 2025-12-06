@@ -7,9 +7,11 @@
 
 'use client'
 
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   HomeIcon,
   ShieldCheckIcon,
@@ -21,6 +23,11 @@ import {
   Cog6ToothIcon,
   NoSymbolIcon,
   ComputerDesktopIcon,
+  ChevronUpDownIcon,
+  ArrowRightOnRectangleIcon,
+  UserCircleIcon,
+  KeyIcon,
+  BellIcon,
 } from '@heroicons/react/24/outline'
 
 const navigation = [
@@ -38,6 +45,42 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { user, logout } = useAuth()
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case 'owner':
+        return 'bg-purple-100 text-purple-800'
+      case 'admin':
+        return 'bg-blue-100 text-blue-800'
+      case 'analyst':
+        return 'bg-green-100 text-green-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
 
   return (
     <div className="flex h-full w-64 flex-col bg-white border-r border-gray-200">
@@ -52,7 +95,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
         {navigation.map((item) => {
           const isActive = pathname === item.href || 
             (item.href !== '/dashboard' && pathname?.startsWith(item.href))
@@ -82,17 +125,87 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* User section */}
-      <div className="flex shrink-0 border-t border-gray-200 p-4">
-        <div className="flex items-center">
-          <div className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center">
-            <span className="text-sm font-medium text-gray-600">AD</span>
+      {/* User section with dropdown */}
+      <div className="relative shrink-0 border-t border-gray-200" ref={menuRef}>
+        <button
+          onClick={() => setShowUserMenu(!showUserMenu)}
+          className="flex w-full items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center min-w-0">
+            <div className="h-9 w-9 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+              <span className="text-sm font-medium text-primary-700">
+                {user?.name ? getInitials(user.name) : 'U'}
+              </span>
+            </div>
+            <div className="ml-3 min-w-0">
+              <p className="text-sm font-medium text-gray-700 truncate">
+                {user?.name || 'User'}
+              </p>
+              <p className="text-xs text-gray-500 truncate">
+                {user?.email || 'user@example.com'}
+              </p>
+            </div>
           </div>
-          <div className="ml-3">
-            <p className="text-sm font-medium text-gray-700">Admin User</p>
-            <p className="text-xs text-gray-500">admin@example.com</p>
+          <ChevronUpDownIcon className="h-5 w-5 text-gray-400 flex-shrink-0" />
+        </button>
+
+        {/* Dropdown Menu */}
+        {showUserMenu && (
+          <div className="absolute bottom-full left-0 right-0 mb-1 mx-3 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+            {/* User info header */}
+            <div className="px-4 py-3 border-b border-gray-100">
+              <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+              <p className="text-xs text-gray-500">{user?.email}</p>
+              {user?.role && (
+                <span className={`mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium capitalize ${getRoleBadgeColor(user.role)}`}>
+                  {user.role}
+                </span>
+              )}
+            </div>
+
+            {/* Menu items */}
+            <div className="py-1">
+              <Link
+                href="/dashboard/settings"
+                onClick={() => setShowUserMenu(false)}
+                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                <UserCircleIcon className="mr-3 h-5 w-5 text-gray-400" />
+                Account Settings
+              </Link>
+              <Link
+                href="/dashboard/settings/security"
+                onClick={() => setShowUserMenu(false)}
+                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                <KeyIcon className="mr-3 h-5 w-5 text-gray-400" />
+                Security
+              </Link>
+              <Link
+                href="/dashboard/settings/api-keys"
+                onClick={() => setShowUserMenu(false)}
+                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                <BellIcon className="mr-3 h-5 w-5 text-gray-400" />
+                API Keys
+              </Link>
+            </div>
+
+            {/* Logout */}
+            <div className="border-t border-gray-100 py-1">
+              <button
+                onClick={() => {
+                  setShowUserMenu(false)
+                  logout()
+                }}
+                className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+              >
+                <ArrowRightOnRectangleIcon className="mr-3 h-5 w-5" />
+                Sign out
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

@@ -7,13 +7,36 @@
 
 'use client'
 
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/Sidebar'
+import { FullPageLoading } from '@/components/LoadingSpinner'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const { user, loading } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/')
+    }
+  }, [loading, user, router])
+
+  // Show loading spinner while checking auth
+  if (loading) {
+    return <FullPageLoading />
+  }
+
+  // Don't render dashboard if not authenticated
+  if (!user) {
+    return <FullPageLoading />
+  }
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />

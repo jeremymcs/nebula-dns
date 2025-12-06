@@ -8,7 +8,7 @@ import {
   Param,
   UseGuards,
 } from '@nestjs/common';
-import { AgentsService } from './agents.service';
+import { AgentsService, AgentVersion } from './agents.service';
 import { CreateDownloadLinkDto, RegisterAgentDto, AgentHeartbeatDto, UpdateAgentDto } from './dto/agent.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';

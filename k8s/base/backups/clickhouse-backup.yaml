@@ -1,0 +1,127 @@
+# Nebula DNS - ClickHouse Backup CronJob
+# Backs up ClickHouse data daily
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: clickhouse-backup-scripts
+  namespace: nebula-dns
+data:
+  backup.sh: |
+    #!/bin/bash
+    set -euo pipefail
+
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    BACKUP_NAME="nebula_dns_ch_${TIMESTAMP}"
+    
+    echo "Starting ClickHouse backup at $(date)"
+    
+    # Create backup using clickhouse-backup tool
+    clickhouse-backup create "${BACKUP_NAME}"
+    
+    # Upload to remote storage
+    if [ -n "${S3_BUCKET:-}" ]; then
+      clickhouse-backup upload "${BACKUP_NAME}"
+      echo "Uploaded backup: ${BACKUP_NAME}"
+    fi
+    
+    # Cleanup old local backups (keep last 3)
+    clickhouse-backup list local | tail -n +4 | xargs -I {} clickhouse-backup delete local {} || true
+    
+    # Cleanup old remote backups (keep last 30)
+    if [ -n "${S3_BUCKET:-}" ]; then
+      clickhouse-backup list remote | tail -n +31 | xargs -I {} clickhouse-backup delete remote {} || true
+    fi
+    
+    echo "Backup completed successfully at $(date)"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: clickhouse-backup
+  namespace: nebula-dns
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 7200  # 2 hour timeout
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: altinity/clickhouse-backup:2.4.0
+              command: ["/bin/bash", "/scripts/backup.sh"]
+              env:
+                - name: CLICKHOUSE_HOST
+                  value: clickhouse
+                - name: CLICKHOUSE_PORT
+                  value: "9000"
+                - name: CLICKHOUSE_USERNAME
+                  value: default
+                - name: CLICKHOUSE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: clickhouse-credentials
+                      key: password
+                - name: S3_BUCKET
+                  value: your-backup-bucket
+                - name: S3_PATH
+                  value: clickhouse
+                - name: AWS_DEFAULT_REGION
+                  value: us-east-1
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                - name: clickhouse-backup-config
+                  mountPath: /etc/clickhouse-backup
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: "1"
+                  memory: 1Gi
+          volumes:
+            - name: scripts
+              configMap:
+                name: clickhouse-backup-scripts
+                defaultMode: 0755
+            - name: clickhouse-backup-config
+              configMap:
+                name: clickhouse-backup-config
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: clickhouse-backup-config
+  namespace: nebula-dns
+data:
+  config.yml: |
+    general:
+      remote_storage: s3
+      disable_progress_bar: true
+      backups_to_keep_local: 3
+      backups_to_keep_remote: 30
+    
+    clickhouse:
+      host: clickhouse
+      port: 9000
+      username: default
+      timeout: 5m
+      freeze_by_part: false
+      freeze_by_part_where: ""
+    
+    s3:
+      bucket: "${S3_BUCKET}"
+      path: "clickhouse"
+      region: "us-east-1"
+      acl: "private"
+      storage_class: "STANDARD_IA"

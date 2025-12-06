@@ -1,141 +1,96 @@
-# Nebula DNS
+# Nebula DNS - Enterprise DNS Security Platform
 
-**Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>**
+Nebula DNS is an enterprise-grade DNS security and content filtering platform that provides comprehensive protection for organizations of all sizes.
 
-A multi-tenant SaaS platform for enterprise DNS security and content filtering.
+## Features
 
-## Overview
-
-Nebula DNS provides:
-- **DNS-based threat protection** - Block malware, phishing, and C2 domains
-- **Content filtering** - Category-based filtering with customizable policies
-- **Custom lists** - Tenant-specific allowlists and blocklists
-- **SafeSearch enforcement** - Force safe search on popular search engines
-- **Comprehensive logging** - Query logs with analytics and reporting
-- **Multi-tenant architecture** - Isolated data per organization
+- **Policy-based DNS Filtering** - Create and apply policies for content filtering and security
+- **Location-based Rules** - Different policies for different network locations
+- **Custom Allow/Block Lists** - Maintain custom domain lists for precise control
+- **Real-time Query Logging** - Monitor and analyze DNS queries with ClickHouse
+- **Threat Intelligence** - Block malware, phishing, and C2 domains
+- **Custom Block Pages** - Branded block pages with access request workflows
+- **Client Agents** - Desktop and mobile agents for remote devices
+- **SIEM Integration** - Forward logs to Splunk, Elasticsearch, and more
+- **Webhooks** - Real-time event notifications
+- **MFA & SSO** - Multi-factor authentication and SAML/OIDC single sign-on
+- **Scheduled Reports** - Automated email reports
+- **Stripe Payments** - Subscription billing with Stripe
+- **Metrics & Monitoring** - Prometheus-compatible metrics endpoint
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Control Plane                            │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────────┐│
-│  │ Next.js  │  │ NestJS   │  │ Postgres │  │ Background       ││
-│  │ Admin UI │──│ API      │──│          │  │ Workers          ││
-│  └──────────┘  └──────────┘  └──────────┘  └──────────────────┘│
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                         Data Plane                              │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────────┐│
-│  │ dnsdist  │──│ Policy   │──│ Unbound  │  │ ClickHouse       ││
-│  │ DoH/DoT  │  │ Service  │  │ Resolver │  │ Query Logs       ││
-│  └──────────┘  └──────────┘  └──────────┘  └──────────────────┘│
-│                     │                                           │
-│                     ▼                                           │
-│               ┌──────────┐                                      │
-│               │  Redis   │                                      │
-│               │  Cache   │                                      │
-│               └──────────┘                                      │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+│   Clients   │──────│   dnsdist   │──────│   Unbound   │
+└─────────────┘      └─────────────┘      └─────────────┘
+                            │
+                    ┌───────┴───────┐
+                    │  Policy Svc   │
+                    └───────────────┘
+                            │
+    ┌───────────────────────┼───────────────────────┐
+    │                       │                       │
+┌───┴───┐           ┌───────┴───────┐       ┌──────┴──────┐
+│ Redis │           │   API (NestJS) │       │  ClickHouse │
+└───────┘           └───────────────┘       └─────────────┘
+                            │
+                    ┌───────┴───────┐
+                    │   PostgreSQL  │
+                    └───────────────┘
+                            │
+                    ┌───────┴───────┐
+                    │  UI (Next.js)  │
+                    └───────────────┘
 ```
 
 ## Quick Start
 
 ### Prerequisites
 
-- Docker & Docker Compose
+- Docker and Docker Compose
 - Node.js 20+ (for local development)
 - Go 1.21+ (for policy service development)
 
-### Running Locally
+### Environment Setup
+
+1. Copy the example environment files:
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-org/nebula-dns.git
-cd nebula-dns
-
-# Start all services
-docker compose up -d
-
-# View logs
-docker compose logs -f
-
-# Access the services:
-# - Admin UI: http://localhost:3001
-# - API: http://localhost:3000
-# - API Docs: http://localhost:3000/api/docs
-# - DNS (non-TLS): localhost:53
+cp .env.example .env
+cp api/.env.example api/.env
+cp ui/.env.example ui/.env
 ```
 
-### Default Credentials
+2. Configure the environment variables (see `.env.example` for all options)
 
-- **Admin UI**: `admin@demo.local` / `Admin@12345!`
-- **Tenant**: Demo Company (slug: `demo`)
+### Running with Docker Compose
 
-## Project Structure
+#### Development
 
-```
-nebula-dns/
-├── api/                    # NestJS Control Plane API
-│   ├── src/
-│   │   ├── modules/       # Feature modules
-│   │   ├── common/        # Shared utilities
-│   │   └── config/        # Configuration
-│   └── Dockerfile
-│
-├── policy-svc/            # Go Policy Decision Service
-│   ├── cmd/               # Entry point
-│   ├── internal/
-│   │   ├── handlers/      # HTTP handlers
-│   │   ├── policy/        # Evaluation logic
-│   │   ├── cache/         # Caching layer
-│   │   └── models/        # Data structures
-│   └── Dockerfile
-│
-├── ui/                    # Next.js Admin Dashboard
-│   ├── src/
-│   │   ├── app/           # App router pages
-│   │   ├── components/    # React components
-│   │   └── lib/           # Utilities
-│   └── Dockerfile
-│
-├── config/
-│   ├── dnsdist/           # dnsdist configuration
-│   └── unbound/           # Unbound configuration
-│
-├── scripts/
-│   ├── init-postgres.sql  # PostgreSQL schema
-│   └── init-clickhouse.sql # ClickHouse schema
-│
-├── docs/                  # Design documentation
-│   ├── A-system-design.md
-│   ├── B-threat-model.md
-│   ├── C-database-schema.md
-│   ├── D-api-spec.md
-│   ├── E-policy-evaluation.md
-│   ├── F-dnsdist-routing.md
-│   ├── H-test-plan.md
-│   └── I-mvp-milestones.md
-│
-└── docker-compose.yml
+```bash
+docker-compose up -d
 ```
 
-## Documentation
+#### Production
 
-- [A. System Design](docs/A-system-design.md) - Architecture overview
-- [B. Threat Model](docs/B-threat-model.md) - Security considerations
-- [C. Database Schema](docs/C-database-schema.md) - Data model
-- [D. API Specification](docs/D-api-spec.md) - REST API reference
-- [E. Policy Evaluation](docs/E-policy-evaluation.md) - Decision algorithm
-- [F. dnsdist Routing](docs/F-dnsdist-routing.md) - DNS flow
-- [H. Test Plan](docs/H-test-plan.md) - Testing strategy
-- [I. MVP Milestones](docs/I-mvp-milestones.md) - Development roadmap
+```bash
+docker-compose -f docker-compose.prod.yml up -d
+```
 
-## Development
+This will start:
+- **PostgreSQL** (port 5432) - Main database
+- **Redis** (port 6379) - Caching and rate limiting
+- **ClickHouse** (port 8123) - Query logging and analytics
+- **API** (port 3000) - NestJS backend
+- **UI** (port 3001) - Next.js frontend
+- **Policy Service** (port 8080) - Go-based policy engine
+- **dnsdist** (port 853/443) - DNS frontend (DoT/DoH)
+- **Unbound** (internal) - Recursive resolver
 
-### API Development
+### Local Development
+
+#### API (NestJS)
 
 ```bash
 cd api
@@ -143,14 +98,7 @@ npm install
 npm run start:dev
 ```
 
-### Policy Service Development
-
-```bash
-cd policy-svc
-go run cmd/main.go
-```
-
-### UI Development
+#### UI (Next.js)
 
 ```bash
 cd ui
@@ -158,99 +106,247 @@ npm install
 npm run dev
 ```
 
-### Running Tests
+#### Policy Service (Go)
 
 ```bash
-# API tests
-cd api && npm test
-
-# Policy service tests
-cd policy-svc && go test ./...
-
-# E2E tests
-cd api && npm run test:e2e
+cd policy-svc
+go mod download
+go run cmd/main.go
 ```
 
-## API Endpoints
+## Production Deployment
 
-| Endpoint | Description |
-|----------|-------------|
-| `POST /auth/login` | Authenticate user |
-| `GET /policies` | List policies |
-| `POST /policies` | Create policy |
-| `GET /locations` | List locations |
-| `POST /locations/:id/tokens` | Generate DoH token |
-| `GET /reports/summary` | Get statistics |
-| `GET /logs/queries` | Query DNS logs |
+See the full [Production Deployment Guide](docs/N-production-deployment.md) for detailed instructions.
 
-See [API Specification](docs/D-api-spec.md) for complete documentation.
+### Kubernetes
 
-## Security
+Deploy to Kubernetes using Kustomize:
 
-Nebula DNS is designed with security as a priority:
+```bash
+# Install prerequisites
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.yaml
 
-- **Tenant Isolation**: All data scoped by `tenant_id`
-- **RBAC**: Role-based access control (Owner, Admin, Analyst, Read-only)
-- **Audit Logging**: All admin actions logged
-- **Secure Auth**: JWT with refresh tokens, bcrypt password hashing
-- **Rate Limiting**: Protection against abuse
-- **DNSSEC**: Validated responses from upstream
+# Apply base configuration
+kubectl apply -k k8s/base
 
-See [Threat Model](docs/B-threat-model.md) for detailed security analysis.
+# Configure secrets (copy and edit first)
+cp k8s/overlays/production/secrets.yaml.example k8s/overlays/production/secrets.yaml
+# Edit secrets.yaml with your values
 
-## Configuration
+# Apply production overlay
+kubectl apply -k k8s/overlays/production
+```
+
+### Optional Components
+
+Enable additional Kubernetes resources as needed:
+
+```bash
+# TLS certificates with cert-manager
+kubectl apply -k k8s/base/cert-manager
+
+# External secrets management
+kubectl apply -k k8s/base/external-secrets
+
+# Automated database backups
+kubectl apply -k k8s/base/backups
+
+# Prometheus alerts and Grafana dashboards
+kubectl apply -k k8s/base/monitoring
+```
 
 ### Environment Variables
 
-**API Service:**
-```
-DATABASE_URL=postgresql://user:pass@host:5432/db
-REDIS_URL=redis://host:6379
-JWT_SECRET=your-secret-key
-HMAC_SECRET=your-hmac-secret
-```
+Required for production:
 
-**Policy Service:**
-```
-PORT=8080
-REDIS_URL=redis:6379
-FAIL_MODE=open  # or "closed"
-LOG_LEVEL=debug
-```
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `REDIS_URL` | Redis connection string |
+| `JWT_SECRET` | Secret for JWT signing (min 64 chars) |
+| `SENDGRID_API_KEY` | SendGrid API key for emails |
+| `STRIPE_SECRET_KEY` | Stripe secret key for payments |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
+| `SENTRY_DSN` | Sentry DSN for error tracking |
 
-## Deployment
+### Database Migrations
 
-### Production Considerations
-
-1. **TLS Certificates**: Configure valid certificates for DoH/DoT
-2. **Secrets Management**: Use a secrets manager for sensitive config
-3. **Database**: Use managed PostgreSQL and Redis
-4. **Scaling**: Policy service scales horizontally
-5. **Monitoring**: Configure Prometheus/Grafana
-
-### Docker Build
+Run database migrations:
 
 ```bash
-# Build all images
-docker compose build
-
-# Build specific service
-docker compose build api
+cd api
+npm run migration:run
 ```
 
-## Contributing
+Generate a new migration:
 
-1. Fork the repository
-2. Create a feature branch
-3. Make changes with tests
-4. Submit a pull request
+```bash
+npm run migration:generate -- src/database/migrations/MigrationName
+```
+
+## Monitoring & Observability
+
+### Health Checks
+
+- API: `GET /health`
+- Policy Service: `GET /health`
+
+### Prometheus Metrics
+
+Metrics are exposed at `/metrics` on the API:
+
+```bash
+curl http://localhost:3000/metrics
+```
+
+Available metrics:
+- `http_requests_total` - Total HTTP requests
+- `http_request_duration_seconds` - Request latency histogram
+- `nodejs_heap_size_bytes` - Memory usage
+- `process_uptime_seconds` - Service uptime
+
+### Sentry Error Tracking
+
+Enable Sentry by setting `SENTRY_DSN` in your environment.
+
+### Logging
+
+- Development: Human-readable colored output
+- Production: JSON-formatted logs for log aggregators
+
+## API Documentation
+
+The API documentation is available at `http://localhost:3000/api/docs` (Swagger UI).
+
+### Authentication
+
+All API requests require a Bearer token:
+
+```bash
+curl -H "Authorization: Bearer <token>" http://localhost:3000/api/v1/policies
+```
+
+### Key Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /auth/login` | Authenticate and get tokens |
+| `GET /policies` | List policies |
+| `GET /locations` | List locations |
+| `GET /reports/summary` | Get dashboard statistics |
+| `GET /reports/logs` | Get query logs |
+| `POST /payments/checkout` | Create Stripe checkout session |
+| `GET /metrics` | Prometheus metrics |
+
+## Testing
+
+### API Tests
+
+```bash
+cd api
+npm run test          # Unit tests
+npm run test:e2e      # E2E tests
+npm run test:cov      # Coverage report
+```
+
+### Policy Service Tests
+
+```bash
+cd policy-svc
+go test ./...         # All tests
+go test -bench=.      # Benchmarks
+```
+
+## CI/CD
+
+GitHub Actions workflows are provided for:
+
+- **CI** (`.github/workflows/ci.yml`): Runs on PRs and pushes to main
+  - API linting and tests
+  - UI type checking and build
+  - Policy service tests
+  - Docker image builds
+  - Security scanning (Trivy)
+
+- **Release** (`.github/workflows/release.yml`): Runs on version tags
+  - Builds and pushes Docker images
+  - Creates GitHub releases
+
+## Security
+
+### Built-in Security Features
+
+- **Rate Limiting** - Configurable per-endpoint rate limits
+- **Security Headers** - HSTS, CSP, X-Frame-Options, etc.
+- **JWT Authentication** - Short-lived access tokens with refresh
+- **Password Hashing** - bcrypt with configurable rounds
+- **MFA Support** - TOTP-based two-factor authentication
+- **RBAC** - Role-based access control (owner, admin, analyst, readonly)
+
+### Production Checklist
+
+- [ ] Change all default passwords
+- [ ] Use real TLS certificates (not self-signed)
+- [ ] Enable MFA for admin accounts
+- [ ] Configure firewall rules
+- [ ] Set up log aggregation
+- [ ] Configure backup strategy
+- [ ] Enable Sentry error tracking
+- [ ] Set up monitoring alerts
+- [ ] Load threat intelligence data
+- [ ] Load domain categorization data
+- [ ] Run load tests before launch
+
+## Load Testing
+
+Load test scripts are provided using [k6](https://k6.io):
+
+```bash
+# Install k6
+brew install k6  # macOS
+
+# Run API load test
+k6 run scripts/load-testing/api-load-test.js
+
+# Run DNS load test
+k6 run scripts/load-testing/dns-load-test.js
+```
+
+See [scripts/load-testing/README.md](scripts/load-testing/README.md) for more details.
+
+## Data Loading
+
+### Threat Intelligence
+
+Load threat feeds for real-time malware/phishing blocking:
+
+```bash
+cd scripts/data-loaders
+pip install -r requirements.txt
+
+# Load all available threat feeds
+python threat-feed-loader.py --all-feeds --redis-url=redis://localhost:6379
+
+# List available feeds
+python threat-feed-loader.py --list-feeds
+```
+
+### Domain Categorization
+
+Load domain categories for content filtering:
+
+```bash
+# Load Shallalist (free)
+python category-loader.py --source=shallalist --redis-url=redis://localhost:6379
+
+# Check statistics
+python category-loader.py --stats-only
+```
+
+See [scripts/data-loaders/README.md](scripts/data-loaders/README.md) for more details.
 
 ## License
 
 Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 All rights reserved.
-
-## Support
-
-For support inquiries, contact: jeremy@fluxlabs.net

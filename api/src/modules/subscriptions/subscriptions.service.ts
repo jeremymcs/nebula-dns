@@ -138,6 +138,10 @@ export class SubscriptionsService {
       where: { tenantId: tenant.id, email: signupRequest.email },
     });
 
+    if (!user) {
+      throw new NotFoundException('User not found after signup');
+    }
+
     // Send welcome email
     await this.emailService.sendWelcomeEmail({
       to: signupRequest.email,
@@ -333,7 +337,7 @@ export class SubscriptionsService {
 
   // ==================== SUBSCRIPTION MANAGEMENT ====================
 
-  async getSubscription(tenantId: string): Promise<Subscription> {
+  async getSubscription(tenantId: string): Promise<Subscription | null> {
     return this.subscriptionsRepository.findOne({
       where: { tenantId },
       relations: ['plan'],
@@ -358,5 +362,58 @@ export class SubscriptionsService {
 
     subscription.cancelAtPeriodEnd = false;
     return this.subscriptionsRepository.save(subscription);
+  }
+
+  // ==================== STRIPE INTEGRATION HELPERS ====================
+
+  async completeSignup(signupRequestId: string, stripeData: { stripeCustomerId: string; stripeSubscriptionId: string }): Promise<void> {
+    const signupRequest = await this.signupRequestsRepository.findOne({
+      where: { id: signupRequestId },
+    });
+
+    if (!signupRequest) {
+      throw new NotFoundException('Signup request not found');
+    }
+
+    // Complete the signup
+    const { subscription } = await this.processSignup(signupRequestId);
+
+    // Update with Stripe IDs
+    subscription.stripeCustomerId = stripeData.stripeCustomerId;
+    subscription.stripeSubscriptionId = stripeData.stripeSubscriptionId;
+    subscription.status = 'active';
+    await this.subscriptionsRepository.save(subscription);
+  }
+
+  async updateSubscription(tenantId: string, updates: Partial<{
+    planCode: string;
+    stripeCustomerId: string;
+    stripeSubscriptionId: string;
+    status: string;
+    currentPeriodEnd: Date;
+    cancelAtPeriodEnd: boolean;
+  }>): Promise<void> {
+    const subscription = await this.getSubscription(tenantId);
+    if (!subscription) {
+      throw new NotFoundException('Subscription not found');
+    }
+
+    if (updates.planCode) {
+      // Plan id is the plan code (e.g., 'free', 'pro', 'enterprise')
+      const plan = await this.plansRepository.findOne({ where: { id: updates.planCode } });
+      if (plan) {
+        subscription.planId = plan.id;
+        // Update tenant plan as well
+        await this.tenantsRepository.update(tenantId, { plan: updates.planCode as any });
+      }
+    }
+
+    if (updates.stripeCustomerId) subscription.stripeCustomerId = updates.stripeCustomerId;
+    if (updates.stripeSubscriptionId) subscription.stripeSubscriptionId = updates.stripeSubscriptionId;
+    if (updates.status) subscription.status = updates.status as any;
+    if (updates.currentPeriodEnd) subscription.currentPeriodEnd = updates.currentPeriodEnd;
+    if (updates.cancelAtPeriodEnd !== undefined) subscription.cancelAtPeriodEnd = updates.cancelAtPeriodEnd;
+
+    await this.subscriptionsRepository.save(subscription);
   }
 }
