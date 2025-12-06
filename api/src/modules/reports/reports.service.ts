@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ReportQueryDto } from './dto/report-query.dto';
+import { ReportQueryDto, QueryLogDto, QueryLogEntry } from './dto/report-query.dto';
 
 // Placeholder for ClickHouse integration
 // In production, this would use @clickhouse/client
@@ -43,6 +43,15 @@ export interface LocationStats {
   totalQueries: number;
   blockedQueries: number;
   blockRate: number;
+}
+
+export interface PaginatedQueryLogs {
+  data: QueryLogEntry[];
+  pagination: {
+    cursor: string | null;
+    hasMore: boolean;
+  };
+  total: number;
 }
 
 @Injectable()
@@ -181,6 +190,94 @@ export class ReportsService {
         blockRate: 3.3,
       },
     ];
+  }
+
+  async getQueryLogs(
+    tenantId: string,
+    query: QueryLogDto,
+  ): Promise<PaginatedQueryLogs> {
+    const limit = query.limit || 50;
+
+    this.logger.debug(
+      `Getting query logs for tenant ${tenantId}, limit ${limit}`,
+    );
+
+    // Mock data for development - would query ClickHouse in production
+    const domains = [
+      'google.com', 'facebook.com', 'microsoft.com', 'github.com', 
+      'malware-site.bad.com', 'phishing.fake.net', 'ads.tracker.com',
+      'youtube.com', 'slack.com', 'zoom.us', 'twitter.com', 'instagram.com',
+      'linkedin.com', 'amazon.com', 'cloudflare.com', 'gambling.site.net'
+    ];
+    const locations = [
+      { id: '1', name: 'Main Office' },
+      { id: '2', name: 'Branch Office' },
+      { id: '3', name: 'Remote Workers' },
+      { id: '4', name: 'Guest Network' }
+    ];
+    const queryTypes = ['A', 'AAAA', 'CNAME', 'MX', 'TXT', 'NS'];
+    const actions: ('allow' | 'block' | 'rewrite')[] = ['allow', 'allow', 'allow', 'block', 'rewrite'];
+    const blockReasons = [
+      'Category: Social Media', 'Category: Adult', 'Threat: Malware', 
+      'Threat: Phishing', 'Custom Blocklist', 'Category: Gambling'
+    ];
+    const categories = ['Malware', 'Phishing', 'Social Media', 'Adult', 'Advertising', 'Gambling'];
+
+    const logs: QueryLogEntry[] = Array.from({ length: limit }, (_, i) => {
+      const action = actions[Math.floor(Math.random() * actions.length)];
+      const domain = domains[Math.floor(Math.random() * domains.length)];
+      const location = locations[Math.floor(Math.random() * locations.length)];
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - i * 2);
+      
+      return {
+        id: `log-${Date.now()}-${i}`,
+        timestamp: now.toISOString(),
+        domain,
+        queryType: queryTypes[Math.floor(Math.random() * queryTypes.length)],
+        clientIp: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+        locationId: location.id,
+        locationName: location.name,
+        action,
+        reason: action === 'block' 
+          ? blockReasons[Math.floor(Math.random() * blockReasons.length)]
+          : action === 'rewrite' 
+            ? 'SafeSearch Enforcement' 
+            : 'Policy: Default Allow',
+        category: action === 'block' ? categories[Math.floor(Math.random() * categories.length)] : undefined,
+        responseTime: Math.floor(Math.random() * 50) + 1,
+        cached: Math.random() > 0.7,
+      };
+    });
+
+    // Apply filters
+    let filteredLogs = logs;
+    
+    if (query.action) {
+      filteredLogs = filteredLogs.filter(log => log.action === query.action);
+    }
+    if (query.locationId) {
+      filteredLogs = filteredLogs.filter(log => log.locationId === query.locationId);
+    }
+    if (query.domain) {
+      filteredLogs = filteredLogs.filter(log => 
+        log.domain.toLowerCase().includes(query.domain!.toLowerCase())
+      );
+    }
+    if (query.queryType) {
+      filteredLogs = filteredLogs.filter(log => log.queryType === query.queryType);
+    }
+
+    return {
+      data: filteredLogs,
+      pagination: {
+        cursor: filteredLogs.length >= limit 
+          ? Buffer.from(filteredLogs[filteredLogs.length - 1].timestamp).toString('base64')
+          : null,
+        hasMore: filteredLogs.length >= limit,
+      },
+      total: 10000, // Mock total
+    };
   }
 
   private getDateRange(query: ReportQueryDto): { startDate: string; endDate: string } {

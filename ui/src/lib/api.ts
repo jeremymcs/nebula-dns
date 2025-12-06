@@ -140,6 +140,182 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+
+  // Query Logs
+  getQueryLogs: (params?: {
+    cursor?: string
+    limit?: number
+    action?: string
+    locationId?: string
+    domain?: string
+    dateFrom?: string
+    dateTo?: string
+    queryType?: string
+  }) => {
+    const searchParams = new URLSearchParams()
+    if (params?.cursor) searchParams.set('cursor', params.cursor)
+    if (params?.limit) searchParams.set('limit', params.limit.toString())
+    if (params?.action) searchParams.set('action', params.action)
+    if (params?.locationId) searchParams.set('locationId', params.locationId)
+    if (params?.domain) searchParams.set('domain', params.domain)
+    if (params?.dateFrom) searchParams.set('dateFrom', params.dateFrom)
+    if (params?.dateTo) searchParams.set('dateTo', params.dateTo)
+    if (params?.queryType) searchParams.set('queryType', params.queryType)
+    const query = searchParams.toString()
+    return request<{ 
+      data: any[]
+      pagination: { cursor: string | null; hasMore: boolean }
+      total: number
+    }>(`/reports/logs${query ? `?${query}` : ''}`)
+  },
+
+  // MFA
+  getMfaStatus: () => request<{ enabled: boolean; backupCodesRemaining: number }>('/mfa/status'),
+  
+  setupMfa: () => request<{ secret: string; qrCode: string }>('/mfa/setup', { method: 'POST' }),
+  
+  verifyMfa: (code: string) =>
+    request<{ backupCodes: string[] }>('/mfa/verify', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    }),
+  
+  disableMfa: (password: string, code: string) =>
+    request<void>('/mfa/disable', {
+      method: 'POST',
+      body: JSON.stringify({ password, code }),
+    }),
+
+  // SSO
+  getSsoConfig: () => request<any>('/sso/config'),
+  
+  configureSaml: (data: any) =>
+    request<any>('/sso/saml/configure', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  
+  configureOidc: (data: any) =>
+    request<any>('/sso/oidc/configure', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  // Agents
+  getAgents: (cursor?: string) =>
+    request<{ data: any[]; pagination: { cursor: string | null; hasMore: boolean } }>(
+      `/agents${cursor ? `?cursor=${cursor}` : ''}`
+    ),
+  
+  getAgentStats: () => request<any>('/agents/stats'),
+  
+  getAgentVersions: () => request<any[]>('/agents/versions'),
+  
+  generateAgentDownloadLink: (platform: string, locationId?: string) =>
+    request<{ downloadUrl: string; token: string; expiresAt: string }>('/agents/download-link', {
+      method: 'POST',
+      body: JSON.stringify({ platform, locationId }),
+    }),
+
+  // Block Pages
+  getBlockPages: () =>
+    request<{ data: any[]; pagination: { cursor: string | null; hasMore: boolean } }>('/block-pages'),
+  
+  createBlockPage: (data: any) =>
+    request<any>('/block-pages', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  
+  updateBlockPage: (id: string, data: any) =>
+    request<any>(`/block-pages/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  
+  getAccessRequests: () =>
+    request<{ data: any[]; pagination: { cursor: string | null; hasMore: boolean } }>('/block-pages/access-requests'),
+  
+  reviewAccessRequest: (id: string, action: 'approve' | 'deny', reason?: string) =>
+    request<any>(`/block-pages/access-requests/${id}/review`, {
+      method: 'POST',
+      body: JSON.stringify({ action, reason }),
+    }),
+
+  // API Keys
+  getApiKeys: () =>
+    request<{ data: any[]; pagination: { cursor: string | null; hasMore: boolean } }>('/api-keys'),
+  
+  createApiKey: (data: { name: string; scopes: string[]; expiresAt?: string; rateLimit?: number }) =>
+    request<{ key: string; keyId: string; name: string }>('/api-keys', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  
+  revokeApiKey: (id: string) =>
+    request<void>(`/api-keys/${id}/revoke`, { method: 'POST' }),
+
+  // Team Invitations
+  getInvitations: () =>
+    request<{ data: any[]; pagination: { cursor: string | null; hasMore: boolean } }>('/invitations'),
+  
+  sendInvitation: (data: { email: string; role: string; message?: string }) =>
+    request<any>('/invitations', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  
+  resendInvitation: (id: string) =>
+    request<void>(`/invitations/${id}/resend`, { method: 'POST' }),
+  
+  revokeInvitation: (id: string) =>
+    request<void>(`/invitations/${id}`, { method: 'DELETE' }),
+
+  // SIEM Integrations
+  getSiemIntegrations: () =>
+    request<{ data: any[]; pagination: { cursor: string | null; hasMore: boolean } }>('/siem'),
+  
+  createSiemIntegration: (type: string, data: any) =>
+    request<any>(`/siem/${type}`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  
+  testSiemIntegration: (id: string) =>
+    request<{ success: boolean; message: string }>(`/siem/${id}/test`, { method: 'POST' }),
+
+  // Webhooks
+  getWebhooks: () =>
+    request<{ data: any[]; pagination: { cursor: string | null; hasMore: boolean } }>('/webhooks'),
+  
+  getWebhookEvents: () => request<string[]>('/webhooks/events'),
+  
+  createWebhook: (data: { url: string; events: string[]; secret?: string; headers?: Record<string, string> }) =>
+    request<any>('/webhooks', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  
+  testWebhook: (id: string) =>
+    request<{ success: boolean; statusCode: number }>(`/webhooks/${id}/test`, { method: 'POST' }),
+
+  // Scheduled Reports
+  getScheduledReports: () =>
+    request<{ data: any[]; pagination: { cursor: string | null; hasMore: boolean } }>('/scheduled-reports'),
+  
+  createScheduledReport: (data: any) =>
+    request<any>('/scheduled-reports', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  
+  runScheduledReport: (id: string) =>
+    request<void>(`/scheduled-reports/${id}/run`, { method: 'POST' }),
+
+  // Subscriptions
+  getSubscription: () => request<any>('/subscriptions/current'),
+  
+  getPlans: () => request<{ data: any[] }>('/plans'),
 }
 
 export { ApiError }

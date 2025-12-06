@@ -4,7 +4,7 @@ import { ReportsService } from './reports.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard, Roles, Role } from '@/common/guards/roles.guard';
 import { CurrentTenant } from '@/common/decorators/tenant.decorator';
-import { ReportQueryDto } from './dto/report-query.dto';
+import { ReportQueryDto, QueryLogDto } from './dto/report-query.dto';
 
 @ApiTags('reports')
 @ApiBearerAuth()
@@ -66,5 +66,16 @@ export class ReportsController {
     @Query() query: ReportQueryDto,
   ) {
     return this.reportsService.getLocationStats(tenantId, query);
+  }
+
+  @Get('logs')
+  @Roles(Role.OWNER, Role.ADMIN, Role.ANALYST, Role.READONLY)
+  @ApiOperation({ summary: 'Get DNS query logs' })
+  @ApiResponse({ status: 200, description: 'Query logs retrieved' })
+  async getQueryLogs(
+    @CurrentTenant() tenantId: string,
+    @Query() query: QueryLogDto,
+  ) {
+    return this.reportsService.getQueryLogs(tenantId, query);
   }
 }
