@@ -1,3 +1,10 @@
+/**
+ * Nebula DNS - Enterprise DNS Security Platform
+ * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
+ * 
+ * Locations Service
+ */
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -33,7 +40,7 @@ export class LocationsService {
 
   async create(tenantId: string, createLocationDto: CreateLocationDto): Promise<any> {
     // Generate DoH token
-    const dohToken = 'safedns_' + crypto.randomBytes(32).toString('hex');
+    const dohToken = 'nebula_' + crypto.randomBytes(32).toString('hex');
     const dohTokenHash = await bcrypt.hash(dohToken, 10);
 
     // Generate DoT certificate (simplified - in production use proper CA)
@@ -63,7 +70,7 @@ export class LocationsService {
 
   async rotateDoHToken(id: string, tenantId: string): Promise<any> {
     const location = await this.findOne(id, tenantId);
-    const newToken = 'safedns_' + crypto.randomBytes(32).toString('hex');
+    const newToken = 'nebula_' + crypto.randomBytes(32).toString('hex');
     const newTokenHash = await bcrypt.hash(newToken, 10);
 
     location.dohTokenHash = newTokenHash;

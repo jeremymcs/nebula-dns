@@ -1,10 +1,12 @@
-# SafeDNS
+# Nebula DNS
 
-A multi-tenant SaaS platform for DNS security and content filtering, designed for SMB organizations.
+**Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>**
+
+A multi-tenant SaaS platform for enterprise DNS security and content filtering.
 
 ## Overview
 
-SafeDNS provides:
+Nebula DNS provides:
 - **DNS-based threat protection** - Block malware, phishing, and C2 domains
 - **Content filtering** - Category-based filtering with customizable policies
 - **Custom lists** - Tenant-specific allowlists and blocklists
@@ -51,8 +53,8 @@ SafeDNS provides:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/safedns.git
-cd safedns
+git clone https://github.com/your-org/nebula-dns.git
+cd nebula-dns
 
 # Start all services
 docker compose up -d
@@ -75,7 +77,7 @@ docker compose logs -f
 ## Project Structure
 
 ```
-safedns/
+nebula-dns/
 ├── api/                    # NestJS Control Plane API
 │   ├── src/
 │   │   ├── modules/       # Feature modules
@@ -185,7 +187,7 @@ See [API Specification](docs/D-api-spec.md) for complete documentation.
 
 ## Security
 
-SafeDNS is designed with security as a priority:
+Nebula DNS is designed with security as a priority:
 
 - **Tenant Isolation**: All data scoped by `tenant_id`
 - **RBAC**: Role-based access control (Owner, Admin, Analyst, Read-only)
@@ -245,8 +247,10 @@ docker compose build api
 
 ## License
 
-Proprietary - All rights reserved.
+Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+All rights reserved.
 
 ## Support
 
-For support inquiries, contact: support@safedns.example
+For support inquiries, contact: jeremy@fluxlabs.net

@@ -1,20 +1,22 @@
-# dnsdist Dockerfile for SafeDNS
+# Nebula DNS - dnsdist Dockerfile
+# Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 FROM powerdns/dnsdist-18:latest
 
-# Install additional packages
+# Install additional packages (Debian-based image)
 USER root
-RUN apk add --no-cache curl ca-certificates lua5.3-libs
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy configuration
 COPY dnsdist.conf /etc/dnsdist/dnsdist.conf
 
-# Create directory for certs
-RUN mkdir -p /etc/dnsdist/certs && chown dnsdist:dnsdist /etc/dnsdist/certs
-
-USER dnsdist
+# Create directory for certs (keep root ownership for simplicity)
+RUN mkdir -p /etc/dnsdist/certs
 
 EXPOSE 443 853 8083
 
-ENTRYPOINT ["/usr/bin/dnsdist"]
+ENTRYPOINT ["/usr/local/bin/dnsdist"]
 CMD ["--supervised", "--disable-syslog", "-C", "/etc/dnsdist/dnsdist.conf"]

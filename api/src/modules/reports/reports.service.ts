@@ -5,7 +5,7 @@ import { ReportQueryDto } from './dto/report-query.dto';
 // Placeholder for ClickHouse integration
 // In production, this would use @clickhouse/client
 
-interface ReportSummary {
+export interface ReportSummary {
   totalQueries: number;
   allowedQueries: number;
   blockedQueries: number;
@@ -16,20 +16,20 @@ interface ReportSummary {
   periodEnd: string;
 }
 
-interface TopBlockedDomain {
+export interface TopBlockedDomain {
   domain: string;
   count: number;
   category: string;
   reason: string;
 }
 
-interface CategoryStats {
+export interface CategoryStats {
   category: string;
   count: number;
   percentage: number;
 }
 
-interface ThreatTrend {
+export interface ThreatTrend {
   date: string;
   malware: number;
   phishing: number;
@@ -37,7 +37,7 @@ interface ThreatTrend {
   total: number;
 }
 
-interface LocationStats {
+export interface LocationStats {
   locationId: string;
   locationName: string;
   totalQueries: number;

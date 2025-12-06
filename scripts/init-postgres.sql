@@ -1,4 +1,5 @@
--- SafeDNS PostgreSQL Initialization Script
+-- Nebula DNS PostgreSQL Initialization Script
+-- Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
 -- This script creates the database schema for the Control Plane
 
 -- Enable extensions
@@ -270,7 +271,7 @@ INSERT INTO users (id, tenant_id, email, name, password_hash, role, status) VALU
      '550e8400-e29b-41d4-a716-446655440000',
      'admin@demo.local',
      'Admin User',
-     '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.VVIHLtXWkeW.dq',  -- Admin@12345!
+     '$2b$10$dzi/hpurK2N4uwcvxc0Ig.8jK0IpbzWrN2SykGX/KdVU3m2Ydy1g.',  -- Admin@12345!
      'owner',
      'active');
 

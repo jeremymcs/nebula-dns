@@ -1,3 +1,8 @@
+// Nebula DNS - Enterprise DNS Security Platform
+// Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
+//
+// Policy Cache Implementation
+
 package cache
 
 import (
@@ -9,7 +14,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 
-	"github.com/safedns/policy-svc/internal/models"
+	"github.com/nebuladns/policy-svc/internal/models"
 )
 
 // PolicyCache manages in-memory and Redis-backed policy caching
@@ -202,7 +207,7 @@ func (c *PolicyCache) GetDomainCategory(ctx context.Context, domain string) stri
 
 // StartSubscriber listens for cache invalidation messages
 func (c *PolicyCache) StartSubscriber(ctx context.Context) {
-	pubsub := c.redis.Subscribe(ctx, "safedns:invalidate")
+	pubsub := c.redis.Subscribe(ctx, "nebula:invalidate")
 	defer pubsub.Close()
 
 	c.logger.Info("Started cache invalidation subscriber")

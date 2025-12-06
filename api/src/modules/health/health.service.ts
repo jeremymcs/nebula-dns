@@ -1,25 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-interface HealthStatus {
+export interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
   timestamp: string;
   version: string;
 }
 
-interface DetailedHealthStatus extends HealthStatus {
+export interface DependencyStatus {
+  status: 'healthy' | 'unhealthy';
+  latencyMs?: number;
+  error?: string;
+}
+
+export interface DetailedHealthStatus extends HealthStatus {
   dependencies: {
     postgres: DependencyStatus;
     redis: DependencyStatus;
     clickhouse: DependencyStatus;
   };
   uptime: number;
-}
-
-interface DependencyStatus {
-  status: 'healthy' | 'unhealthy';
-  latencyMs?: number;
-  error?: string;
 }
 
 @Injectable()

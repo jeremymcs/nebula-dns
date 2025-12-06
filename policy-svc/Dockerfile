@@ -1,4 +1,5 @@
-# SafeDNS Policy Decision Service Dockerfile
+# Nebula DNS - Policy Decision Service Dockerfile
+# Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 # Build stage
 FROM golang:1.21-alpine AS builder

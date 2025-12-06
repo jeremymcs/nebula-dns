@@ -1,3 +1,10 @@
+/**
+ * Nebula DNS - Enterprise DNS Security Platform
+ * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
+ * 
+ * API Bootstrap Entry Point
+ */
+
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -27,8 +34,8 @@ async function bootstrap() {
 
   // Swagger documentation
   const config = new DocumentBuilder()
-    .setTitle('SafeDNS API')
-    .setDescription('SafeDNS Control Plane REST API')
+    .setTitle('Nebula DNS API')
+    .setDescription('Nebula DNS Control Plane REST API')
     .setVersion('1.0')
     .addBearerAuth()
     .addTag('auth', 'Authentication endpoints')
@@ -47,7 +54,7 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
-  logger.log(`🚀 SafeDNS API running on port ${port}`);
+  logger.log(`🚀 Nebula DNS API running on port ${port}`);
   logger.log(`📚 Swagger docs available at http://localhost:${port}/api/docs`);
 }
 

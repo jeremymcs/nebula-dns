@@ -1,3 +1,8 @@
+// Nebula DNS - Enterprise DNS Security Platform
+// Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
+//
+// Policy Evaluation Service
+
 package policy
 
 import (
@@ -7,8 +12,8 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/safedns/policy-svc/internal/cache"
-	"github.com/safedns/policy-svc/internal/models"
+	"github.com/nebuladns/policy-svc/internal/cache"
+	"github.com/nebuladns/policy-svc/internal/models"
 )
 
 // Decision types

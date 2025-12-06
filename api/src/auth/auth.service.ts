@@ -23,28 +23,28 @@ export class AuthService {
     }
 
     // Check if account is locked
-    if (user.locked_until && user.locked_until > new Date()) {
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
       throw new UnauthorizedException('Account is locked');
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
       // Increment failed login attempts
-      user.failed_login_attempts += 1;
-      if (user.failed_login_attempts >= 5) {
-        user.locked_until = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+      user.failedLoginAttempts += 1;
+      if (user.failedLoginAttempts >= 5) {
+        user.lockedUntil = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
       }
       await this.usersRepository.save(user);
       throw new UnauthorizedException('Invalid credentials');
     }
 
     // Reset failed attempts on successful login
-    user.failed_login_attempts = 0;
-    user.locked_until = null;
-    user.last_login_at = new Date();
+    user.failedLoginAttempts = 0;
+    user.lockedUntil = null;
+    user.lastLoginAt = new Date();
     await this.usersRepository.save(user);
 
-    const { password_hash, ...result } = user;
+    const { passwordHash, ...result } = user;
     return result;
   }
 
