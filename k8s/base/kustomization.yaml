@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: nebula-dns
+
+resources:
+  - namespace.yaml
+  - api-deployment.yaml
+  - policy-svc-deployment.yaml
+  - dnsdist-deployment.yaml
+  - ui-deployment.yaml
+  - ingress.yaml
+
+commonLabels:
+  app.kubernetes.io/part-of: nebula-dns
+  app.kubernetes.io/managed-by: kustomize
