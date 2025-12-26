@@ -23,10 +23,15 @@ import {
 import clsx from 'clsx'
 
 interface PolicyConfig {
-  blockedCategories: string[]
-  threatFeeds: string[]
-  safeSearchEnabled: boolean
-  blockResponseType: string
+  blockCategories: string[]
+  threatBlocking: {
+    enabled: boolean
+    feeds: string[]
+  }
+  safesearch: {
+    enabled: boolean
+    services: string[]
+  }
 }
 
 interface Policy {
@@ -57,10 +62,9 @@ export default function PoliciesPage() {
   const [form, setForm] = useState({
     name: '',
     description: '',
-    blockedCategories: [] as string[],
-    threatFeeds: ['malware', 'phishing', 'c2'] as string[],
-    safeSearchEnabled: false,
-    blockResponseType: 'NXDOMAIN',
+    blockCategories: [] as string[],
+    threatBlocking: { enabled: true, feeds: ['malware', 'phishing', 'c2'] as string[] },
+    safesearch: { enabled: false, services: ['google', 'bing', 'youtube'] as string[] },
     isDefault: false,
   })
 
@@ -70,10 +74,9 @@ export default function PoliciesPage() {
     setForm({
       name: '',
       description: '',
-      blockedCategories: [],
-      threatFeeds: ['malware', 'phishing', 'c2'],
-      safeSearchEnabled: false,
-      blockResponseType: 'NXDOMAIN',
+      blockCategories: [],
+      threatBlocking: { enabled: true, feeds: ['malware', 'phishing', 'c2'] },
+      safesearch: { enabled: false, services: ['google', 'bing', 'youtube'] },
       isDefault: false,
     })
   }
@@ -89,10 +92,9 @@ export default function PoliciesPage() {
     setForm({
       name: policy.name,
       description: policy.description || '',
-      blockedCategories: policy.currentConfig?.blockedCategories || [],
-      threatFeeds: policy.currentConfig?.threatFeeds || ['malware', 'phishing', 'c2'],
-      safeSearchEnabled: policy.currentConfig?.safeSearchEnabled || false,
-      blockResponseType: policy.currentConfig?.blockResponseType || 'NXDOMAIN',
+      blockCategories: policy.currentConfig?.blockCategories || [],
+      threatBlocking: policy.currentConfig?.threatBlocking || { enabled: true, feeds: ['malware', 'phishing', 'c2'] },
+      safesearch: policy.currentConfig?.safesearch || { enabled: false, services: ['google', 'bing', 'youtube'] },
       isDefault: policy.isDefault,
     })
     setShowCreateModal(true)
@@ -111,10 +113,9 @@ export default function PoliciesPage() {
         description: form.description,
         isDefault: form.isDefault,
         config: {
-          blockedCategories: form.blockedCategories,
-          threatFeeds: form.threatFeeds,
-          safeSearchEnabled: form.safeSearchEnabled,
-          blockResponseType: form.blockResponseType,
+          blockCategories: form.blockCategories,
+          threatBlocking: form.threatBlocking,
+          safesearch: form.safesearch,
         },
       }
 
@@ -165,18 +166,21 @@ export default function PoliciesPage() {
   const toggleCategory = (category: string) => {
     setForm(prev => ({
       ...prev,
-      blockedCategories: prev.blockedCategories.includes(category)
-        ? prev.blockedCategories.filter(c => c !== category)
-        : [...prev.blockedCategories, category]
+      blockCategories: prev.blockCategories.includes(category)
+        ? prev.blockCategories.filter(c => c !== category)
+        : [...prev.blockCategories, category]
     }))
   }
 
   const toggleThreatFeed = (feed: string) => {
     setForm(prev => ({
       ...prev,
-      threatFeeds: prev.threatFeeds.includes(feed)
-        ? prev.threatFeeds.filter(f => f !== feed)
-        : [...prev.threatFeeds, feed]
+      threatBlocking: {
+        ...prev.threatBlocking,
+        feeds: prev.threatBlocking.feeds.includes(feed)
+          ? prev.threatBlocking.feeds.filter(f => f !== feed)
+          : [...prev.threatBlocking.feeds, feed]
+      }
     }))
   }
 
@@ -268,32 +272,32 @@ export default function PoliciesPage() {
 
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-space-500 dark:text-space-400">Threat Protection</span>
-                  <Badge variant={(policy.currentConfig?.threatFeeds?.length || 0) > 0 ? 'success' : 'neutral'}>
-                    {(policy.currentConfig?.threatFeeds?.length || 0) > 0 ? 'Enabled' : 'Disabled'}
+                  <Badge variant={policy.currentConfig?.threatBlocking?.enabled ? 'success' : 'neutral'}>
+                    {policy.currentConfig?.threatBlocking?.enabled ? 'Enabled' : 'Disabled'}
                   </Badge>
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-space-500 dark:text-space-400">SafeSearch</span>
-                  <Badge variant={policy.currentConfig?.safeSearchEnabled ? 'success' : 'neutral'}>
-                    {policy.currentConfig?.safeSearchEnabled ? 'Enabled' : 'Disabled'}
+                  <Badge variant={policy.currentConfig?.safesearch?.enabled ? 'success' : 'neutral'}>
+                    {policy.currentConfig?.safesearch?.enabled ? 'Enabled' : 'Disabled'}
                   </Badge>
                 </div>
 
                 <div>
                   <span className="text-sm text-space-500 dark:text-space-400">Blocked Categories</span>
                   <div className="mt-1.5 flex flex-wrap gap-1">
-                    {(policy.currentConfig?.blockedCategories || []).slice(0, 3).map((cat) => (
+                    {(policy.currentConfig?.blockCategories || []).slice(0, 3).map((cat) => (
                       <Badge key={cat} variant="danger" size="sm">
                         {cat.replace('_', ' ')}
                       </Badge>
                     ))}
-                    {(policy.currentConfig?.blockedCategories?.length || 0) > 3 && (
+                    {(policy.currentConfig?.blockCategories?.length || 0) > 3 && (
                       <Badge variant="neutral" size="sm">
-                        +{(policy.currentConfig?.blockedCategories?.length || 0) - 3}
+                        +{(policy.currentConfig?.blockCategories?.length || 0) - 3}
                       </Badge>
                     )}
-                    {(policy.currentConfig?.blockedCategories?.length || 0) === 0 && (
+                    {(policy.currentConfig?.blockCategories?.length || 0) === 0 && (
                       <span className="text-xs text-space-400">None configured</span>
                     )}
                   </div>
@@ -389,14 +393,14 @@ export default function PoliciesPage() {
                   className={clsx(
                     'flex items-center p-3 rounded-xl cursor-pointer transition-all',
                     'border-2',
-                    form.threatFeeds.includes(feed)
+                    form.threatBlocking.feeds.includes(feed)
                       ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
                       : 'border-space-200 dark:border-space-700 hover:border-space-300 dark:hover:border-space-600'
                   )}
                 >
                   <input
                     type="checkbox"
-                    checked={form.threatFeeds.includes(feed)}
+                    checked={form.threatBlocking.feeds.includes(feed)}
                     onChange={() => toggleThreatFeed(feed)}
                     className="h-4 w-4 text-primary-600 rounded border-space-300 focus:ring-primary-500"
                   />
@@ -420,14 +424,14 @@ export default function PoliciesPage() {
                   className={clsx(
                     'flex items-center p-3 rounded-xl cursor-pointer transition-all',
                     'border-2',
-                    form.blockedCategories.includes(category)
+                    form.blockCategories.includes(category)
                       ? 'border-danger-500 bg-danger-50 dark:bg-danger-900/20'
                       : 'border-space-200 dark:border-space-700 hover:border-space-300 dark:hover:border-space-600'
                   )}
                 >
                   <input
                     type="checkbox"
-                    checked={form.blockedCategories.includes(category)}
+                    checked={form.blockCategories.includes(category)}
                     onChange={() => toggleCategory(category)}
                     className="h-4 w-4 text-danger-600 rounded border-space-300 focus:ring-danger-500"
                   />
@@ -447,31 +451,18 @@ export default function PoliciesPage() {
             </div>
             <button
               type="button"
-              onClick={() => setForm({ ...form, safeSearchEnabled: !form.safeSearchEnabled })}
+              onClick={() => setForm({ ...form, safesearch: { ...form.safesearch, enabled: !form.safesearch.enabled } })}
               className={clsx(
                 'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200',
-                form.safeSearchEnabled ? 'bg-primary-600' : 'bg-space-300 dark:bg-space-600'
+                form.safesearch.enabled ? 'bg-primary-600' : 'bg-space-300 dark:bg-space-600'
               )}
             >
               <span className={clsx(
                 'inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200',
-                form.safeSearchEnabled ? 'translate-x-5' : 'translate-x-0.5'
+                form.safesearch.enabled ? 'translate-x-5' : 'translate-x-0.5'
               )} />
             </button>
           </div>
-
-          {/* Block Response Type */}
-          <Select
-            label="Block Response Type"
-            value={form.blockResponseType}
-            onChange={(e) => setForm({ ...form, blockResponseType: e.target.value })}
-            options={[
-              { value: 'NXDOMAIN', label: 'NXDOMAIN (Domain not found)' },
-              { value: 'REFUSED', label: 'REFUSED (Query refused)' },
-              { value: 'NODATA', label: 'NODATA (Empty response)' },
-              { value: 'BLOCK_PAGE', label: 'Redirect to block page' },
-            ]}
-          />
         </div>
 
         {/* Modal Footer */}
