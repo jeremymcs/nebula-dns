@@ -51,10 +51,10 @@ export function PageLoading() {
 
 export function FullPageLoading() {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-white">
+    <div className="fixed inset-0 flex items-center justify-center bg-white dark:bg-gray-900">
       <div className="text-center">
         <LoadingSpinner size="lg" className="text-primary-600 mx-auto" />
-        <p className="mt-4 text-sm text-gray-500">Loading...</p>
+        <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     </div>
   )

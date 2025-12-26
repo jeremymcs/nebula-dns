@@ -14,21 +14,24 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/nebuladns/policy-svc/internal/clickhouse"
 	"github.com/nebuladns/policy-svc/internal/models"
 	"github.com/nebuladns/policy-svc/internal/policy"
 )
 
 // Handlers contains HTTP handlers for the policy service
 type Handlers struct {
-	policySvc *policy.Service
-	logger    *zap.Logger
+	policySvc  *policy.Service
+	clickhouse *clickhouse.Client
+	logger     *zap.Logger
 }
 
 // NewHandlers creates a new handlers instance
-func NewHandlers(policySvc *policy.Service, logger *zap.Logger) *Handlers {
+func NewHandlers(policySvc *policy.Service, ch *clickhouse.Client, logger *zap.Logger) *Handlers {
 	return &Handlers{
-		policySvc: policySvc,
-		logger:    logger,
+		policySvc:  policySvc,
+		clickhouse: ch,
+		logger:     logger,
 	}
 }
 
@@ -37,6 +40,35 @@ func (h *Handlers) Health(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":    "healthy",
+		"timestamp": time.Now().UTC().Format(time.RFC3339),
+	})
+}
+
+// Ready handles readiness check requests for K8s probes
+func (h *Handlers) Ready(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	// Check if policy service is initialized
+	ready := h.policySvc != nil
+	if ready {
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"ready":     true,
+			"timestamp": time.Now().UTC().Format(time.RFC3339),
+		})
+	} else {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"ready":     false,
+			"timestamp": time.Now().UTC().Format(time.RFC3339),
+		})
+	}
+}
+
+// Live handles liveness check requests for K8s probes
+func (h *Handlers) Live(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"alive":     true,
 		"timestamp": time.Now().UTC().Format(time.RFC3339),
 	})
 }
@@ -97,8 +129,16 @@ func (h *Handlers) LogQuery(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// In production, this would batch and send to ClickHouse
-	// For now, just log it
+	// Set timestamp if not provided
+	if entry.Timestamp.IsZero() {
+		entry.Timestamp = time.Now().UTC()
+	}
+
+	// Send to ClickHouse via batched client
+	if h.clickhouse != nil {
+		h.clickhouse.Log(entry)
+	}
+
 	h.logger.Debug("Query log entry",
 		zap.String("tenant_id", entry.TenantID),
 		zap.String("location_id", entry.LocationID),
@@ -114,4 +154,29 @@ func (h *Handlers) LogQuery(w http.ResponseWriter, r *http.Request) {
 func hashToken(token string) string {
 	hash := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(hash[:])
+}
+
+// Metrics handles Prometheus metrics requests
+func (h *Handlers) Metrics(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
+
+	// Basic metrics in Prometheus format
+	lines := []string{
+		"# HELP policy_svc_up Whether the policy service is up",
+		"# TYPE policy_svc_up gauge",
+		"policy_svc_up 1",
+		"",
+		"# HELP policy_svc_evaluations_total Total policy evaluations",
+		"# TYPE policy_svc_evaluations_total counter",
+		"policy_svc_evaluations_total 0",
+		"",
+		"# HELP policy_svc_cache_hits_total Total cache hits",
+		"# TYPE policy_svc_cache_hits_total counter",
+		"policy_svc_cache_hits_total 0",
+		"",
+	}
+
+	for _, line := range lines {
+		w.Write([]byte(line + "\n"))
+	}
 }

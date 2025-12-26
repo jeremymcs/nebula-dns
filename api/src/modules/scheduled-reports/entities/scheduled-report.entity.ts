@@ -9,21 +9,21 @@ export type ReportFormat = 'pdf' | 'csv' | 'html';
 
 @Entity('scheduled_reports')
 export class ScheduledReport extends BaseEntity {
-  @Column({ name: 'tenant_id' })
+  @Column({ name: 'tenant_id', type: 'uuid' })
   tenantId: string;
 
   @ManyToOne(() => Tenant)
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
-  @Column({ name: 'created_by', nullable: true })
+  @Column({ name: 'created_by', type: 'uuid', nullable: true })
   createdById: string;
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'created_by' })
   createdBy: User;
 
-  @Column({ length: 255 })
+  @Column({ type: 'varchar', length: 255 })
   name: string;
 
   @Column({ type: 'text', nullable: true })
@@ -35,13 +35,13 @@ export class ScheduledReport extends BaseEntity {
   @Column({ name: 'schedule_type', type: 'varchar', length: 20 })
   scheduleType: ScheduleType;
 
-  @Column({ name: 'schedule_day', nullable: true })
+  @Column({ name: 'schedule_day', type: 'int', nullable: true })
   scheduleDay: number; // 0-6 for weekly, 1-31 for monthly
 
   @Column({ name: 'schedule_time', type: 'time', default: '08:00' })
   scheduleTime: string;
 
-  @Column({ length: 50, default: 'UTC' })
+  @Column({ type: 'varchar', length: 50, default: 'UTC' })
   timezone: string;
 
   @Column({ type: 'jsonb', default: [] })
@@ -57,7 +57,7 @@ export class ScheduledReport extends BaseEntity {
   @Column({ type: 'varchar', length: 10, default: 'pdf' })
   format: ReportFormat;
 
-  @Column({ name: 'is_enabled', default: true })
+  @Column({ name: 'is_enabled', type: 'boolean', default: true })
   isEnabled: boolean;
 
   @Column({ name: 'last_sent_at', type: 'timestamptz', nullable: true })

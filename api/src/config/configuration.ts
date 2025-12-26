@@ -65,7 +65,7 @@ class EnvironmentVariables {
   // Frontend
   @IsUrl({ require_tld: false })
   @IsOptional()
-  FRONTEND_URL: string = 'http://localhost:3001';
+  FRONTEND_URL: string = 'http://localhost:4001';
 
   // Email (SendGrid)
   @IsString()
@@ -217,7 +217,7 @@ export default () => ({
     refreshExpiry: process.env.JWT_REFRESH_EXPIRY || '7d',
   },
   frontend: {
-    url: process.env.FRONTEND_URL || 'http://localhost:3001',
+    url: process.env.FRONTEND_URL || 'http://localhost:4001',
   },
   email: {
     sendgridApiKey: process.env.SENDGRID_API_KEY,

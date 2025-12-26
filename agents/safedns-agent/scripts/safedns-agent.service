@@ -1,0 +1,25 @@
+[Unit]
+Description=SafeDNS Agent
+Documentation=https://docs.safedns.io
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/safedns-agent run
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=safedns-agent
+
+# Security hardening
+NoNewPrivileges=false
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/etc/safedns /etc/resolv.conf /etc/systemd/resolved.conf.d
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+

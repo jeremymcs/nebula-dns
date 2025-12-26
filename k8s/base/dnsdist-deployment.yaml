@@ -91,17 +91,51 @@ spec:
                   app: dnsdist
               topologyKey: kubernetes.io/hostname
 ---
+# Primary DNS endpoint: dns1.nebuladns.io
 apiVersion: v1
 kind: Service
 metadata:
-  name: dnsdist
+  name: dnsdist-1
   namespace: nebula-dns
   labels:
     app: dnsdist
+    dns-endpoint: primary
   annotations:
     # For cloud providers with load balancer support
     service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
     service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    # DNS hostname annotation (for external-dns)
+    external-dns.alpha.kubernetes.io/hostname: dns1.nebuladns.io
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  ports:
+    - port: 853
+      targetPort: dot
+      protocol: TCP
+      name: dot
+    - port: 443
+      targetPort: doh
+      protocol: TCP
+      name: doh
+  selector:
+    app: dnsdist
+---
+# Secondary DNS endpoint: dns2.nebuladns.io
+apiVersion: v1
+kind: Service
+metadata:
+  name: dnsdist-2
+  namespace: nebula-dns
+  labels:
+    app: dnsdist
+    dns-endpoint: secondary
+  annotations:
+    # For cloud providers with load balancer support
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    # DNS hostname annotation (for external-dns)
+    external-dns.alpha.kubernetes.io/hostname: dns2.nebuladns.io
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Local

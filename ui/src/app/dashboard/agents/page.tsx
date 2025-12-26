@@ -1,12 +1,12 @@
 /**
- * Client Agents Download & Management Page
+ * Client Agents Download & Management Page - Cosmic Security Theme
  */
 
 'use client'
 
 import { useState, useEffect } from 'react'
-import { 
-  ComputerDesktopIcon, 
+import {
+  ComputerDesktopIcon,
   DevicePhoneMobileIcon,
   ArrowDownTrayIcon,
   CheckCircleIcon,
@@ -14,6 +14,8 @@ import {
   ClockIcon,
   SignalIcon
 } from '@heroicons/react/24/outline'
+import { Button, Card, Badge, Modal, EmptyState } from '@/components/ui'
+import { HeroMetric, HeroMetricsGrid } from '@/components/dashboard'
 
 interface AgentVersion {
   version: string
@@ -55,29 +57,6 @@ const platformNames: Record<string, string> = {
   linux: 'Linux',
   ios: 'iOS',
   android: 'Android',
-}
-
-const statusStyles: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
-  active: { 
-    bg: 'bg-green-100', 
-    text: 'text-green-700',
-    icon: <SignalIcon className="h-4 w-4" />
-  },
-  inactive: { 
-    bg: 'bg-gray-100', 
-    text: 'text-gray-700',
-    icon: <ClockIcon className="h-4 w-4" />
-  },
-  disconnected: { 
-    bg: 'bg-yellow-100', 
-    text: 'text-yellow-700',
-    icon: <XCircleIcon className="h-4 w-4" />
-  },
-  error: { 
-    bg: 'bg-red-100', 
-    text: 'text-red-700',
-    icon: <XCircleIcon className="h-4 w-4" />
-  },
 }
 
 export default function AgentsPage() {
@@ -173,221 +152,231 @@ export default function AgentsPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-gray-200 rounded"></div>
-          <div className="grid grid-cols-5 gap-4">
-            {[1,2,3,4,5].map(i => (
-              <div key={i} className="h-40 bg-gray-200 rounded"></div>
-            ))}
-          </div>
+      <div className="p-8 space-y-6">
+        <div className="skeleton h-8 w-48 rounded-lg" />
+        <div className="grid grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="skeleton h-24 rounded-2xl" />
+          ))}
         </div>
+        <div className="skeleton h-64 rounded-2xl" />
       </div>
     )
   }
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Client Agents</h1>
-        <p className="text-gray-600 mt-1">Download and manage SafeDNS client agents for your devices</p>
+    <div className="p-8 space-y-8">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-space-900 dark:text-white">Client Agents</h1>
+        <p className="text-space-500 dark:text-space-400 mt-1">
+          Download and manage SafeDNS client agents for your devices
+        </p>
       </div>
 
       {/* Stats */}
       {stats && (
-        <div className="grid grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-            <div className="text-sm text-gray-600">Total Agents</div>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <div className="text-2xl font-bold text-green-600">{stats.active}</div>
-            <div className="text-sm text-gray-600">Active</div>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <div className="text-2xl font-bold text-gray-500">{stats.inactive}</div>
-            <div className="text-sm text-gray-600">Inactive</div>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <div className="text-sm text-gray-600 mb-2">By Platform</div>
+        <HeroMetricsGrid columns={4}>
+          <HeroMetric
+            title="Total Agents"
+            value={stats.total}
+            icon={<ComputerDesktopIcon className="h-6 w-6" />}
+            variant="primary"
+          />
+          <HeroMetric
+            title="Active"
+            value={stats.active}
+            icon={<SignalIcon className="h-6 w-6" />}
+            variant="success"
+          />
+          <HeroMetric
+            title="Inactive"
+            value={stats.inactive}
+            icon={<ClockIcon className="h-6 w-6" />}
+            variant="warning"
+          />
+          <Card variant="solid" padding="md">
+            <div className="text-sm text-space-500 dark:text-space-400 mb-2">By Platform</div>
             <div className="flex flex-wrap gap-2">
               {Object.entries(stats.byPlatform).map(([platform, count]) => (
-                <span key={platform} className="px-2 py-1 bg-gray-100 rounded text-xs">
+                <Badge key={platform} variant="neutral" size="sm">
                   {platformNames[platform]}: {count}
-                </span>
+                </Badge>
               ))}
             </div>
-          </div>
-        </div>
+          </Card>
+        </HeroMetricsGrid>
       )}
 
       {/* Download Section */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Download Agents</h2>
+      <Card variant="solid" padding="lg">
+        <h2 className="text-lg font-semibold text-space-900 dark:text-white mb-4">Download Agents</h2>
         <div className="grid grid-cols-5 gap-4">
           {Object.entries(versions).map(([platform, version]) => (
-            <div
+            <Card
               key={platform}
-              className="border border-gray-200 rounded-lg p-4 text-center hover:border-indigo-300 hover:shadow-md transition-all"
+              variant="interactive"
+              padding="md"
+              className="text-center"
             >
-              <div className="flex justify-center text-gray-600 mb-3">
+              <div className="flex justify-center text-space-500 dark:text-space-400 mb-3">
                 {platformIcons[platform]}
               </div>
-              <h3 className="font-medium text-gray-900">{platformNames[platform]}</h3>
-              <p className="text-sm text-gray-500 mb-3">v{version.version}</p>
-              <button
+              <h3 className="font-medium text-space-900 dark:text-white">{platformNames[platform]}</h3>
+              <p className="text-sm text-space-500 dark:text-space-400 mb-3">v{version.version}</p>
+              <Button
+                variant="primary"
+                size="sm"
                 onClick={() => handleDownload(platform)}
-                disabled={downloading === platform}
-                className="w-full px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center"
+                isLoading={downloading === platform}
+                className="w-full"
               >
-                {downloading === platform ? (
-                  'Generating...'
-                ) : (
-                  <>
-                    <ArrowDownTrayIcon className="h-4 w-4 mr-1" />
-                    Download
-                  </>
-                )}
-              </button>
-            </div>
+                {downloading !== platform && <ArrowDownTrayIcon className="h-4 w-4 mr-1" />}
+                {downloading === platform ? 'Generating...' : 'Download'}
+              </Button>
+            </Card>
           ))}
         </div>
-      </div>
+      </Card>
 
       {/* Installed Agents */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Installed Agents</h2>
+      <Card variant="solid" padding="none">
+        <div className="px-6 py-4 border-b border-space-200 dark:border-space-700">
+          <h2 className="text-lg font-semibold text-space-900 dark:text-white">Installed Agents</h2>
         </div>
-        
+
         {agents.length === 0 ? (
-          <div className="p-12 text-center text-gray-500">
-            <ComputerDesktopIcon className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-            <p>No agents installed yet</p>
-            <p className="text-sm mt-1">Download and install an agent to get started</p>
-          </div>
+          <EmptyState
+            icon={<ComputerDesktopIcon className="h-12 w-12" />}
+            title="No agents installed yet"
+            description="Download and install an agent to get started"
+          />
         ) : (
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Device</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Platform</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Version</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Seen</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {agents.map((agent) => {
-                const status = statusStyles[agent.status]
-                return (
-                  <tr key={agent.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">{agent.deviceName}</div>
-                      <div className="text-sm text-gray-500">{agent.ipAddress}</div>
+          <div className="table-container">
+            <table className="table">
+              <thead className="table-header">
+                <tr>
+                  <th className="table-header-cell">Device</th>
+                  <th className="table-header-cell">Platform</th>
+                  <th className="table-header-cell">Version</th>
+                  <th className="table-header-cell">Location</th>
+                  <th className="table-header-cell">Status</th>
+                  <th className="table-header-cell">Last Seen</th>
+                  <th className="table-header-cell">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="table-body">
+                {agents.map((agent) => (
+                  <tr key={agent.id} className="table-row">
+                    <td className="table-cell">
+                      <div className="font-medium text-space-900 dark:text-white">{agent.deviceName}</div>
+                      <div className="text-sm text-space-500 dark:text-space-400">{agent.ipAddress}</div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="table-cell">
                       <div className="flex items-center">
-                        <span className="text-gray-600 mr-2">
+                        <span className="text-space-500 dark:text-space-400 mr-2">
                           {platformIcons[agent.platform]}
                         </span>
                         <div>
-                          <div className="text-gray-900">{platformNames[agent.platform]}</div>
-                          <div className="text-sm text-gray-500">{agent.osVersion}</div>
+                          <div className="text-space-900 dark:text-white">{platformNames[agent.platform]}</div>
+                          <div className="text-sm text-space-500 dark:text-space-400">{agent.osVersion}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-gray-900">
-                      v{agent.agentVersion}
+                    <td className="table-cell">v{agent.agentVersion}</td>
+                    <td className="table-cell">{agent.location?.name || 'Unassigned'}</td>
+                    <td className="table-cell">
+                      <Badge
+                        variant={
+                          agent.status === 'active' ? 'success' :
+                          agent.status === 'error' ? 'danger' :
+                          agent.status === 'disconnected' ? 'warning' : 'neutral'
+                        }
+                        size="sm"
+                      >
+                        {agent.status === 'active' && <SignalIcon className="h-3 w-3 mr-1" />}
+                        {agent.status === 'inactive' && <ClockIcon className="h-3 w-3 mr-1" />}
+                        {(agent.status === 'disconnected' || agent.status === 'error') && <XCircleIcon className="h-3 w-3 mr-1" />}
+                        {agent.status}
+                      </Badge>
                     </td>
-                    <td className="px-6 py-4 text-gray-900">
-                      {agent.location?.name || 'Unassigned'}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${status.bg} ${status.text}`}>
-                        {status.icon}
-                        <span className="ml-1 capitalize">{agent.status}</span>
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-gray-500 text-sm">
+                    <td className="table-cell text-sm text-space-500 dark:text-space-400">
                       {formatLastSeen(agent.lastSeenAt)}
                     </td>
-                    <td className="px-6 py-4">
-                      <button className="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
-                        Manage
-                      </button>
+                    <td className="table-cell">
+                      <Button variant="ghost" size="sm">Manage</Button>
                     </td>
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </Card>
 
       {/* Download Modal */}
-      {showDownloadModal && downloadLink && selectedPlatform && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl max-w-lg w-full mx-4 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
-              Download {platformNames[selectedPlatform]} Agent
-            </h2>
-            
-            <div className="space-y-4">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center text-green-700 mb-2">
-                  <CheckCircleIcon className="h-5 w-5 mr-2" />
-                  <span className="font-medium">Download link ready!</span>
-                </div>
-                <p className="text-sm text-green-600">
-                  Your installation token has been generated. Use it during setup.
-                </p>
+      <Modal
+        isOpen={showDownloadModal && !!downloadLink && !!selectedPlatform}
+        onClose={() => {
+          setShowDownloadModal(false)
+          setDownloadLink(null)
+        }}
+        title={`Download ${selectedPlatform ? platformNames[selectedPlatform] : ''} Agent`}
+        size="md"
+      >
+        {downloadLink && (
+          <div className="space-y-4">
+            <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl p-4">
+              <div className="flex items-center text-green-700 dark:text-green-300 mb-2">
+                <CheckCircleIcon className="h-5 w-5 mr-2" />
+                <span className="font-medium">Download link ready!</span>
               </div>
+              <p className="text-sm text-green-600 dark:text-green-400">
+                Your installation token has been generated. Use it during setup.
+              </p>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Installation Token
-                </label>
-                <div className="flex items-center">
-                  <code className="flex-1 bg-gray-100 px-3 py-2 rounded-l font-mono text-sm overflow-x-auto">
-                    {downloadLink.token}
-                  </code>
-                  <button
-                    onClick={() => navigator.clipboard.writeText(downloadLink.token)}
-                    className="px-3 py-2 bg-gray-200 rounded-r hover:bg-gray-300"
-                  >
-                    Copy
-                  </button>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Expires: {new Date(downloadLink.expiresAt).toLocaleString()}
-                </p>
-              </div>
-
-              <div className="flex space-x-3">
-                <a
-                  href={downloadLink.url}
-                  className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 text-center"
-                >
-                  <ArrowDownTrayIcon className="h-5 w-5 inline mr-2" />
-                  Download Agent
-                </a>
+            <div>
+              <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
+                Installation Token
+              </label>
+              <div className="flex items-center">
+                <code className="flex-1 bg-space-100 dark:bg-space-700 dark:text-space-200 px-3 py-2 rounded-l-xl font-mono text-sm overflow-x-auto">
+                  {downloadLink.token}
+                </code>
                 <button
-                  onClick={() => {
-                    setShowDownloadModal(false)
-                    setDownloadLink(null)
-                  }}
-                  className="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50"
+                  onClick={() => navigator.clipboard.writeText(downloadLink.token)}
+                  className="px-3 py-2 bg-space-200 dark:bg-space-600 dark:text-space-200 rounded-r-xl hover:bg-space-300 dark:hover:bg-space-500 transition-colors"
                 >
-                  Close
+                  Copy
                 </button>
               </div>
+              <p className="text-xs text-space-500 dark:text-space-400 mt-1">
+                Expires: {new Date(downloadLink.expiresAt).toLocaleString()}
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <a
+                href={downloadLink.url}
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-medium hover:from-primary-600 hover:to-primary-700 text-center transition-all shadow-lg shadow-primary-500/25"
+              >
+                <ArrowDownTrayIcon className="h-5 w-5 inline mr-2" />
+                Download Agent
+              </a>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowDownloadModal(false)
+                  setDownloadLink(null)
+                }}
+              >
+                Close
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   )
 }

@@ -8,33 +8,33 @@ export type AgentStatus = 'active' | 'inactive' | 'disconnected' | 'error';
 
 @Entity('agent_installations')
 export class AgentInstallation extends BaseEntity {
-  @Column({ name: 'tenant_id' })
+  @Column({ name: 'tenant_id', type: 'uuid' })
   tenantId: string;
 
   @ManyToOne(() => Tenant)
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
-  @Column({ name: 'location_id', nullable: true })
+  @Column({ name: 'location_id', type: 'uuid', nullable: true })
   locationId: string;
 
   @ManyToOne(() => Location, { nullable: true })
   @JoinColumn({ name: 'location_id' })
   location: Location;
 
-  @Column({ name: 'device_id', length: 255 })
+  @Column({ name: 'device_id', type: 'varchar', length: 255 })
   deviceId: string;
 
-  @Column({ name: 'device_name', length: 255, nullable: true })
+  @Column({ name: 'device_name', type: 'varchar', length: 255, nullable: true })
   deviceName: string;
 
   @Column({ type: 'varchar', length: 20 })
   platform: AgentPlatform;
 
-  @Column({ name: 'os_version', length: 50, nullable: true })
+  @Column({ name: 'os_version', type: 'varchar', length: 50, nullable: true })
   osVersion: string | null;
 
-  @Column({ name: 'agent_version', length: 20 })
+  @Column({ name: 'agent_version', type: 'varchar', length: 20 })
   agentVersion: string;
 
   @Column({ type: 'varchar', length: 20, default: 'active' })

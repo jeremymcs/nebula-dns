@@ -1,0 +1,75 @@
+groups:
+  - name: safedns-alerts
+    rules:
+      - alert: HighBlockRate
+        expr: sum(rate(dns_queries_blocked_total[5m])) / sum(rate(dns_queries_total[5m])) > 0.30
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High DNS block rate detected"
+          description: "Block rate is above 30% for the last 5 minutes"
+
+      - alert: HighQueryLatency
+        expr: histogram_quantile(0.95, rate(dns_query_duration_seconds_bucket[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High DNS query latency"
+          description: "P95 latency is above 100ms for the last 5 minutes"
+
+      - alert: PolicyServiceDown
+        expr: up{job="safedns-policy-svc"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Policy service is down"
+          description: "Policy service has been unreachable for more than 1 minute"
+
+      - alert: APIServiceDown
+        expr: up{job="safedns-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API service is down"
+          description: "API service has been unreachable for more than 1 minute"
+
+      - alert: DNSDistDown
+        expr: up{job="dnsdist"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "dnsdist is down"
+          description: "dnsdist has been unreachable for more than 30 seconds"
+
+      - alert: HighCacheMissRate
+        expr: rate(policy_cache_misses_total[5m]) / (rate(policy_cache_hits_total[5m]) + rate(policy_cache_misses_total[5m])) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High cache miss rate"
+          description: "Policy cache miss rate is above 50%"
+
+      - alert: ClickHouseQueueBacklog
+        expr: clickhouse_queue_size > 10000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "ClickHouse queue backlog"
+          description: "Log queue has more than 10,000 pending entries"
+
+      - alert: ThreatDetected
+        expr: increase(threat_detections_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Threat detected"
+          description: "A DNS threat (DGA, tunneling, etc.) was detected"
+

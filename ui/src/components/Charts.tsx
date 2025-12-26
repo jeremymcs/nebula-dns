@@ -42,7 +42,7 @@ export function LineChart({ data, height = 200, color = '#4f46e5', showLabels = 
 
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-400">
+      <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
         No data available
       </div>
     )
@@ -52,9 +52,9 @@ export function LineChart({ data, height = 200, color = '#4f46e5', showLabels = 
     <div className="relative w-full" style={{ height }}>
       <svg viewBox={`0 0 100 ${height}`} className="w-full h-full" preserveAspectRatio="none">
         {/* Grid lines */}
-        <line x1="0" y1={height - 40} x2="100" y2={height - 40} stroke="#e5e7eb" strokeWidth="0.2" />
-        <line x1="0" y1={(height - 80) / 2 + 40} x2="100" y2={(height - 80) / 2 + 40} stroke="#e5e7eb" strokeWidth="0.2" />
-        <line x1="0" y1="40" x2="100" y2="40" stroke="#e5e7eb" strokeWidth="0.2" />
+        <line x1="0" y1={height - 40} x2="100" y2={height - 40} className="stroke-gray-200 dark:stroke-gray-700" strokeWidth="0.2" />
+        <line x1="0" y1={(height - 80) / 2 + 40} x2="100" y2={(height - 80) / 2 + 40} className="stroke-gray-200 dark:stroke-gray-700" strokeWidth="0.2" />
+        <line x1="0" y1="40" x2="100" y2="40" className="stroke-gray-200 dark:stroke-gray-700" strokeWidth="0.2" />
         
         {/* Line */}
         <polyline
@@ -89,7 +89,7 @@ export function LineChart({ data, height = 200, color = '#4f46e5', showLabels = 
       
       {/* Labels */}
       {showLabels && (
-        <div className="absolute bottom-0 left-0 right-0 flex justify-between text-xs text-gray-500 px-1">
+        <div className="absolute bottom-0 left-0 right-0 flex justify-between text-xs text-gray-500 dark:text-gray-400 px-1">
           {data.filter((_, i) => i === 0 || i === data.length - 1 || i === Math.floor(data.length / 2)).map((d, i) => (
             <span key={i}>{d.label}</span>
           ))}
@@ -112,7 +112,7 @@ export function BarChart({ data, height = 200, showValues = true, horizontal = f
 
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center text-gray-400" style={{ height }}>
+      <div className="flex items-center justify-center text-gray-400 dark:text-gray-500" style={{ height }}>
         No data available
       </div>
     )
@@ -124,12 +124,12 @@ export function BarChart({ data, height = 200, showValues = true, horizontal = f
         {data.map((item, i) => (
           <div key={i}>
             <div className="flex items-center justify-between text-sm mb-1">
-              <span className="text-gray-700 truncate flex-1">{item.label}</span>
+              <span className="text-gray-700 dark:text-gray-300 truncate flex-1">{item.label}</span>
               {showValues && (
-                <span className="text-gray-500 ml-2">{item.value.toLocaleString()}</span>
+                <span className="text-gray-500 dark:text-gray-400 ml-2">{item.value.toLocaleString()}</span>
               )}
             </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
@@ -170,7 +170,7 @@ export function BarChart({ data, height = 200, showValues = true, horizontal = f
                   x={x + barWidth / 2}
                   y={y - 5}
                   textAnchor="middle"
-                  className="text-xs fill-gray-600"
+                  className="text-xs fill-gray-600 dark:fill-gray-400"
                   fontSize="6"
                 >
                   {item.value >= 1000 ? `${(item.value / 1000).toFixed(1)}K` : item.value}
@@ -180,9 +180,9 @@ export function BarChart({ data, height = 200, showValues = true, horizontal = f
           )
         })}
       </svg>
-      
+
       {/* X-axis labels */}
-      <div className="absolute bottom-0 left-0 right-0 flex justify-around text-xs text-gray-500">
+      <div className="absolute bottom-0 left-0 right-0 flex justify-around text-xs text-gray-500 dark:text-gray-400">
         {data.map((d, i) => (
           <span key={i} className="truncate text-center" style={{ maxWidth: `${100 / data.length}%` }}>
             {d.label}
@@ -217,7 +217,7 @@ export function DonutChart({ data, size = 160, thickness = 30, showLegend = true
 
   if (data.length === 0 || total === 0) {
     return (
-      <div className="flex items-center justify-center text-gray-400" style={{ width: size, height: size }}>
+      <div className="flex items-center justify-center text-gray-400 dark:text-gray-500" style={{ width: size, height: size }}>
         No data
       </div>
     )
@@ -272,13 +272,13 @@ export function DonutChart({ data, size = 160, thickness = 30, showLegend = true
           y={radius}
           textAnchor="middle"
           dominantBaseline="middle"
-          className="fill-gray-900 font-semibold"
+          className="fill-gray-900 dark:fill-white font-semibold"
           fontSize="16"
         >
           {total.toLocaleString()}
         </text>
       </svg>
-      
+
       {showLegend && (
         <div className="space-y-2">
           {segments.map((segment, i) => (
@@ -287,8 +287,8 @@ export function DonutChart({ data, size = 160, thickness = 30, showLegend = true
                 className="w-3 h-3 rounded-sm mr-2 flex-shrink-0"
                 style={{ backgroundColor: segment.color }}
               />
-              <span className="text-gray-700 truncate">{segment.label}</span>
-              <span className="text-gray-500 ml-2">
+              <span className="text-gray-700 dark:text-gray-300 truncate">{segment.label}</span>
+              <span className="text-gray-500 dark:text-gray-400 ml-2">
                 {(segment.percentage * 100).toFixed(0)}%
               </span>
             </div>
@@ -324,12 +324,12 @@ export function SparklineStat({ label, value, trend, sparklineData, color = '#4f
   }, [sparklineData])
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4">
-      <p className="text-sm text-gray-500">{label}</p>
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+      <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
       <div className="mt-1 flex items-baseline justify-between">
-        <p className="text-2xl font-semibold text-gray-900">{value}</p>
+        <p className="text-2xl font-semibold text-gray-900 dark:text-white">{value}</p>
         {trend && (
-          <span className={`text-sm ${trend.isUp ? 'text-green-600' : 'text-red-600'}`}>
+          <span className={`text-sm ${trend.isUp ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
             {trend.isUp ? '↑' : '↓'} {trend.value}%
           </span>
         )}
@@ -382,7 +382,7 @@ export function ProgressRing({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="#e5e7eb"
+          className="stroke-gray-200 dark:stroke-gray-700"
           strokeWidth={strokeWidth}
         />
         {/* Progress circle */}
@@ -400,8 +400,8 @@ export function ProgressRing({
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-lg font-semibold text-gray-900">{percentage.toFixed(0)}%</span>
-        {label && <span className="text-xs text-gray-500">{label}</span>}
+        <span className="text-lg font-semibold text-gray-900 dark:text-white">{percentage.toFixed(0)}%</span>
+        {label && <span className="text-xs text-gray-500 dark:text-gray-400">{label}</span>}
       </div>
     </div>
   )

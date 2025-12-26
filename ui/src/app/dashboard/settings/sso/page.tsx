@@ -180,8 +180,8 @@ export default function SsoSettingsPage() {
     return (
       <div className="p-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-gray-200 rounded"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
         </div>
       </div>
     )
@@ -191,13 +191,13 @@ export default function SsoSettingsPage() {
     <div className="p-8 max-w-4xl">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Single Sign-On (SSO)</h1>
-          <p className="text-gray-600 mt-1">Configure SAML or OIDC authentication for your organization</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Single Sign-On (SSO)</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">Configure SAML or OIDC authentication for your organization</p>
         </div>
         {config?.providerType && (
           <div className="flex items-center space-x-4">
             <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-              config.isEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+              config.isEnabled ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-200' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
             }`}>
               {config.isEnabled ? 'Enabled' : 'Disabled'}
             </span>
@@ -205,7 +205,7 @@ export default function SsoSettingsPage() {
               onClick={() => toggleSso(!config.isEnabled)}
               className={`px-4 py-2 rounded-lg font-medium ${
                 config.isEnabled
-                  ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                   : 'bg-indigo-600 text-white hover:bg-indigo-700'
               }`}
             >
@@ -216,29 +216,29 @@ export default function SsoSettingsPage() {
       </div>
 
       {error && (
-        <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 flex items-center text-red-700">
+        <div className="mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 flex items-center text-red-700 dark:text-red-200">
           <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
           {error}
         </div>
       )}
 
       {success && (
-        <div className="mb-6 p-4 rounded-lg bg-green-50 border border-green-200 flex items-center text-green-700">
+        <div className="mb-6 p-4 rounded-lg bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 flex items-center text-green-700 dark:text-green-200">
           <CheckCircleIcon className="h-5 w-5 mr-2" />
           {success}
         </div>
       )}
 
       {/* Provider Tabs */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="border-b border-gray-200 dark:border-gray-700">
           <div className="flex">
             <button
               onClick={() => setActiveTab('saml')}
               className={`flex-1 px-6 py-4 text-center font-medium ${
                 activeTab === 'saml'
-                  ? 'text-indigo-600 border-b-2 border-indigo-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
               <BuildingOfficeIcon className="h-5 w-5 inline mr-2" />
@@ -248,8 +248,8 @@ export default function SsoSettingsPage() {
               onClick={() => setActiveTab('oidc')}
               className={`flex-1 px-6 py-4 text-center font-medium ${
                 activeTab === 'oidc'
-                  ? 'text-indigo-600 border-b-2 border-indigo-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
               <KeyIcon className="h-5 w-5 inline mr-2" />
@@ -262,20 +262,20 @@ export default function SsoSettingsPage() {
           {/* SAML Configuration */}
           {activeTab === 'saml' && (
             <div className="space-y-6">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <h3 className="font-medium text-blue-900 mb-2">Service Provider Details</h3>
-                <p className="text-sm text-blue-800 mb-2">
+              <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+                <h3 className="font-medium text-blue-900 dark:text-blue-200 mb-2">Service Provider Details</h3>
+                <p className="text-sm text-blue-800 dark:text-blue-300 mb-2">
                   Configure these values in your Identity Provider:
                 </p>
                 <div className="space-y-2 text-sm">
-                  <div><span className="text-blue-600">Entity ID:</span> <code className="bg-blue-100 px-2 py-0.5 rounded">safedns-sp</code></div>
-                  <div><span className="text-blue-600">ACS URL:</span> <code className="bg-blue-100 px-2 py-0.5 rounded">{process.env.NEXT_PUBLIC_API_URL}/sso/saml/callback</code></div>
-                  <div><span className="text-blue-600">Metadata:</span> <a href={`${process.env.NEXT_PUBLIC_API_URL}/sso/saml/metadata`} target="_blank" className="text-blue-600 hover:underline">Download XML</a></div>
+                  <div><span className="text-blue-600 dark:text-blue-400">Entity ID:</span> <code className="bg-blue-100 dark:bg-blue-800 px-2 py-0.5 rounded">{`safedns-sp`}</code></div>
+                  <div><span className="text-blue-600 dark:text-blue-400">ACS URL:</span> <code className="bg-blue-100 dark:bg-blue-800 px-2 py-0.5 rounded">{process.env.NEXT_PUBLIC_API_URL}/sso/saml/callback</code></div>
+                  <div><span className="text-blue-600 dark:text-blue-400">Metadata:</span> <a href={`${process.env.NEXT_PUBLIC_API_URL}/sso/saml/metadata`} target="_blank" className="text-blue-600 dark:text-blue-400 hover:underline">Download XML</a></div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   IdP Entity ID *
                 </label>
                 <input
@@ -283,13 +283,13 @@ export default function SsoSettingsPage() {
                   name="samlEntityId"
                   value={formData.samlEntityId}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="https://idp.example.com/..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   IdP SSO URL *
                 </label>
                 <input
@@ -297,13 +297,13 @@ export default function SsoSettingsPage() {
                   name="samlSsoUrl"
                   value={formData.samlSsoUrl}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="https://idp.example.com/sso/saml"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   IdP SLO URL (Optional)
                 </label>
                 <input
@@ -311,13 +311,13 @@ export default function SsoSettingsPage() {
                   name="samlSloUrl"
                   value={formData.samlSloUrl}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="https://idp.example.com/slo/saml"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   IdP Certificate (X.509) *
                 </label>
                 <textarea
@@ -325,7 +325,7 @@ export default function SsoSettingsPage() {
                   value={formData.samlCertificate}
                   onChange={handleChange}
                   rows={6}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm"
                   placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
                 />
               </div>
@@ -336,7 +336,7 @@ export default function SsoSettingsPage() {
           {activeTab === 'oidc' && (
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Issuer URL *
                 </label>
                 <input
@@ -344,14 +344,14 @@ export default function SsoSettingsPage() {
                   name="oidcIssuer"
                   value={formData.oidcIssuer}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="https://login.example.com"
                 />
-                <p className="text-sm text-gray-500 mt-1">The OIDC provider's issuer URL</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">The OIDC provider's issuer URL</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Client ID *
                 </label>
                 <input
@@ -359,13 +359,13 @@ export default function SsoSettingsPage() {
                   name="oidcClientId"
                   value={formData.oidcClientId}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="your-client-id"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Client Secret *
                 </label>
                 <input
@@ -373,17 +373,17 @@ export default function SsoSettingsPage() {
                   name="oidcClientSecret"
                   value={formData.oidcClientSecret}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="••••••••••••"
                 />
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Redirect URI</h4>
-                <p className="text-sm text-gray-600 mb-2">
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-2">Redirect URI</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                   Add this URL to your OIDC provider's allowed redirect URIs:
                 </p>
-                <code className="block bg-gray-100 px-3 py-2 rounded text-sm">
+                <code className="block bg-gray-100 dark:bg-gray-600 px-3 py-2 rounded text-sm dark:text-gray-200">
                   {process.env.NEXT_PUBLIC_API_URL}/sso/oidc/callback
                 </code>
               </div>
@@ -391,14 +391,14 @@ export default function SsoSettingsPage() {
           )}
 
           {/* Common Settings */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <h3 className="font-medium text-gray-900 mb-4">User Provisioning</h3>
-            
+          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <h3 className="font-medium text-gray-900 dark:text-white mb-4">User Provisioning</h3>
+
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="font-medium text-gray-700">Auto-provision users</label>
-                  <p className="text-sm text-gray-500">Automatically create accounts for new SSO users</p>
+                  <label className="font-medium text-gray-700 dark:text-gray-300">Auto-provision users</label>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Automatically create accounts for new SSO users</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -408,19 +408,19 @@ export default function SsoSettingsPage() {
                     onChange={handleChange}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-indigo-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                  <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 rounded-full peer peer-checked:bg-indigo-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                 </label>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Default Role for New Users
                 </label>
                 <select
                   name="defaultRole"
                   value={formData.defaultRole}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 >
                   <option value="readonly">Read Only</option>
                   <option value="analyst">Analyst</option>
@@ -429,7 +429,7 @@ export default function SsoSettingsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Domain Restriction (Optional)
                 </label>
                 <input
@@ -437,16 +437,16 @@ export default function SsoSettingsPage() {
                   name="domainRestriction"
                   value={formData.domainRestriction}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="@company.com"
                 />
-                <p className="text-sm text-gray-500 mt-1">Only allow users with emails from this domain</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Only allow users with emails from this domain</p>
               </div>
             </div>
           </div>
 
           {/* Save Button */}
-          <div className="mt-6 pt-6 border-t border-gray-200 flex justify-end">
+          <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 flex justify-end">
             <button
               onClick={activeTab === 'saml' ? saveSamlConfig : saveOidcConfig}
               disabled={saving}

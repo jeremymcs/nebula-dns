@@ -82,9 +82,16 @@ func (c *PolicyCache) GetPolicy(ctx context.Context, locationID string) (*models
 		return nil, err
 	}
 
-	// Rebuild wildcard tries
+	// Rebuild wildcard tries from patterns
 	cached.AllowlistWildcard = models.NewSuffixTrie()
+	for _, pattern := range cached.AllowlistWildcardPatterns {
+		cached.AllowlistWildcard.Insert(pattern)
+	}
+
 	cached.BlocklistWildcard = models.NewSuffixTrie()
+	for _, pattern := range cached.BlocklistWildcardPatterns {
+		cached.BlocklistWildcard.Insert(pattern)
+	}
 
 	// Store in memory cache
 	c.policiesMu.Lock()
@@ -131,21 +138,39 @@ func (c *PolicyCache) ValidateToken(ctx context.Context, tokenHash string) (*Tok
 		return nil, nil
 	}
 
-	// Check Redis
+	// Check Redis - tokens are stored as JSON strings
 	key := "token:" + tokenHash
-	data, err := c.redis.HGetAll(ctx, key).Result()
+	data, err := c.redis.Get(ctx, key).Bytes()
 	if err != nil {
+		if err == redis.Nil {
+			return nil, nil
+		}
 		return nil, err
 	}
 
-	if len(data) == 0 {
-		return nil, nil
+	// Parse token info from JSON
+	var tokenData struct {
+		TenantID   string  `json:"tenantId"`
+		LocationID string  `json:"locationId"`
+		Label      string  `json:"label"`
+		ExpiresAt  *string `json:"expiresAt"`
+	}
+	if err := json.Unmarshal(data, &tokenData); err != nil {
+		c.logger.Warn("Failed to parse token data", zap.Error(err))
+		return nil, err
 	}
 
-	// Parse token info
+	// Check expiration
+	if tokenData.ExpiresAt != nil {
+		expiresAt, err := time.Parse(time.RFC3339, *tokenData.ExpiresAt)
+		if err == nil && expiresAt.Before(time.Now()) {
+			return nil, nil // Token expired
+		}
+	}
+
 	info = &TokenInfo{
-		TenantID:   data["tenant_id"],
-		LocationID: data["location_id"],
+		TenantID:   tokenData.TenantID,
+		LocationID: tokenData.LocationID,
 	}
 
 	// Cache in memory (short TTL)

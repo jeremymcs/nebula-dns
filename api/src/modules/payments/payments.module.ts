@@ -9,9 +9,10 @@ import { Module, forwardRef } from '@nestjs/common';
 import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
+import { EmailModule } from '../email/email.module';
 
 @Module({
-  imports: [forwardRef(() => SubscriptionsModule)],
+  imports: [forwardRef(() => SubscriptionsModule), EmailModule],
   controllers: [PaymentsController],
   providers: [PaymentsService],
   exports: [PaymentsService],

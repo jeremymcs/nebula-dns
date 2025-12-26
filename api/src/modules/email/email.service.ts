@@ -39,6 +39,23 @@ export interface InviteUserEmailData {
   expiresAt: Date;
 }
 
+export interface ScheduledReportEmailData {
+  to: string;
+  reportName: string;
+  tenantName: string;
+  reportPeriod: string;
+  summary: {
+    totalQueries: number;
+    blockedQueries: number;
+    threatBlocks: number;
+    topBlockedDomains: string[];
+  };
+  reportUrl: string;
+  attachmentBuffer?: Buffer;
+  attachmentFilename?: string;
+  attachmentContentType?: string;
+}
+
 @Injectable()
 export class EmailService implements OnModuleInit {
   private readonly logger = new Logger(EmailService.name);
@@ -315,5 +332,123 @@ If you didn't sign up for this account, please ignore this email.
 </html>`;
 
     return this.sendEmail(data.to, subject, htmlContent);
+  }
+
+  async sendScheduledReportEmail(data: ScheduledReportEmailData): Promise<boolean> {
+    const subject = `${data.reportName} - ${data.reportPeriod}`;
+
+    const topBlockedList = data.summary.topBlockedDomains
+      .map((d, i) => `<li>${i + 1}. ${d}</li>`)
+      .join('');
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Scheduled Report</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+    <h1 style="color: white; margin: 0; font-size: 24px;">${data.reportName}</h1>
+    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">${data.tenantName} - ${data.reportPeriod}</p>
+  </div>
+
+  <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
+    <h3 style="color: #667eea; margin-top: 0;">Summary</h3>
+
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px;">
+      <div style="background: white; border-radius: 8px; padding: 15px; text-align: center; border: 1px solid #e5e7eb;">
+        <div style="font-size: 24px; font-weight: bold; color: #667eea;">${data.summary.totalQueries.toLocaleString()}</div>
+        <div style="font-size: 12px; color: #6b7280;">Total Queries</div>
+      </div>
+      <div style="background: white; border-radius: 8px; padding: 15px; text-align: center; border: 1px solid #e5e7eb;">
+        <div style="font-size: 24px; font-weight: bold; color: #f59e0b;">${data.summary.blockedQueries.toLocaleString()}</div>
+        <div style="font-size: 12px; color: #6b7280;">Blocked</div>
+      </div>
+      <div style="background: white; border-radius: 8px; padding: 15px; text-align: center; border: 1px solid #e5e7eb;">
+        <div style="font-size: 24px; font-weight: bold; color: #dc2626;">${data.summary.threatBlocks.toLocaleString()}</div>
+        <div style="font-size: 12px; color: #6b7280;">Threats</div>
+      </div>
+    </div>
+
+    ${data.summary.topBlockedDomains.length > 0 ? `
+    <h4 style="color: #374151;">Top Blocked Domains</h4>
+    <ol style="padding-left: 20px; margin: 0;">
+      ${topBlockedList}
+    </ol>
+    ` : ''}
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${data.reportUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+        View Full Report
+      </a>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
+
+    <p style="font-size: 12px; color: #6b7280; text-align: center;">
+      This is an automated report from SafeDNS.<br>
+      To manage your report settings, visit your dashboard.
+    </p>
+  </div>
+</body>
+</html>`;
+
+    // If there's an attachment, we need to use a different send method
+    if (data.attachmentBuffer && data.attachmentFilename) {
+      return this.sendEmailWithAttachment(
+        data.to,
+        subject,
+        htmlContent,
+        data.attachmentBuffer,
+        data.attachmentFilename,
+      );
+    }
+
+    return this.sendEmail(data.to, subject, htmlContent);
+  }
+
+  private async sendEmailWithAttachment(
+    to: string,
+    subject: string,
+    htmlContent: string,
+    attachmentBuffer: Buffer,
+    filename: string,
+  ): Promise<boolean> {
+    if (!this.isConfigured) {
+      this.logger.log(`[DEV] Email with attachment to: ${to}`);
+      this.logger.log(`[DEV] Subject: ${subject}`);
+      this.logger.log(`[DEV] Attachment: ${filename} (${attachmentBuffer.length} bytes)`);
+      return true;
+    }
+
+    try {
+      const msg = {
+        to,
+        from: {
+          email: this.fromEmail,
+          name: this.fromName,
+        },
+        subject,
+        html: htmlContent,
+        text: this.stripHtml(htmlContent),
+        attachments: [
+          {
+            content: attachmentBuffer.toString('base64'),
+            filename,
+            type: filename.endsWith('.pdf') ? 'application/pdf' : 'text/csv',
+            disposition: 'attachment',
+          },
+        ],
+      };
+
+      await sgMail.send(msg);
+      this.logger.log(`Email with attachment sent successfully to ${to}`);
+      return true;
+    } catch (error: any) {
+      this.logger.error(`Failed to send email with attachment to ${to}:`, error?.response?.body || error);
+      return false;
+    }
   }
 }

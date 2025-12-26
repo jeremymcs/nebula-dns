@@ -1,0 +1,165 @@
+# SafeDNS Helm Chart Values
+
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+# API Service
+api:
+  replicaCount: 2
+  image:
+    repository: safedns/api
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  service:
+    type: ClusterIP
+    port: 4000
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+  env:
+    NODE_ENV: production
+    LOG_LEVEL: info
+
+# UI Service
+ui:
+  replicaCount: 2
+  image:
+    repository: safedns/ui
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  service:
+    type: ClusterIP
+    port: 3000
+
+# Policy Service (Go)
+policySvc:
+  replicaCount: 3
+  image:
+    repository: safedns/policy-svc
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 500m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 64Mi
+  service:
+    type: ClusterIP
+    port: 8080
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 60
+
+# dnsdist DNS Proxy
+dnsdist:
+  replicaCount: 3
+  image:
+    repository: safedns/dnsdist
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 256Mi
+  service:
+    type: LoadBalancer
+    dnsPort: 53
+    dotPort: 853
+    dohPort: 443
+  antiAffinity: hard
+
+# Ingress
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: app.nebuladns.io
+      paths:
+        - path: /
+          pathType: Prefix
+          service: ui
+    - host: api.nebuladns.io
+      paths:
+        - path: /
+          pathType: Prefix
+          service: api
+  tls:
+    - secretName: nebula-dns-tls
+      hosts:
+        - app.nebuladns.io
+        - api.nebuladns.io
+
+# DNS endpoints (LoadBalancer services for DoT/DoH)
+dnsEndpoints:
+  dns1:
+    hostname: dns1.nebuladns.io
+    enabled: true
+  dns2:
+    hostname: dns2.nebuladns.io
+    enabled: true
+
+# Database configuration
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: ""
+    database: safedns
+  primary:
+    persistence:
+      size: 50Gi
+
+# Redis configuration
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: ""
+  architecture: replication
+  replica:
+    replicaCount: 2
+
+# ClickHouse configuration
+clickhouse:
+  enabled: true
+  persistence:
+    size: 100Gi
+
+# Secrets (use external-secrets in production)
+secrets:
+  jwtSecret: ""
+  encryptionKey: ""
+  stripeSecretKey: ""
+  sentryDsn: ""
+
+# Service Monitor for Prometheus
+serviceMonitor:
+  enabled: false
+  interval: 30s
+

@@ -6,7 +6,7 @@ export type ListType = 'allowlist' | 'blocklist';
 
 @Entity('custom_lists')
 export class CustomList extends TenantScopedEntity {
-  @Column({ length: 255 })
+  @Column({ type: 'varchar', length: 255 })
   name: string;
 
   @Column({ type: 'text', nullable: true })
@@ -15,10 +15,10 @@ export class CustomList extends TenantScopedEntity {
   @Column({ type: 'varchar', length: 20 })
   type: ListType;
 
-  @Column({ name: 'is_enabled', default: true })
+  @Column({ name: 'is_enabled', type: 'boolean', default: true })
   isEnabled: boolean;
 
-  @Column({ name: 'entry_count', default: 0 })
+  @Column({ name: 'entry_count', type: 'int', default: 0 })
   entryCount: number;
 
   @OneToMany(() => CustomListEntry, (entry) => entry.list)

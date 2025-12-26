@@ -63,4 +63,4 @@ images:
 configMapGenerator:
   - name: api-config
     literals:
-      - frontend-url=https://app.example.com
+      - frontend-url=https://app.nebuladns.io

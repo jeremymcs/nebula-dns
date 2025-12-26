@@ -183,6 +183,59 @@ export class AgentsService {
     };
   }
 
+  async handleHeartbeatPublic(dto: AgentHeartbeatDto): Promise<{
+    configUpdated: boolean;
+    updateAvailable: boolean;
+    latestVersion?: string;
+    downloadUrl?: string;
+  }> {
+    // Find agent by device ID (public endpoint, no tenant context)
+    const agent = await this.agentRepository.findOne({
+      where: { deviceId: dto.deviceId },
+    });
+
+    if (!agent) {
+      // Agent not registered, return basic response
+      return {
+        configUpdated: false,
+        updateAvailable: false,
+      };
+    }
+
+    // Update agent status
+    agent.lastSeenAt = new Date();
+    agent.agentVersion = dto.agentVersion;
+    if (dto.ipAddress) agent.ipAddress = dto.ipAddress;
+    if (dto.status) agent.status = dto.status;
+    if (dto.errorMessage) agent.errorMessage = dto.errorMessage;
+
+    await this.agentRepository.save(agent);
+
+    // Check if update is available
+    const latestVersion = this.agentVersions[agent.platform];
+    const updateAvailable = latestVersion && this.isNewerVersion(latestVersion.version, dto.agentVersion);
+
+    return {
+      configUpdated: false,
+      updateAvailable,
+      latestVersion: updateAvailable ? latestVersion.version : undefined,
+      downloadUrl: updateAvailable ? latestVersion.downloadUrl : undefined,
+    };
+  }
+
+  private isNewerVersion(latest: string, current: string): boolean {
+    const latestParts = latest.split('.').map(Number);
+    const currentParts = current.split('.').map(Number);
+
+    for (let i = 0; i < Math.max(latestParts.length, currentParts.length); i++) {
+      const l = latestParts[i] || 0;
+      const c = currentParts[i] || 0;
+      if (l > c) return true;
+      if (l < c) return false;
+    }
+    return false;
+  }
+
   async getAgents(tenantId: string): Promise<AgentInstallation[]> {
     return this.agentRepository.find({
       where: { tenantId },

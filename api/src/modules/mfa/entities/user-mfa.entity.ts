@@ -4,17 +4,17 @@ import { User } from '../../users/entities/user.entity';
 
 @Entity('user_mfa')
 export class UserMfa extends BaseEntity {
-  @Column({ name: 'user_id' })
+  @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
   @OneToOne(() => User)
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ name: 'secret_encrypted', length: 255 })
+  @Column({ name: 'secret_encrypted', type: 'varchar', length: 255 })
   secretEncrypted: string;
 
-  @Column({ name: 'is_enabled', default: false })
+  @Column({ name: 'is_enabled', type: 'boolean', default: false })
   isEnabled: boolean;
 
   @Column({ name: 'verified_at', type: 'timestamptz', nullable: true })

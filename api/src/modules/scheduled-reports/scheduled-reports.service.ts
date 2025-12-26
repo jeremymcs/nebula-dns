@@ -2,22 +2,32 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThanOrEqual } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import * as PDFDocument from 'pdfkit';
+import { Parser as Json2CsvParser } from 'json2csv';
 import { ScheduledReport, ScheduleType } from './entities/scheduled-report.entity';
 import { ReportHistory } from './entities/report-history.entity';
+import { Tenant } from '../tenants/entities/tenant.entity';
 import { CreateScheduledReportDto, UpdateScheduledReportDto } from './dto/scheduled-report.dto';
 import { EmailService } from '../email/email.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ScheduledReportsService {
   private readonly logger = new Logger(ScheduledReportsService.name);
+  private readonly frontendUrl: string;
 
   constructor(
     @InjectRepository(ScheduledReport)
     private reportRepository: Repository<ScheduledReport>,
     @InjectRepository(ReportHistory)
     private historyRepository: Repository<ReportHistory>,
+    @InjectRepository(Tenant)
+    private tenantRepository: Repository<Tenant>,
     private emailService: EmailService,
-  ) {}
+    private configService: ConfigService,
+  ) {
+    this.frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:4001';
+  }
 
   async create(tenantId: string, userId: string, dto: CreateScheduledReportDto): Promise<ScheduledReport> {
     const report = this.reportRepository.create({
@@ -136,7 +146,7 @@ export class ScheduledReportsService {
       const sentRecipients: string[] = [];
       for (const recipient of report.recipients) {
         try {
-          await this.sendReportEmail(recipient, report.name, content, report.format);
+          await this.sendReportEmail(recipient, report.name, content, report.format, report, reportData);
           sentRecipients.push(recipient);
         } catch (error) {
           this.logger.error(`Failed to send report to ${recipient}:`, error);
@@ -283,13 +293,62 @@ export class ScheduledReportsService {
 </html>`;
   }
 
-  private async sendReportEmail(to: string, reportName: string, content: string, format: string): Promise<void> {
-    // Use the email service to send
-    // In production, would attach PDF/CSV file
+  private async sendReportEmail(
+    to: string,
+    reportName: string,
+    content: string,
+    format: string,
+    report: ScheduledReport,
+    data: any,
+  ): Promise<void> {
     this.logger.log(`Sending report "${reportName}" to ${to} as ${format}`);
-    
-    // For now, send as HTML email
-    // In production, convert to PDF/CSV and attach
+
+    // Get tenant name
+    const tenant = await this.tenantRepository.findOne({ where: { id: report.tenantId } });
+    const tenantName = tenant?.name || 'SafeDNS';
+
+    // Calculate report period
+    const startDate = new Date(data.period.start);
+    const endDate = new Date(data.period.end);
+    const reportPeriod = `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
+
+    // Generate attachment based on format
+    let attachmentBuffer: Buffer | undefined;
+    let attachmentFilename: string | undefined;
+    let attachmentContentType: string | undefined;
+
+    const sanitizedName = reportName.replace(/[^a-zA-Z0-9-_]/g, '_');
+    const dateStr = new Date().toISOString().split('T')[0];
+
+    if (format === 'pdf') {
+      attachmentBuffer = await this.generatePdf(report, data);
+      attachmentFilename = `${sanitizedName}_${dateStr}.pdf`;
+      attachmentContentType = 'application/pdf';
+    } else if (format === 'csv') {
+      attachmentBuffer = this.generateCsv(report, data);
+      attachmentFilename = `${sanitizedName}_${dateStr}.csv`;
+      attachmentContentType = 'text/csv';
+    }
+
+    // Use the email service to send scheduled report
+    await this.emailService.sendScheduledReportEmail({
+      to,
+      reportName,
+      tenantName,
+      reportPeriod,
+      summary: {
+        totalQueries: data.summary.totalQueries,
+        blockedQueries: data.summary.blockedQueries,
+        threatBlocks: data.topBlocked.filter((d: any) =>
+          ['malware', 'phishing', 'c2'].includes(d.category)
+        ).reduce((sum: number, d: any) => sum + d.count, 0),
+        topBlockedDomains: data.topBlocked.slice(0, 5).map((d: any) => d.domain),
+      },
+      reportUrl: `${this.frontendUrl}/dashboard/reports`,
+      attachmentBuffer,
+      attachmentFilename,
+      attachmentContentType,
+    });
   }
 
   private calculateNextRun(
@@ -347,6 +406,160 @@ export class ScheduledReportsService {
         return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       default:
         return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    }
+  }
+
+  async generatePdf(report: ScheduledReport, data: any): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      try {
+        const doc = new PDFDocument({ margin: 50 });
+        const chunks: Buffer[] = [];
+
+        doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+        doc.on('end', () => resolve(Buffer.concat(chunks)));
+        doc.on('error', reject);
+
+        // Header with gradient-like effect
+        doc.rect(0, 0, doc.page.width, 100).fill('#667eea');
+        doc.fontSize(24).fillColor('#ffffff').text(report.name, 50, 35);
+        doc.fontSize(12).text(
+          `Report Period: ${new Date(data.period.start).toLocaleDateString()} - ${new Date(data.period.end).toLocaleDateString()}`,
+          50, 65
+        );
+
+        // Summary Section
+        doc.moveDown(3);
+        doc.fillColor('#1f2937').fontSize(16).text('Summary', 50, 130);
+        doc.moveTo(50, 150).lineTo(550, 150).stroke('#e5e7eb');
+
+        const summaryY = 170;
+        const colWidth = 125;
+        doc.fontSize(10).fillColor('#6b7280');
+
+        // Summary boxes
+        const summaryItems = [
+          { label: 'Total Queries', value: data.summary.totalQueries.toLocaleString() },
+          { label: 'Blocked', value: data.summary.blockedQueries.toLocaleString() },
+          { label: 'Allowed', value: data.summary.allowedQueries.toLocaleString() },
+          { label: 'Block Rate', value: `${data.summary.blockRate}%` },
+        ];
+
+        summaryItems.forEach((item, i) => {
+          const x = 50 + (i * colWidth);
+          doc.rect(x, summaryY, colWidth - 10, 60).fill('#f9fafb').stroke('#e5e7eb');
+          doc.fillColor('#1f2937').fontSize(18).text(item.value, x + 10, summaryY + 15, { width: colWidth - 20, align: 'center' });
+          doc.fillColor('#6b7280').fontSize(9).text(item.label, x + 10, summaryY + 40, { width: colWidth - 20, align: 'center' });
+        });
+
+        // Top Blocked Domains Section
+        doc.fillColor('#1f2937').fontSize(16).text('Top Blocked Domains', 50, 260);
+        doc.moveTo(50, 280).lineTo(550, 280).stroke('#e5e7eb');
+
+        let tableY = 295;
+        // Table header
+        doc.fillColor('#6b7280').fontSize(10);
+        doc.text('Domain', 50, tableY);
+        doc.text('Category', 300, tableY);
+        doc.text('Count', 450, tableY);
+
+        tableY += 20;
+        data.topBlocked.slice(0, 10).forEach((item: any) => {
+          doc.fillColor('#1f2937');
+          doc.text(item.domain, 50, tableY, { width: 240 });
+          doc.text(item.category, 300, tableY, { width: 140 });
+          doc.text(item.count.toLocaleString(), 450, tableY);
+          tableY += 18;
+        });
+
+        // Category Breakdown Section
+        tableY += 20;
+        doc.fillColor('#1f2937').fontSize(16).text('Blocks by Category', 50, tableY);
+        doc.moveTo(50, tableY + 20).lineTo(550, tableY + 20).stroke('#e5e7eb');
+
+        tableY += 35;
+        doc.fillColor('#6b7280').fontSize(10);
+        doc.text('Category', 50, tableY);
+        doc.text('Count', 300, tableY);
+        doc.text('Percentage', 450, tableY);
+
+        tableY += 20;
+        data.categoryBreakdown.slice(0, 10).forEach((item: any) => {
+          doc.fillColor('#1f2937');
+          doc.text(item.category, 50, tableY);
+          doc.text(item.count.toLocaleString(), 300, tableY);
+          doc.text(`${item.percentage}%`, 450, tableY);
+          tableY += 18;
+        });
+
+        // Footer
+        doc.fillColor('#9ca3af').fontSize(8);
+        doc.text(
+          `Generated by SafeDNS on ${new Date().toLocaleString()}`,
+          50, doc.page.height - 50,
+          { align: 'center', width: doc.page.width - 100 }
+        );
+
+        doc.end();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  generateCsv(report: ScheduledReport, data: any): Buffer {
+    // Determine which data to export based on report type
+    let csvData: any[];
+    let fields: string[];
+
+    switch (report.reportType) {
+      case 'threats':
+      case 'top_blocked':
+        csvData = data.topBlocked.map((item: any) => ({
+          domain: item.domain,
+          category: item.category,
+          count: item.count,
+        }));
+        fields = ['domain', 'category', 'count'];
+        break;
+
+      case 'activity':
+        csvData = data.categoryBreakdown.map((item: any) => ({
+          category: item.category,
+          count: item.count,
+          percentage: item.percentage,
+        }));
+        fields = ['category', 'count', 'percentage'];
+        break;
+
+      case 'summary':
+      case 'compliance':
+      default:
+        // Flatten summary data for CSV
+        csvData = [
+          { metric: 'Total Queries', value: data.summary.totalQueries },
+          { metric: 'Blocked Queries', value: data.summary.blockedQueries },
+          { metric: 'Allowed Queries', value: data.summary.allowedQueries },
+          { metric: 'Block Rate', value: `${data.summary.blockRate}%` },
+          { metric: 'Report Period Start', value: data.period.start },
+          { metric: 'Report Period End', value: data.period.end },
+        ];
+
+        // Add top blocked domains
+        data.topBlocked.forEach((item: any, index: number) => {
+          csvData.push({ metric: `Top Blocked #${index + 1}`, value: `${item.domain} (${item.count})` });
+        });
+
+        fields = ['metric', 'value'];
+        break;
+    }
+
+    try {
+      const parser = new Json2CsvParser({ fields });
+      const csv = parser.parse(csvData);
+      return Buffer.from(csv, 'utf-8');
+    } catch (error) {
+      this.logger.error('Failed to generate CSV:', error);
+      throw error;
     }
   }
 }

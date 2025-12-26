@@ -12,7 +12,7 @@ import { ApiError } from '@/lib/api'
 const fetcher = async <T>(endpoint: string): Promise<T> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
   
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${endpoint}`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${endpoint}`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

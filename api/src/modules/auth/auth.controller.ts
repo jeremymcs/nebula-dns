@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { LoginDto, LoginResponseDto } from './dto/login.dto';
+import { LoginDto, LoginResponseDto, MfaVerifyLoginDto, MfaRequiredResponseDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -23,10 +23,19 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Authenticate user and get tokens' })
-  @ApiResponse({ status: 200, description: 'Login successful', type: LoginResponseDto })
+  @ApiResponse({ status: 200, description: 'Login successful or MFA required', type: LoginResponseDto })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(@Body() loginDto: LoginDto): Promise<LoginResponseDto> {
+  async login(@Body() loginDto: LoginDto): Promise<LoginResponseDto | MfaRequiredResponseDto> {
     return this.authService.login(loginDto);
+  }
+
+  @Post('mfa/verify')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify MFA code and complete login' })
+  @ApiResponse({ status: 200, description: 'MFA verified, login successful', type: LoginResponseDto })
+  @ApiResponse({ status: 401, description: 'Invalid MFA code or token' })
+  async verifyMfa(@Body() dto: MfaVerifyLoginDto): Promise<LoginResponseDto> {
+    return this.authService.verifyMfaLogin(dto);
   }
 
   @Post('refresh')

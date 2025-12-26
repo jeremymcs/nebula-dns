@@ -1,19 +1,20 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
- * Toast Notification Component
+ *
+ * Toast Notification Component with Framer Motion
  */
 
 'use client'
 
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
-import { 
-  CheckCircleIcon, 
-  XCircleIcon, 
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  CheckCircleIcon,
+  XCircleIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
-  XMarkIcon 
+  XMarkIcon
 } from '@heroicons/react/24/outline'
 
 type ToastType = 'success' | 'error' | 'warning' | 'info'
@@ -41,10 +42,10 @@ const toastIcons = {
 }
 
 const toastStyles = {
-  success: 'bg-green-50 border-green-200 text-green-800',
-  error: 'bg-red-50 border-red-200 text-red-800',
-  warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-  info: 'bg-blue-50 border-blue-200 text-blue-800',
+  success: 'bg-green-50 dark:bg-green-900/50 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200',
+  error: 'bg-red-50 dark:bg-red-900/50 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200',
+  warning: 'bg-yellow-50 dark:bg-yellow-900/50 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200',
+  info: 'bg-blue-50 dark:bg-blue-900/50 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200',
 }
 
 const iconStyles = {
@@ -81,40 +82,56 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   )
 }
 
-function ToastContainer({ 
-  toasts, 
-  onDismiss 
-}: { 
+function ToastContainer({
+  toasts,
+  onDismiss
+}: {
   toasts: Toast[]
-  onDismiss: (id: string) => void 
+  onDismiss: (id: string) => void
 }) {
-  if (toasts.length === 0) return null
-
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
-      {toasts.map(toast => {
-        const Icon = toastIcons[toast.type]
-        return (
-          <div
-            key={toast.id}
-            className={`flex items-start p-4 rounded-lg border shadow-lg animate-slide-up ${toastStyles[toast.type]}`}
-          >
-            <Icon className={`h-5 w-5 flex-shrink-0 ${iconStyles[toast.type]}`} />
-            <div className="ml-3 flex-1">
-              <p className="text-sm font-medium">{toast.title}</p>
-              {toast.message && (
-                <p className="mt-1 text-sm opacity-80">{toast.message}</p>
-              )}
-            </div>
-            <button
-              onClick={() => onDismiss(toast.id)}
-              className="ml-4 flex-shrink-0 rounded-md hover:opacity-75 focus:outline-none"
+      <AnimatePresence mode="popLayout">
+        {toasts.map(toast => {
+          const Icon = toastIcons[toast.type]
+          return (
+            <motion.div
+              key={toast.id}
+              layout
+              initial={{ opacity: 0, y: 50, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 100, scale: 0.9 }}
+              transition={{
+                type: 'spring',
+                stiffness: 400,
+                damping: 30,
+                mass: 0.8
+              }}
+              className={`flex items-start p-4 rounded-xl border shadow-xl backdrop-blur-sm ${toastStyles[toast.type]}`}
             >
-              <XMarkIcon className="h-5 w-5" />
-            </button>
-          </div>
-        )
-      })}
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.1, type: 'spring', stiffness: 500 }}
+              >
+                <Icon className={`h-5 w-5 flex-shrink-0 ${iconStyles[toast.type]}`} />
+              </motion.div>
+              <div className="ml-3 flex-1">
+                <p className="text-sm font-medium">{toast.title}</p>
+                {toast.message && (
+                  <p className="mt-1 text-sm opacity-80">{toast.message}</p>
+                )}
+              </div>
+              <button
+                onClick={() => onDismiss(toast.id)}
+                className="ml-4 flex-shrink-0 rounded-md hover:opacity-75 focus:outline-none transition-opacity"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </motion.div>
+          )
+        })}
+      </AnimatePresence>
     </div>
   )
 }

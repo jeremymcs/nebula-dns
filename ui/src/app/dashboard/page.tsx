@@ -1,26 +1,34 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
- * Dashboard Overview Page
+ *
+ * Dashboard Overview Page - Cosmic Security Theme
  */
 
 'use client'
 
 import { useState } from 'react'
-import { StatsCard } from '@/components/StatsCard'
 import { useSummaryStats, useTopBlocked, useBlocksByCategory, useLocationStats } from '@/hooks/useApi'
-import { 
-  ShieldCheckIcon, 
-  NoSymbolIcon, 
+import { Select } from '@/components/ui'
+import {
+  HeroMetric,
+  HeroMetricsGrid,
+  QueryTrendsChart,
+  CategoryBreakdownChart,
+  TopBlockedList,
+  ActivityFeed
+} from '@/components/dashboard'
+import {
+  ShieldCheckIcon,
+  NoSymbolIcon,
   GlobeAltIcon,
   ExclamationTriangleIcon,
-  ArrowPathIcon
+  MapPinIcon,
 } from '@heroicons/react/24/outline'
 
 export default function DashboardPage() {
   const [period, setPeriod] = useState('7d')
-  
+
   const { data: summary, isLoading: summaryLoading, error: summaryError } = useSummaryStats(period)
   const { data: topBlocked, isLoading: topBlockedLoading } = useTopBlocked(period, 5)
   const { data: categoryStats, isLoading: categoryLoading } = useBlocksByCategory(period)
@@ -28,184 +36,186 @@ export default function DashboardPage() {
 
   const isLoading = summaryLoading || topBlockedLoading || categoryLoading || locationLoading
 
-  // Format large numbers
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`
-    return num.toString()
+  // Generate mock trend data for charts
+  const generateTrendData = () => {
+    const days = period === '24h' ? 24 : period === '7d' ? 7 : 30
+    return Array.from({ length: days }, (_, i) => {
+      const date = new Date()
+      date.setDate(date.getDate() - (days - i - 1))
+      const queries = Math.floor(Math.random() * 50000) + 10000
+      return {
+        timestamp: date.toISOString(),
+        queries,
+        blocked: Math.floor(queries * (0.05 + Math.random() * 0.1)),
+      }
+    })
   }
 
+  // Generate mock activity data
+  const generateActivityData = () => {
+    const domains = ['malware.example.com', 'ads.tracker.net', 'phishing.bad.com', 'porn.xxx', 'gambling.bet']
+    const categories = ['Malware', 'Advertising', 'Phishing', 'Adult', 'Gambling']
+    return Array.from({ length: 10 }, (_, i) => ({
+      id: `activity-${i}`,
+      type: 'block' as const,
+      domain: domains[i % domains.length],
+      category: categories[i % categories.length],
+      location: 'Main Office',
+      timestamp: new Date(Date.now() - i * 60000 * Math.random() * 10),
+    }))
+  }
+
+  const periodOptions = [
+    { value: '24h', label: 'Last 24 hours' },
+    { value: '7d', label: 'Last 7 days' },
+    { value: '30d', label: 'Last 30 days' },
+  ]
+
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
-        <select
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-space-900 dark:text-white">Dashboard</h1>
+          <p className="text-space-500 dark:text-space-400 mt-1">
+            Monitor your DNS security in real-time
+          </p>
+        </div>
+        <Select
           value={period}
           onChange={(e) => setPeriod(e.target.value)}
-          className="input w-40"
-        >
-          <option value="24h">Last 24 hours</option>
-          <option value="7d">Last 7 days</option>
-          <option value="30d">Last 30 days</option>
-        </select>
+          options={periodOptions}
+          className="w-40"
+        />
       </div>
 
+      {/* Error Alert */}
       {summaryError && (
-        <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-sm text-yellow-800">
-            Unable to load dashboard data. Make sure the API is running.
+        <div className="p-4 rounded-xl bg-warning-50 dark:bg-warning-900/20 ring-1 ring-warning-200 dark:ring-warning-800">
+          <p className="text-sm text-warning-800 dark:text-warning-200">
+            ⚠️ Unable to load dashboard data. Make sure the API is running.
           </p>
         </div>
       )}
 
-      <div className="mt-6">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          <StatsCard
-            title="Total Queries"
-            value={isLoading ? '...' : formatNumber(summary?.totalQueries || 0)}
-            icon={GlobeAltIcon}
-            trend={summary ? { value: 12, isUp: true } : undefined}
-          />
-          <StatsCard
-            title="Blocked Queries"
-            value={isLoading ? '...' : formatNumber(summary?.blockedQueries || 0)}
-            icon={NoSymbolIcon}
-            trend={summary ? { value: summary?.blockRate || 0, isUp: false } : undefined}
-            color="red"
-          />
-          <StatsCard
-            title="Threats Blocked"
-            value={isLoading ? '...' : formatNumber(summary?.threatsBlocked || (summary?.blockedQueries || 0) * 0.1 || 0)}
-            icon={ExclamationTriangleIcon}
-            color="yellow"
-          />
-          <StatsCard
-            title="Active Locations"
-            value={isLoading ? '...' : (locationStats?.length || 0).toString()}
-            icon={ShieldCheckIcon}
-            color="green"
-          />
-        </div>
+      {/* Hero Metrics */}
+      <HeroMetricsGrid>
+        <HeroMetric
+          title="Total Queries"
+          value={summary?.totalQueries || 0}
+          icon={<GlobeAltIcon />}
+          variant="primary"
+          trend={summary ? { value: 12, isUp: true } : undefined}
+        />
+        <HeroMetric
+          title="Blocked Queries"
+          value={summary?.blockedQueries || 0}
+          icon={<NoSymbolIcon />}
+          variant="danger"
+          trend={summary ? { value: summary?.blockRate || 0, isUp: false } : undefined}
+        />
+        <HeroMetric
+          title="Threats Blocked"
+          value={summary?.threatsBlocked || Math.floor((summary?.blockedQueries || 0) * 0.1)}
+          icon={<ExclamationTriangleIcon />}
+          variant="warning"
+        />
+        <HeroMetric
+          title="Active Locations"
+          value={locationStats?.length || 0}
+          icon={<MapPinIcon />}
+          variant="success"
+        />
+      </HeroMetricsGrid>
 
-        {/* Activity Section */}
-        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Top Blocked Domains */}
-          <div className="card p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Top Blocked Domains
-            </h3>
-            {topBlockedLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <ArrowPathIcon className="h-6 w-6 animate-spin text-gray-400" />
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {(topBlocked || []).slice(0, 5).map((item: any, idx: number) => (
-                  <div key={idx} className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 font-mono">{item.domain}</p>
-                      <p className="text-xs text-gray-500">{item.category || 'Unknown'}</p>
-                    </div>
-                    <span className="text-sm font-medium text-gray-600">
-                      {item.count?.toLocaleString()}
-                    </span>
-                  </div>
+      {/* Query Trends Chart - Full Width */}
+      <QueryTrendsChart
+        data={generateTrendData()}
+        isLoading={isLoading}
+      />
+
+      {/* Middle Section - 3 Column Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Top Blocked List */}
+        <TopBlockedList
+          data={(topBlocked || []).map((item: any) => ({
+            domain: item.domain,
+            count: item.count || 0,
+            category: item.category,
+          }))}
+          isLoading={topBlockedLoading}
+          limit={5}
+        />
+
+        {/* Category Breakdown */}
+        <CategoryBreakdownChart
+          data={(categoryStats || []).map((item: any) => ({
+            category: item.category?.replace('_', ' ') || 'Unknown',
+            count: item.count || 0,
+          }))}
+          isLoading={categoryLoading}
+        />
+
+        {/* Activity Feed */}
+        <ActivityFeed
+          data={generateActivityData()}
+          isLoading={isLoading}
+          maxItems={8}
+        />
+      </div>
+
+      {/* Location Performance Table */}
+      <div className="card-solid p-6">
+        <h3 className="text-lg font-semibold text-space-900 dark:text-white mb-4">
+          Location Performance
+        </h3>
+        {locationLoading ? (
+          <div className="space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="skeleton h-12 rounded-lg" />
+            ))}
+          </div>
+        ) : (
+          <div className="table-container">
+            <table className="table">
+              <thead className="table-header">
+                <tr>
+                  <th className="table-header-cell">Location</th>
+                  <th className="table-header-cell text-right">Queries</th>
+                  <th className="table-header-cell text-right">Blocked</th>
+                  <th className="table-header-cell text-right">Block Rate</th>
+                </tr>
+              </thead>
+              <tbody className="table-body">
+                {(locationStats || []).map((loc: any, idx: number) => (
+                  <tr key={idx} className="table-row">
+                    <td className="table-cell font-medium text-space-900 dark:text-white">
+                      {loc.locationName}
+                    </td>
+                    <td className="table-cell text-right">
+                      {Number(loc.totalQueries || 0).toLocaleString()}
+                    </td>
+                    <td className="table-cell text-right">
+                      {Number(loc.blockedQueries || 0).toLocaleString()}
+                    </td>
+                    <td className="table-cell text-right">
+                      <span className="badge-danger">
+                        {Number(loc.blockRate || 0).toFixed(1)}%
+                      </span>
+                    </td>
+                  </tr>
                 ))}
-                {(!topBlocked || topBlocked.length === 0) && (
-                  <p className="text-sm text-gray-500 text-center py-4">No blocked domains yet</p>
+                {(!locationStats || locationStats.length === 0) && (
+                  <tr>
+                    <td colSpan={4} className="table-cell text-center py-8 text-space-500 dark:text-space-400">
+                      No location data yet. Add locations to see statistics.
+                    </td>
+                  </tr>
                 )}
-              </div>
-            )}
+              </tbody>
+            </table>
           </div>
-
-          {/* Blocks by Category */}
-          <div className="card p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Blocks by Category
-            </h3>
-            {categoryLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <ArrowPathIcon className="h-6 w-6 animate-spin text-gray-400" />
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {(categoryStats || []).slice(0, 5).map((item: any, idx: number) => {
-                  const colors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-blue-500', 'bg-purple-500']
-                  return (
-                    <div key={idx}>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-700 capitalize">{item.category?.replace('_', ' ')}</span>
-                        <span className="text-gray-500">{item.percentage}%</span>
-                      </div>
-                      <div className="mt-1 h-2 rounded-full bg-gray-200">
-                        <div
-                          className={`h-2 rounded-full ${colors[idx % colors.length]}`}
-                          style={{ width: `${item.percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                  )
-                })}
-                {(!categoryStats || categoryStats.length === 0) && (
-                  <p className="text-sm text-gray-500 text-center py-4">No category data yet</p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Location Performance */}
-        <div className="mt-8">
-          <div className="card p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Location Performance
-            </h3>
-            {locationLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <ArrowPathIcon className="h-6 w-6 animate-spin text-gray-400" />
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead>
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Queries</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Blocked</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Block Rate</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {(locationStats || []).map((loc: any, idx: number) => (
-                      <tr key={idx}>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {loc.locationName}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
-                          {loc.totalQueries?.toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
-                          {loc.blockedQueries?.toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
-                          {loc.blockRate?.toFixed(1)}%
-                        </td>
-                      </tr>
-                    ))}
-                    {(!locationStats || locationStats.length === 0) && (
-                      <tr>
-                        <td colSpan={4} className="px-4 py-8 text-center text-sm text-gray-500">
-                          No location data yet. Add locations to see statistics.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )

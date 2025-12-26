@@ -13,6 +13,8 @@ import { UnauthorizedException, BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { User } from '../users/entities/user.entity';
+import { MfaService } from '../mfa/mfa.service';
+import { LoginResponseDto, MfaRequiredResponseDto } from './dto/login.dto';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -52,6 +54,11 @@ describe('AuthService', () => {
     }),
   };
 
+  const mockMfaService = {
+    isMfaEnabled: jest.fn().mockResolvedValue(false),
+    verifyMfaCode: jest.fn().mockResolvedValue(true),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -67,6 +74,10 @@ describe('AuthService', () => {
         {
           provide: ConfigService,
           useValue: mockConfigService,
+        },
+        {
+          provide: MfaService,
+          useValue: mockMfaService,
         },
       ],
     }).compile();
@@ -95,9 +106,12 @@ describe('AuthService', () => {
         password,
       });
 
-      expect(result.accessToken).toBeDefined();
-      expect(result.refreshToken).toBeDefined();
-      expect(result.user.email).toBe('test@example.com');
+      // Type guard to check if it's a LoginResponseDto (not MFA required)
+      expect('accessToken' in result).toBe(true);
+      const loginResult = result as LoginResponseDto;
+      expect(loginResult.accessToken).toBeDefined();
+      expect(loginResult.refreshToken).toBeDefined();
+      expect(loginResult.user.email).toBe('test@example.com');
       expect(mockUserRepository.update).toHaveBeenCalledWith(
         mockUser.id,
         expect.objectContaining({
@@ -105,6 +119,30 @@ describe('AuthService', () => {
           lockedUntil: null,
         }),
       );
+    });
+
+    it('should return MFA required response when MFA is enabled', async () => {
+      const password = 'ValidP@ssw0rd!';
+      const hashedPassword = await bcrypt.hash(password, 12);
+
+      mockUserRepository.findOne.mockResolvedValue({
+        ...mockUser,
+        passwordHash: hashedPassword,
+      });
+      mockUserRepository.update.mockResolvedValue({});
+      mockMfaService.isMfaEnabled.mockResolvedValue(true);
+
+      const result = await service.login({
+        email: 'test@example.com',
+        password,
+      });
+
+      // Type guard to check if it's an MfaRequiredResponseDto
+      expect('mfaRequired' in result).toBe(true);
+      const mfaResult = result as MfaRequiredResponseDto;
+      expect(mfaResult.mfaRequired).toBe(true);
+      expect(mfaResult.tempToken).toBeDefined();
+      expect(mfaResult.message).toBe('MFA verification required');
     });
 
     it('should throw UnauthorizedException for non-existent user', async () => {

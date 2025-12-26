@@ -20,10 +20,22 @@ interface User {
   mfaEnabled?: boolean
 }
 
+interface MfaChallenge {
+  tempToken: string
+  message: string
+}
+
+interface LoginResult {
+  success: boolean
+  mfaRequired?: boolean
+  mfaChallenge?: MfaChallenge
+}
+
 interface AuthContextType {
   user: User | null
   loading: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<LoginResult>
+  verifyMfa: (tempToken: string, code: string) => Promise<void>
   logout: () => void
   refreshTokens: () => Promise<void>
   isAuthenticated: boolean
@@ -31,7 +43,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
 
 // Public paths that don't require authentication
 const publicPaths = ['/', '/signup', '/landing', '/pricing', '/invite/accept']
@@ -39,12 +51,18 @@ const publicPaths = ['/', '/signup', '/landing', '/pricing', '/invite/accept']
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
 
-  const isPublicPath = publicPaths.some(path => 
+  const isPublicPath = publicPaths.some(path =>
     pathname === path || pathname?.startsWith('/invite/') || pathname?.startsWith('/sso/')
   )
+
+  // Set mounted state on client-side
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const logout = useCallback(() => {
     localStorage.removeItem('token')
@@ -81,7 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [logout])
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<LoginResult> => {
     const res = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -94,6 +112,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const data = await res.json()
+
+    // Check if MFA is required
+    if (data.mfaRequired) {
+      return {
+        success: false,
+        mfaRequired: true,
+        mfaChallenge: {
+          tempToken: data.tempToken,
+          message: data.message,
+        },
+      }
+    }
+
+    // No MFA required - complete login
+    localStorage.setItem('token', data.accessToken)
+    localStorage.setItem('refreshToken', data.refreshToken)
+    localStorage.setItem('user', JSON.stringify(data.user))
+    setUser(data.user)
+    router.push('/dashboard')
+    return { success: true }
+  }
+
+  const verifyMfa = async (tempToken: string, code: string): Promise<void> => {
+    const res = await fetch(`${API_URL}/auth/mfa/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tempToken, code }),
+    })
+
+    if (!res.ok) {
+      const data = await res.json()
+      throw new Error(data.message || 'Invalid MFA code')
+    }
+
+    const data = await res.json()
     localStorage.setItem('token', data.accessToken)
     localStorage.setItem('refreshToken', data.refreshToken)
     localStorage.setItem('user', JSON.stringify(data.user))
@@ -101,8 +154,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/dashboard')
   }
 
-  // Initialize auth state from localStorage
+  // Initialize auth state from localStorage (only after mount to avoid SSR issues)
   useEffect(() => {
+    if (!mounted) return
+
     const initAuth = async () => {
       try {
         const token = localStorage.getItem('token')
@@ -110,7 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (token && storedUser) {
           setUser(JSON.parse(storedUser))
-          
+
           // Verify token is still valid by making a request
           const res = await fetch(`${API_URL}/auth/me`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -134,7 +189,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     initAuth()
-  }, [logout, refreshTokens])
+  }, [mounted, logout, refreshTokens])
 
   // Redirect unauthenticated users away from protected routes
   useEffect(() => {
@@ -158,6 +213,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         loading,
         login,
+        verifyMfa,
         logout,
         refreshTokens,
         isAuthenticated: !!user,

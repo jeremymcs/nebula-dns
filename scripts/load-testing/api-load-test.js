@@ -18,7 +18,7 @@ const policiesDuration = new Trend('policies_duration');
 const locationsDuration = new Trend('locations_duration');
 
 // Configuration
-const BASE_URL = __ENV.API_URL || 'http://localhost:3000';
+const BASE_URL = __ENV.API_URL || 'http://localhost:4000';
 const TEST_EMAIL = __ENV.TEST_EMAIL || 'admin@example.com';
 const TEST_PASSWORD = __ENV.TEST_PASSWORD || 'password123';
 

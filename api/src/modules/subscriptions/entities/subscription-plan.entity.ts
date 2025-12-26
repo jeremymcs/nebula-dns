@@ -27,10 +27,10 @@ export interface PlanLimits {
 
 @Entity('subscription_plans')
 export class SubscriptionPlan {
-  @PrimaryColumn({ length: 50 })
+  @PrimaryColumn({ type: 'varchar', length: 50 })
   id: string;
 
-  @Column({ length: 100 })
+  @Column({ type: 'varchar', length: 100 })
   name: string;
 
   @Column({ type: 'text', nullable: true })
@@ -42,13 +42,13 @@ export class SubscriptionPlan {
   @Column({ type: 'decimal', precision: 10, scale: 2, name: 'price_yearly' })
   priceYearly: number;
 
-  @Column({ length: 3, default: 'USD' })
+  @Column({ type: 'varchar', length: 3, default: 'USD' })
   currency: string;
 
-  @Column({ length: 100, nullable: true, name: 'stripe_price_monthly_id' })
+  @Column({ type: 'varchar', length: 100, nullable: true, name: 'stripe_price_monthly_id' })
   stripePriceMonthlyId: string;
 
-  @Column({ length: 100, nullable: true, name: 'stripe_price_yearly_id' })
+  @Column({ type: 'varchar', length: 100, nullable: true, name: 'stripe_price_yearly_id' })
   stripePriceYearlyId: string;
 
   @Column({ type: 'jsonb', default: {} })
@@ -57,10 +57,10 @@ export class SubscriptionPlan {
   @Column({ type: 'jsonb', default: {} })
   limits: PlanLimits;
 
-  @Column({ name: 'is_active', default: true })
+  @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 
-  @Column({ name: 'sort_order', default: 0 })
+  @Column({ name: 'sort_order', type: 'int', default: 0 })
   sortOrder: number;
 
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'NOW()' })

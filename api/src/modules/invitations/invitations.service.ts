@@ -72,7 +72,7 @@ export class InvitationsService {
     ]);
 
     // Send invitation email
-    const inviteUrl = `${process.env.APP_URL || 'http://localhost:3000'}/invite/accept?token=${token}`;
+    const inviteUrl = `${process.env.APP_URL || 'http://localhost:4001'}/invite/accept?token=${token}`;
     const sent = await this.emailService.sendInviteUserEmail({
       to: dto.email,
       tenantName: tenant?.name || 'SafeDNS',
@@ -251,7 +251,7 @@ export class InvitationsService {
     const currentUser = await this.userRepository.findOne({ where: { id: userId } });
 
     // Resend email
-    const inviteUrl = `${process.env.APP_URL || 'http://localhost:3000'}/invite/accept?token=${token}`;
+    const inviteUrl = `${process.env.APP_URL || 'http://localhost:4001'}/invite/accept?token=${token}`;
     const sent = await this.emailService.sendInviteUserEmail({
       to: invitation.email,
       tenantName: invitation.tenant?.name || 'SafeDNS',

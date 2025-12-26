@@ -47,11 +47,11 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-[400px] flex items-center justify-center p-8">
           <div className="text-center max-w-md">
-            <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-              <ExclamationTriangleIcon className="h-8 w-8 text-red-600" />
+            <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center mb-4">
+              <ExclamationTriangleIcon className="h-8 w-8 text-red-600 dark:text-red-400" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Something went wrong</h2>
-            <p className="text-sm text-gray-600 mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Something went wrong</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               {this.state.error?.message || 'An unexpected error occurred. Please try again.'}
             </p>
             <button
@@ -79,26 +79,26 @@ export function useErrorHandler() {
 }
 
 // Error fallback component for API errors
-export function ApiErrorFallback({ 
-  error, 
-  retry 
-}: { 
+export function ApiErrorFallback({
+  error,
+  retry
+}: {
   error?: Error | null
-  retry?: () => void 
+  retry?: () => void
 }) {
   return (
-    <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
+    <div className="p-6 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
       <div className="flex items-start">
-        <ExclamationTriangleIcon className="h-5 w-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" />
+        <ExclamationTriangleIcon className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 mr-3 flex-shrink-0" />
         <div className="flex-1">
-          <h3 className="text-sm font-medium text-red-800">Failed to load data</h3>
-          <p className="mt-1 text-sm text-red-700">
+          <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Failed to load data</h3>
+          <p className="mt-1 text-sm text-red-700 dark:text-red-300">
             {error?.message || 'Unable to connect to the server. Please check your connection and try again.'}
           </p>
           {retry && (
             <button
               onClick={retry}
-              className="mt-3 inline-flex items-center text-sm font-medium text-red-700 hover:text-red-800"
+              className="mt-3 inline-flex items-center text-sm font-medium text-red-700 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200"
             >
               <ArrowPathIcon className="h-4 w-4 mr-1" />
               Retry
@@ -124,9 +124,9 @@ export function EmptyState({
 }) {
   return (
     <div className="text-center py-12">
-      <Icon className="mx-auto h-12 w-12 text-gray-400" />
-      <h3 className="mt-2 text-sm font-medium text-gray-900">{title}</h3>
-      <p className="mt-1 text-sm text-gray-500">{description}</p>
+      <Icon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+      <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">{title}</h3>
+      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{description}</p>
       {action && <div className="mt-6">{action}</div>}
     </div>
   )

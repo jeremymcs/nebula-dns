@@ -19,6 +19,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/nebuladns/policy-svc/internal/cache"
+	"github.com/nebuladns/policy-svc/internal/clickhouse"
 	"github.com/nebuladns/policy-svc/internal/handlers"
 	"github.com/nebuladns/policy-svc/internal/policy"
 )
@@ -49,6 +50,16 @@ func main() {
 		failMode = "open"
 	}
 
+	clickhouseURL := os.Getenv("CLICKHOUSE_URL")
+	if clickhouseURL == "" {
+		clickhouseURL = "http://clickhouse:8123"
+	}
+
+	clickhouseDB := os.Getenv("CLICKHOUSE_DATABASE")
+	if clickhouseDB == "" {
+		clickhouseDB = "nebula"
+	}
+
 	// Initialize Redis client
 	redisClient := redis.NewClient(&redis.Options{
 		Addr: redisURL,
@@ -65,11 +76,16 @@ func main() {
 	// Initialize cache
 	policyCache := cache.NewPolicyCache(redisClient, logger)
 
+	// Initialize ClickHouse client
+	chClient := clickhouse.NewClient(clickhouseURL, clickhouseDB, logger)
+	defer chClient.Close()
+	sugar.Infow("ClickHouse client initialized", "url", clickhouseURL, "database", clickhouseDB)
+
 	// Initialize policy service
 	policySvc := policy.NewService(policyCache, logger, failMode == "closed")
 
 	// Initialize handlers
-	h := handlers.NewHandlers(policySvc, logger)
+	h := handlers.NewHandlers(policySvc, chClient, logger)
 
 	// Setup router
 	r := chi.NewRouter()
@@ -82,9 +98,12 @@ func main() {
 
 	// Routes
 	r.Get("/health", h.Health)
+	r.Get("/ready", h.Ready)
+	r.Get("/live", h.Live)
 	r.Post("/evaluate", h.Evaluate)
 	r.Post("/auth/validate", h.ValidateToken)
 	r.Post("/log", h.LogQuery)
+	r.Get("/metrics", h.Metrics)
 
 	// Start background workers
 	go policyCache.StartSubscriber(ctx)

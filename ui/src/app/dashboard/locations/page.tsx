@@ -1,8 +1,8 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
- * Locations Management Page
+ *
+ * Locations Management Page - Cosmic Security Theme
  */
 
 'use client'
@@ -11,17 +11,19 @@ import { useState } from 'react'
 import { useLocations, usePolicies } from '@/hooks/useApi'
 import { api } from '@/lib/api'
 import { useToast } from '@/components/Toast'
-import { 
-  PlusIcon, 
-  PencilIcon, 
+import { Button, Card, Badge, Modal, Input, Textarea, Select } from '@/components/ui'
+import {
+  PlusIcon,
+  PencilIcon,
   TrashIcon,
   MapPinIcon,
   ClipboardDocumentIcon,
   CheckIcon,
-  ArrowPathIcon,
-  XMarkIcon,
-  KeyIcon
+  KeyIcon,
+  GlobeAltIcon,
+  SignalIcon,
 } from '@heroicons/react/24/outline'
+import clsx from 'clsx'
 
 interface Location {
   id: string
@@ -172,289 +174,262 @@ export default function LocationsPage() {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mt-8 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-800">Failed to load locations. Make sure the API is running.</p>
-        </div>
+      <div className="p-4 rounded-xl bg-danger-50 dark:bg-danger-900/20 ring-1 ring-danger-200 dark:ring-danger-800">
+        <p className="text-danger-800 dark:text-danger-200">Failed to load locations. Make sure the API is running.</p>
       </div>
     )
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div className="sm:flex sm:items-center sm:justify-between">
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Locations</h1>
-          <p className="mt-2 text-sm text-gray-700">
+          <h1 className="text-2xl font-bold text-space-900 dark:text-white">Locations</h1>
+          <p className="mt-1 text-space-500 dark:text-space-400">
             Manage network locations and their DNS filtering settings
           </p>
         </div>
-        <div className="mt-4 sm:mt-0">
-          <button onClick={openCreateModal} className="btn-primary inline-flex items-center">
-            <PlusIcon className="h-5 w-5 mr-2" />
-            Add Location
-          </button>
-        </div>
+        <Button onClick={openCreateModal} leftIcon={<PlusIcon className="h-5 w-5" />}>
+          Add Location
+        </Button>
       </div>
 
       {isLoading ? (
-        <div className="mt-8 flex items-center justify-center py-12">
-          <ArrowPathIcon className="h-8 w-8 animate-spin text-gray-400" />
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="skeleton h-48 rounded-2xl" />
+          ))}
         </div>
-      ) : (
-        <div className="mt-8">
-          <div className="card overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Location
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Policy
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    IP Ranges
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Token
-                  </th>
-                  <th className="relative px-6 py-3">
-                    <span className="sr-only">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {locations.map((location) => (
-                  <tr key={location.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-primary-100 flex items-center justify-center">
-                          <MapPinIcon className="h-6 w-6 text-primary-600" />
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{location.name}</div>
-                          <div className="text-sm text-gray-500">{location.description || 'No description'}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        location.status === 'active' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {location.status === 'active' ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {policies.find(p => p.id === location.policyId)?.name || location.policyName || 'Default'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {location.ipRanges && location.ipRanges.length > 0 ? (
-                        <div className="text-xs text-gray-500 font-mono">
-                          {location.ipRanges[0]}
-                          {location.ipRanges.length > 1 && (
-                            <span className="ml-1 text-gray-400">+{location.ipRanges.length - 1} more</span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-gray-400">Any IP</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => generateToken(location)}
-                        className="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded text-primary-700 bg-primary-100 hover:bg-primary-200"
-                      >
-                        <KeyIcon className="h-4 w-4 mr-1" />
-                        Generate Token
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-2">
-                        <button 
-                          onClick={() => openEditModal(location)}
-                          className="p-1 text-gray-400 hover:text-gray-600"
-                          title="Edit"
-                        >
-                          <PencilIcon className="h-5 w-5" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(location)}
-                          className="p-1 text-gray-400 hover:text-red-600"
-                          title="Delete"
-                        >
-                          <TrashIcon className="h-5 w-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {locations.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center">
-                      <MapPinIcon className="mx-auto h-12 w-12 text-gray-400" />
-                      <h3 className="mt-2 text-sm font-medium text-gray-900">No locations</h3>
-                      <p className="mt-1 text-sm text-gray-500">Get started by adding a new location.</p>
-                      <div className="mt-6">
-                        <button onClick={openCreateModal} className="btn-primary inline-flex items-center">
-                          <PlusIcon className="h-5 w-5 mr-2" />
-                          Add Location
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+      ) : locations.length === 0 ? (
+        <Card variant="glass" padding="lg" className="text-center">
+          <div className="flex flex-col items-center py-8">
+            <div className="p-4 rounded-2xl bg-primary-100 dark:bg-primary-900/30 mb-4">
+              <GlobeAltIcon className="h-10 w-10 text-primary-600 dark:text-primary-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-space-900 dark:text-white">No locations yet</h3>
+            <p className="mt-2 text-space-500 dark:text-space-400 max-w-sm">
+              Add your first location to start filtering DNS traffic for your network.
+            </p>
+            <Button onClick={openCreateModal} className="mt-6" leftIcon={<PlusIcon className="h-5 w-5" />}>
+              Add Location
+            </Button>
           </div>
+        </Card>
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {locations.map((location) => (
+            <Card
+              key={location.id}
+              variant="interactive"
+              padding="none"
+              className="group overflow-hidden"
+            >
+              {/* Card Header */}
+              <div className="p-4 relative">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={clsx(
+                      'p-3 rounded-xl',
+                      location.status === 'active'
+                        ? 'bg-success-100 dark:bg-success-900/30'
+                        : 'bg-space-100 dark:bg-space-800'
+                    )}>
+                      <MapPinIcon className={clsx(
+                        'h-6 w-6',
+                        location.status === 'active'
+                          ? 'text-success-600 dark:text-success-400'
+                          : 'text-space-500 dark:text-space-400'
+                      )} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-space-900 dark:text-white">{location.name}</h3>
+                      <p className="text-sm text-space-500 dark:text-space-400 line-clamp-1">
+                        {location.description || 'No description'}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={location.status === 'active' ? 'success' : 'neutral'}>
+                    <span className="flex items-center gap-1">
+                      <SignalIcon className="h-3 w-3" />
+                      {location.status === 'active' ? 'Active' : 'Inactive'}
+                    </span>
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Card Body */}
+              <div className="px-4 pb-4 space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-space-500 dark:text-space-400">Policy</span>
+                  <Badge variant="primary">
+                    {policies.find(p => p.id === location.policyId)?.name || location.policyName || 'Default'}
+                  </Badge>
+                </div>
+
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-space-500 dark:text-space-400">IP Ranges</span>
+                  {location.ipRanges && location.ipRanges.length > 0 ? (
+                    <span className="font-mono text-xs text-space-600 dark:text-space-300">
+                      {location.ipRanges[0]}
+                      {location.ipRanges.length > 1 && (
+                        <Badge variant="neutral" size="sm" className="ml-1">
+                          +{location.ipRanges.length - 1}
+                        </Badge>
+                      )}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-space-400">Any IP</span>
+                  )}
+                </div>
+
+                {/* Generate Token Button */}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="w-full mt-2"
+                  onClick={() => generateToken(location)}
+                  leftIcon={<KeyIcon className="h-4 w-4" />}
+                >
+                  Generate DoH Token
+                </Button>
+              </div>
+
+              {/* Card Footer */}
+              <div className="px-4 py-3 flex items-center justify-end gap-1 border-t border-space-100 dark:border-space-700 bg-space-50/50 dark:bg-space-900/50">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => openEditModal(location)}
+                  leftIcon={<PencilIcon className="h-4 w-4" />}
+                >
+                  Edit
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDelete(location)}
+                  className="text-danger-600 hover:text-danger-700 hover:bg-danger-50 dark:hover:bg-danger-900/20"
+                  leftIcon={<TrashIcon className="h-4 w-4" />}
+                >
+                  Delete
+                </Button>
+              </div>
+            </Card>
+          ))}
         </div>
       )}
 
       {/* Create/Edit Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-center justify-center p-4">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75" onClick={() => setShowCreateModal(false)} />
-            <div className="relative bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">
-                  {editingLocation ? 'Edit Location' : 'Add New Location'}
-                </h3>
-                <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-500">
-                  <XMarkIcon className="h-6 w-6" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Location Name *</label>
-                  <input 
-                    type="text" 
-                    className="input mt-1" 
-                    placeholder="e.g., Main Office"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
-                  <input 
-                    type="text" 
-                    className="input mt-1" 
-                    placeholder="Brief description"
-                    value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">IP Ranges (one per line)</label>
-                  <textarea 
-                    className="input mt-1" 
-                    rows={3}
-                    placeholder="192.168.1.0/24&#10;10.0.0.0/8"
-                    value={form.ipRanges}
-                    onChange={(e) => setForm({ ...form, ipRanges: e.target.value })}
-                  />
-                  <p className="mt-1 text-xs text-gray-500">Leave empty to allow any IP address</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Policy</label>
-                  <select 
-                    className="input mt-1"
-                    value={form.policyId}
-                    onChange={(e) => setForm({ ...form, policyId: e.target.value })}
-                  >
-                    <option value="">Use default policy</option>
-                    {policies.map((policy) => (
-                      <option key={policy.id} value={policy.id}>{policy.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
-                <button 
-                  type="button" 
-                  className="btn-secondary" 
-                  onClick={() => setShowCreateModal(false)}
-                  disabled={saving}
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={handleSave} 
-                  className="btn-primary"
-                  disabled={saving}
-                >
-                  {saving ? 'Saving...' : editingLocation ? 'Save Changes' : 'Create Location'}
-                </button>
-              </div>
-            </div>
-          </div>
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title={editingLocation ? 'Edit Location' : 'Add New Location'}
+      >
+        <div className="space-y-4">
+          <Input
+            label="Location Name"
+            required
+            placeholder="e.g., Main Office"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+          <Input
+            label="Description"
+            placeholder="Brief description"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+          />
+          <Textarea
+            label="IP Ranges (one per line)"
+            rows={3}
+            placeholder="192.168.1.0/24&#10;10.0.0.0/8"
+            value={form.ipRanges}
+            onChange={(e) => setForm({ ...form, ipRanges: e.target.value })}
+            helperText="Leave empty to allow any IP address"
+          />
+          <Select
+            label="Policy"
+            value={form.policyId}
+            onChange={(e) => setForm({ ...form, policyId: e.target.value })}
+            options={[
+              { value: '', label: 'Use default policy' },
+              ...policies.map((policy) => ({ value: policy.id, label: policy.name })),
+            ]}
+          />
         </div>
-      )}
+
+        <div className="mt-8 flex justify-end gap-3">
+          <Button
+            variant="secondary"
+            onClick={() => setShowCreateModal(false)}
+            disabled={saving}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            isLoading={saving}
+          >
+            {editingLocation ? 'Save Changes' : 'Create Location'}
+          </Button>
+        </div>
+      </Modal>
 
       {/* Token Modal */}
-      {showTokenModal && generatedToken && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-center justify-center p-4">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75" onClick={() => setShowTokenModal(false)} />
-            <div className="relative bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">
-                  DoH Access Token for {editingLocation?.name}
-                </h3>
-                <button onClick={() => setShowTokenModal(false)} className="text-gray-400 hover:text-gray-500">
-                  <XMarkIcon className="h-6 w-6" />
-                </button>
-              </div>
+      <Modal
+        isOpen={showTokenModal && !!generatedToken}
+        onClose={() => setShowTokenModal(false)}
+        title={`DoH Access Token for ${editingLocation?.name}`}
+      >
+        {/* Warning */}
+        <div className="p-4 rounded-xl bg-warning-50 dark:bg-warning-900/20 ring-1 ring-warning-200 dark:ring-warning-800 mb-6">
+          <p className="text-sm text-warning-800 dark:text-warning-200">
+            <strong>⚠️ Important:</strong> This token will only be shown once. Make sure to copy it now.
+          </p>
+        </div>
 
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                <p className="text-sm text-yellow-800">
-                  <strong>Important:</strong> This token will only be shown once. Make sure to copy it now.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Access Token</label>
-                <div className="flex items-center">
-                  <code className="flex-1 bg-gray-100 px-3 py-2 rounded-l font-mono text-sm overflow-x-auto">
-                    {generatedToken.token}
-                  </code>
-                  <button
-                    onClick={copyToken}
-                    className="px-4 py-2 bg-gray-200 rounded-r hover:bg-gray-300 flex items-center"
-                  >
-                    {copiedToken ? (
-                      <CheckIcon className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <ClipboardDocumentIcon className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-600 mb-2">DoH Endpoint:</p>
-                <code className="text-xs bg-white px-2 py-1 rounded border break-all">
-                  https://doh.nebuladns.io/dns-query?token={generatedToken.token.substring(0, 20)}...
-                </code>
-              </div>
-
-              <div className="flex justify-end mt-6">
-                <button onClick={() => setShowTokenModal(false)} className="btn-primary">
-                  Done
-                </button>
-              </div>
-            </div>
+        {/* Token Display */}
+        <div>
+          <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
+            Access Token
+          </label>
+          <div className="flex items-center">
+            <code className="flex-1 bg-space-100 dark:bg-space-800 px-4 py-3 rounded-l-xl font-mono text-sm overflow-x-auto text-space-900 dark:text-space-100 ring-1 ring-space-200 dark:ring-space-700">
+              {generatedToken?.token}
+            </code>
+            <button
+              onClick={copyToken}
+              className={clsx(
+                'px-4 py-3 rounded-r-xl flex items-center transition-colors',
+                copiedToken
+                  ? 'bg-success-500 text-white'
+                  : 'bg-space-200 dark:bg-space-700 hover:bg-space-300 dark:hover:bg-space-600 text-space-700 dark:text-space-300'
+              )}
+            >
+              {copiedToken ? (
+                <CheckIcon className="h-5 w-5" />
+              ) : (
+                <ClipboardDocumentIcon className="h-5 w-5" />
+              )}
+            </button>
           </div>
         </div>
-      )}
+
+        {/* DoH Endpoint */}
+        <div className="mt-4 p-4 rounded-xl bg-space-50 dark:bg-space-800/50 ring-1 ring-space-200 dark:ring-space-700">
+          <p className="text-sm text-space-600 dark:text-space-300 mb-2">DoH Endpoint:</p>
+          <code className="text-xs bg-white dark:bg-space-900 px-3 py-2 rounded-lg ring-1 ring-space-200 dark:ring-space-700 break-all text-space-800 dark:text-space-200 block">
+            https://doh.nebuladns.io/dns-query?token={generatedToken?.token.substring(0, 20)}...
+          </code>
+        </div>
+
+        <div className="mt-8 flex justify-end">
+          <Button onClick={() => setShowTokenModal(false)}>
+            Done
+          </Button>
+        </div>
+      </Modal>
     </div>
   )
 }

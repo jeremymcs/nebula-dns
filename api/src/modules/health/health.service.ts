@@ -116,4 +116,20 @@ export class HealthService {
       };
     }
   }
+
+  async checkReady(): Promise<{ ready: boolean; checks: Record<string, boolean> }> {
+    const [postgres, redis] = await Promise.all([
+      this.checkPostgres(),
+      this.checkRedis(),
+    ]);
+
+    const checks = {
+      postgres: postgres.status === 'healthy',
+      redis: redis.status === 'healthy',
+    };
+
+    const ready = checks.postgres && checks.redis;
+
+    return { ready, checks };
+  }
 }

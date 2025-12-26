@@ -23,6 +23,7 @@ import { MetricsMiddleware } from './modules/metrics/metrics.middleware';
 import { SecurityHeadersMiddleware, RateLimitMiddleware } from './common/middleware';
 import { SentryModule, SentryInterceptor } from './common/sentry/sentry.module';
 import { LoggerModule } from './common/logger/logger.module';
+import { RedisModule } from './modules/redis/redis.module';
 
 // P2 Features
 import { BlockPagesModule } from './modules/block-pages/block-pages.module';
@@ -78,6 +79,9 @@ import { PaymentsModule } from './modules/payments/payments.module';
 
     // Analytics
     ClickHouseModule,
+
+    // Redis (global)
+    RedisModule,
 
     // Feature modules
     AuthModule,

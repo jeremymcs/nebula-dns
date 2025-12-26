@@ -3,6 +3,8 @@ import {
   UnauthorizedException,
   BadRequestException,
   Logger,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,8 +14,9 @@ import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 
 import { User } from '../users/entities/user.entity';
-import { LoginDto, LoginResponseDto } from './dto/login.dto';
+import { LoginDto, LoginResponseDto, MfaRequiredResponseDto, MfaVerifyLoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { MfaService } from '../mfa/mfa.service';
 
 @Injectable()
 export class AuthService {
@@ -26,9 +29,11 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    @Inject(forwardRef(() => MfaService))
+    private readonly mfaService: MfaService,
   ) {}
 
-  async login(loginDto: LoginDto): Promise<LoginResponseDto> {
+  async login(loginDto: LoginDto): Promise<LoginResponseDto | MfaRequiredResponseDto> {
     const { email, password } = loginDto;
 
     const user = await this.userRepository.findOne({
@@ -61,10 +66,77 @@ export class AuthService {
     await this.userRepository.update(user.id, {
       failedLoginAttempts: 0,
       lockedUntil: null,
-      lastLoginAt: new Date(),
     });
 
+    // Check if MFA is enabled for this user
+    const mfaEnabled = await this.mfaService.isMfaEnabled(user.id);
+
+    if (mfaEnabled) {
+      // Generate a temporary token for MFA verification
+      const tempToken = this.jwtService.sign(
+        {
+          sub: user.id,
+          type: 'mfa_pending',
+          email: user.email,
+          tenantId: user.tenantId,
+        },
+        { expiresIn: '5m' }, // Short-lived token for MFA step
+      );
+
+      this.logger.log(`MFA required for user: ${email}`);
+
+      return {
+        mfaRequired: true,
+        tempToken,
+        message: 'MFA verification required',
+      };
+    }
+
+    // No MFA - complete login
+    await this.userRepository.update(user.id, { lastLoginAt: new Date() });
     return this.generateTokens(user);
+  }
+
+  async verifyMfaLogin(dto: MfaVerifyLoginDto): Promise<LoginResponseDto> {
+    const { tempToken, code } = dto;
+
+    try {
+      const payload = this.jwtService.verify(tempToken, {
+        secret: this.configService.get<string>('JWT_SECRET'),
+      });
+
+      if (payload.type !== 'mfa_pending') {
+        throw new UnauthorizedException('Invalid token type');
+      }
+
+      const user = await this.userRepository.findOne({
+        where: { id: payload.sub },
+        relations: ['tenant'],
+      });
+
+      if (!user || user.status !== 'active') {
+        throw new UnauthorizedException('User not found or inactive');
+      }
+
+      // Verify MFA code
+      const isValid = await this.mfaService.verifyMfaCode(user.id, code);
+
+      if (!isValid) {
+        throw new UnauthorizedException('Invalid MFA code');
+      }
+
+      // Update last login
+      await this.userRepository.update(user.id, { lastLoginAt: new Date() });
+
+      this.logger.log(`MFA verification successful for user: ${user.email}`);
+      return this.generateTokens(user, true); // MFA was verified
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      this.logger.warn(`MFA verification failed: ${error.message}`);
+      throw new UnauthorizedException('Invalid or expired MFA token');
+    }
   }
 
   async refreshToken(refreshToken: string): Promise<LoginResponseDto> {
@@ -86,7 +158,8 @@ export class AuthService {
         throw new UnauthorizedException('User not found or inactive');
       }
 
-      return this.generateTokens(user);
+      // Preserve MFA verification status from the refresh token
+      return this.generateTokens(user, payload.mfaVerified || false);
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
@@ -151,18 +224,19 @@ export class AuthService {
     await this.userRepository.update(user.id, updateData);
   }
 
-  private generateTokens(user: User): LoginResponseDto {
+  private generateTokens(user: User, mfaVerified = false): LoginResponseDto {
     const payload = {
       sub: user.id,
       email: user.email,
       tenantId: user.tenantId,
       role: user.role,
+      mfaVerified, // Track if MFA was verified for this session
     };
 
     const accessToken = this.jwtService.sign(payload);
 
     const refreshToken = this.jwtService.sign(
-      { sub: user.id, type: 'refresh', jti: uuidv4() },
+      { sub: user.id, type: 'refresh', jti: uuidv4(), mfaVerified },
       {
         expiresIn:
           this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d',

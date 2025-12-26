@@ -20,4 +20,19 @@ export class HealthController {
   async checkDetailed() {
     return this.healthService.checkDetailed();
   }
+
+  @Get('ready')
+  @ApiOperation({ summary: 'Readiness check for K8s probes' })
+  @ApiResponse({ status: 200, description: 'Service is ready to accept traffic' })
+  @ApiResponse({ status: 503, description: 'Service is not ready' })
+  async ready() {
+    return this.healthService.checkReady();
+  }
+
+  @Get('live')
+  @ApiOperation({ summary: 'Liveness check for K8s probes' })
+  @ApiResponse({ status: 200, description: 'Service is alive' })
+  async live() {
+    return { status: 'alive', timestamp: new Date().toISOString() };
+  }
 }

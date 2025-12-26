@@ -4,11 +4,12 @@ import { ScheduledReportsService } from './scheduled-reports.service';
 import { ScheduledReportsController } from './scheduled-reports.controller';
 import { ScheduledReport } from './entities/scheduled-report.entity';
 import { ReportHistory } from './entities/report-history.entity';
+import { Tenant } from '../tenants/entities/tenant.entity';
 import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ScheduledReport, ReportHistory]),
+    TypeOrmModule.forFeature([ScheduledReport, ReportHistory, Tenant]),
     EmailModule,
   ],
   controllers: [ScheduledReportsController],

@@ -44,14 +44,14 @@ export class SsoController {
     @Body() body: SamlCallbackDto,
     @Res() res: Response,
   ) {
-    const { user, token } = await this.ssoService.handleSamlCallback(
+    const { token, refreshToken } = await this.ssoService.handleSamlCallback(
       body.SAMLResponse,
       body.RelayState || '',
     );
 
-    // Redirect to frontend with token
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    res.redirect(`${frontendUrl}/auth/sso-callback?token=${token}`);
+    // Redirect to frontend with tokens
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4001';
+    res.redirect(`${frontendUrl}/sso/callback?token=${encodeURIComponent(token)}&refreshToken=${encodeURIComponent(refreshToken)}`);
   }
 
   @Get('oidc/login/:tenantSlug')
@@ -68,13 +68,13 @@ export class SsoController {
     @Query() query: OidcCallbackDto,
     @Res() res: Response,
   ) {
-    const { user, token } = await this.ssoService.handleOidcCallback(
+    const { token, refreshToken } = await this.ssoService.handleOidcCallback(
       query.code,
       query.state,
     );
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    res.redirect(`${frontendUrl}/auth/sso-callback?token=${token}`);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4001';
+    res.redirect(`${frontendUrl}/sso/callback?token=${encodeURIComponent(token)}&refreshToken=${encodeURIComponent(refreshToken)}`);
   }
 
   // ==================== ADMIN ENDPOINTS ====================
@@ -161,5 +161,46 @@ export class SsoController {
   async deleteConfig(@CurrentTenant() tenantId: string) {
     await this.ssoService.deleteSsoConfig(tenantId);
     return { success: true, message: 'SSO configuration deleted' };
+  }
+
+  @Post('saml/import-metadata')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('owner')
+  async importIdpMetadata(
+    @CurrentTenant() tenantId: string,
+    @Body() body: { metadataUrl: string; autoProvisionUsers?: boolean; defaultRole?: 'owner' | 'admin' | 'analyst' | 'readonly'; domainRestriction?: string },
+  ) {
+    const config = await this.ssoService.configureFromMetadataUrl(
+      tenantId,
+      body.metadataUrl,
+      {
+        autoProvisionUsers: body.autoProvisionUsers,
+        defaultRole: body.defaultRole,
+        domainRestriction: body.domainRestriction,
+      }
+    );
+    return {
+      success: true,
+      message: 'SAML configuration imported from IdP metadata',
+      data: {
+        id: config.id,
+        entityId: config.samlEntityId,
+        ssoUrl: config.samlSsoUrl,
+      },
+    };
+  }
+
+  @Post('oidc/discover')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('owner')
+  async discoverOidcConfig(
+    @Body() body: { issuerUrl: string },
+  ) {
+    const discovery = await this.ssoService.discoverOidcConfiguration(body.issuerUrl);
+    return {
+      success: true,
+      message: 'OIDC configuration discovered',
+      data: discovery,
+    };
   }
 }
