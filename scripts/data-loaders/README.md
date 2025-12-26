@@ -50,13 +50,33 @@ Loads threat intelligence for real-time blocking.
 
 | Feed | Type | Description |
 |------|------|-------------|
+| **Malware** | | |
 | `urlhaus` | malware | URLhaus malware URLs |
-| `urlhaus_domains` | malware | URLhaus domains |
+| `urlhaus_domains` | malware | URLhaus domains (hostfile) |
+| `abuse_ch_ssl` | malware | Abuse.ch SSL Blacklist |
+| `malwaredomains` | malware | Malware Domains List |
+| `disconnect_malware` | malware | Disconnect Malware List |
+| **Phishing** | | |
 | `phishtank` | phishing | PhishTank verified phishing |
 | `openphish` | phishing | OpenPhish community feed |
+| `phishing_army` | phishing | Phishing Army Blocklist |
+| **Botnet / C2** | | |
 | `botvrij_ioc` | botnet | Botvrij botnet domains |
-| `ransomware_tracker` | ransomware | Feodo Tracker C2 |
-| `coinblocker` | cryptominer | Cryptominer domains |
+| `feodo_c2` | c2 | Feodo Tracker C2 domains |
+| `threatfox_ioc` | c2 | ThreatFox IOC domains |
+| **Ransomware** | | |
+| `ransomware_tracker` | ransomware | Ransomware Tracker domains |
+| **Cryptominer** | | |
+| `coinblocker` | cryptominer | CoinBlocker cryptominer domains |
+| `nocoin` | cryptominer | NoCoin cryptominer list |
+| **Spam** | | |
+| `spam_domains` | spam | Referrer spam domains |
+| **Malvertising** | | |
+| `disconnect_malvertising` | malvertising | Disconnect malvertising list |
+| **Ads / Tracking** | | |
+| `disconnect_tracking` | tracking | Disconnect tracking list |
+| `disconnect_ads` | ads | Disconnect ad domains |
+| `adguard_dns` | ads | AdGuard DNS filter |
 
 ### Usage
 

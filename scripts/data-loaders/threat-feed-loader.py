@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 
 # Threat feed configurations
 THREAT_FEEDS = {
+    # ==================== MALWARE ====================
     'urlhaus': {
         'url': 'https://urlhaus.abuse.ch/downloads/csv_online/',
         'format': 'csv',
@@ -47,6 +48,27 @@ THREAT_FEEDS = {
         'threat_type': 'malware',
         'description': 'URLhaus Malware Domains',
     },
+    'abuse_ch_ssl': {
+        'url': 'https://sslbl.abuse.ch/blacklist/sslblacklist.csv',
+        'format': 'csv',
+        'domain_column': 1,
+        'threat_type': 'malware',
+        'description': 'Abuse.ch SSL Blacklist',
+    },
+    'malwaredomains': {
+        'url': 'https://mirror1.malwaredomains.com/files/justdomains',
+        'format': 'domains',
+        'threat_type': 'malware',
+        'description': 'Malware Domains List',
+    },
+    'disconnect_malware': {
+        'url': 'https://s3.amazonaws.com/lists.disconnect.me/simple_malware.txt',
+        'format': 'domains',
+        'threat_type': 'malware',
+        'description': 'Disconnect Malware List',
+    },
+
+    # ==================== PHISHING ====================
     'phishtank': {
         'url': 'http://data.phishtank.com/data/online-valid.csv',
         'format': 'csv',
@@ -60,30 +82,89 @@ THREAT_FEEDS = {
         'threat_type': 'phishing',
         'description': 'OpenPhish Community Feed',
     },
+    'phishing_army': {
+        'url': 'https://phishing.army/download/phishing_army_blocklist.txt',
+        'format': 'domains',
+        'threat_type': 'phishing',
+        'description': 'Phishing Army Blocklist',
+    },
+
+    # ==================== BOTNET / C2 ====================
     'botvrij_ioc': {
         'url': 'https://www.botvrij.eu/data/ioclist.domain.raw',
         'format': 'domains',
         'threat_type': 'botnet',
         'description': 'Botvrij IOC Domains',
     },
-    'abuse_ch_ssl': {
-        'url': 'https://sslbl.abuse.ch/blacklist/sslblacklist.csv',
-        'format': 'csv',
-        'domain_column': 1,
-        'threat_type': 'malware',
-        'description': 'Abuse.ch SSL Blacklist',
-    },
-    'ransomware_tracker': {
+    'feodo_c2': {
         'url': 'https://feodotracker.abuse.ch/downloads/domainblocklist.txt',
         'format': 'domains',
-        'threat_type': 'ransomware',
+        'threat_type': 'c2',
         'description': 'Feodo Tracker C2 Domains',
     },
+    'threatfox_ioc': {
+        'url': 'https://threatfox.abuse.ch/downloads/hostfile/',
+        'format': 'hostfile',
+        'threat_type': 'c2',
+        'description': 'ThreatFox IOC Domains',
+    },
+
+    # ==================== RANSOMWARE ====================
+    'ransomware_tracker': {
+        'url': 'https://ransomwaretracker.abuse.ch/downloads/RW_DOMBL.txt',
+        'format': 'domains',
+        'threat_type': 'ransomware',
+        'description': 'Ransomware Tracker Domains',
+    },
+
+    # ==================== CRYPTOMINER ====================
     'coinblocker': {
         'url': 'https://zerodot1.gitlab.io/CoinBlockerLists/hosts',
         'format': 'hostfile',
         'threat_type': 'cryptominer',
         'description': 'CoinBlocker Cryptominer Domains',
+    },
+    'nocoin': {
+        'url': 'https://raw.githubusercontent.com/nickkrawczyk/no-coin-list/master/hosts',
+        'format': 'hostfile',
+        'threat_type': 'cryptominer',
+        'description': 'NoCoin Cryptominer List',
+    },
+
+    # ==================== SPAM ====================
+    'spam_domains': {
+        'url': 'https://raw.githubusercontent.com/matomo-org/referrer-spam-list/master/spammers.txt',
+        'format': 'domains',
+        'threat_type': 'spam',
+        'description': 'Referrer Spam Domains',
+    },
+
+    # ==================== MALVERTISING ====================
+    'disconnect_malvertising': {
+        'url': 'https://s3.amazonaws.com/lists.disconnect.me/simple_malvertising.txt',
+        'format': 'domains',
+        'threat_type': 'malvertising',
+        'description': 'Disconnect Malvertising List',
+    },
+
+    # ==================== TRACKING / ADS (Optional) ====================
+    'disconnect_tracking': {
+        'url': 'https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt',
+        'format': 'domains',
+        'threat_type': 'tracking',
+        'description': 'Disconnect Tracking List',
+    },
+    'disconnect_ads': {
+        'url': 'https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt',
+        'format': 'domains',
+        'threat_type': 'ads',
+        'description': 'Disconnect Ad Domains',
+    },
+    'adguard_dns': {
+        'url': 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt',
+        'format': 'adblock',
+        'threat_type': 'ads',
+        'description': 'AdGuard DNS Filter',
     },
 }
 
@@ -168,6 +249,25 @@ def parse_hostfile_feed(filepath: str) -> Generator[str, None, None]:
                         yield domain
 
 
+def parse_adblock_feed(filepath: str) -> Generator[str, None, None]:
+    """Parse AdBlock/AdGuard filter format (||domain^)."""
+    import re
+    domain_pattern = re.compile(r'^\|\|([a-zA-Z0-9][-a-zA-Z0-9.]*[a-zA-Z0-9])\^')
+
+    with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+        for line in f:
+            line = line.strip()
+            # Skip comments and special rules
+            if not line or line.startswith(('!', '[', '@', '/')):
+                continue
+            # Match ||domain^ pattern
+            match = domain_pattern.match(line)
+            if match:
+                domain = match.group(1).lower()
+                if domain:
+                    yield domain
+
+
 def load_feed(feed_name: str, feed_config: Dict) -> Set[str]:
     """Load a single feed and return domains."""
     domains = set()
@@ -187,6 +287,8 @@ def load_feed(feed_name: str, feed_config: Dict) -> Set[str]:
             parser = parse_domains_feed(filepath)
         elif format_type == 'hostfile':
             parser = parse_hostfile_feed(filepath)
+        elif format_type == 'adblock':
+            parser = parse_adblock_feed(filepath)
         else:
             logger.error(f"Unknown format: {format_type}")
             return domains
