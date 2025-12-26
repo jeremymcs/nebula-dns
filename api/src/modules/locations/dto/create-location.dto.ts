@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsUUID, IsInt, Min, Max } from 'class-validator';
+import { IsString, IsOptional, IsUUID, IsInt, Min, Max, ValidateIf, IsFQDN, Matches } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateLocationDto {
@@ -16,10 +16,25 @@ export class CreateLocationDto {
   @IsUUID()
   policyId?: string;
 
-  @ApiPropertyOptional({ example: '192.168.1.0/24' })
-  @IsOptional()
+  @ApiPropertyOptional({
+    example: '192.168.1.0/24',
+    description: 'Static IP address or CIDR range. Required if dyndns is not provided.'
+  })
+  @ValidateIf((o) => !o.dyndns)
   @IsString()
+  @Matches(/^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?$/, {
+    message: 'ipRange must be a valid IP address or CIDR notation (e.g., 192.168.1.0/24)',
+  })
   ipRange?: string;
+
+  @ApiPropertyOptional({
+    example: 'office.dyndns.org',
+    description: 'Dynamic DNS hostname. Required if ipRange is not provided.'
+  })
+  @ValidateIf((o) => !o.ipRange)
+  @IsString()
+  @IsFQDN({}, { message: 'dyndns must be a valid fully qualified domain name' })
+  dyndns?: string;
 
   @ApiPropertyOptional({ example: 5000, default: 1000 })
   @IsOptional()

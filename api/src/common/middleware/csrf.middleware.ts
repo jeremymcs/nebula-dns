@@ -1,5 +1,5 @@
 /**
- * SafeDNS - Enterprise DNS Security Platform
+ * Nebula DNS - Enterprise DNS Security Platform
  * CSRF Protection Middleware
  * 
  * Uses double-submit cookie pattern for stateless CSRF protection

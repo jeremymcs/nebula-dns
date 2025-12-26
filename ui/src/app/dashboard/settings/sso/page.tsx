@@ -268,7 +268,7 @@ export default function SsoSettingsPage() {
                   Configure these values in your Identity Provider:
                 </p>
                 <div className="space-y-2 text-sm">
-                  <div><span className="text-blue-600 dark:text-blue-400">Entity ID:</span> <code className="bg-blue-100 dark:bg-blue-800 px-2 py-0.5 rounded">{`safedns-sp`}</code></div>
+                  <div><span className="text-blue-600 dark:text-blue-400">Entity ID:</span> <code className="bg-blue-100 dark:bg-blue-800 px-2 py-0.5 rounded">{`nebuladns-sp`}</code></div>
                   <div><span className="text-blue-600 dark:text-blue-400">ACS URL:</span> <code className="bg-blue-100 dark:bg-blue-800 px-2 py-0.5 rounded">{process.env.NEXT_PUBLIC_API_URL}/sso/saml/callback</code></div>
                   <div><span className="text-blue-600 dark:text-blue-400">Metadata:</span> <a href={`${process.env.NEXT_PUBLIC_API_URL}/sso/saml/metadata`} target="_blank" className="text-blue-600 dark:text-blue-400 hover:underline">Download XML</a></div>
                 </div>

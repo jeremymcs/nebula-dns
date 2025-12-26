@@ -32,7 +32,7 @@ interface OnboardingStep {
 const initialSteps: OnboardingStep[] = [
   {
     id: 'welcome',
-    title: 'Welcome to SafeDNS',
+    title: 'Welcome to Nebula DNS',
     description: 'Get familiar with your dashboard',
     icon: <RocketLaunchIcon className="h-6 w-6" />,
     completed: false,
@@ -54,7 +54,7 @@ const initialSteps: OnboardingStep[] = [
   {
     id: 'configure',
     title: 'Configure Your Devices',
-    description: 'Point your DNS to SafeDNS',
+    description: 'Point your DNS to Nebula DNS',
     icon: <Cog6ToothIcon className="h-6 w-6" />,
     completed: false,
   },

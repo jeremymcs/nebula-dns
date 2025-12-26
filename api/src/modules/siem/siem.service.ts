@@ -57,7 +57,7 @@ export class SiemService {
       hecUrl: this.encrypt(dto.hecUrl),
       hecToken: this.encrypt(dto.hecToken),
       index: dto.index || 'main',
-      sourceType: dto.sourceType || 'safedns:logs',
+      sourceType: dto.sourceType || 'nebuladns:logs',
     };
 
     const integration = this.siemRepository.create({
@@ -79,7 +79,7 @@ export class SiemService {
     const configEncrypted = {
       url: this.encrypt(dto.url),
       apiKey: this.encrypt(dto.apiKey),
-      indexPattern: dto.indexPattern || 'safedns-logs',
+      indexPattern: dto.indexPattern || 'nebuladns-logs',
     };
 
     const integration = this.siemRepository.create({
@@ -100,7 +100,7 @@ export class SiemService {
     const configEncrypted = {
       workspaceId: this.encrypt(dto.workspaceId),
       sharedKey: this.encrypt(dto.sharedKey),
-      logType: dto.logType || 'SafeDNS_Logs',
+      logType: dto.logType || 'Nebula DNS_Logs',
     };
 
     const integration = this.siemRepository.create({
@@ -261,11 +261,11 @@ export class SiemService {
       const testEvent = {
         event: {
           type: 'test',
-          message: 'SafeDNS SIEM integration test',
+          message: 'Nebula DNS SIEM integration test',
           timestamp: new Date().toISOString(),
         },
         index: integration.configEncrypted.index || 'main',
-        sourcetype: integration.configEncrypted.sourceType || 'safedns:logs',
+        sourcetype: integration.configEncrypted.sourceType || 'nebuladns:logs',
       };
 
       await this.httpPost(hecUrl, JSON.stringify(testEvent), {
@@ -317,12 +317,12 @@ export class SiemService {
     try {
       const workspaceId = this.decrypt(integration.configEncrypted.workspaceId);
       const sharedKey = this.decrypt(integration.configEncrypted.sharedKey);
-      const logType = integration.configEncrypted.logType || 'SafeDNS_Test';
+      const logType = integration.configEncrypted.logType || 'Nebula DNS_Test';
 
       // Send a test log entry
       const testLog = [{
         type: 'test',
-        message: 'SafeDNS SIEM integration test',
+        message: 'Nebula DNS SIEM integration test',
         timestamp: new Date().toISOString(),
       }];
 
@@ -363,7 +363,7 @@ export class SiemService {
     const startTime = Date.now();
     try {
       const { host, port, protocol } = integration.configEncrypted;
-      const testMessage = `<14>1 ${new Date().toISOString()} safedns test - - - SafeDNS SIEM integration test`;
+      const testMessage = `<14>1 ${new Date().toISOString()} nebuladns test - - - Nebula DNS SIEM integration test`;
 
       if (protocol === 'udp') {
         await this.sendUdp(host, parseInt(port), testMessage);
@@ -442,7 +442,7 @@ export class SiemService {
     const hecUrl = this.decrypt(integration.configEncrypted.hecUrl);
     const hecToken = this.decrypt(integration.configEncrypted.hecToken);
     const index = integration.configEncrypted.index || 'main';
-    const sourceType = integration.configEncrypted.sourceType || 'safedns:logs';
+    const sourceType = integration.configEncrypted.sourceType || 'nebuladns:logs';
 
     const events = logs.map(log => ({
       event: log,
@@ -462,7 +462,7 @@ export class SiemService {
   private async sendToElastic(integration: SiemIntegration, logs: any[]): Promise<void> {
     const url = this.decrypt(integration.configEncrypted.url);
     const apiKey = this.decrypt(integration.configEncrypted.apiKey);
-    const indexPattern = integration.configEncrypted.indexPattern || 'safedns-logs';
+    const indexPattern = integration.configEncrypted.indexPattern || 'nebuladns-logs';
 
     const today = new Date().toISOString().split('T')[0].replace(/-/g, '.');
     const indexName = `${indexPattern}-${today}`;
@@ -482,7 +482,7 @@ export class SiemService {
   private async sendToSentinel(integration: SiemIntegration, logs: any[]): Promise<void> {
     const workspaceId = this.decrypt(integration.configEncrypted.workspaceId);
     const sharedKey = this.decrypt(integration.configEncrypted.sharedKey);
-    const logType = integration.configEncrypted.logType || 'SafeDNS_Logs';
+    const logType = integration.configEncrypted.logType || 'Nebula DNS_Logs';
 
     const body = JSON.stringify(logs);
     const contentLength = Buffer.byteLength(body, 'utf8');
@@ -523,14 +523,14 @@ export class SiemService {
 
   private formatCEF(log: any): string {
     const severity = log.action === 'blocked' ? 7 : 3;
-    return `CEF:0|SafeDNS|DNS-Filter|1.0|${log.action}|DNS Query ${log.action}|${severity}|` +
+    return `CEF:0|Nebula DNS|DNS-Filter|1.0|${log.action}|DNS Query ${log.action}|${severity}|` +
       `src=${log.clientIp} request=${log.domain} requestMethod=DNS ` +
       `cs1=${log.category || 'unknown'} cs1Label=Category ` +
       `cs2=${log.locationId || 'unknown'} cs2Label=LocationID`;
   }
 
   private formatLeef(log: any): string {
-    return `LEEF:2.0|SafeDNS|DNS-Filter|1.0|${log.action}|` +
+    return `LEEF:2.0|Nebula DNS|DNS-Filter|1.0|${log.action}|` +
       `src=${log.clientIp}\tdomain=${log.domain}\taction=${log.action}\t` +
       `category=${log.category || 'unknown'}\tlocationId=${log.locationId || 'unknown'}`;
   }

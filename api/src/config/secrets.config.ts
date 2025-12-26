@@ -1,7 +1,7 @@
 /**
- * SafeDNS - Enterprise DNS Security Platform
+ * Nebula DNS - Enterprise DNS Security Platform
  * Secrets Management Configuration
- * 
+ *
  * Supports: Environment variables, HashiCorp Vault, AWS Secrets Manager
  */
 
@@ -52,11 +52,11 @@ export class SecretsManager {
           roleId: process.env.VAULT_ROLE_ID,
           secretId: process.env.VAULT_SECRET_ID,
           namespace: process.env.VAULT_NAMESPACE,
-          secretPath: process.env.VAULT_SECRET_PATH || 'secret/data/safedns',
+          secretPath: process.env.VAULT_SECRET_PATH || 'secret/data/nebuladns',
         },
         aws: {
           region: process.env.AWS_REGION || 'us-east-1',
-          secretName: process.env.AWS_SECRET_NAME || 'safedns/production',
+          secretName: process.env.AWS_SECRET_NAME || 'nebuladns/production',
         },
       };
 
@@ -146,7 +146,7 @@ export class SecretsManager {
   }
 }
 
-// Required secrets for SafeDNS
+// Required secrets for Nebula DNS
 export const REQUIRED_SECRETS = [
   'DATABASE_URL',
   'REDIS_URL',

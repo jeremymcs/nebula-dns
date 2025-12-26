@@ -1,4 +1,4 @@
-# SafeDNS Helm Chart Values
+# Nebula DNS Helm Chart Values
 
 global:
   imageRegistry: ""
@@ -9,7 +9,7 @@ global:
 api:
   replicaCount: 2
   image:
-    repository: safedns/api
+    repository: nebuladns/api
     tag: latest
     pullPolicy: IfNotPresent
   resources:
@@ -35,7 +35,7 @@ api:
 ui:
   replicaCount: 2
   image:
-    repository: safedns/ui
+    repository: nebuladns/ui
     tag: latest
     pullPolicy: IfNotPresent
   resources:
@@ -53,7 +53,7 @@ ui:
 policySvc:
   replicaCount: 3
   image:
-    repository: safedns/policy-svc
+    repository: nebuladns/policy-svc
     tag: latest
     pullPolicy: IfNotPresent
   resources:
@@ -76,7 +76,7 @@ policySvc:
 dnsdist:
   replicaCount: 3
   image:
-    repository: safedns/dnsdist
+    repository: nebuladns/dnsdist
     tag: latest
     pullPolicy: IfNotPresent
   resources:
@@ -130,7 +130,7 @@ postgresql:
   enabled: true
   auth:
     postgresPassword: ""
-    database: safedns
+    database: nebuladns
   primary:
     persistence:
       size: 50Gi

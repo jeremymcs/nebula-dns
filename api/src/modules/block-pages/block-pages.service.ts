@@ -251,7 +251,7 @@ export class BlockPagesService {
       </div>` : ''}
     </div>
     <div class="footer">
-      ${blockPage.footerText || 'Protected by SafeDNS'}
+      ${blockPage.footerText || 'Protected by Nebula DNS'}
       ${blockPage.supportEmail ? `<br><a href="mailto:${blockPage.supportEmail}">Contact Support</a>` : ''}
       ${blockPage.supportUrl ? `<br><a href="${blockPage.supportUrl}" target="_blank">Help Center</a>` : ''}
     </div>

@@ -100,13 +100,13 @@
   "refresh": "30s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": ["safedns", "dns"],
+  "tags": ["nebuladns", "dns"],
   "templating": { "list": [] },
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "SafeDNS Overview",
-  "uid": "safedns-overview",
+  "title": "Nebula DNS Overview",
+  "uid": "nebuladns-overview",
   "version": 1,
   "weekStart": ""
 }

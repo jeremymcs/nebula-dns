@@ -171,7 +171,7 @@ export default function TeamPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Team Members</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage who has access to your SafeDNS dashboard</p>
+          <p className="text-gray-600 dark:text-gray-400">Manage who has access to your Nebula DNS dashboard</p>
         </div>
         <div className="flex gap-3">
           <button

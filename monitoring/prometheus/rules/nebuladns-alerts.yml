@@ -1,5 +1,5 @@
 groups:
-  - name: safedns-alerts
+  - name: nebuladns-alerts
     rules:
       - alert: HighBlockRate
         expr: sum(rate(dns_queries_blocked_total[5m])) / sum(rate(dns_queries_total[5m])) > 0.30
@@ -20,7 +20,7 @@ groups:
           description: "P95 latency is above 100ms for the last 5 minutes"
 
       - alert: PolicyServiceDown
-        expr: up{job="safedns-policy-svc"} == 0
+        expr: up{job="nebuladns-policy-svc"} == 0
         for: 1m
         labels:
           severity: critical
@@ -29,7 +29,7 @@ groups:
           description: "Policy service has been unreachable for more than 1 minute"
 
       - alert: APIServiceDown
-        expr: up{job="safedns-api"} == 0
+        expr: up{job="nebuladns-api"} == 0
         for: 1m
         labels:
           severity: critical

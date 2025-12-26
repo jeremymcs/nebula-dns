@@ -164,7 +164,7 @@ export class MfaService {
     }
 
     // Generate QR code URL (otpauth format)
-    const issuer = this.configService.get('APP_NAME', 'SafeDNS');
+    const issuer = this.configService.get('APP_NAME', 'Nebula DNS');
     const otpauthUrl = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(user.email)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`;
 
     return {

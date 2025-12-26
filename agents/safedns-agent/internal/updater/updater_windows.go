@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (u *Updater) applyUpdateWindows(currentExe, newBinaryPath string) error {
+func (u *Updater) applyUpdatePlatform(currentExe, newBinaryPath string) error {
 	u.logger.Info("Applying update on Windows",
 		zap.String("current", currentExe),
 		zap.String("new", newBinaryPath))
@@ -20,12 +20,12 @@ func (u *Updater) applyUpdateWindows(currentExe, newBinaryPath string) error {
 	// We need to use a batch script to do the replacement after we exit
 
 	// Create update script
-	scriptPath := filepath.Join(os.TempDir(), "safedns-update.bat")
+	scriptPath := filepath.Join(os.TempDir(), "nebuladns-update.bat")
 	script := fmt.Sprintf(`@echo off
 timeout /t 2 /nobreak > nul
 copy /Y "%s" "%s"
 del "%s"
-net start SafeDNSAgent
+net start NebulaDNSAgent
 del "%%~f0"
 `, newBinaryPath, currentExe, newBinaryPath)
 
@@ -34,7 +34,7 @@ del "%%~f0"
 	}
 
 	// Stop the service and run the update script
-	exec.Command("net", "stop", "SafeDNSAgent").Run()
+	exec.Command("net", "stop", "NebulaDNSAgent").Run()
 
 	// Start the update script
 	cmd := exec.Command("cmd", "/C", "start", "/B", scriptPath)
@@ -50,11 +50,10 @@ del "%%~f0"
 // RestartService restarts the agent service on Windows
 func (u *Updater) RestartService() error {
 	// Stop the service
-	if err := exec.Command("net", "stop", "SafeDNSAgent").Run(); err != nil {
+	if err := exec.Command("net", "stop", "NebulaDNSAgent").Run(); err != nil {
 		u.logger.Warn("Failed to stop service", zap.Error(err))
 	}
 
 	// Start the service
-	return exec.Command("net", "start", "SafeDNSAgent").Run()
+	return exec.Command("net", "start", "NebulaDNSAgent").Run()
 }
-

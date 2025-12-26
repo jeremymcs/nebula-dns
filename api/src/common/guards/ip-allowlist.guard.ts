@@ -1,5 +1,5 @@
 /**
- * SafeDNS - Enterprise DNS Security Platform
+ * Nebula DNS - Enterprise DNS Security Platform
  * IP Allowlist Guard
  * 
  * Restricts admin access to specific IP addresses or CIDR ranges

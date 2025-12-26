@@ -74,11 +74,11 @@ class EnvironmentVariables {
 
   @IsString()
   @IsOptional()
-  EMAIL_FROM_ADDRESS: string = 'noreply@safedns.example.com';
+  EMAIL_FROM_ADDRESS: string = 'noreply@nebuladns.io';
 
   @IsString()
   @IsOptional()
-  EMAIL_FROM_NAME: string = 'SafeDNS';
+  EMAIL_FROM_NAME: string = 'Nebula DNS';
 
   // Stripe
   @IsString()
@@ -221,8 +221,8 @@ export default () => ({
   },
   email: {
     sendgridApiKey: process.env.SENDGRID_API_KEY,
-    fromAddress: process.env.EMAIL_FROM_ADDRESS || 'noreply@safedns.example.com',
-    fromName: process.env.EMAIL_FROM_NAME || 'SafeDNS',
+    fromAddress: process.env.EMAIL_FROM_ADDRESS || 'noreply@nebuladns.io',
+    fromName: process.env.EMAIL_FROM_NAME || 'Nebula DNS',
   },
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY,

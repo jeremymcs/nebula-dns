@@ -32,6 +32,7 @@ import { InvitationsModule } from './modules/invitations/invitations.module';
 import { SiemModule } from './modules/siem/siem.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { DoHModule } from './modules/doh/doh.module';
 
 @Module({
   imports: [
@@ -108,6 +109,9 @@ import { PaymentsModule } from './modules/payments/payments.module';
     SiemModule,
     WebhooksModule,
     PaymentsModule,
+
+    // DNS-over-HTTPS for agents
+    DoHModule,
 
     // Observability & Logging
     MetricsModule,

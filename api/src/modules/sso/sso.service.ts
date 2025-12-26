@@ -49,7 +49,7 @@ export class SsoService {
 
   private createSamlInstance(config: SsoConfiguration): SAML {
     const callbackUrl = `${this.configService.get('API_URL')}/sso/saml/callback`;
-    const entityId = this.configService.get('SAML_SP_ENTITY_ID', 'safedns-sp');
+    const entityId = this.configService.get('SAML_SP_ENTITY_ID', 'nebuladns-sp');
 
     const samlConfig: SamlConfig = {
       callbackUrl,
@@ -451,7 +451,7 @@ export class SsoService {
   }
 
   async getSpMetadata(): Promise<string> {
-    const entityId = this.configService.get('SAML_SP_ENTITY_ID', 'safedns-sp');
+    const entityId = this.configService.get('SAML_SP_ENTITY_ID', 'nebuladns-sp');
     const acsUrl = `${this.configService.get('API_URL')}/sso/saml/callback`;
     const sloUrl = `${this.configService.get('API_URL')}/sso/saml/logout`;
 

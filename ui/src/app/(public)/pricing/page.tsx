@@ -1,5 +1,5 @@
 /**
- * SafeDNS Pricing Page
+ * Nebula DNS Pricing Page
  * Interactive pricing with plan comparison
  */
 

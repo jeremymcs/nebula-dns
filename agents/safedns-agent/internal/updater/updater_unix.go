@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (u *Updater) applyUpdateUnix(currentExe, newBinaryPath string) error {
+func (u *Updater) applyUpdatePlatform(currentExe, newBinaryPath string) error {
 	u.logger.Info("Applying update on Unix",
 		zap.String("current", currentExe),
 		zap.String("new", newBinaryPath))
@@ -45,18 +45,17 @@ func (u *Updater) applyUpdateUnix(currentExe, newBinaryPath string) error {
 func (u *Updater) RestartService() error {
 	// Try systemd first
 	if _, err := exec.LookPath("systemctl"); err == nil {
-		cmd := exec.Command("systemctl", "restart", "safedns-agent")
+		cmd := exec.Command("systemctl", "restart", "nebuladns-agent")
 		return cmd.Run()
 	}
 
 	// Try launchctl on macOS
 	if _, err := exec.LookPath("launchctl"); err == nil {
 		// Unload and reload the service
-		exec.Command("launchctl", "unload", "/Library/LaunchDaemons/io.safedns.agent.plist").Run()
-		cmd := exec.Command("launchctl", "load", "/Library/LaunchDaemons/io.safedns.agent.plist")
+		exec.Command("launchctl", "unload", "/Library/LaunchDaemons/io.nebuladns.agent.plist").Run()
+		cmd := exec.Command("launchctl", "load", "/Library/LaunchDaemons/io.nebuladns.agent.plist")
 		return cmd.Run()
 	}
 
 	return fmt.Errorf("no supported service manager found")
 }
-
