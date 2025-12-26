@@ -11,15 +11,15 @@ rule_files:
   - /etc/prometheus/rules/*.yml
 
 scrape_configs:
-  # SafeDNS API
-  - job_name: 'safedns-api'
+  # Nebula DNS API
+  - job_name: 'nebuladns-api'
     static_configs:
       - targets: ['api:4000']
     metrics_path: /metrics
     scrape_interval: 10s
 
-  # SafeDNS Policy Service
-  - job_name: 'safedns-policy-svc'
+  # Nebula DNS Policy Service
+  - job_name: 'nebuladns-policy-svc'
     static_configs:
       - targets: ['policy-svc:8080']
     metrics_path: /metrics

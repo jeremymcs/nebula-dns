@@ -1,6 +1,8 @@
 import {
   Injectable,
   NotFoundException,
+  ConflictException,
+  BadRequestException,
   Logger,
   Inject,
   forwardRef,
@@ -95,6 +97,31 @@ export class LocationsService {
   }
 
   async create(tenantId: string, createDto: CreateLocationDto): Promise<Location> {
+    // Validate that either ipRange or dyndns is provided
+    if (!createDto.ipRange && !createDto.dyndns) {
+      throw new BadRequestException('Either ipRange or dyndns must be provided');
+    }
+
+    // Check uniqueness of ipRange
+    if (createDto.ipRange) {
+      const existingByIp = await this.locationRepository.findOne({
+        where: { ipRange: createDto.ipRange },
+      });
+      if (existingByIp) {
+        throw new ConflictException(`IP range ${createDto.ipRange} is already in use by another location`);
+      }
+    }
+
+    // Check uniqueness of dyndns
+    if (createDto.dyndns) {
+      const existingByDyndns = await this.locationRepository.findOne({
+        where: { dyndns: createDto.dyndns },
+      });
+      if (existingByDyndns) {
+        throw new ConflictException(`DynDNS hostname ${createDto.dyndns} is already in use by another location`);
+      }
+    }
+
     const location = this.locationRepository.create({
       ...createDto,
       tenantId,
@@ -113,6 +140,26 @@ export class LocationsService {
     updateDto: UpdateLocationDto,
   ): Promise<Location> {
     const location = await this.findOne(tenantId, id);
+
+    // Check uniqueness of ipRange if being updated
+    if (updateDto.ipRange && updateDto.ipRange !== location.ipRange) {
+      const existingByIp = await this.locationRepository.findOne({
+        where: { ipRange: updateDto.ipRange },
+      });
+      if (existingByIp && existingByIp.id !== id) {
+        throw new ConflictException(`IP range ${updateDto.ipRange} is already in use by another location`);
+      }
+    }
+
+    // Check uniqueness of dyndns if being updated
+    if (updateDto.dyndns && updateDto.dyndns !== location.dyndns) {
+      const existingByDyndns = await this.locationRepository.findOne({
+        where: { dyndns: updateDto.dyndns },
+      });
+      if (existingByDyndns && existingByDyndns.id !== id) {
+        throw new ConflictException(`DynDNS hostname ${updateDto.dyndns} is already in use by another location`);
+      }
+    }
 
     Object.assign(location, updateDto);
     await this.locationRepository.save(location);

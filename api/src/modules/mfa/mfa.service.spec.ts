@@ -1,5 +1,5 @@
 /**
- * SafeDNS - Enterprise DNS Security Platform
+ * Nebula DNS - Enterprise DNS Security Platform
  * MFA Service Unit Tests
  */
 

@@ -75,7 +75,7 @@ export class InvitationsService {
     const inviteUrl = `${process.env.APP_URL || 'http://localhost:4001'}/invite/accept?token=${token}`;
     const sent = await this.emailService.sendInviteUserEmail({
       to: dto.email,
-      tenantName: tenant?.name || 'SafeDNS',
+      tenantName: tenant?.name || 'Nebula DNS',
       inviterName: inviter?.name || 'A team member',
       inviterEmail: inviter?.email || '',
       role: dto.role,
@@ -254,7 +254,7 @@ export class InvitationsService {
     const inviteUrl = `${process.env.APP_URL || 'http://localhost:4001'}/invite/accept?token=${token}`;
     const sent = await this.emailService.sendInviteUserEmail({
       to: invitation.email,
-      tenantName: invitation.tenant?.name || 'SafeDNS',
+      tenantName: invitation.tenant?.name || 'Nebula DNS',
       inviterName: currentUser?.name || invitation.invitedBy?.name || 'A team member',
       inviterEmail: currentUser?.email || invitation.invitedBy?.email || '',
       role: invitation.role,

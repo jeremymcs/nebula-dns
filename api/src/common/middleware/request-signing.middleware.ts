@@ -1,15 +1,15 @@
 /**
- * SafeDNS - Enterprise DNS Security Platform
+ * Nebula DNS - Enterprise DNS Security Platform
  * Request Signing for Inter-Service Communication
- * 
+ *
  * Uses HMAC-SHA256 signatures to authenticate internal service requests
  */
 
 import * as crypto from 'crypto';
 
-const SIGNATURE_HEADER = 'x-safedns-signature';
-const TIMESTAMP_HEADER = 'x-safedns-timestamp';
-const SERVICE_HEADER = 'x-safedns-service';
+const SIGNATURE_HEADER = 'x-nebuladns-signature';
+const TIMESTAMP_HEADER = 'x-nebuladns-timestamp';
+const SERVICE_HEADER = 'x-nebuladns-service';
 const MAX_TIMESTAMP_DRIFT_MS = 5 * 60 * 1000; // 5 minutes
 
 export interface SignedRequest {
@@ -130,9 +130,9 @@ export function validateSignedRequest(
 
 // Service names for internal communication
 export const INTERNAL_SERVICES = {
-  API: 'safedns-api',
-  POLICY_SVC: 'safedns-policy-svc',
-  DNSDIST: 'safedns-dnsdist',
-  WORKERS: 'safedns-workers',
+  API: 'nebuladns-api',
+  POLICY_SVC: 'nebuladns-policy-svc',
+  DNSDIST: 'nebuladns-dnsdist',
+  WORKERS: 'nebuladns-workers',
 } as const;
 

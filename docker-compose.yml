@@ -75,9 +75,9 @@ services:
       dockerfile: Dockerfile
     container_name: dnsfilter-dnsdist
     ports:
-      - "853:853/tcp"   # DoT
-      - "443:443/tcp"   # DoH
-      - "8083:8083/tcp" # Metrics (internal)
+      - "4853:853/tcp"   # DoT
+      - "4443:443/tcp"   # DoH
+      - "4083:8083/tcp"  # Metrics (internal)
     depends_on:
       - policy-svc
       - unbound

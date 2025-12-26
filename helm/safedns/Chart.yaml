@@ -1,6 +1,6 @@
 apiVersion: v2
-name: safedns
-description: SafeDNS - Enterprise DNS Security Platform
+name: nebuladns
+description: Nebula DNS - Enterprise DNS Security Platform
 type: application
 version: 1.0.0
 appVersion: "1.0.0"
@@ -10,11 +10,11 @@ keywords:
   - filtering
   - enterprise
 maintainers:
-  - name: SafeDNS Team
-    email: support@safedns.io
-home: https://safedns.io
+  - name: Nebula DNS Team
+    email: support@nebuladns.io
+home: https://nebuladns.io
 sources:
-  - https://github.com/safedns/dns-filter
+  - https://github.com/fluxlabs/dns-filter
 dependencies:
   - name: postgresql
     version: "12.x.x"

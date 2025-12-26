@@ -186,7 +186,7 @@ export class WebhooksService {
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'User-Agent': 'SafeDNS-Webhook/1.0',
+      'User-Agent': 'Nebula DNS-Webhook/1.0',
       'X-Webhook-Event': eventType,
       'X-Webhook-Timestamp': new Date().toISOString(),
       ...webhook.headers,

@@ -65,8 +65,8 @@ export class EmailService implements OnModuleInit {
   private isConfigured = false;
 
   constructor(private configService: ConfigService) {
-    this.fromEmail = this.configService.get('EMAIL_FROM_ADDRESS', 'noreply@safedns.example.com');
-    this.fromName = this.configService.get('EMAIL_FROM_NAME', 'SafeDNS');
+    this.fromEmail = this.configService.get('EMAIL_FROM_ADDRESS', 'noreply@nebuladns.example.com');
+    this.fromName = this.configService.get('EMAIL_FROM_NAME', 'Nebula DNS');
     this.sendgridApiKey = this.configService.get('SENDGRID_API_KEY', '');
   }
 
@@ -119,7 +119,7 @@ export class EmailService implements OnModuleInit {
   }
 
   async sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean> {
-    const subject = `Welcome to SafeDNS, ${data.name}!`;
+    const subject = `Welcome to Nebula DNS, ${data.name}!`;
     
     const htmlContent = `
 <!DOCTYPE html>
@@ -127,18 +127,18 @@ export class EmailService implements OnModuleInit {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to SafeDNS</title>
+  <title>Welcome to Nebula DNS</title>
 </head>
 <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-    <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to SafeDNS!</h1>
+    <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to Nebula DNS!</h1>
   </div>
   
   <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
     <p style="font-size: 16px;">Hi ${data.name},</p>
     
     <p style="font-size: 16px;">
-      Thank you for signing up <strong>${data.companyName}</strong> for SafeDNS! 
+      Thank you for signing up <strong>${data.companyName}</strong> for Nebula DNS! 
       Your account is now active on the <strong>${data.planName}</strong> plan.
     </p>
     
@@ -147,7 +147,7 @@ export class EmailService implements OnModuleInit {
       <ol style="padding-left: 20px;">
         <li style="margin-bottom: 10px;">Log in to your dashboard to configure your DNS security policies</li>
         <li style="margin-bottom: 10px;">Set up your first network location and generate DNS tokens</li>
-        <li style="margin-bottom: 10px;">Configure your devices to use SafeDNS servers</li>
+        <li style="margin-bottom: 10px;">Configure your devices to use Nebula DNS servers</li>
         <li style="margin-bottom: 10px;">Monitor your DNS traffic and security events</li>
       </ol>
     </div>
@@ -160,7 +160,7 @@ export class EmailService implements OnModuleInit {
     
     <div style="background: #eff6ff; border-radius: 8px; padding: 15px; margin: 20px 0;">
       <p style="margin: 0; font-size: 14px; color: #1e40af;">
-        <strong>Need help?</strong> Our documentation is available at docs.safedns.example.com 
+        <strong>Need help?</strong> Our documentation is available at docs.nebuladns.example.com 
         or contact our support team for assistance.
       </p>
     </div>
@@ -168,7 +168,7 @@ export class EmailService implements OnModuleInit {
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
     
     <p style="font-size: 14px; color: #6b7280; text-align: center;">
-      This email was sent by SafeDNS<br>
+      This email was sent by Nebula DNS<br>
       If you didn't sign up for this account, please ignore this email.
     </p>
   </div>
@@ -176,22 +176,22 @@ export class EmailService implements OnModuleInit {
 </html>`;
 
     const textContent = `
-Welcome to SafeDNS, ${data.name}!
+Welcome to Nebula DNS, ${data.name}!
 
-Thank you for signing up ${data.companyName} for SafeDNS! 
+Thank you for signing up ${data.companyName} for Nebula DNS! 
 Your account is now active on the ${data.planName} plan.
 
 Getting Started:
 1. Log in to your dashboard to configure your DNS security policies
 2. Set up your first network location and generate DNS tokens
-3. Configure your devices to use SafeDNS servers
+3. Configure your devices to use Nebula DNS servers
 4. Monitor your DNS traffic and security events
 
 Access your dashboard: ${data.loginUrl}
 
-Need help? Our documentation is available at docs.safedns.example.com
+Need help? Our documentation is available at docs.nebuladns.example.com
 
-This email was sent by SafeDNS.
+This email was sent by Nebula DNS.
 If you didn't sign up for this account, please ignore this email.
 `;
 
@@ -212,7 +212,7 @@ If you didn't sign up for this account, please ignore this email.
   <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 30px;">
     <h2 style="color: #dc2626; margin-top: 0;">Payment Failed</h2>
     
-    <p>We were unable to process your payment for <strong>${data.companyName}</strong>'s SafeDNS subscription.</p>
+    <p>We were unable to process your payment for <strong>${data.companyName}</strong>'s Nebula DNS subscription.</p>
     
     <p>To avoid any interruption to your service, please update your payment information as soon as possible.</p>
     
@@ -233,7 +233,7 @@ If you didn't sign up for this account, please ignore this email.
   }
 
   async sendPasswordResetEmail(data: PasswordResetEmailData): Promise<boolean> {
-    const subject = 'Reset Your SafeDNS Password';
+    const subject = 'Reset Your Nebula DNS Password';
     
     const htmlContent = `
 <!DOCTYPE html>
@@ -248,7 +248,7 @@ If you didn't sign up for this account, please ignore this email.
     
     <p>Hi ${data.name},</p>
     
-    <p>We received a request to reset your SafeDNS password. Click the button below to create a new password:</p>
+    <p>We received a request to reset your Nebula DNS password. Click the button below to create a new password:</p>
     
     <div style="text-align: center; margin: 30px 0;">
       <a href="${data.resetUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
@@ -267,7 +267,7 @@ If you didn't sign up for this account, please ignore this email.
   }
 
   async sendEmailVerification(data: EmailVerificationData): Promise<boolean> {
-    const subject = 'Verify Your SafeDNS Email Address';
+    const subject = 'Verify Your Nebula DNS Email Address';
     
     const htmlContent = `
 <!DOCTYPE html>
@@ -282,7 +282,7 @@ If you didn't sign up for this account, please ignore this email.
     
     <p>Hi ${data.name},</p>
     
-    <p>Please verify your email address to complete your SafeDNS account setup:</p>
+    <p>Please verify your email address to complete your Nebula DNS account setup:</p>
     
     <div style="text-align: center; margin: 30px 0;">
       <a href="${data.verificationUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
@@ -301,7 +301,7 @@ If you didn't sign up for this account, please ignore this email.
   }
 
   async sendInviteUserEmail(data: InviteUserEmailData): Promise<boolean> {
-    const subject = `You've been invited to join ${data.tenantName} on SafeDNS`;
+    const subject = `You've been invited to join ${data.tenantName} on Nebula DNS`;
     
     const htmlContent = `
 <!DOCTYPE html>
@@ -314,9 +314,9 @@ If you didn't sign up for this account, please ignore this email.
   <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 30px;">
     <h2 style="color: #667eea; margin-top: 0;">You're Invited!</h2>
     
-    <p><strong>${data.inviterName}</strong> has invited you to join <strong>${data.tenantName}</strong> on SafeDNS.</p>
+    <p><strong>${data.inviterName}</strong> has invited you to join <strong>${data.tenantName}</strong> on Nebula DNS.</p>
     
-    <p>SafeDNS provides enterprise-grade DNS security and content filtering to protect your network.</p>
+    <p>Nebula DNS provides enterprise-grade DNS security and content filtering to protect your network.</p>
     
     <div style="text-align: center; margin: 30px 0;">
       <a href="${data.inviteUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
@@ -388,7 +388,7 @@ If you didn't sign up for this account, please ignore this email.
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
 
     <p style="font-size: 12px; color: #6b7280; text-align: center;">
-      This is an automated report from SafeDNS.<br>
+      This is an automated report from Nebula DNS.<br>
       To manage your report settings, visit your dashboard.
     </p>
   </div>

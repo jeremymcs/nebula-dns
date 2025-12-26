@@ -32,7 +32,8 @@ interface Location {
   status: 'active' | 'inactive'
   policyId: string
   policyName?: string
-  ipRanges?: string[]
+  ipRange?: string
+  dyndns?: string
   createdAt: string
   updatedAt: string
 }
@@ -53,7 +54,8 @@ export default function LocationsPage() {
     name: '',
     description: '',
     policyId: '',
-    ipRanges: '',
+    ipRange: '',
+    dyndns: '',
   })
 
   const locations: Location[] = data?.data || []
@@ -64,7 +66,8 @@ export default function LocationsPage() {
       name: '',
       description: '',
       policyId: policies[0]?.id || '',
-      ipRanges: '',
+      ipRange: '',
+      dyndns: '',
     })
   }
 
@@ -80,7 +83,8 @@ export default function LocationsPage() {
       name: location.name,
       description: location.description || '',
       policyId: location.policyId || '',
-      ipRanges: location.ipRanges?.join('\n') || '',
+      ipRange: location.ipRange || '',
+      dyndns: location.dyndns || '',
     })
     setShowCreateModal(true)
   }
@@ -91,13 +95,19 @@ export default function LocationsPage() {
       return
     }
 
+    if (!form.ipRange.trim() && !form.dyndns.trim()) {
+      showToast('error', 'Either IP Range or DynDNS hostname is required')
+      return
+    }
+
     setSaving(true)
     try {
       const payload = {
         name: form.name,
         description: form.description,
         policyId: form.policyId || undefined,
-        ipRanges: form.ipRanges ? form.ipRanges.split('\n').filter(ip => ip.trim()) : [],
+        ipRange: form.ipRange.trim() || undefined,
+        dyndns: form.dyndns.trim() || undefined,
       }
 
       if (editingLocation) {
@@ -150,8 +160,8 @@ export default function LocationsPage() {
   const generateToken = async (location: Location) => {
     try {
       const result = await api.createLocationToken(location.id, {
-        name: 'DoH Access Token',
-        type: 'doh',
+        label: 'DoH Access Token',
+        expiresInDays: 365,
       })
       setGeneratedToken({
         token: result.token,
@@ -268,18 +278,19 @@ export default function LocationsPage() {
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-space-500 dark:text-space-400">IP Ranges</span>
-                  {location.ipRanges && location.ipRanges.length > 0 ? (
+                  <span className="text-space-500 dark:text-space-400">
+                    {location.dyndns ? 'DynDNS' : 'IP Range'}
+                  </span>
+                  {location.ipRange ? (
                     <span className="font-mono text-xs text-space-600 dark:text-space-300">
-                      {location.ipRanges[0]}
-                      {location.ipRanges.length > 1 && (
-                        <Badge variant="neutral" size="sm" className="ml-1">
-                          +{location.ipRanges.length - 1}
-                        </Badge>
-                      )}
+                      {location.ipRange}
+                    </span>
+                  ) : location.dyndns ? (
+                    <span className="font-mono text-xs text-space-600 dark:text-space-300">
+                      {location.dyndns}
                     </span>
                   ) : (
-                    <span className="text-xs text-space-400">Any IP</span>
+                    <span className="text-xs text-space-400">Not set</span>
                   )}
                 </div>
 
@@ -340,13 +351,24 @@ export default function LocationsPage() {
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
           />
-          <Textarea
-            label="IP Ranges (one per line)"
-            rows={3}
-            placeholder="192.168.1.0/24&#10;10.0.0.0/8"
-            value={form.ipRanges}
-            onChange={(e) => setForm({ ...form, ipRanges: e.target.value })}
-            helperText="Leave empty to allow any IP address"
+          <Input
+            label="IP Range"
+            placeholder="e.g., 192.168.1.0/24 or 203.0.113.50"
+            value={form.ipRange}
+            onChange={(e) => setForm({ ...form, ipRange: e.target.value })}
+            helperText="Static IP address or CIDR range"
+          />
+          <div className="flex items-center gap-4">
+            <div className="flex-1 h-px bg-space-200 dark:bg-space-700" />
+            <span className="text-sm text-space-500 dark:text-space-400">OR</span>
+            <div className="flex-1 h-px bg-space-200 dark:bg-space-700" />
+          </div>
+          <Input
+            label="DynDNS Hostname"
+            placeholder="e.g., myoffice.dyndns.org"
+            value={form.dyndns}
+            onChange={(e) => setForm({ ...form, dyndns: e.target.value })}
+            helperText="Dynamic DNS hostname for locations with changing IPs"
           />
           <Select
             label="Policy"

@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "safedns.api.fullname" . }}
+  name: {{ include "nebuladns.api.fullname" . }}
   labels:
-    {{- include "safedns.labels" . | nindent 4 }}
+    {{- include "nebuladns.labels" . | nindent 4 }}
     app.kubernetes.io/component: api
 spec:
   {{- if not .Values.api.autoscaling.enabled }}
@@ -11,12 +11,12 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "safedns.selectorLabels" . | nindent 6 }}
+      {{- include "nebuladns.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: api
   template:
     metadata:
       labels:
-        {{- include "safedns.selectorLabels" . | nindent 8 }}
+        {{- include "nebuladns.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: api
     spec:
       containers:
@@ -49,25 +49,25 @@ spec:
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "safedns.fullname" . }}-secrets
+                  name: {{ include "nebuladns.fullname" . }}-secrets
                   key: database-url
             - name: REDIS_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "safedns.fullname" . }}-secrets
+                  name: {{ include "nebuladns.fullname" . }}-secrets
                   key: redis-url
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "safedns.fullname" . }}-secrets
+                  name: {{ include "nebuladns.fullname" . }}-secrets
                   key: jwt-secret
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "safedns.api.fullname" . }}
+  name: {{ include "nebuladns.api.fullname" . }}
   labels:
-    {{- include "safedns.labels" . | nindent 4 }}
+    {{- include "nebuladns.labels" . | nindent 4 }}
     app.kubernetes.io/component: api
 spec:
   type: {{ .Values.api.service.type }}
@@ -77,21 +77,21 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "safedns.selectorLabels" . | nindent 4 }}
+    {{- include "nebuladns.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: api
 {{- if .Values.api.autoscaling.enabled }}
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "safedns.api.fullname" . }}
+  name: {{ include "nebuladns.api.fullname" . }}
   labels:
-    {{- include "safedns.labels" . | nindent 4 }}
+    {{- include "nebuladns.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "safedns.api.fullname" . }}
+    name: {{ include "nebuladns.api.fullname" . }}
   minReplicas: {{ .Values.api.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.api.autoscaling.maxReplicas }}
   metrics:

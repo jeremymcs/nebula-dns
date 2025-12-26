@@ -1,5 +1,5 @@
 /**
- * SafeDNS - Enterprise DNS Security Platform
+ * Nebula DNS - Enterprise DNS Security Platform
  * SSO Service Unit Tests
  */
 
@@ -41,8 +41,8 @@ describe('SsoService', () => {
     get: jest.fn().mockImplementation((key: string, defaultValue?: string) => {
       const config: Record<string, string> = {
         SSO_ENCRYPTION_KEY: 'test-sso-key-1234567890',
-        API_URL: 'https://api.safedns.example.com',
-        SAML_SP_ENTITY_ID: 'safedns-sp',
+        API_URL: 'https://api.nebuladns.example.com',
+        SAML_SP_ENTITY_ID: 'nebuladns-sp',
         JWT_REFRESH_EXPIRES_IN: '7d',
       };
       return config[key] || defaultValue;

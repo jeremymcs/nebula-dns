@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>io.safedns.agent</string>
-    
+    <string>io.nebuladns.agent</string>
+
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/local/bin/safedns-agent</string>
+        <string>/usr/local/bin/nebuladns-agent</string>
         <string>run</string>
     </array>
-    
+
     <key>RunAtLoad</key>
     <true/>
-    
+
     <key>KeepAlive</key>
     <dict>
         <key>SuccessfulExit</key>
@@ -21,13 +21,13 @@
         <key>NetworkState</key>
         <true/>
     </dict>
-    
+
     <key>StandardOutPath</key>
-    <string>/var/log/safedns-agent.log</string>
-    
+    <string>/var/log/nebuladns-agent.log</string>
+
     <key>StandardErrorPath</key>
-    <string>/var/log/safedns-agent.error.log</string>
-    
+    <string>/var/log/nebuladns-agent.error.log</string>
+
     <key>ThrottleInterval</key>
     <integer>10</integer>
 </dict>

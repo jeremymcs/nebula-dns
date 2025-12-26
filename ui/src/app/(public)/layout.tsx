@@ -23,7 +23,7 @@ export default function PublicLayout({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">SafeDNS</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">Nebula DNS</span>
             </Link>
 
             {/* Navigation Links */}
@@ -109,7 +109,7 @@ export default function PublicLayout({
           </div>
           <div className="mt-12 pt-8 border-t border-gray-800">
             <div className="flex flex-col md:flex-row justify-between items-center">
-              <p className="text-gray-400 text-sm">© 2024 SafeDNS. All rights reserved.</p>
+              <p className="text-gray-400 text-sm">© 2024 Nebula DNS. All rights reserved.</p>
               <div className="flex space-x-6 mt-4 md:mt-0">
                 <a href="#" className="text-gray-400 hover:text-white">
                   <span className="sr-only">Twitter</span>

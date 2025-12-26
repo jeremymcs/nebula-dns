@@ -1,5 +1,5 @@
 /**
- * SafeDNS Signup Page
+ * Nebula DNS Signup Page
  * Multi-step signup flow with plan selection and payment
  */
 
@@ -216,7 +216,7 @@ function SignupFormContent() {
             <div className="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircleIcon className="h-10 w-10 text-green-500" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome to SafeDNS!</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome to Nebula DNS!</h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               Your account has been created successfully. Check your email for a welcome message with getting started instructions.
             </p>

@@ -170,7 +170,7 @@ export default function AgentsPage() {
       <div>
         <h1 className="text-3xl font-bold text-space-900 dark:text-white">Client Agents</h1>
         <p className="text-space-500 dark:text-space-400 mt-1">
-          Download and manage SafeDNS client agents for your devices
+          Download and manage Nebula DNS client agents for your devices
         </p>
       </div>
 

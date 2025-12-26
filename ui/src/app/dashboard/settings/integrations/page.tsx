@@ -202,7 +202,7 @@ export default function IntegrationsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Integrations</h1>
-        <p className="text-gray-600 dark:text-gray-400">Connect SafeDNS with your security tools and workflows</p>
+        <p className="text-gray-600 dark:text-gray-400">Connect Nebula DNS with your security tools and workflows</p>
       </div>
 
       {/* SIEM Integrations Section */}
@@ -613,7 +613,7 @@ export default function IntegrationsPage() {
                   placeholder="Used for HMAC signature verification"
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  We'll sign payloads with this secret so you can verify they came from SafeDNS
+                  We'll sign payloads with this secret so you can verify they came from Nebula DNS
                 </p>
               </div>
 

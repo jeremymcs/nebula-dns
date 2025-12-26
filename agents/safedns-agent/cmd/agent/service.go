@@ -15,9 +15,9 @@ import (
 
 func createService(a *agent) (service.Service, error) {
 	svcConfig := &service.Config{
-		Name:        "SafeDNSAgent",
-		DisplayName: "SafeDNS Agent",
-		Description: "SafeDNS security agent for DNS protection",
+		Name:        "NebulaDNSAgent",
+		DisplayName: "Nebula DNS Agent",
+		Description: "Nebula DNS security agent for DNS protection",
 	}
 
 	if a == nil {
@@ -82,4 +82,3 @@ func runAgent(asService bool) error {
 
 	return nil
 }
-

@@ -19,8 +19,11 @@ export class Location extends TenantScopedEntity {
   @Column({ name: 'policy_id', type: 'uuid', nullable: true })
   policyId: string;
 
-  @Column({ type: 'inet', nullable: true })
+  @Column({ name: 'ip_range', type: 'inet', nullable: true })
   ipRange: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  dyndns: string;
 
   @Column({ name: 'rate_limit', type: 'int', default: 1000 })
   rateLimit: number;

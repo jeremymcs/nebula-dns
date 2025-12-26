@@ -1,23 +1,23 @@
 [Unit]
-Description=SafeDNS Agent
-Documentation=https://docs.safedns.io
+Description=Nebula DNS Agent
+Documentation=https://docs.nebuladns.io
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/safedns-agent run
+ExecStart=/usr/local/bin/nebuladns-agent run
 Restart=always
 RestartSec=10
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=safedns-agent
+SyslogIdentifier=nebuladns-agent
 
 # Security hardening
 NoNewPrivileges=false
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/etc/safedns /etc/resolv.conf /etc/systemd/resolved.conf.d
+ReadWritePaths=/etc/nebuladns /etc/resolv.conf /etc/systemd/resolved.conf.d
 PrivateTmp=true
 
 [Install]

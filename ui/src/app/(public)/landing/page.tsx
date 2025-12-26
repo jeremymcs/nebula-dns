@@ -1,5 +1,5 @@
 /**
- * SafeDNS Landing Page
+ * Nebula DNS Landing Page
  * Modern marketing page with hero, features, pricing preview
  */
 
@@ -220,7 +220,7 @@ export default function LandingPage() {
             Ready to secure your network?
           </h2>
           <p className="text-lg text-indigo-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of organizations protecting their networks with SafeDNS.
+            Join thousands of organizations protecting their networks with Nebula DNS.
             Start your free trial today.
           </p>
           <Link

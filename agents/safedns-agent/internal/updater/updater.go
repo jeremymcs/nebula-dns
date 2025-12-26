@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"time"
@@ -66,7 +65,7 @@ func (u *Updater) DownloadAndApply(info *UpdateInfo) error {
 	u.logger.Info("Downloading update", zap.String("version", info.Version))
 
 	// Create temp directory for download
-	tempDir, err := os.MkdirTemp("", "safedns-update-*")
+	tempDir, err := os.MkdirTemp("", "nebuladns-update-*")
 	if err != nil {
 		return fmt.Errorf("failed to create temp directory: %w", err)
 	}
@@ -76,9 +75,9 @@ func (u *Updater) DownloadAndApply(info *UpdateInfo) error {
 	var filename string
 	switch runtime.GOOS {
 	case "windows":
-		filename = "safedns-agent.exe"
+		filename = "nebuladns-agent.exe"
 	default:
-		filename = "safedns-agent"
+		filename = "nebuladns-agent"
 	}
 
 	downloadPath := filepath.Join(tempDir, filename)
@@ -154,12 +153,6 @@ func (u *Updater) applyUpdate(newBinaryPath string) error {
 		}
 	}
 
-	// Platform-specific update logic
-	switch runtime.GOOS {
-	case "windows":
-		return u.applyUpdateWindows(currentExe, newBinaryPath)
-	default:
-		return u.applyUpdateUnix(currentExe, newBinaryPath)
-	}
+	// Platform-specific update logic (defined in updater_unix.go / updater_windows.go)
+	return u.applyUpdatePlatform(currentExe, newBinaryPath)
 }
-
