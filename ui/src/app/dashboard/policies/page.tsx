@@ -45,25 +45,74 @@ interface Policy {
   currentConfig?: PolicyConfig
 }
 
-// Content categories - aligned with category-loader.py mappings
-const CATEGORIES = [
-  // Security threats
-  'malware', 'phishing', 'hacking', 'scam',
-  // Adult/Mature content
-  'adult', 'violence', 'drugs', 'weapons', 'alcohol', 'gambling',
-  // Social & Entertainment
-  'social_media', 'streaming', 'gaming', 'dating', 'chat', 'forums',
-  // Productivity blockers
-  'advertising', 'ads', 'tracking', 'proxy', 'vpn',
-  // File sharing & Downloads
-  'piracy', 'downloads', 'file_sharing',
-  // Business categories
-  'shopping', 'finance', 'jobs',
-  // Information
-  'news', 'education', 'government', 'healthcare', 'religion', 'politics',
-  // Technical
-  'dynamic_dns', 'url_shorteners', 'remote_access',
-]
+// Category groups for organized display
+const CATEGORY_GROUPS = {
+  'Security Threats': {
+    icon: '🛡️',
+    categories: ['malware', 'phishing', 'hacking', 'scam', 'cryptominer'],
+    color: 'danger',
+  },
+  'Adult & Mature': {
+    icon: '🔞',
+    categories: ['adult', 'violence', 'drugs', 'weapons', 'alcohol', 'gambling', 'dating'],
+    color: 'danger',
+  },
+  'Social & Entertainment': {
+    icon: '💬',
+    categories: ['social_media', 'streaming', 'gaming', 'chat', 'forums'],
+    color: 'warning',
+  },
+  'Productivity': {
+    icon: '⏰',
+    categories: ['advertising', 'ads', 'tracking', 'news', 'shopping'],
+    color: 'warning',
+  },
+  'Privacy & Anonymity': {
+    icon: '🕵️',
+    categories: ['proxy', 'vpn', 'dynamic_dns', 'url_shorteners', 'remote_access'],
+    color: 'accent',
+  },
+  'File Sharing': {
+    icon: '📁',
+    categories: ['piracy', 'downloads', 'file_sharing'],
+    color: 'warning',
+  },
+}
+
+// Policy presets for quick setup
+const POLICY_PRESETS = {
+  'Family Safe': {
+    description: 'Block adult content, violence, and enforce safe search',
+    blockCategories: ['adult', 'violence', 'drugs', 'weapons', 'gambling', 'dating', 'alcohol'],
+    warnCategories: ['social_media', 'gaming', 'streaming'],
+    threatBlocking: { enabled: true, feeds: ['malware', 'phishing', 'c2', 'ransomware'] },
+    safesearch: { enabled: true, services: ['google', 'bing', 'youtube'] },
+  },
+  'Corporate Security': {
+    description: 'High security for business environments',
+    blockCategories: ['malware', 'phishing', 'hacking', 'scam', 'adult', 'gambling', 'piracy', 'proxy', 'vpn', 'file_sharing', 'cryptominer'],
+    warnCategories: ['social_media', 'streaming', 'gaming'],
+    threatBlocking: { enabled: true, feeds: ['malware', 'phishing', 'c2', 'ransomware', 'botnet', 'cryptominer', 'spam'] },
+    safesearch: { enabled: true, services: ['google', 'bing', 'youtube'] },
+  },
+  'Education K-12': {
+    description: 'Safe browsing for schools',
+    blockCategories: ['adult', 'violence', 'drugs', 'weapons', 'gambling', 'dating', 'alcohol', 'hacking', 'proxy', 'vpn', 'piracy'],
+    warnCategories: ['social_media', 'gaming', 'streaming', 'chat'],
+    threatBlocking: { enabled: true, feeds: ['malware', 'phishing', 'c2'] },
+    safesearch: { enabled: true, services: ['google', 'bing', 'youtube'] },
+  },
+  'Minimal Blocking': {
+    description: 'Only block security threats',
+    blockCategories: ['malware', 'phishing', 'scam', 'cryptominer'],
+    warnCategories: [],
+    threatBlocking: { enabled: true, feeds: ['malware', 'phishing', 'c2', 'ransomware'] },
+    safesearch: { enabled: false, services: ['google', 'bing', 'youtube'] },
+  },
+}
+
+// All categories flat list for backwards compatibility
+const CATEGORIES = Object.values(CATEGORY_GROUPS).flatMap(g => g.categories)
 
 // Threat feed types - aligned with threat-feed-loader.py
 const THREAT_FEEDS = [
@@ -81,6 +130,7 @@ export default function PoliciesPage() {
     name: '',
     description: '',
     blockCategories: [] as string[],
+    warnCategories: [] as string[],
     threatBlocking: { enabled: true, feeds: ['malware', 'phishing', 'c2'] as string[] },
     safesearch: { enabled: false, services: ['google', 'bing', 'youtube'] as string[] },
     isDefault: false,
@@ -93,10 +143,25 @@ export default function PoliciesPage() {
       name: '',
       description: '',
       blockCategories: [],
+      warnCategories: [],
       threatBlocking: { enabled: true, feeds: ['malware', 'phishing', 'c2'] },
       safesearch: { enabled: false, services: ['google', 'bing', 'youtube'] },
       isDefault: false,
     })
+  }
+
+  const applyPreset = (presetName: string) => {
+    const preset = POLICY_PRESETS[presetName as keyof typeof POLICY_PRESETS]
+    if (preset) {
+      setForm(prev => ({
+        ...prev,
+        blockCategories: [...preset.blockCategories],
+        warnCategories: [...preset.warnCategories],
+        threatBlocking: { ...preset.threatBlocking },
+        safesearch: { ...preset.safesearch },
+      }))
+      showToast('success', `Applied "${presetName}" preset`)
+    }
   }
 
   const openCreateModal = () => {
@@ -111,6 +176,7 @@ export default function PoliciesPage() {
       name: policy.name,
       description: policy.description || '',
       blockCategories: policy.currentConfig?.blockCategories || [],
+      warnCategories: (policy.currentConfig as any)?.warnCategories || [],
       threatBlocking: policy.currentConfig?.threatBlocking || { enabled: true, feeds: ['malware', 'phishing', 'c2'] },
       safesearch: policy.currentConfig?.safesearch || { enabled: false, services: ['google', 'bing', 'youtube'] },
       isDefault: policy.isDefault,
@@ -132,6 +198,7 @@ export default function PoliciesPage() {
         isDefault: form.isDefault,
         config: {
           blockCategories: form.blockCategories,
+          warnCategories: form.warnCategories,
           threatBlocking: form.threatBlocking,
           safesearch: form.safesearch,
         },
@@ -181,13 +248,51 @@ export default function PoliciesPage() {
     }
   }
 
-  const toggleCategory = (category: string) => {
-    setForm(prev => ({
-      ...prev,
-      blockCategories: prev.blockCategories.includes(category)
-        ? prev.blockCategories.filter(c => c !== category)
-        : [...prev.blockCategories, category]
-    }))
+  // Cycle through: none -> block -> warn -> none
+  const cycleCategory = (category: string) => {
+    setForm(prev => {
+      const isBlocked = prev.blockCategories.includes(category)
+      const isWarned = prev.warnCategories.includes(category)
+
+      if (!isBlocked && !isWarned) {
+        // None -> Block
+        return { ...prev, blockCategories: [...prev.blockCategories, category] }
+      } else if (isBlocked) {
+        // Block -> Warn
+        return {
+          ...prev,
+          blockCategories: prev.blockCategories.filter(c => c !== category),
+          warnCategories: [...prev.warnCategories, category],
+        }
+      } else {
+        // Warn -> None
+        return { ...prev, warnCategories: prev.warnCategories.filter(c => c !== category) }
+      }
+    })
+  }
+
+  const getCategoryState = (category: string): 'none' | 'block' | 'warn' => {
+    if (form.blockCategories.includes(category)) return 'block'
+    if (form.warnCategories.includes(category)) return 'warn'
+    return 'none'
+  }
+
+  const toggleGroupCategories = (groupName: string, action: 'block' | 'warn' | 'none') => {
+    const group = CATEGORY_GROUPS[groupName as keyof typeof CATEGORY_GROUPS]
+    if (!group) return
+
+    setForm(prev => {
+      let blockCategories = prev.blockCategories.filter(c => !group.categories.includes(c))
+      let warnCategories = prev.warnCategories.filter(c => !group.categories.includes(c))
+
+      if (action === 'block') {
+        blockCategories = [...blockCategories, ...group.categories]
+      } else if (action === 'warn') {
+        warnCategories = [...warnCategories, ...group.categories]
+      }
+
+      return { ...prev, blockCategories, warnCategories }
+    })
   }
 
   const toggleThreatFeed = (feed: string) => {
@@ -373,118 +478,215 @@ export default function PoliciesPage() {
         </div>
       )}
 
-      {/* Create/Edit Modal */}
+      {/* Create/Edit Modal - Wide layout */}
       <Modal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         title={editingPolicy ? 'Edit Policy' : 'Create New Policy'}
-        size="lg"
+        size="5xl"
       >
-        <div className="space-y-6">
-          {/* Basic Info */}
-          <div className="space-y-4">
-            <Input
-              label="Policy Name"
-              required
-              placeholder="e.g., Corporate Security Policy"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-            />
-            <Textarea
-              label="Description"
-              rows={2}
-              placeholder="Policy description"
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-            />
-          </div>
-
-          {/* Threat Feeds */}
-          <div>
-            <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-3">
-              Threat Protection
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {THREAT_FEEDS.map((feed) => (
-                <label
-                  key={feed}
-                  className={clsx(
-                    'flex items-center p-3 rounded-xl cursor-pointer transition-all',
-                    'border-2',
-                    form.threatBlocking.feeds.includes(feed)
-                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                      : 'border-space-200 dark:border-space-700 hover:border-space-300 dark:hover:border-space-600'
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    checked={form.threatBlocking.feeds.includes(feed)}
-                    onChange={() => toggleThreatFeed(feed)}
-                    className="h-4 w-4 text-primary-600 rounded border-space-300 focus:ring-primary-500"
-                  />
-                  <span className="ml-3 text-sm font-medium text-space-700 dark:text-space-300 capitalize">
-                    {feed}
-                  </span>
-                </label>
-              ))}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Basic Info & Settings */}
+          <div className="space-y-6">
+            {/* Basic Info */}
+            <div className="space-y-4">
+              <Input
+                label="Policy Name"
+                required
+                placeholder="e.g., Corporate Security Policy"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+              />
+              <Textarea
+                label="Description"
+                rows={2}
+                placeholder="Policy description"
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+              />
             </div>
-          </div>
 
-          {/* Blocked Categories */}
-          <div>
-            <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-3">
-              Blocked Categories
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {CATEGORIES.map((category) => (
-                <label
-                  key={category}
-                  className={clsx(
-                    'flex items-center p-3 rounded-xl cursor-pointer transition-all',
-                    'border-2',
-                    form.blockCategories.includes(category)
-                      ? 'border-danger-500 bg-danger-50 dark:bg-danger-900/20'
-                      : 'border-space-200 dark:border-space-700 hover:border-space-300 dark:hover:border-space-600'
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    checked={form.blockCategories.includes(category)}
-                    onChange={() => toggleCategory(category)}
-                    className="h-4 w-4 text-danger-600 rounded border-space-300 focus:ring-danger-500"
-                  />
-                  <span className="ml-3 text-sm font-medium text-space-700 dark:text-space-300 capitalize">
-                    {category.replace('_', ' ')}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* SafeSearch Toggle */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-space-50 dark:bg-space-800/50 ring-1 ring-space-200 dark:ring-space-700">
+            {/* Quick Presets */}
             <div>
-              <h4 className="text-sm font-medium text-space-900 dark:text-white">SafeSearch Enforcement</h4>
-              <p className="text-sm text-space-500 dark:text-space-400">Force safe search on Google, Bing, YouTube</p>
+              <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-3">
+                Quick Presets
+              </label>
+              <div className="space-y-2">
+                {Object.entries(POLICY_PRESETS).map(([name, preset]) => (
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() => applyPreset(name)}
+                    className="w-full text-left p-3 rounded-xl border-2 border-space-200 dark:border-space-700 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all"
+                  >
+                    <span className="text-sm font-medium text-space-900 dark:text-white">{name}</span>
+                    <p className="text-xs text-space-500 dark:text-space-400 mt-0.5">{preset.description}</p>
+                  </button>
+                ))}
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setForm({ ...form, safesearch: { ...form.safesearch, enabled: !form.safesearch.enabled } })}
-              className={clsx(
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200',
-                form.safesearch.enabled ? 'bg-primary-600' : 'bg-space-300 dark:bg-space-600'
-              )}
-            >
-              <span className={clsx(
-                'inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200',
-                form.safesearch.enabled ? 'translate-x-5' : 'translate-x-0.5'
-              )} />
-            </button>
+
+            {/* Threat Protection */}
+            <div>
+              <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-3">
+                Threat Protection
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {THREAT_FEEDS.map((feed) => (
+                  <label
+                    key={feed}
+                    className={clsx(
+                      'flex items-center p-2.5 rounded-lg cursor-pointer transition-all text-xs',
+                      'border',
+                      form.threatBlocking.feeds.includes(feed)
+                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                        : 'border-space-200 dark:border-space-700 hover:border-space-300'
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={form.threatBlocking.feeds.includes(feed)}
+                      onChange={() => toggleThreatFeed(feed)}
+                      className="h-3.5 w-3.5 text-primary-600 rounded border-space-300 focus:ring-primary-500"
+                    />
+                    <span className="ml-2 font-medium text-space-700 dark:text-space-300 capitalize">
+                      {feed}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* SafeSearch Toggle */}
+            <div className="flex items-center justify-between p-4 rounded-xl bg-space-50 dark:bg-space-800/50 ring-1 ring-space-200 dark:ring-space-700">
+              <div>
+                <h4 className="text-sm font-medium text-space-900 dark:text-white">SafeSearch</h4>
+                <p className="text-xs text-space-500 dark:text-space-400">Google, Bing, YouTube</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, safesearch: { ...form.safesearch, enabled: !form.safesearch.enabled } })}
+                className={clsx(
+                  'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200',
+                  form.safesearch.enabled ? 'bg-primary-600' : 'bg-space-300 dark:bg-space-600'
+                )}
+              >
+                <span className={clsx(
+                  'inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200',
+                  form.safesearch.enabled ? 'translate-x-5' : 'translate-x-0.5'
+                )} />
+              </button>
+            </div>
+          </div>
+
+          {/* Right Columns - Categories Grid */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium text-space-700 dark:text-space-300">
+                Content Categories
+              </label>
+              <div className="flex items-center gap-4 text-xs">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded bg-danger-500"></span>
+                  <span className="text-space-600 dark:text-space-400">Block</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded bg-warning-500"></span>
+                  <span className="text-space-600 dark:text-space-400">Warn</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded bg-space-300 dark:bg-space-600"></span>
+                  <span className="text-space-600 dark:text-space-400">Allow</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              {Object.entries(CATEGORY_GROUPS).map(([groupName, group]) => (
+                <div
+                  key={groupName}
+                  className="p-4 rounded-xl border border-space-200 dark:border-space-700 bg-space-50/50 dark:bg-space-800/30"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-medium text-space-900 dark:text-white flex items-center gap-2">
+                      <span>{group.icon}</span>
+                      {groupName}
+                    </h4>
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => toggleGroupCategories(groupName, 'block')}
+                        className="p-1 rounded text-xs text-danger-600 hover:bg-danger-100 dark:hover:bg-danger-900/30"
+                        title="Block all"
+                      >
+                        🚫
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => toggleGroupCategories(groupName, 'warn')}
+                        className="p-1 rounded text-xs text-warning-600 hover:bg-warning-100 dark:hover:bg-warning-900/30"
+                        title="Warn all"
+                      >
+                        ⚠️
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => toggleGroupCategories(groupName, 'none')}
+                        className="p-1 rounded text-xs text-space-600 hover:bg-space-100 dark:hover:bg-space-700"
+                        title="Allow all"
+                      >
+                        ✓
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    {group.categories.map((category) => {
+                      const state = getCategoryState(category)
+                      return (
+                        <button
+                          key={category}
+                          type="button"
+                          onClick={() => cycleCategory(category)}
+                          className={clsx(
+                            'w-full flex items-center justify-between p-2 rounded-lg text-sm transition-all',
+                            state === 'block' && 'bg-danger-100 dark:bg-danger-900/30 text-danger-800 dark:text-danger-200',
+                            state === 'warn' && 'bg-warning-100 dark:bg-warning-900/30 text-warning-800 dark:text-warning-200',
+                            state === 'none' && 'bg-white dark:bg-space-800 text-space-700 dark:text-space-300 hover:bg-space-100 dark:hover:bg-space-700'
+                          )}
+                        >
+                          <span className="capitalize">{category.replace(/_/g, ' ')}</span>
+                          <span className="text-xs font-medium">
+                            {state === 'block' && '🚫'}
+                            {state === 'warn' && '⚠️'}
+                            {state === 'none' && '—'}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Summary */}
+            <div className="flex flex-wrap gap-2 p-3 rounded-xl bg-space-100 dark:bg-space-800 text-xs">
+              <span className="text-space-600 dark:text-space-400">
+                <strong className="text-danger-600">{form.blockCategories.length}</strong> blocked
+              </span>
+              <span className="text-space-400">•</span>
+              <span className="text-space-600 dark:text-space-400">
+                <strong className="text-warning-600">{form.warnCategories.length}</strong> warned
+              </span>
+              <span className="text-space-400">•</span>
+              <span className="text-space-600 dark:text-space-400">
+                <strong className="text-primary-600">{form.threatBlocking.feeds.length}</strong> threat feeds
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Modal Footer */}
-        <div className="mt-8 flex justify-end gap-3">
+        <div className="mt-8 flex justify-end gap-3 pt-4 border-t border-space-200 dark:border-space-700">
           <Button
             variant="secondary"
             onClick={() => setShowCreateModal(false)}
