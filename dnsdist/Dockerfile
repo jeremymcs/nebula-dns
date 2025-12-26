@@ -1,4 +1,4 @@
-FROM powerdns/dnsdist-18:latest
+FROM powerdns/dnsdist-19:latest
 
 # Copy configuration
 COPY config/dnsdist/ /etc/dnsdist/

@@ -1,7 +1,7 @@
 # Nebula DNS - dnsdist Dockerfile
 # Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-FROM powerdns/dnsdist-18:latest
+FROM powerdns/dnsdist-19:latest
 
 # Install additional packages (Debian-based image)
 USER root
