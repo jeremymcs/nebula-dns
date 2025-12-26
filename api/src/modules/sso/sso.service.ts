@@ -165,6 +165,17 @@ export class SsoService {
     return this.ssoConfigRepository.save(config);
   }
 
+  // Check if SSO is enabled for a tenant
+  async isEnabled(tenantId: string): Promise<boolean> {
+    const config = await this.getConfiguration(tenantId);
+    return config?.isEnabled ?? false;
+  }
+
+  // Alias for disableSso - used by tests
+  async disable(tenantId: string): Promise<SsoConfiguration> {
+    return this.disableSso(tenantId);
+  }
+
   async deleteSsoConfig(tenantId: string): Promise<void> {
     await this.ssoConfigRepository.delete({ tenantId });
     await this.tenantRepository.update(tenantId, { ssoEnabled: false, ssoEnforced: false } as any);

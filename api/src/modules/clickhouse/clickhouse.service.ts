@@ -495,6 +495,11 @@ export class ClickHouseService implements OnModuleInit {
     );
   }
 
+  // Alias for getTopBlocked - used by realtime gateway
+  async getTopBlockedDomains(tenantId: string, period: string, limit: number = 10): Promise<any[]> {
+    return this.getTopBlocked(tenantId, period, limit);
+  }
+
   async getBlocksByCategory(tenantId: string, period: string): Promise<any[]> {
     const dateFilter = this.getPeriodFilter(period);
 

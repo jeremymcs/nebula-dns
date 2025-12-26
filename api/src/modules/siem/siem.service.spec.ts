@@ -128,7 +128,7 @@ describe('SiemService', () => {
       const dto = {
         name: 'Test Syslog',
         host: 'syslog.example.com',
-        port: 514,
+        port: '514',
         protocol: 'udp' as const,
         format: 'cef' as const,
       };
