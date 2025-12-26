@@ -45,12 +45,30 @@ interface Policy {
   currentConfig?: PolicyConfig
 }
 
+// Content categories - aligned with category-loader.py mappings
 const CATEGORIES = [
-  'adult', 'advertising', 'malware', 'phishing', 'gambling', 
-  'social_media', 'streaming', 'gaming', 'drugs', 'weapons'
+  // Security threats
+  'malware', 'phishing', 'hacking', 'scam',
+  // Adult/Mature content
+  'adult', 'violence', 'drugs', 'weapons', 'alcohol', 'gambling',
+  // Social & Entertainment
+  'social_media', 'streaming', 'gaming', 'dating', 'chat', 'forums',
+  // Productivity blockers
+  'advertising', 'ads', 'tracking', 'proxy', 'vpn',
+  // File sharing & Downloads
+  'piracy', 'downloads', 'file_sharing',
+  // Business categories
+  'shopping', 'finance', 'jobs',
+  // Information
+  'news', 'education', 'government', 'healthcare', 'religion', 'politics',
+  // Technical
+  'dynamic_dns', 'url_shorteners', 'remote_access',
 ]
 
-const THREAT_FEEDS = ['malware', 'phishing', 'c2', 'cryptomining']
+// Threat feed types - aligned with threat-feed-loader.py
+const THREAT_FEEDS = [
+  'malware', 'phishing', 'botnet', 'ransomware', 'cryptominer', 'c2', 'spam', 'malvertising'
+]
 
 export default function PoliciesPage() {
   const { data, isLoading, error, mutate } = usePolicies()
