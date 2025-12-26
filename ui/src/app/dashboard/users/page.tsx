@@ -1,8 +1,8 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
- * Users Management Page
+ *
+ * Users Management Page - Cosmic Security Theme
  */
 
 'use client'
@@ -12,9 +12,9 @@ import { useUsers, useInvitations } from '@/hooks/useApi'
 import { api } from '@/lib/api'
 import { useToast } from '@/components/Toast'
 import { useAuth } from '@/contexts/AuthContext'
-import { 
-  PlusIcon, 
-  PencilIcon, 
+import {
+  PlusIcon,
+  PencilIcon,
   TrashIcon,
   UserIcon,
   UserPlusIcon,
@@ -24,6 +24,7 @@ import {
   ShieldCheckIcon,
   ClockIcon
 } from '@heroicons/react/24/outline'
+import { Button, Card, Badge, Modal, Input, EmptyState } from '@/components/ui'
 
 interface User {
   id: string
@@ -192,64 +193,68 @@ export default function UsersPage() {
     }
   }
 
-  const getRoleColor = (role: string) => {
+  const getRoleBadgeVariant = (role: string): 'primary' | 'success' | 'warning' | 'danger' | 'neutral' => {
     switch (role) {
-      case 'owner': return 'bg-purple-100 text-purple-800'
-      case 'admin': return 'bg-blue-100 text-blue-800'
-      case 'analyst': return 'bg-green-100 text-green-800'
-      case 'readonly': return 'bg-gray-100 text-gray-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'owner': return 'primary'
+      case 'admin': return 'primary'
+      case 'analyst': return 'success'
+      case 'readonly': return 'neutral'
+      default: return 'neutral'
     }
   }
 
   if (usersError) {
     return (
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mt-8 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-800">Failed to load users. Make sure the API is running.</p>
-        </div>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <Card variant="solid" padding="lg" className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
+          <p className="text-red-800 dark:text-red-200">Failed to load users. Make sure the API is running.</p>
+        </Card>
       </div>
     )
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Page Header */}
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Team Members</h1>
-          <p className="mt-2 text-sm text-gray-700">
+          <h1 className="text-3xl font-bold text-space-900 dark:text-white">Team Members</h1>
+          <p className="mt-2 text-space-500 dark:text-space-400">
             Manage users and pending invitations
           </p>
         </div>
         {isAdmin && (
           <div className="mt-4 sm:mt-0">
-            <button onClick={() => setShowInviteModal(true)} className="btn-primary inline-flex items-center">
-              <UserPlusIcon className="h-5 w-5 mr-2" />
+            <Button
+              variant="primary"
+              onClick={() => setShowInviteModal(true)}
+              leftIcon={<UserPlusIcon className="h-5 w-5" />}
+            >
               Invite Team Member
-            </button>
+            </Button>
           </div>
         )}
       </div>
 
       {/* Tabs */}
-      <div className="mt-6 border-b border-gray-200">
+      <div className="border-b border-space-200 dark:border-space-700">
         <nav className="-mb-px flex space-x-8">
           <button
             onClick={() => setActiveTab('users')}
-            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'users' 
-                ? 'border-primary-500 text-primary-600' 
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'users'
+                ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                : 'border-transparent text-space-500 dark:text-space-400 hover:text-space-700 dark:hover:text-space-300 hover:border-space-300 dark:hover:border-space-600'
             }`}
           >
             Team Members ({users.length})
           </button>
           <button
             onClick={() => setActiveTab('invitations')}
-            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'invitations' 
-                ? 'border-primary-500 text-primary-600' 
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'invitations'
+                ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                : 'border-transparent text-space-500 dark:text-space-400 hover:text-space-700 dark:hover:text-space-300 hover:border-space-300 dark:hover:border-space-600'
             }`}
           >
             Pending Invitations ({pendingInvitations.length})
@@ -260,367 +265,294 @@ export default function UsersPage() {
       {/* Users Tab */}
       {activeTab === 'users' && (
         usersLoading ? (
-          <div className="mt-8 flex items-center justify-center py-12">
-            <ArrowPathIcon className="h-8 w-8 animate-spin text-gray-400" />
+          <div className="space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="skeleton h-16 rounded-xl" />
+            ))}
           </div>
         ) : (
-          <div className="mt-6">
-            <div className="card overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+          <Card variant="solid" padding="none">
+            <div className="table-container">
+              <table className="table">
+                <thead className="table-header">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      User
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Role
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      MFA
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Last Login
-                    </th>
-                    {isAdmin && (
-                      <th className="relative px-6 py-3">
-                        <span className="sr-only">Actions</span>
-                      </th>
-                    )}
+                    <th className="table-header-cell">User</th>
+                    <th className="table-header-cell">Role</th>
+                    <th className="table-header-cell">Status</th>
+                    <th className="table-header-cell">MFA</th>
+                    <th className="table-header-cell">Last Login</th>
+                    {isAdmin && <th className="table-header-cell text-right">Actions</th>}
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="table-body">
                   {users.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <tr key={user.id} className="table-row">
+                      <td className="table-cell">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                            <span className="text-sm font-medium text-gray-600">
+                          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                            <span className="text-sm font-medium text-primary-600 dark:text-primary-400">
                               {user.name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
                             </span>
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm font-medium text-space-900 dark:text-white">
                               {user.name || 'No name'}
                               {user.id === currentUser?.id && (
-                                <span className="ml-2 text-xs text-gray-500">(you)</span>
+                                <span className="ml-2 text-xs text-space-500 dark:text-space-400">(you)</span>
                               )}
                             </div>
-                            <div className="text-sm text-gray-500">{user.email}</div>
+                            <div className="text-sm text-space-500 dark:text-space-400">{user.email}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getRoleColor(user.role)}`}>
+                      <td className="table-cell">
+                        <Badge variant={getRoleBadgeVariant(user.role)} size="sm">
                           {user.role}
-                        </span>
+                        </Badge>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          user.status === 'active' 
-                            ? 'bg-green-100 text-green-800' 
-                            : user.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
+                      <td className="table-cell">
+                        <Badge
+                          variant={user.status === 'active' ? 'success' : user.status === 'pending' ? 'warning' : 'neutral'}
+                          size="sm"
+                        >
                           {user.status === 'active' ? 'Active' : user.status === 'pending' ? 'Pending' : 'Inactive'}
-                        </span>
+                        </Badge>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="table-cell">
                         {user.mfaEnabled ? (
-                          <ShieldCheckIcon className="h-5 w-5 text-green-500" title="MFA Enabled" />
+                          <ShieldCheckIcon className="h-5 w-5 text-green-500 dark:text-green-400" title="MFA Enabled" />
                         ) : (
-                          <span className="text-xs text-gray-400">Not set up</span>
+                          <span className="text-xs text-space-400">Not set up</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {user.lastLogin 
-                          ? new Date(user.lastLogin).toLocaleDateString() 
-                          : 'Never'}
+                      <td className="table-cell text-space-500 dark:text-space-400">
+                        {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}
                       </td>
                       {isAdmin && (
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <td className="table-cell text-right">
                           {user.role !== 'owner' && user.id !== currentUser?.id && (
                             <div className="flex justify-end space-x-2">
-                              <button 
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => openEditModal(user)}
-                                className="p-1 text-gray-400 hover:text-gray-600"
-                                title="Edit"
-                              >
-                                <PencilIcon className="h-5 w-5" />
-                              </button>
-                              <button 
+                                leftIcon={<PencilIcon className="h-4 w-4" />}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => handleRemoveUser(user)}
-                                className="p-1 text-gray-400 hover:text-red-600"
-                                title="Remove"
-                              >
-                                <TrashIcon className="h-5 w-5" />
-                              </button>
+                                leftIcon={<TrashIcon className="h-4 w-4 text-red-500" />}
+                              />
                             </div>
                           )}
                         </td>
                       )}
                     </tr>
                   ))}
-                  {users.length === 0 && (
-                    <tr>
-                      <td colSpan={isAdmin ? 6 : 5} className="px-6 py-12 text-center">
-                        <UserIcon className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">No team members</h3>
-                        <p className="mt-1 text-sm text-gray-500">Get started by inviting a team member.</p>
-                      </td>
-                    </tr>
-                  )}
                 </tbody>
               </table>
+              {users.length === 0 && (
+                <EmptyState
+                  icon={<UserIcon className="h-12 w-12" />}
+                  title="No team members"
+                  description="Get started by inviting a team member."
+                />
+              )}
             </div>
-          </div>
+          </Card>
         )
       )}
 
       {/* Invitations Tab */}
       {activeTab === 'invitations' && (
         invitationsLoading ? (
-          <div className="mt-8 flex items-center justify-center py-12">
-            <ArrowPathIcon className="h-8 w-8 animate-spin text-gray-400" />
+          <div className="space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="skeleton h-16 rounded-xl" />
+            ))}
           </div>
         ) : (
-          <div className="mt-6">
-            <div className="card overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+          <Card variant="solid" padding="none">
+            <div className="table-container">
+              <table className="table">
+                <thead className="table-header">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Role
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Expires
-                    </th>
-                    {isAdmin && (
-                      <th className="relative px-6 py-3">
-                        <span className="sr-only">Actions</span>
-                      </th>
-                    )}
+                    <th className="table-header-cell">Email</th>
+                    <th className="table-header-cell">Role</th>
+                    <th className="table-header-cell">Status</th>
+                    <th className="table-header-cell">Expires</th>
+                    {isAdmin && <th className="table-header-cell text-right">Actions</th>}
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="table-body">
                   {invitations.map((invitation) => (
-                    <tr key={invitation.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <tr key={invitation.id} className="table-row">
+                      <td className="table-cell">
                         <div className="flex items-center">
-                          <EnvelopeIcon className="h-5 w-5 text-gray-400 mr-3" />
-                          <span className="text-sm text-gray-900">{invitation.email}</span>
+                          <EnvelopeIcon className="h-5 w-5 text-space-400 mr-3" />
+                          <span className="text-sm text-space-900 dark:text-white">{invitation.email}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getRoleColor(invitation.role)}`}>
+                      <td className="table-cell">
+                        <Badge variant={getRoleBadgeVariant(invitation.role)} size="sm">
                           {invitation.role}
-                        </span>
+                        </Badge>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          invitation.status === 'pending' 
-                            ? 'bg-yellow-100 text-yellow-800' 
-                            : invitation.status === 'accepted'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}>
+                      <td className="table-cell">
+                        <Badge
+                          variant={invitation.status === 'pending' ? 'warning' : invitation.status === 'accepted' ? 'success' : 'danger'}
+                          size="sm"
+                        >
                           {invitation.status}
-                        </span>
+                        </Badge>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="table-cell text-space-500 dark:text-space-400">
                         <div className="flex items-center">
-                          <ClockIcon className="h-4 w-4 mr-1 text-gray-400" />
+                          <ClockIcon className="h-4 w-4 mr-1 text-space-400" />
                           {new Date(invitation.expiresAt).toLocaleDateString()}
                         </div>
                       </td>
                       {isAdmin && (
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <td className="table-cell text-right">
                           {invitation.status === 'pending' && (
                             <div className="flex justify-end space-x-2">
-                              <button 
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => handleResendInvitation(invitation)}
-                                className="text-primary-600 hover:text-primary-800 text-sm font-medium"
                               >
                                 Resend
-                              </button>
-                              <button 
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => handleRevokeInvitation(invitation)}
-                                className="text-red-600 hover:text-red-800 text-sm font-medium"
+                                className="text-red-600 hover:text-red-400"
                               >
                                 Revoke
-                              </button>
+                              </Button>
                             </div>
                           )}
                         </td>
                       )}
                     </tr>
                   ))}
-                  {invitations.length === 0 && (
-                    <tr>
-                      <td colSpan={isAdmin ? 5 : 4} className="px-6 py-12 text-center">
-                        <EnvelopeIcon className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">No invitations</h3>
-                        <p className="mt-1 text-sm text-gray-500">Invite team members to get started.</p>
-                      </td>
-                    </tr>
-                  )}
                 </tbody>
               </table>
+              {invitations.length === 0 && (
+                <EmptyState
+                  icon={<EnvelopeIcon className="h-12 w-12" />}
+                  title="No invitations"
+                  description="Invite team members to get started."
+                />
+              )}
             </div>
-          </div>
+          </Card>
         )
       )}
 
       {/* Invite Modal */}
-      {showInviteModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-center justify-center p-4">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75" onClick={() => setShowInviteModal(false)} />
-            <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Invite Team Member</h3>
-                <button onClick={() => setShowInviteModal(false)} className="text-gray-400 hover:text-gray-500">
-                  <XMarkIcon className="h-6 w-6" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Email Address *</label>
-                  <input 
-                    type="email" 
-                    className="input mt-1" 
-                    placeholder="colleague@company.com"
-                    value={inviteForm.email}
-                    onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+      <Modal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        title="Invite Team Member"
+        size="md"
+      >
+        <div className="space-y-4">
+          <Input
+            label="Email Address"
+            type="email"
+            placeholder="colleague@company.com"
+            value={inviteForm.email}
+            onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+            required
+          />
+          <div>
+            <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">Role</label>
+            <div className="space-y-2">
+              {ROLES.map((role) => (
+                <label
+                  key={role.value}
+                  className={`flex items-start p-3 border rounded-xl cursor-pointer transition-colors ${
+                    inviteForm.role === role.value
+                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                      : 'border-space-200 dark:border-space-700 hover:bg-space-50 dark:hover:bg-space-800'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="role"
+                    value={role.value}
+                    checked={inviteForm.role === role.value}
+                    onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value as typeof inviteForm.role })}
+                    className="mt-0.5 h-4 w-4 text-primary-600"
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
-                  <div className="space-y-2">
-                    {ROLES.map((role) => (
-                      <label 
-                        key={role.value}
-                        className={`flex items-start p-3 border rounded-lg cursor-pointer ${
-                          inviteForm.role === role.value ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:bg-gray-50'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="role"
-                          value={role.value}
-                          checked={inviteForm.role === role.value}
-                          onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value as typeof inviteForm.role })}
-                          className="mt-0.5 h-4 w-4 text-primary-600"
-                        />
-                        <div className="ml-3">
-                          <span className="text-sm font-medium text-gray-900">{role.label}</span>
-                          <p className="text-xs text-gray-500">{role.description}</p>
-                        </div>
-                      </label>
-                    ))}
+                  <div className="ml-3">
+                    <span className="text-sm font-medium text-space-900 dark:text-white">{role.label}</span>
+                    <p className="text-xs text-space-500 dark:text-space-400">{role.description}</p>
                   </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
-                <button 
-                  type="button" 
-                  className="btn-secondary" 
-                  onClick={() => setShowInviteModal(false)}
-                  disabled={saving}
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={handleInvite} 
-                  className="btn-primary"
-                  disabled={saving}
-                >
-                  {saving ? 'Sending...' : 'Send Invitation'}
-                </button>
-              </div>
+                </label>
+              ))}
             </div>
           </div>
         </div>
-      )}
+        <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-space-200 dark:border-space-700">
+          <Button variant="secondary" onClick={() => setShowInviteModal(false)} disabled={saving}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleInvite} disabled={saving}>
+            {saving ? 'Sending...' : 'Send Invitation'}
+          </Button>
+        </div>
+      </Modal>
 
       {/* Edit User Modal */}
-      {showEditModal && editingUser && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-center justify-center p-4">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75" onClick={() => setShowEditModal(false)} />
-            <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Edit User</h3>
-                <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-gray-500">
-                  <XMarkIcon className="h-6 w-6" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
-                  <input 
-                    type="text" 
-                    className="input mt-1" 
-                    value={editForm.name}
-                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Email</label>
-                  <input 
-                    type="email" 
-                    className="input mt-1 bg-gray-50" 
-                    value={editingUser.email}
-                    disabled
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
-                  <select 
-                    className="input"
-                    value={editForm.role}
-                    onChange={(e) => setEditForm({ ...editForm, role: e.target.value as typeof editForm.role })}
-                  >
-                    <option value="admin">Admin</option>
-                    <option value="analyst">Analyst</option>
-                    <option value="readonly">Read Only</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
-                <button 
-                  type="button" 
-                  className="btn-secondary" 
-                  onClick={() => setShowEditModal(false)}
-                  disabled={saving}
+      <Modal
+        isOpen={showEditModal && !!editingUser}
+        onClose={() => setShowEditModal(false)}
+        title="Edit User"
+        size="md"
+      >
+        {editingUser && (
+          <>
+            <div className="space-y-4">
+              <Input
+                label="Name"
+                type="text"
+                value={editForm.name}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+              />
+              <Input
+                label="Email"
+                type="email"
+                value={editingUser.email}
+                disabled
+              />
+              <div>
+                <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">Role</label>
+                <select
+                  className="w-full px-4 py-2.5 rounded-xl border border-space-200 dark:border-space-700 bg-white dark:bg-space-800 text-space-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  value={editForm.role}
+                  onChange={(e) => setEditForm({ ...editForm, role: e.target.value as typeof editForm.role })}
                 >
-                  Cancel
-                </button>
-                <button 
-                  onClick={handleUpdateUser} 
-                  className="btn-primary"
-                  disabled={saving}
-                >
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </button>
+                  <option value="admin">Admin</option>
+                  <option value="analyst">Analyst</option>
+                  <option value="readonly">Read Only</option>
+                </select>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+            <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-space-200 dark:border-space-700">
+              <Button variant="secondary" onClick={() => setShowEditModal(false)} disabled={saving}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={handleUpdateUser} disabled={saving}>
+                {saving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </>
+        )}
+      </Modal>
     </div>
   )
 }

@@ -1,29 +1,28 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
- * Domain Lists Management Page (Allowlists / Blocklists)
+ *
+ * Domain Lists Management Page - Cosmic Security Theme
  */
 
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { useLists, useListEntries } from '@/hooks/useApi'
 import { api } from '@/lib/api'
 import { useToast } from '@/components/Toast'
-import { 
-  PlusIcon, 
-  PencilIcon, 
+import {
+  PlusIcon,
+  PencilIcon,
   TrashIcon,
   QueueListIcon,
-  ArrowPathIcon,
   XMarkIcon,
   MagnifyingGlassIcon,
   ArrowUpTrayIcon,
   CheckCircleIcon,
   NoSymbolIcon,
-  DocumentTextIcon
 } from '@heroicons/react/24/outline'
+import { Button, Card, Badge, Input, Modal, EmptyState, Tabs } from '@/components/ui'
 
 interface DomainList {
   id: string
@@ -220,113 +219,110 @@ export default function ListsPage() {
     }
   }
 
+  const tabItems = [
+    { id: 'all', label: 'All Lists' },
+    { id: 'allowlist', label: 'Allowlists' },
+    { id: 'blocklist', label: 'Blocklists' },
+  ]
+
   if (error) {
     return (
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mt-8 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-800">Failed to load lists. Make sure the API is running.</p>
-        </div>
+      <div className="space-y-8">
+        <Card variant="solid" padding="lg" className="border-red-500/50 bg-red-500/10">
+          <p className="text-red-600 dark:text-red-400">Failed to load lists. Make sure the API is running.</p>
+        </Card>
       </div>
     )
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div className="sm:flex sm:items-center sm:justify-between">
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Domain Lists</h1>
-          <p className="mt-2 text-sm text-gray-700">
+          <h1 className="text-2xl font-bold text-space-900 dark:text-white">Domain Lists</h1>
+          <p className="mt-1 text-space-500 dark:text-space-400">
             Manage custom allowlists and blocklists for fine-grained control
           </p>
         </div>
-        <div className="mt-4 sm:mt-0 flex space-x-3">
-          <button 
-            onClick={() => openCreateModal('allowlist')} 
-            className="btn-secondary inline-flex items-center"
+        <div className="flex gap-3">
+          <Button
+            variant="secondary"
+            onClick={() => openCreateModal('allowlist')}
+            leftIcon={<CheckCircleIcon className="h-5 w-5 text-green-500" />}
           >
-            <CheckCircleIcon className="h-5 w-5 mr-2 text-green-500" />
             New Allowlist
-          </button>
-          <button 
-            onClick={() => openCreateModal('blocklist')} 
-            className="btn-primary inline-flex items-center"
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => openCreateModal('blocklist')}
+            leftIcon={<NoSymbolIcon className="h-5 w-5" />}
           >
-            <NoSymbolIcon className="h-5 w-5 mr-2" />
             New Blocklist
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Filter Tabs */}
-      <div className="mt-6 border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          {['all', 'allowlist', 'blocklist'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setFilter(tab as typeof filter)}
-              className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm capitalize ${
-                filter === tab 
-                  ? 'border-primary-500 text-primary-600' 
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              {tab === 'all' ? 'All Lists' : `${tab}s`}
-            </button>
-          ))}
-        </nav>
-      </div>
+      <Tabs
+        tabs={tabItems}
+        activeTab={filter}
+        onChange={(id) => setFilter(id as typeof filter)}
+      />
 
       {isLoading ? (
-        <div className="mt-8 flex items-center justify-center py-12">
-          <ArrowPathIcon className="h-8 w-8 animate-spin text-gray-400" />
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="skeleton h-48 rounded-xl" />
+          ))}
         </div>
       ) : (
-        <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {lists.map((list) => (
-            <div 
-              key={list.id} 
-              className="card p-6 cursor-pointer hover:shadow-md transition-shadow"
+            <Card
+              key={list.id}
+              variant="interactive"
+              padding="lg"
+              className="cursor-pointer"
               onClick={() => openEntriesModal(list)}
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center">
-                  <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
-                    list.type === 'allowlist' ? 'bg-green-100' : 'bg-red-100'
+                  <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${
+                    list.type === 'allowlist'
+                      ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30'
+                      : 'bg-gradient-to-br from-red-500/20 to-rose-500/20 border border-red-500/30'
                   }`}>
                     {list.type === 'allowlist' ? (
-                      <CheckCircleIcon className="h-6 w-6 text-green-600" />
+                      <CheckCircleIcon className="h-6 w-6 text-green-500" />
                     ) : (
-                      <NoSymbolIcon className="h-6 w-6 text-red-600" />
+                      <NoSymbolIcon className="h-6 w-6 text-red-500" />
                     )}
                   </div>
                   <div className="ml-3">
-                    <h3 className="text-sm font-medium text-gray-900">{list.name}</h3>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                      list.type === 'allowlist' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
+                    <h3 className="font-semibold text-space-900 dark:text-white">{list.name}</h3>
+                    <Badge variant={list.type === 'allowlist' ? 'success' : 'danger'} size="sm">
                       {list.type === 'allowlist' ? 'Allowlist' : 'Blocklist'}
-                    </span>
+                    </Badge>
                   </div>
                 </div>
-                <div className="flex space-x-1">
-                  <button 
+                <div className="flex gap-1">
+                  <button
                     onClick={(e) => {
                       e.stopPropagation()
                       openEditModal(list)
                     }}
-                    className="p-1 text-gray-400 hover:text-gray-600"
+                    className="p-2 rounded-lg text-space-400 hover:text-space-600 dark:hover:text-space-300 hover:bg-space-100 dark:hover:bg-space-700 transition-colors"
                     title="Edit"
                   >
                     <PencilIcon className="h-4 w-4" />
                   </button>
-                  <button 
+                  <button
                     onClick={(e) => {
                       e.stopPropagation()
                       handleDelete(list)
                     }}
-                    className="p-1 text-gray-400 hover:text-red-600"
+                    className="p-2 rounded-lg text-space-400 hover:text-red-500 hover:bg-red-500/10 transition-colors"
                     title="Delete"
                   >
                     <TrashIcon className="h-4 w-4" />
@@ -334,258 +330,235 @@ export default function ListsPage() {
                 </div>
               </div>
 
-              <p className="mt-3 text-sm text-gray-500 line-clamp-2">
+              <p className="mt-3 text-sm text-space-500 dark:text-space-400 line-clamp-2">
                 {list.description || 'No description'}
               </p>
 
               <div className="mt-4 flex items-center justify-between text-sm">
-                <span className="text-gray-500">
-                  <span className="font-medium text-gray-900">{list.entryCount}</span> domains
+                <span className="text-space-500 dark:text-space-400">
+                  <span className="font-semibold text-space-900 dark:text-white">{list.entryCount}</span> domains
                 </span>
-                <span className="text-gray-400 text-xs">
+                <span className="text-space-400 text-xs">
                   Updated {new Date(list.updatedAt).toLocaleDateString()}
                 </span>
               </div>
-            </div>
+            </Card>
           ))}
 
           {lists.length === 0 && (
-            <div className="col-span-full text-center py-12">
-              <QueueListIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No lists</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by creating a blocklist or allowlist.</p>
-              <div className="mt-6 flex justify-center space-x-3">
-                <button onClick={() => openCreateModal('allowlist')} className="btn-secondary inline-flex items-center">
-                  <CheckCircleIcon className="h-5 w-5 mr-2 text-green-500" />
-                  New Allowlist
-                </button>
-                <button onClick={() => openCreateModal('blocklist')} className="btn-primary inline-flex items-center">
-                  <NoSymbolIcon className="h-5 w-5 mr-2" />
-                  New Blocklist
-                </button>
-              </div>
+            <div className="col-span-full">
+              <EmptyState
+                icon={<QueueListIcon className="h-12 w-12" />}
+                title="No lists"
+                description="Get started by creating a blocklist or allowlist."
+                action={
+                  <div className="flex gap-3">
+                    <Button
+                      variant="secondary"
+                      onClick={() => openCreateModal('allowlist')}
+                      leftIcon={<CheckCircleIcon className="h-5 w-5 text-green-500" />}
+                    >
+                      New Allowlist
+                    </Button>
+                    <Button
+                      variant="primary"
+                      onClick={() => openCreateModal('blocklist')}
+                      leftIcon={<NoSymbolIcon className="h-5 w-5" />}
+                    >
+                      New Blocklist
+                    </Button>
+                  </div>
+                }
+              />
             </div>
           )}
         </div>
       )}
 
       {/* Create/Edit Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-center justify-center p-4">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75" onClick={() => setShowCreateModal(false)} />
-            <div className="relative bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">
-                  {editingList ? 'Edit List' : `Create ${form.type === 'allowlist' ? 'Allowlist' : 'Blocklist'}`}
-                </h3>
-                <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-500">
-                  <XMarkIcon className="h-6 w-6" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">List Name *</label>
-                  <input 
-                    type="text" 
-                    className="input mt-1" 
-                    placeholder="e.g., Company Allowed Domains"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title={editingList ? 'Edit List' : `Create ${form.type === 'allowlist' ? 'Allowlist' : 'Blocklist'}`}
+      >
+        <div className="space-y-4">
+          <Input
+            label="List Name *"
+            placeholder="e.g., Company Allowed Domains"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+          <div>
+            <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-1">Description</label>
+            <textarea
+              className="w-full px-4 py-3 rounded-xl border border-space-200 dark:border-space-600 bg-white dark:bg-space-800 text-space-900 dark:text-white placeholder-space-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
+              rows={2}
+              placeholder="Purpose of this list"
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+          </div>
+          {!editingList && (
+            <div>
+              <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">List Type</label>
+              <div className="flex gap-4">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="type"
+                    value="blocklist"
+                    checked={form.type === 'blocklist'}
+                    onChange={(e) => setForm({ ...form, type: e.target.value as 'blocklist' })}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500"
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
-                  <textarea 
-                    className="input mt-1" 
-                    rows={2}
-                    placeholder="Purpose of this list"
-                    value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  <span className="ml-2 text-sm text-space-700 dark:text-space-300">Blocklist</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="type"
+                    value="allowlist"
+                    checked={form.type === 'allowlist'}
+                    onChange={(e) => setForm({ ...form, type: e.target.value as 'allowlist' })}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500"
                   />
-                </div>
-                {!editingList && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">List Type</label>
-                    <div className="mt-2 flex space-x-4">
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          name="type"
-                          value="blocklist"
-                          checked={form.type === 'blocklist'}
-                          onChange={(e) => setForm({ ...form, type: e.target.value as 'blocklist' })}
-                          className="h-4 w-4 text-primary-600"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">Blocklist</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          name="type"
-                          value="allowlist"
-                          checked={form.type === 'allowlist'}
-                          onChange={(e) => setForm({ ...form, type: e.target.value as 'allowlist' })}
-                          className="h-4 w-4 text-primary-600"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">Allowlist</span>
-                      </label>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
-                <button 
-                  type="button" 
-                  className="btn-secondary" 
-                  onClick={() => setShowCreateModal(false)}
-                  disabled={saving}
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={handleSave} 
-                  className="btn-primary"
-                  disabled={saving}
-                >
-                  {saving ? 'Saving...' : editingList ? 'Save Changes' : 'Create List'}
-                </button>
+                  <span className="ml-2 text-sm text-space-700 dark:text-space-300">Allowlist</span>
+                </label>
               </div>
             </div>
-          </div>
+          )}
         </div>
-      )}
+
+        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-space-200 dark:border-space-700">
+          <Button
+            variant="secondary"
+            onClick={() => setShowCreateModal(false)}
+            disabled={saving}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleSave}
+            disabled={saving}
+            isLoading={saving}
+          >
+            {editingList ? 'Save Changes' : 'Create List'}
+          </Button>
+        </div>
+      </Modal>
 
       {/* Entries Modal */}
-      {showEntriesModal && selectedList && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-center justify-center p-4">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75" onClick={() => setShowEntriesModal(false)} />
-            <div className="relative bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-lg">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">{selectedList.name}</h3>
-                  <p className="text-sm text-gray-500">{selectedList.entryCount} domains</p>
-                </div>
-                <button onClick={() => setShowEntriesModal(false)} className="text-gray-400 hover:text-gray-500">
-                  <XMarkIcon className="h-6 w-6" />
-                </button>
-              </div>
+      <Modal
+        isOpen={showEntriesModal && !!selectedList}
+        onClose={() => setShowEntriesModal(false)}
+        title={selectedList?.name || 'List Entries'}
+        size="lg"
+      >
+        {selectedList && (
+          <>
+            <p className="text-sm text-space-500 dark:text-space-400 mb-4">{selectedList.entryCount} domains</p>
 
-              <div className="p-6 flex-1 overflow-y-auto">
-                {/* Search and Actions */}
-                <div className="flex items-center justify-between gap-4 mb-4">
-                  <div className="relative flex-1">
-                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input
-                      type="text"
-                      className="input pl-10"
-                      placeholder="Search domains..."
-                      value={searchEntries}
-                      onChange={(e) => setSearchEntries(e.target.value)}
-                    />
-                  </div>
-                  <button
-                    onClick={() => setShowBulkImport(!showBulkImport)}
-                    className="btn-secondary inline-flex items-center"
-                  >
-                    <ArrowUpTrayIcon className="h-5 w-5 mr-2" />
-                    Bulk Import
-                  </button>
-                </div>
-
-                {/* Bulk Import */}
-                {showBulkImport && (
-                  <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Paste domains (one per line)
-                    </label>
-                    <textarea
-                      className="input"
-                      rows={5}
-                      placeholder="example.com&#10;subdomain.example.com&#10;# Comments starting with # are ignored"
-                      value={bulkDomains}
-                      onChange={(e) => setBulkDomains(e.target.value)}
-                    />
-                    <div className="mt-2 flex justify-end space-x-2">
-                      <button
-                        className="btn-secondary text-sm"
-                        onClick={() => setShowBulkImport(false)}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        className="btn-primary text-sm"
-                        onClick={handleBulkImport}
-                        disabled={saving}
-                      >
-                        {saving ? 'Importing...' : 'Import Domains'}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Add single domain */}
-                <form 
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    const input = e.currentTarget.elements.namedItem('domain') as HTMLInputElement
-                    if (input.value) {
-                      addDomain(input.value)
-                      input.value = ''
-                    }
-                  }}
-                  className="flex gap-2 mb-4"
-                >
-                  <input
-                    type="text"
-                    name="domain"
-                    className="input flex-1"
-                    placeholder="Add domain (e.g., example.com)"
-                  />
-                  <button type="submit" className="btn-primary">
-                    <PlusIcon className="h-5 w-5" />
-                  </button>
-                </form>
-
-                {/* Entries List */}
-                {entriesLoading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <ArrowPathIcon className="h-8 w-8 animate-spin text-gray-400" />
-                  </div>
-                ) : (
-                  <div className="border border-gray-200 rounded-lg divide-y divide-gray-200 max-h-96 overflow-y-auto">
-                    {filteredEntries.map((entry: ListEntry) => (
-                      <div key={entry.id} className="flex items-center justify-between px-4 py-2 hover:bg-gray-50">
-                        <span className="text-sm font-mono text-gray-900">{entry.domain}</span>
-                        <button
-                          onClick={() => removeDomain(entry.id)}
-                          className="p-1 text-gray-400 hover:text-red-600"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ))}
-                    {filteredEntries.length === 0 && (
-                      <div className="px-4 py-8 text-center text-sm text-gray-500">
-                        {searchEntries ? 'No domains match your search' : 'No domains in this list yet'}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-lg">
-                <button onClick={() => setShowEntriesModal(false)} className="btn-primary w-full">
-                  Done
-                </button>
-              </div>
+            {/* Search and Actions */}
+            <div className="flex items-center gap-4 mb-4">
+              <Input
+                placeholder="Search domains..."
+                value={searchEntries}
+                onChange={(e) => setSearchEntries(e.target.value)}
+                leftIcon={<MagnifyingGlassIcon className="h-5 w-5" />}
+                className="flex-1"
+              />
+              <Button
+                variant="secondary"
+                onClick={() => setShowBulkImport(!showBulkImport)}
+                leftIcon={<ArrowUpTrayIcon className="h-5 w-5" />}
+              >
+                Bulk Import
+              </Button>
             </div>
-          </div>
-        </div>
-      )}
+
+            {/* Bulk Import */}
+            {showBulkImport && (
+              <Card variant="solid" padding="md" className="mb-4">
+                <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
+                  Paste domains (one per line)
+                </label>
+                <textarea
+                  className="w-full px-4 py-3 rounded-xl border border-space-200 dark:border-space-600 bg-white dark:bg-space-800 text-space-900 dark:text-white placeholder-space-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
+                  rows={5}
+                  placeholder="example.com&#10;subdomain.example.com&#10;# Comments starting with # are ignored"
+                  value={bulkDomains}
+                  onChange={(e) => setBulkDomains(e.target.value)}
+                />
+                <div className="mt-3 flex justify-end gap-2">
+                  <Button variant="secondary" size="sm" onClick={() => setShowBulkImport(false)}>
+                    Cancel
+                  </Button>
+                  <Button variant="primary" size="sm" onClick={handleBulkImport} isLoading={saving}>
+                    Import Domains
+                  </Button>
+                </div>
+              </Card>
+            )}
+
+            {/* Add single domain */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                const input = e.currentTarget.elements.namedItem('domain') as HTMLInputElement
+                if (input.value) {
+                  addDomain(input.value)
+                  input.value = ''
+                }
+              }}
+              className="flex gap-2 mb-4"
+            >
+              <Input
+                name="domain"
+                placeholder="Add domain (e.g., example.com)"
+                className="flex-1"
+              />
+              <Button type="submit" variant="primary">
+                <PlusIcon className="h-5 w-5" />
+              </Button>
+            </form>
+
+            {/* Entries List */}
+            {entriesLoading ? (
+              <div className="space-y-2">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="skeleton h-10 rounded-lg" />
+                ))}
+              </div>
+            ) : (
+              <div className="border border-space-200 dark:border-space-700 rounded-xl divide-y divide-space-200 dark:divide-space-700 max-h-96 overflow-y-auto">
+                {filteredEntries.map((entry: ListEntry) => (
+                  <div key={entry.id} className="flex items-center justify-between px-4 py-3 hover:bg-space-50 dark:hover:bg-space-700/50 transition-colors">
+                    <span className="text-sm font-mono text-space-900 dark:text-white">{entry.domain}</span>
+                    <button
+                      onClick={() => removeDomain(entry.id)}
+                      className="p-2 rounded-lg text-space-400 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+                {filteredEntries.length === 0 && (
+                  <div className="px-4 py-8 text-center text-sm text-space-500 dark:text-space-400">
+                    {searchEntries ? 'No domains match your search' : 'No domains in this list yet'}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="mt-6 pt-4 border-t border-space-200 dark:border-space-700">
+              <Button variant="primary" onClick={() => setShowEntriesModal(false)} className="w-full">
+                Done
+              </Button>
+            </div>
+          </>
+        )}
+      </Modal>
     </div>
   )
 }

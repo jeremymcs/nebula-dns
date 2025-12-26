@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useSiemIntegrations, useWebhooks } from '@/hooks/useApi';
+import { api } from '@/lib/api';
+import { useToast } from '@/components/Toast';
 
 interface SiemIntegration {
   id: string;
@@ -22,51 +25,11 @@ interface Webhook {
   failureCount: number;
 }
 
-const mockSiemIntegrations: SiemIntegration[] = [
-  {
-    id: '1',
-    name: 'Splunk Cloud',
-    type: 'splunk',
-    isEnabled: true,
-    lastSentAt: '2024-03-15T10:30:00Z',
-    errorCount: 0,
-  },
-  {
-    id: '2',
-    name: 'Elasticsearch Cluster',
-    type: 'elastic',
-    isEnabled: false,
-    errorCount: 3,
-    lastError: 'Connection timeout',
-  },
-];
-
-const mockWebhooks: Webhook[] = [
-  {
-    id: '1',
-    name: 'Slack Notifications',
-    url: 'https://hooks.slack.com/services/xxx',
-    events: ['threat.detected', 'policy.updated'],
-    isEnabled: true,
-    lastTriggeredAt: '2024-03-15T09:00:00Z',
-    failureCount: 0,
-  },
-  {
-    id: '2',
-    name: 'Ticketing System',
-    url: 'https://api.ticketing.com/webhook',
-    events: ['threat.detected'],
-    isEnabled: true,
-    lastTriggeredAt: '2024-03-14T15:30:00Z',
-    failureCount: 0,
-  },
-];
-
 const siemTypes = {
-  splunk: { name: 'Splunk', icon: '🔶', color: 'bg-orange-100' },
-  elastic: { name: 'Elasticsearch', icon: '🟡', color: 'bg-yellow-100' },
-  sentinel: { name: 'Microsoft Sentinel', icon: '🔵', color: 'bg-blue-100' },
-  syslog: { name: 'Syslog', icon: '📋', color: 'bg-gray-100' },
+  splunk: { name: 'Splunk', icon: '🔶', color: 'bg-orange-100 dark:bg-orange-900/50' },
+  elastic: { name: 'Elasticsearch', icon: '🟡', color: 'bg-yellow-100 dark:bg-yellow-900/50' },
+  sentinel: { name: 'Microsoft Sentinel', icon: '🔵', color: 'bg-blue-100 dark:bg-blue-900/50' },
+  syslog: { name: 'Syslog', icon: '📋', color: 'bg-gray-100 dark:bg-gray-700' },
 };
 
 const webhookEvents = [
@@ -81,11 +44,17 @@ const webhookEvents = [
 ];
 
 export default function IntegrationsPage() {
-  const [siemIntegrations, setSiemIntegrations] = useState(mockSiemIntegrations);
-  const [webhooks, setWebhooks] = useState(mockWebhooks);
+  const { data: siemData, isLoading: siemLoading, mutate: mutateSiem } = useSiemIntegrations();
+  const { data: webhooksData, isLoading: webhooksLoading, mutate: mutateWebhooks } = useWebhooks();
+  const { showToast } = useToast();
+
   const [showSiemModal, setShowSiemModal] = useState(false);
   const [showWebhookModal, setShowWebhookModal] = useState(false);
   const [selectedSiemType, setSelectedSiemType] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const siemIntegrations: SiemIntegration[] = siemData?.data || [];
+  const webhooks: Webhook[] = webhooksData?.data || [];
 
   const [siemForm, setSiemForm] = useState({
     name: '',
@@ -108,19 +77,140 @@ export default function IntegrationsPage() {
     events: [] as string[],
   });
 
+  const resetSiemForm = () => {
+    setSiemForm({
+      name: '',
+      hecUrl: '',
+      hecToken: '',
+      url: '',
+      apiKey: '',
+      workspaceId: '',
+      sharedKey: '',
+      host: '',
+      port: '',
+      protocol: 'tcp',
+      logTypes: ['blocked', 'threats'],
+    });
+    setSelectedSiemType(null);
+  };
+
+  const resetWebhookForm = () => {
+    setWebhookForm({
+      name: '',
+      url: '',
+      secret: '',
+      events: [],
+    });
+  };
+
+  const handleCreateSiem = async () => {
+    if (!siemForm.name.trim() || !selectedSiemType) {
+      showToast('error', 'Please fill in all required fields');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const payload: Record<string, any> = {
+        name: siemForm.name,
+        logTypes: siemForm.logTypes,
+      };
+
+      if (selectedSiemType === 'splunk') {
+        payload.hecUrl = siemForm.hecUrl;
+        payload.hecToken = siemForm.hecToken;
+      } else if (selectedSiemType === 'elastic') {
+        payload.url = siemForm.url;
+        payload.apiKey = siemForm.apiKey;
+      } else if (selectedSiemType === 'sentinel') {
+        payload.workspaceId = siemForm.workspaceId;
+        payload.sharedKey = siemForm.sharedKey;
+      } else if (selectedSiemType === 'syslog') {
+        payload.host = siemForm.host;
+        payload.port = parseInt(siemForm.port) || 514;
+        payload.protocol = siemForm.protocol;
+      }
+
+      await api.createSiemIntegration(selectedSiemType, payload);
+      showToast('success', 'SIEM integration created successfully');
+      mutateSiem();
+      setShowSiemModal(false);
+      resetSiemForm();
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to create SIEM integration');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTestSiem = async (id: string) => {
+    try {
+      const result = await api.testSiemIntegration(id);
+      if (result.success) {
+        showToast('success', 'SIEM connection test successful');
+      } else {
+        showToast('error', result.message || 'SIEM connection test failed');
+      }
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to test SIEM integration');
+    }
+  };
+
+  const handleCreateWebhook = async () => {
+    if (!webhookForm.name.trim() || !webhookForm.url.trim()) {
+      showToast('error', 'Name and URL are required');
+      return;
+    }
+
+    if (webhookForm.events.length === 0) {
+      showToast('error', 'At least one event must be selected');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await api.createWebhook({
+        url: webhookForm.url,
+        events: webhookForm.events,
+        secret: webhookForm.secret || undefined,
+      });
+      showToast('success', 'Webhook created successfully');
+      mutateWebhooks();
+      setShowWebhookModal(false);
+      resetWebhookForm();
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to create webhook');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTestWebhook = async (id: string) => {
+    try {
+      const result = await api.testWebhook(id);
+      if (result.success) {
+        showToast('success', `Webhook test successful (HTTP ${result.statusCode})`);
+      } else {
+        showToast('error', `Webhook test failed (HTTP ${result.statusCode})`);
+      }
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to test webhook');
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Integrations</h1>
-        <p className="text-gray-600">Connect SafeDNS with your security tools and workflows</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Integrations</h1>
+        <p className="text-gray-600 dark:text-gray-400">Connect SafeDNS with your security tools and workflows</p>
       </div>
 
       {/* SIEM Integrations Section */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">SIEM Integrations</h2>
-            <p className="text-sm text-gray-600">Forward DNS logs to your security platform</p>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">SIEM Integrations</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Forward DNS logs to your security platform</p>
           </div>
           <button
             onClick={() => setShowSiemModal(true)}
@@ -133,14 +223,14 @@ export default function IntegrationsPage() {
         {siemIntegrations.length > 0 ? (
           <div className="space-y-4">
             {siemIntegrations.map((integration) => (
-              <div key={integration.id} className="border rounded-lg p-4 flex items-center justify-between">
+              <div key={integration.id} className="border dark:border-gray-700 rounded-lg p-4 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className={`w-12 h-12 ${siemTypes[integration.type].color} rounded-lg flex items-center justify-center text-2xl`}>
                     {siemTypes[integration.type].icon}
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">{integration.name}</div>
-                    <div className="text-sm text-gray-500">{siemTypes[integration.type].name}</div>
+                    <div className="font-medium text-gray-900 dark:text-white">{integration.name}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{siemTypes[integration.type].name}</div>
                     {integration.lastSentAt && (
                       <div className="text-xs text-gray-400">
                         Last sent: {new Date(integration.lastSentAt).toLocaleString()}
@@ -151,39 +241,44 @@ export default function IntegrationsPage() {
 
                 <div className="flex items-center gap-4">
                   {integration.errorCount > 0 && (
-                    <div className="text-sm text-red-600">
+                    <div className="text-sm text-red-600 dark:text-red-400">
                       {integration.errorCount} errors
                     </div>
                   )}
                   <span className={`px-2 py-1 rounded-full text-xs ${
-                    integration.isEnabled 
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-800'
+                    integration.isEnabled
+                      ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
                   }`}>
                     {integration.isEnabled ? 'Active' : 'Disabled'}
                   </span>
                   <div className="flex gap-2">
-                    <button className="text-sm text-indigo-600 hover:text-indigo-800">Test</button>
-                    <button className="text-sm text-gray-600 hover:text-gray-800">Edit</button>
-                    <button className="text-sm text-red-600 hover:text-red-800">Delete</button>
+                    <button
+                      onClick={() => handleTestSiem(integration.id)}
+                      className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                    >
+                      Test
+                    </button>
+                    <button className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300">Edit</button>
+                    <button className="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">Delete</button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
-            No SIEM integrations configured
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            {siemLoading ? 'Loading...' : 'No SIEM integrations configured'}
           </div>
         )}
       </div>
 
       {/* Webhooks Section */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Webhooks</h2>
-            <p className="text-sm text-gray-600">Send real-time notifications to external services</p>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Webhooks</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Send real-time notifications to external services</p>
           </div>
           <button
             onClick={() => setShowWebhookModal(true)}
@@ -197,7 +292,7 @@ export default function IntegrationsPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="text-left text-sm text-gray-500 border-b">
+                <tr className="text-left text-sm text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
                   <th className="pb-3 font-medium">Name</th>
                   <th className="pb-3 font-medium">URL</th>
                   <th className="pb-3 font-medium">Events</th>
@@ -208,22 +303,22 @@ export default function IntegrationsPage() {
               </thead>
               <tbody>
                 {webhooks.map((webhook) => (
-                  <tr key={webhook.id} className="border-b last:border-b-0">
-                    <td className="py-3 font-medium text-gray-900">{webhook.name}</td>
+                  <tr key={webhook.id} className="border-b dark:border-gray-700 last:border-b-0">
+                    <td className="py-3 font-medium text-gray-900 dark:text-white">{webhook.name}</td>
                     <td className="py-3">
-                      <code className="text-sm bg-gray-100 px-2 py-1 rounded truncate block max-w-xs">
+                      <code className="text-sm bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded truncate block max-w-xs dark:text-gray-300">
                         {webhook.url}
                       </code>
                     </td>
                     <td className="py-3">
                       <div className="flex flex-wrap gap-1">
                         {webhook.events.slice(0, 2).map((event) => (
-                          <span key={event} className="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-xs rounded-full">
+                          <span key={event} className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-200 text-xs rounded-full">
                             {event}
                           </span>
                         ))}
                         {webhook.events.length > 2 && (
-                          <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
+                          <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded-full">
                             +{webhook.events.length - 2}
                           </span>
                         )}
@@ -231,24 +326,29 @@ export default function IntegrationsPage() {
                     </td>
                     <td className="py-3">
                       <span className={`px-2 py-1 rounded-full text-xs ${
-                        webhook.isEnabled 
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
+                        webhook.isEnabled
+                          ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
                       }`}>
                         {webhook.isEnabled ? 'Active' : 'Disabled'}
                       </span>
                     </td>
-                    <td className="py-3 text-sm text-gray-600">
-                      {webhook.lastTriggeredAt 
+                    <td className="py-3 text-sm text-gray-600 dark:text-gray-400">
+                      {webhook.lastTriggeredAt
                         ? new Date(webhook.lastTriggeredAt).toLocaleString()
                         : 'Never'
                       }
                     </td>
                     <td className="py-3">
                       <div className="flex gap-2">
-                        <button className="text-sm text-indigo-600 hover:text-indigo-800">Test</button>
-                        <button className="text-sm text-gray-600 hover:text-gray-800">Edit</button>
-                        <button className="text-sm text-red-600 hover:text-red-800">Delete</button>
+                        <button
+                          onClick={() => handleTestWebhook(webhook.id)}
+                          className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                        >
+                          Test
+                        </button>
+                        <button className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300">Edit</button>
+                        <button className="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">Delete</button>
                       </div>
                     </td>
                   </tr>
@@ -257,18 +357,18 @@ export default function IntegrationsPage() {
             </table>
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
-            No webhooks configured
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            {webhooksLoading ? 'Loading...' : 'No webhooks configured'}
           </div>
         )}
       </div>
 
       {/* SIEM Modal */}
       {showSiemModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b">
-              <h2 className="text-xl font-semibold">
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b dark:border-gray-700">
+              <h2 className="text-xl font-semibold dark:text-white">
                 {selectedSiemType ? `Configure ${siemTypes[selectedSiemType as keyof typeof siemTypes].name}` : 'Add SIEM Integration'}
               </h2>
             </div>
@@ -280,22 +380,22 @@ export default function IntegrationsPage() {
                     <button
                       key={type}
                       onClick={() => setSelectedSiemType(type)}
-                      className="p-4 border rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition text-left"
+                      className="p-4 border dark:border-gray-600 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition text-left"
                     >
                       <div className="text-3xl mb-2">{info.icon}</div>
-                      <div className="font-medium text-gray-900">{info.name}</div>
+                      <div className="font-medium text-gray-900 dark:text-white">{info.name}</div>
                     </button>
                   ))}
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
                     <input
                       type="text"
                       value={siemForm.name}
                       onChange={(e) => setSiemForm({ ...siemForm, name: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white"
                       placeholder="e.g., Production Splunk"
                     />
                   </div>
@@ -303,22 +403,22 @@ export default function IntegrationsPage() {
                   {selectedSiemType === 'splunk' && (
                     <>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">HEC URL</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">HEC URL</label>
                         <input
                           type="url"
                           value={siemForm.hecUrl}
                           onChange={(e) => setSiemForm({ ...siemForm, hecUrl: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white"
                           placeholder="https://splunk.example.com:8088"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">HEC Token</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">HEC Token</label>
                         <input
                           type="password"
                           value={siemForm.hecToken}
                           onChange={(e) => setSiemForm({ ...siemForm, hecToken: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white"
                         />
                       </div>
                     </>
@@ -327,22 +427,22 @@ export default function IntegrationsPage() {
                   {selectedSiemType === 'elastic' && (
                     <>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Elasticsearch URL</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Elasticsearch URL</label>
                         <input
                           type="url"
                           value={siemForm.url}
                           onChange={(e) => setSiemForm({ ...siemForm, url: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white"
                           placeholder="https://elastic.example.com:9200"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">API Key</label>
                         <input
                           type="password"
                           value={siemForm.apiKey}
                           onChange={(e) => setSiemForm({ ...siemForm, apiKey: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white"
                         />
                       </div>
                     </>
@@ -351,21 +451,21 @@ export default function IntegrationsPage() {
                   {selectedSiemType === 'sentinel' && (
                     <>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Workspace ID</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Workspace ID</label>
                         <input
                           type="text"
                           value={siemForm.workspaceId}
                           onChange={(e) => setSiemForm({ ...siemForm, workspaceId: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Shared Key</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Shared Key</label>
                         <input
                           type="password"
                           value={siemForm.sharedKey}
                           onChange={(e) => setSiemForm({ ...siemForm, sharedKey: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white"
                         />
                       </div>
                     </>
@@ -375,32 +475,32 @@ export default function IntegrationsPage() {
                     <>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Host</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Host</label>
                           <input
                             type="text"
                             value={siemForm.host}
                             onChange={(e) => setSiemForm({ ...siemForm, host: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white"
                             placeholder="syslog.example.com"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Port</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Port</label>
                           <input
                             type="text"
                             value={siemForm.port}
                             onChange={(e) => setSiemForm({ ...siemForm, port: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white"
                             placeholder="514"
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Protocol</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Protocol</label>
                         <select
                           value={siemForm.protocol}
                           onChange={(e) => setSiemForm({ ...siemForm, protocol: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white"
                         >
                           <option value="tcp">TCP</option>
                           <option value="udp">UDP</option>
@@ -411,7 +511,7 @@ export default function IntegrationsPage() {
                   )}
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Log Types</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Log Types</label>
                     <div className="flex flex-wrap gap-2">
                       {['blocked', 'threats', 'allowed'].map((type) => (
                         <label key={type} className="flex items-center gap-2">
@@ -427,7 +527,7 @@ export default function IntegrationsPage() {
                             }}
                             className="rounded"
                           />
-                          <span className="text-sm capitalize">{type}</span>
+                          <span className="text-sm capitalize dark:text-gray-300">{type}</span>
                         </label>
                       ))}
                     </div>
@@ -436,11 +536,11 @@ export default function IntegrationsPage() {
               )}
             </div>
 
-            <div className="p-6 border-t flex justify-between">
+            <div className="p-6 border-t dark:border-gray-700 flex justify-between">
               {selectedSiemType && (
                 <button
                   onClick={() => setSelectedSiemType(null)}
-                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                  className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                 >
                   Back
                 </button>
@@ -449,15 +549,19 @@ export default function IntegrationsPage() {
                 <button
                   onClick={() => {
                     setShowSiemModal(false);
-                    setSelectedSiemType(null);
+                    resetSiemForm();
                   }}
-                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                  className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                 >
                   Cancel
                 </button>
                 {selectedSiemType && (
-                  <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-                    Add Integration
+                  <button
+                    onClick={handleCreateSiem}
+                    disabled={saving}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                  >
+                    {saving ? 'Adding...' : 'Add Integration'}
                   </button>
                 )}
               </div>
@@ -468,56 +572,56 @@ export default function IntegrationsPage() {
 
       {/* Webhook Modal */}
       {showWebhookModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b">
-              <h2 className="text-xl font-semibold">Add Webhook</h2>
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b dark:border-gray-700">
+              <h2 className="text-xl font-semibold dark:text-white">Add Webhook</h2>
             </div>
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
                 <input
                   type="text"
                   value={webhookForm.name}
                   onChange={(e) => setWebhookForm({ ...webhookForm, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white"
                   placeholder="e.g., Slack Notifications"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Webhook URL</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Webhook URL</label>
                 <input
                   type="url"
                   value={webhookForm.url}
                   onChange={(e) => setWebhookForm({ ...webhookForm, url: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white"
                   placeholder="https://api.example.com/webhook"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Secret (optional)
                 </label>
                 <input
                   type="password"
                   value={webhookForm.secret}
                   onChange={(e) => setWebhookForm({ ...webhookForm, secret: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white"
                   placeholder="Used for HMAC signature verification"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   We'll sign payloads with this secret so you can verify they came from SafeDNS
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Events</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Events</label>
                 <div className="grid grid-cols-2 gap-2">
                   {webhookEvents.map((event) => (
-                    <label key={event.value} className="flex items-center gap-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                    <label key={event.value} className="flex items-center gap-2 p-2 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={webhookForm.events.includes(event.value)}
@@ -530,22 +634,29 @@ export default function IntegrationsPage() {
                         }}
                         className="rounded"
                       />
-                      <span className="text-sm">{event.label}</span>
+                      <span className="text-sm dark:text-gray-300">{event.label}</span>
                     </label>
                   ))}
                 </div>
               </div>
             </div>
 
-            <div className="p-6 border-t flex justify-end gap-3">
+            <div className="p-6 border-t dark:border-gray-700 flex justify-end gap-3">
               <button
-                onClick={() => setShowWebhookModal(false)}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                onClick={() => {
+                  setShowWebhookModal(false);
+                  resetWebhookForm();
+                }}
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               >
                 Cancel
               </button>
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-                Add Webhook
+              <button
+                onClick={handleCreateWebhook}
+                disabled={saving}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+              >
+                {saving ? 'Adding...' : 'Add Webhook'}
               </button>
             </div>
           </div>

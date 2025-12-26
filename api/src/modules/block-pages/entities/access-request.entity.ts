@@ -8,24 +8,24 @@ export type AccessRequestStatus = 'pending' | 'approved' | 'denied' | 'expired';
 
 @Entity('access_requests')
 export class AccessRequest extends BaseEntity {
-  @Column({ name: 'tenant_id' })
+  @Column({ name: 'tenant_id', type: 'uuid' })
   tenantId: string;
 
   @ManyToOne(() => Tenant)
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
-  @Column({ name: 'location_id', nullable: true })
+  @Column({ name: 'location_id', type: 'uuid', nullable: true })
   locationId: string;
 
   @ManyToOne(() => Location, { nullable: true })
   @JoinColumn({ name: 'location_id' })
   location: Location;
 
-  @Column({ length: 255 })
+  @Column({ type: 'varchar', length: 255 })
   domain: string;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ type: 'varchar', length: 50, nullable: true })
   category: string;
 
   @Column({ type: 'text', nullable: true })
@@ -34,13 +34,13 @@ export class AccessRequest extends BaseEntity {
   @Column({ name: 'requester_ip', type: 'inet', nullable: true })
   requesterIp: string;
 
-  @Column({ name: 'requester_email', length: 255, nullable: true })
+  @Column({ name: 'requester_email', type: 'varchar', length: 255, nullable: true })
   requesterEmail: string;
 
   @Column({ type: 'varchar', length: 20, default: 'pending' })
   status: AccessRequestStatus;
 
-  @Column({ name: 'reviewed_by', nullable: true })
+  @Column({ name: 'reviewed_by', type: 'uuid', nullable: true })
   reviewedById: string;
 
   @ManyToOne(() => User, { nullable: true })

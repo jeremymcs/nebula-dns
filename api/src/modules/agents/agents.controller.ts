@@ -51,13 +51,29 @@ export class AgentsController {
   async heartbeat(
     @Body() dto: AgentHeartbeatDto,
   ) {
-    // Note: In production, authenticate via API key or token
-    // For now, we'll require a tenant context
-    // This would be called by the agent with its credentials
-    return { 
+    // Note: In production, authenticate via API key or token from header
+    // For now, we'll use the device ID to look up the agent
+    const result = await this.agentsService.handleHeartbeatPublic(dto);
+    return {
       success: true,
-      configUpdated: false,
-      updateAvailable: false,
+      ...result,
+    };
+  }
+
+  @Get('update/:platform')
+  async getUpdate(@Param('platform') platform: string) {
+    const version = await this.agentsService.getLatestVersion(platform as any);
+    if (!version) {
+      return { success: false, message: 'Platform not found' };
+    }
+    return {
+      success: true,
+      data: {
+        version: version.version,
+        downloadUrl: version.downloadUrl,
+        sha256: version.sha256,
+        releaseNotes: version.releaseNotes,
+      },
     };
   }
 

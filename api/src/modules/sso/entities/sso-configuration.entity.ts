@@ -7,7 +7,7 @@ export type UserRole = 'owner' | 'admin' | 'analyst' | 'readonly';
 
 @Entity('sso_configurations')
 export class SsoConfiguration extends BaseEntity {
-  @Column({ name: 'tenant_id' })
+  @Column({ name: 'tenant_id', type: 'uuid' })
   tenantId: string;
 
   @OneToOne(() => Tenant)
@@ -17,17 +17,17 @@ export class SsoConfiguration extends BaseEntity {
   @Column({ name: 'provider_type', type: 'varchar', length: 20 })
   providerType: SsoProviderType;
 
-  @Column({ name: 'is_enabled', default: false })
+  @Column({ name: 'is_enabled', type: 'boolean', default: false })
   isEnabled: boolean;
 
   // SAML Settings
-  @Column({ name: 'saml_entity_id', length: 500, nullable: true })
+  @Column({ name: 'saml_entity_id', type: 'varchar', length: 500, nullable: true })
   samlEntityId: string | null;
 
-  @Column({ name: 'saml_sso_url', length: 500, nullable: true })
+  @Column({ name: 'saml_sso_url', type: 'varchar', length: 500, nullable: true })
   samlSsoUrl: string | null;
 
-  @Column({ name: 'saml_slo_url', length: 500, nullable: true })
+  @Column({ name: 'saml_slo_url', type: 'varchar', length: 500, nullable: true })
   samlSloUrl: string | null;
 
   @Column({ name: 'saml_certificate', type: 'text', nullable: true })
@@ -40,43 +40,37 @@ export class SsoConfiguration extends BaseEntity {
   samlSigningKeyEncrypted: string | null;
 
   // OIDC Settings
-  @Column({ name: 'oidc_issuer', length: 500, nullable: true })
+  @Column({ name: 'oidc_issuer', type: 'varchar', length: 500, nullable: true })
   oidcIssuer: string | null;
 
-  @Column({ name: 'oidc_client_id', length: 255, nullable: true })
+  @Column({ name: 'oidc_client_id', type: 'varchar', length: 255, nullable: true })
   oidcClientId: string | null;
 
-  @Column({ name: 'oidc_client_secret_encrypted', length: 500, nullable: true })
+  @Column({ name: 'oidc_client_secret_encrypted', type: 'varchar', length: 500, nullable: true })
   oidcClientSecretEncrypted: string | null;
 
-  @Column({ name: 'oidc_authorization_url', length: 500, nullable: true })
+  @Column({ name: 'oidc_authorization_url', type: 'varchar', length: 500, nullable: true })
   oidcAuthorizationUrl: string | null;
 
-  @Column({ name: 'oidc_token_url', length: 500, nullable: true })
+  @Column({ name: 'oidc_token_url', type: 'varchar', length: 500, nullable: true })
   oidcTokenUrl: string | null;
 
-  @Column({ name: 'oidc_userinfo_url', length: 500, nullable: true })
+  @Column({ name: 'oidc_userinfo_url', type: 'varchar', length: 500, nullable: true })
   oidcUserinfoUrl: string | null;
 
-  @Column({ name: 'oidc_scopes', length: 255, default: 'openid profile email' })
+  @Column({ name: 'oidc_scopes', type: 'varchar', length: 255, default: 'openid profile email' })
   oidcScopes: string;
 
   // Common Settings
-  @Column({ name: 'auto_provision_users', default: true })
+  @Column({ name: 'auto_provision_users', type: 'boolean', default: true })
   autoProvisionUsers: boolean;
 
   @Column({ name: 'default_role', type: 'varchar', length: 20, default: 'readonly' })
   defaultRole: UserRole;
 
-  @Column({ name: 'domain_restriction', length: 255, nullable: true })
+  @Column({ name: 'domain_restriction', type: 'varchar', length: 255, nullable: true })
   domainRestriction: string | null;
 
-  @Column({ name: 'attribute_mapping', type: 'jsonb', default: {} })
-  attributeMapping: {
-    email?: string;
-    name?: string;
-    firstName?: string;
-    lastName?: string;
-    role?: string;
-  };
+  @Column({ name: 'attribute_mapping', type: 'jsonb', default: '{}' })
+  attributeMapping: Record<string, string>;
 }

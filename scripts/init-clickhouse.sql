@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS nebula_dns.query_logs
 ) ENGINE = MergeTree()
 PARTITION BY toYYYYMMDD(timestamp)
 ORDER BY (tenant_id, timestamp)
-TTL timestamp + INTERVAL 90 DAY
+TTL toDateTime(timestamp) + INTERVAL 90 DAY
 SETTINGS index_granularity = 8192;
 
 -- Create bloom filter index for domain search
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS nebula_dns.domain_stats (
     count UInt64
 ) ENGINE = SummingMergeTree()
 PARTITION BY toYYYYMM(date)
-ORDER BY (tenant_id, date, action, count DESC);
+ORDER BY (tenant_id, date, action, domain);
 
 -- ============================================
 -- SAMPLE DATA FOR DEVELOPMENT

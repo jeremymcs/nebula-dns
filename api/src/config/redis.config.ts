@@ -7,7 +7,7 @@ export class RedisService {
   private readonly client: Redis;
 
   constructor(private configService: ConfigService) {
-    this.client = new Redis(this.configService.get<string>('REDIS_URL') || 'redis://localhost:6379');
+    this.client = new Redis(this.configService.get<string>('REDIS_URL') || 'redis://localhost:4379');
   }
 
   getClient(): Redis {

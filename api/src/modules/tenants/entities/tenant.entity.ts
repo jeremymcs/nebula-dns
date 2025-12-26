@@ -9,10 +9,10 @@ export type TenantPlan = 'free' | 'starter' | 'pro' | 'enterprise';
 
 @Entity('tenants')
 export class Tenant extends BaseEntity {
-  @Column({ length: 255 })
+  @Column({ type: 'varchar', length: 255 })
   name: string;
 
-  @Column({ length: 255, unique: true })
+  @Column({ type: 'varchar', length: 255, unique: true })
   slug: string;
 
   @Column({ type: 'varchar', length: 20, default: 'active' })

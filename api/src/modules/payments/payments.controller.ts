@@ -22,6 +22,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '@/common/decorators/user.decorator';
 import { PaymentsService } from './payments.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
+import { EmailService } from '../email/email.service';
 import { ConfigService } from '@nestjs/config';
 
 @ApiTags('payments')
@@ -33,9 +34,10 @@ export class PaymentsController {
   constructor(
     private readonly paymentsService: PaymentsService,
     private readonly subscriptionsService: SubscriptionsService,
+    private readonly emailService: EmailService,
     private readonly configService: ConfigService,
   ) {
-    this.frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:3001';
+    this.frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:4001';
   }
 
   @Post('checkout')
@@ -189,10 +191,17 @@ export class PaymentsController {
 
   private async handlePaymentFailed(invoice: any) {
     const customerEmail = invoice.customer_email;
+    const customerName = invoice.customer_name || 'Customer';
     this.logger.warn(`Payment failed for ${customerEmail}: ${invoice.id}`);
-    
-    // TODO: Send email notification about failed payment
-    // await this.emailService.sendPaymentFailedEmail({ ... });
+
+    // Send email notification about failed payment
+    if (customerEmail) {
+      await this.emailService.sendPaymentFailedEmail({
+        to: customerEmail,
+        companyName: customerName,
+        updatePaymentUrl: `${this.frontendUrl}/dashboard/settings?tab=billing`,
+      });
+    }
   }
 
   private mapStripeStatus(stripeStatus: string): string {

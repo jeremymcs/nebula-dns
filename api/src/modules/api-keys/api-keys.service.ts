@@ -103,6 +103,53 @@ export class ApiKeysService {
     return this.toResponseDto(saved);
   }
 
+  /**
+   * Rotate an API key - creates a new key while keeping the old one active for a grace period
+   * @param tenantId - Tenant ID
+   * @param id - API key ID to rotate
+   * @param gracePeriodHours - Hours to keep old key active (default: 24)
+   */
+  async rotate(tenantId: string, id: string, gracePeriodHours: number = 24): Promise<NewApiKeyResponseDto> {
+    const oldKey = await this.findOne(tenantId, id);
+
+    // Generate new key
+    const { key, prefix, hash } = this.generateApiKey();
+
+    // Create new API key with same settings
+    const newApiKey = this.apiKeyRepository.create({
+      tenantId,
+      userId: oldKey.userId,
+      name: `${oldKey.name} (rotated)`,
+      keyHash: hash,
+      keyPrefix: prefix,
+      scopes: oldKey.scopes,
+      rateLimit: oldKey.rateLimit,
+      expiresAt: oldKey.expiresAt,
+    });
+
+    const saved = await this.apiKeyRepository.save(newApiKey) as ApiKey;
+
+    // Set old key to expire after grace period
+    const gracePeriodEnd = new Date(Date.now() + gracePeriodHours * 60 * 60 * 1000);
+    oldKey.expiresAt = gracePeriodEnd;
+    oldKey.name = `${oldKey.name} (deprecated - expires ${gracePeriodEnd.toISOString()})`;
+    await this.apiKeyRepository.save(oldKey);
+
+    return {
+      id: saved.id,
+      name: saved.name,
+      keyPrefix: saved.keyPrefix,
+      scopes: saved.scopes,
+      rateLimit: saved.rateLimit,
+      isActive: saved.isActive,
+      expiresAt: saved.expiresAt,
+      createdAt: saved.createdAt,
+      apiKey: key, // Only returned once!
+      rotatedFromId: id,
+      oldKeyExpiresAt: gracePeriodEnd,
+    };
+  }
+
   // Validate an API key (called from auth middleware)
   async validateApiKey(key: string): Promise<{ apiKey: ApiKey; tenantId: string } | null> {
     const prefix = key.substring(0, 12);

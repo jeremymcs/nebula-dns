@@ -11,9 +11,9 @@ export default function PublicLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100">
+      <nav className="fixed top-0 w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-md z-50 border-b border-gray-100 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -23,21 +23,21 @@ export default function PublicLayout({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
-              <span className="text-xl font-bold text-gray-900">SafeDNS</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">SafeDNS</span>
             </Link>
 
             {/* Navigation Links */}
             <div className="hidden md:flex items-center space-x-8">
-              <Link href="/features" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
+              <Link href="/features" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm font-medium">
                 Features
               </Link>
-              <Link href="/pricing" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
+              <Link href="/pricing" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm font-medium">
                 Pricing
               </Link>
-              <Link href="/docs" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
+              <Link href="/docs" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm font-medium">
                 Documentation
               </Link>
-              <Link href="/contact" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
+              <Link href="/contact" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm font-medium">
                 Contact
               </Link>
             </div>
@@ -46,7 +46,7 @@ export default function PublicLayout({
             <div className="flex items-center space-x-4">
               <Link
                 href="/"
-                className="text-gray-600 hover:text-gray-900 text-sm font-medium"
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm font-medium"
               >
                 Sign In
               </Link>

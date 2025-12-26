@@ -12,7 +12,7 @@ config({ path: ['.env.local', '.env'] });
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  url: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/nebula_dns',
+  url: process.env.DATABASE_URL || 'postgresql://nebula:nebula@localhost:4432/nebula',
   entities: ['src/**/*.entity.ts'],
   migrations: ['src/database/migrations/*.ts'],
   migrationsTableName: 'migrations',

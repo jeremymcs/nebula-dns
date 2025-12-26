@@ -16,7 +16,7 @@ Loads domain categorization data for content filtering.
 
 ```bash
 # Load Shallalist data
-python category-loader.py --source=shallalist --redis-url=redis://localhost:6379
+python category-loader.py --source=shallalist --redis-url=redis://localhost:4379
 
 # Check statistics
 python category-loader.py --stats-only

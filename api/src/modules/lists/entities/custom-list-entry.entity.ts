@@ -18,7 +18,7 @@ export class CustomListEntry {
   @Column({ name: 'list_id', type: 'uuid' })
   listId: string;
 
-  @Column({ length: 255 })
+  @Column({ type: 'varchar', length: 255 })
   domain: string;
 
   @Column({ type: 'varchar', length: 20, default: 'exact' })

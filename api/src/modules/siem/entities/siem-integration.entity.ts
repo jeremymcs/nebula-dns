@@ -6,20 +6,20 @@ export type SiemIntegrationType = 'splunk' | 'elastic' | 'sentinel' | 'syslog' |
 
 @Entity('siem_integrations')
 export class SiemIntegration extends BaseEntity {
-  @Column({ name: 'tenant_id' })
+  @Column({ name: 'tenant_id', type: 'uuid' })
   tenantId: string;
 
   @ManyToOne(() => Tenant)
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
-  @Column({ length: 255 })
+  @Column({ type: 'varchar', length: 255 })
   name: string;
 
   @Column({ name: 'integration_type', type: 'varchar', length: 20 })
   integrationType: SiemIntegrationType;
 
-  @Column({ name: 'is_enabled', default: true })
+  @Column({ name: 'is_enabled', type: 'boolean', default: true })
   isEnabled: boolean;
 
   @Column({ name: 'config_encrypted', type: 'jsonb', default: {} })
@@ -28,10 +28,10 @@ export class SiemIntegration extends BaseEntity {
   @Column({ name: 'log_types', type: 'jsonb', default: ['blocked', 'threats'] })
   logTypes: string[];
 
-  @Column({ name: 'include_allowed', default: false })
+  @Column({ name: 'include_allowed', type: 'boolean', default: false })
   includeAllowed: boolean;
 
-  @Column({ name: 'min_severity', length: 20, default: 'low' })
+  @Column({ name: 'min_severity', type: 'varchar', length: 20, default: 'low' })
   minSeverity: string;
 
   @Column({ name: 'last_sent_at', type: 'timestamptz', nullable: true })
@@ -40,6 +40,6 @@ export class SiemIntegration extends BaseEntity {
   @Column({ name: 'last_error', type: 'text', nullable: true })
   lastError: string | null;
 
-  @Column({ name: 'error_count', default: 0 })
+  @Column({ name: 'error_count', type: 'int', default: 0 })
   errorCount: number;
 }

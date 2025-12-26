@@ -60,6 +60,17 @@ export class ApiKeyResponseDto {
 export class NewApiKeyResponseDto extends ApiKeyResponseDto {
   // Only returned once when creating
   apiKey: string;
+  // Rotation info (only present when rotating)
+  rotatedFromId?: string;
+  oldKeyExpiresAt?: Date;
+}
+
+export class RotateApiKeyDto {
+  @IsNumber()
+  @Min(1)
+  @Max(168) // Max 1 week
+  @IsOptional()
+  gracePeriodHours?: number;
 }
 
 export class ApiKeyUsageStatsDto {

@@ -11,6 +11,9 @@ import { PolicyVersion, PolicyConfig } from './entities/policy-version.entity';
 import { CreatePolicyDto } from './dto/create-policy.dto';
 import { UpdatePolicyDto } from './dto/update-policy.dto';
 import { PaginationQueryDto, PaginatedResponse } from '@/common/dto/pagination.dto';
+import { RedisService } from '../redis/redis.service';
+import { Location } from '../locations/entities/location.entity';
+import { PolicyCompilerService } from './policy-compiler.service';
 
 @Injectable()
 export class PoliciesService {
@@ -21,6 +24,10 @@ export class PoliciesService {
     private readonly policyRepository: Repository<Policy>,
     @InjectRepository(PolicyVersion)
     private readonly versionRepository: Repository<PolicyVersion>,
+    @InjectRepository(Location)
+    private readonly locationRepository: Repository<Location>,
+    private readonly redisService: RedisService,
+    private readonly policyCompilerService: PolicyCompilerService,
   ) {}
 
   async findAll(
@@ -146,6 +153,9 @@ export class PoliciesService {
 
     await this.policyRepository.save(policy);
 
+    // Invalidate cache for all locations using this policy
+    await this.invalidatePolicyLocations(id);
+
     this.logger.log(
       `Policy ${id} updated to version ${policy.currentVersion} in tenant ${tenantId}`,
     );
@@ -158,6 +168,9 @@ export class PoliciesService {
     if (policy.isDefault) {
       throw new BadRequestException('Cannot delete the default policy');
     }
+
+    // Invalidate cache for all locations using this policy before deleting
+    await this.invalidatePolicyLocations(id);
 
     // Delete all versions first
     await this.versionRepository.delete({ policyId: id });
@@ -220,6 +233,9 @@ export class PoliciesService {
     policy.currentVersion = newVersion;
     await this.policyRepository.save(policy);
 
+    // Invalidate cache for all locations using this policy
+    await this.invalidatePolicyLocations(id);
+
     this.logger.log(
       `Policy ${id} rolled back to version ${targetVersion.version} (now version ${newVersion})`,
     );
@@ -230,5 +246,34 @@ export class PoliciesService {
     // This would be used by the policy service to get compiled policy
     // Implementation depends on location-policy relationship
     return null;
+  }
+
+  /**
+   * Invalidate Redis cache and recompile policies for all locations using a specific policy
+   */
+  private async invalidatePolicyLocations(policyId: string): Promise<void> {
+    try {
+      const locations = await this.locationRepository.find({
+        where: { policyId },
+        select: ['id', 'tenantId'],
+      });
+
+      for (const location of locations) {
+        // Recompile the policy for this location
+        await this.policyCompilerService.compile(
+          location.tenantId,
+          policyId,
+          location.id,
+        );
+        // Notify policy-svc to invalidate its cache
+        await this.redisService.invalidatePolicy(location.id);
+      }
+
+      this.logger.debug(
+        `Recompiled and invalidated cache for ${locations.length} locations using policy ${policyId}`,
+      );
+    } catch (error) {
+      this.logger.error(`Failed to invalidate policy cache: ${error.message}`);
+    }
   }
 }

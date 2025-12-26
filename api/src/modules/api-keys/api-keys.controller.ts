@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiKeysService } from './api-keys.service';
-import { CreateApiKeyDto, UpdateApiKeyDto } from './dto/api-key.dto';
+import { CreateApiKeyDto, UpdateApiKeyDto, RotateApiKeyDto } from './dto/api-key.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -78,6 +78,20 @@ export class ApiKeysController {
   ) {
     const apiKey = await this.apiKeysService.revoke(tenantId, id);
     return { data: apiKey, message: 'API key revoked successfully' };
+  }
+
+  @Post(':id/rotate')
+  @Roles('admin', 'owner')
+  async rotate(
+    @CurrentTenant() tenantId: string,
+    @Param('id') id: string,
+    @Body() dto: RotateApiKeyDto,
+  ) {
+    const newApiKey = await this.apiKeysService.rotate(tenantId, id, dto.gracePeriodHours);
+    return {
+      data: newApiKey,
+      message: `API key rotated. Old key will remain active for ${dto.gracePeriodHours || 24} hours. Make sure to copy the new key now - it will not be shown again.`,
+    };
   }
 
   @Delete(':id')

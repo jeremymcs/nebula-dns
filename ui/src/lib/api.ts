@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
 
 interface RequestOptions extends RequestInit {
   token?: string
@@ -158,6 +158,15 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+
+  updateUser: (id: string, data: any) =>
+    request<any>(`/users/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deleteUser: (id: string) =>
+    request<void>(`/users/${id}`, { method: 'DELETE' }),
 
   // Query Logs
   getQueryLogs: (params?: {

@@ -79,14 +79,23 @@ docker-compose -f docker-compose.prod.yml up -d
 ```
 
 This will start:
-- **PostgreSQL** (port 5432) - Main database
-- **Redis** (port 6379) - Caching and rate limiting
-- **ClickHouse** (port 8123) - Query logging and analytics
-- **API** (port 3000) - NestJS backend
-- **UI** (port 3001) - Next.js frontend
-- **Policy Service** (port 8080) - Go-based policy engine
+- **PostgreSQL** (port 4432) - Main database
+- **Redis** (port 4379) - Caching and rate limiting
+- **ClickHouse** (port 4123) - Query logging and analytics
+- **API** (port 4000) - NestJS backend
+- **UI** (port 4001) - Next.js frontend
+- **Policy Service** (port 4080) - Go-based policy engine
 - **dnsdist** (port 853/443) - DNS frontend (DoT/DoH)
-- **Unbound** (internal) - Recursive resolver
+- **Unbound** (port 5354) - Recursive resolver
+
+### Production Domains
+
+| Service | URL |
+|---------|-----|
+| Dashboard | https://app.nebuladns.io |
+| API | https://api.nebuladns.io |
+| DNS (DoT) | tls://dns1.nebuladns.io:853, tls://dns2.nebuladns.io:853 |
+| DNS (DoH) | https://dns1.nebuladns.io/dns-query, https://dns2.nebuladns.io/dns-query |
 
 ### Local Development
 
@@ -196,7 +205,7 @@ npm run migration:generate -- src/database/migrations/MigrationName
 Metrics are exposed at `/metrics` on the API:
 
 ```bash
-curl http://localhost:3000/metrics
+curl http://localhost:4000/metrics
 ```
 
 Available metrics:
@@ -216,14 +225,14 @@ Enable Sentry by setting `SENTRY_DSN` in your environment.
 
 ## API Documentation
 
-The API documentation is available at `http://localhost:3000/api/docs` (Swagger UI).
+The API documentation is available at `http://localhost:4000/api/docs` (Swagger UI).
 
 ### Authentication
 
 All API requests require a Bearer token:
 
 ```bash
-curl -H "Authorization: Bearer <token>" http://localhost:3000/api/v1/policies
+curl -H "Authorization: Bearer <token>" http://localhost:4000/api/v1/policies
 ```
 
 ### Key Endpoints
@@ -325,7 +334,7 @@ cd scripts/data-loaders
 pip install -r requirements.txt
 
 # Load all available threat feeds
-python threat-feed-loader.py --all-feeds --redis-url=redis://localhost:6379
+python threat-feed-loader.py --all-feeds --redis-url=redis://localhost:4379
 
 # List available feeds
 python threat-feed-loader.py --list-feeds
@@ -337,7 +346,7 @@ Load domain categories for content filtering:
 
 ```bash
 # Load Shallalist (free)
-python category-loader.py --source=shallalist --redis-url=redis://localhost:6379
+python category-loader.py --source=shallalist --redis-url=redis://localhost:4379
 
 # Check statistics
 python category-loader.py --stats-only

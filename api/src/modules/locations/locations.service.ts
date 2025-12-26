@@ -2,6 +2,8 @@ import {
   Injectable,
   NotFoundException,
   Logger,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -13,6 +15,16 @@ import { CreateLocationDto } from './dto/create-location.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import { CreateTokenDto } from './dto/create-token.dto';
 import { PaginationQueryDto, PaginatedResponse } from '@/common/dto/pagination.dto';
+import { RedisService } from '../redis/redis.service';
+import { PolicyCompilerService } from '../policies/policy-compiler.service';
+
+export interface TokenInfo {
+  tenantId: string;
+  locationId: string;
+  label: string;
+  expiresAt: string | null;
+  createdAt: string;
+}
 
 @Injectable()
 export class LocationsService {
@@ -24,6 +36,9 @@ export class LocationsService {
     @InjectRepository(LocationToken)
     private readonly tokenRepository: Repository<LocationToken>,
     private readonly configService: ConfigService,
+    private readonly redisService: RedisService,
+    @Inject(forwardRef(() => PolicyCompilerService))
+    private readonly policyCompilerService: PolicyCompilerService,
   ) {}
 
   async findAll(
@@ -154,6 +169,21 @@ export class LocationsService {
 
     await this.tokenRepository.save(token);
 
+    // Store token info in Redis for policy-svc validation
+    const tokenInfo: TokenInfo = {
+      tenantId,
+      locationId,
+      label: createTokenDto.label || 'Default Token',
+      expiresAt: expiresAt?.toISOString() || null,
+      createdAt: new Date().toISOString(),
+    };
+    await this.redisService.storeToken(tokenHash, tokenInfo);
+
+    // Compile policy for this location if it has one
+    if (location.policyId) {
+      await this.policyCompilerService.compile(tenantId, location.policyId, locationId);
+    }
+
     this.logger.log(`Token created for location ${locationId} in tenant ${tenantId}`);
 
     // Return the raw token - this is the only time it's visible
@@ -182,6 +212,9 @@ export class LocationsService {
 
     token.isActive = false;
     await this.tokenRepository.save(token);
+
+    // Remove token from Redis and notify policy-svc
+    await this.redisService.deleteToken(token.tokenHash);
 
     this.logger.log(`Token ${tokenId} revoked for location ${locationId}`);
   }

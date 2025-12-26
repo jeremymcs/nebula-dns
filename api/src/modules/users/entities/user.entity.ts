@@ -8,13 +8,13 @@ export type UserStatus = 'active' | 'suspended' | 'pending';
 
 @Entity('users')
 export class User extends TenantScopedEntity {
-  @Column({ length: 255, unique: true })
+  @Column({ type: 'varchar', length: 255, unique: true })
   email: string;
 
-  @Column({ length: 255 })
+  @Column({ type: 'varchar', length: 255 })
   name: string;
 
-  @Column({ name: 'password_hash', length: 255 })
+  @Column({ name: 'password_hash', type: 'varchar', length: 255 })
   @Exclude()
   passwordHash: string;
 
@@ -24,7 +24,7 @@ export class User extends TenantScopedEntity {
   @Column({ type: 'varchar', length: 20, default: 'active' })
   status: UserStatus;
 
-  @Column({ name: 'failed_login_attempts', default: 0 })
+  @Column({ name: 'failed_login_attempts', type: 'int', default: 0 })
   @Exclude()
   failedLoginAttempts: number;
 

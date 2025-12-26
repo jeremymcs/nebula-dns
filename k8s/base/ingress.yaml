@@ -13,11 +13,11 @@ metadata:
 spec:
   tls:
     - hosts:
-        - app.example.com
-        - api.example.com
+        - app.nebuladns.io
+        - api.nebuladns.io
       secretName: nebula-dns-tls
   rules:
-    - host: app.example.com
+    - host: app.nebuladns.io
       http:
         paths:
           - path: /
@@ -27,7 +27,7 @@ spec:
                 name: ui
                 port:
                   name: http
-    - host: api.example.com
+    - host: api.nebuladns.io
       http:
         paths:
           - path: /

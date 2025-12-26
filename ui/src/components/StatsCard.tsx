@@ -16,20 +16,20 @@ interface StatsCardProps {
 
 const colorClasses = {
   blue: {
-    bg: 'bg-primary-50',
-    icon: 'text-primary-600',
+    bg: 'bg-primary-50 dark:bg-primary-900/30',
+    icon: 'text-primary-600 dark:text-primary-400',
   },
   green: {
-    bg: 'bg-green-50',
-    icon: 'text-green-600',
+    bg: 'bg-green-50 dark:bg-green-900/30',
+    icon: 'text-green-600 dark:text-green-400',
   },
   red: {
-    bg: 'bg-red-50',
-    icon: 'text-red-600',
+    bg: 'bg-red-50 dark:bg-red-900/30',
+    icon: 'text-red-600 dark:text-red-400',
   },
   yellow: {
-    bg: 'bg-yellow-50',
-    icon: 'text-yellow-600',
+    bg: 'bg-yellow-50 dark:bg-yellow-900/30',
+    icon: 'text-yellow-600 dark:text-yellow-400',
   },
 }
 
@@ -51,11 +51,11 @@ export function StatsCard({
           </div>
           <div className="ml-5 w-0 flex-1">
             <dl>
-              <dt className="truncate text-sm font-medium text-gray-500">
+              <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">
                 {title}
               </dt>
               <dd className="flex items-baseline">
-                <p className="text-2xl font-semibold text-gray-900">{value}</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">{value}</p>
                 {trend && (
                   <p
                     className={clsx(

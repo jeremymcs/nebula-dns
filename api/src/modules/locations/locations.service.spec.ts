@@ -12,6 +12,8 @@ import { NotFoundException } from '@nestjs/common';
 import { LocationsService } from './locations.service';
 import { Location } from './entities/location.entity';
 import { LocationToken } from './entities/location-token.entity';
+import { RedisService } from '../redis/redis.service';
+import { PolicyCompilerService } from '../policies/policy-compiler.service';
 
 describe('LocationsService', () => {
   let service: LocationsService;
@@ -65,6 +67,16 @@ describe('LocationsService', () => {
     delete: jest.fn(),
   };
 
+  const mockRedisService = {
+    storeToken: jest.fn(),
+    deleteToken: jest.fn(),
+    publishPolicyUpdate: jest.fn(),
+  };
+
+  const mockPolicyCompilerService = {
+    compile: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -80,6 +92,14 @@ describe('LocationsService', () => {
         {
           provide: ConfigService,
           useValue: mockConfigService,
+        },
+        {
+          provide: RedisService,
+          useValue: mockRedisService,
+        },
+        {
+          provide: PolicyCompilerService,
+          useValue: mockPolicyCompilerService,
         },
       ],
     }).compile();

@@ -1,0 +1,267 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Policy } from './entities/policy.entity';
+import { PolicyVersion, PolicyConfig } from './entities/policy-version.entity';
+import { Location } from '../locations/entities/location.entity';
+import { CustomList } from '../lists/entities/custom-list.entity';
+import { CustomListEntry } from '../lists/entities/custom-list-entry.entity';
+import { RedisService } from '../redis/redis.service';
+
+export interface CompiledPolicy {
+  tenantId: string;
+  locationId: string;
+  policyVersion: number;
+  allowlistExact: Record<string, boolean>;
+  allowlistWildcardPatterns: string[];
+  blocklistExact: Record<string, boolean>;
+  blocklistWildcardPatterns: string[];
+  blockedCategories: Record<string, boolean>;
+  threatFeeds: string[];
+  safesearchEnabled: boolean;
+  safesearchRules: Record<string, SafeSearchRule>;
+  schedules: Schedule[];
+  blockResponseType: string;
+  updatedAt: string;
+}
+
+export interface SafeSearchRule {
+  cname: string;
+  type: string;
+}
+
+export interface Schedule {
+  name: string;
+  days: number[];
+  startHour: number;
+  startMinute: number;
+  endHour: number;
+  endMinute: number;
+  timezone: string;
+  additionalCategories: string[];
+}
+
+@Injectable()
+export class PolicyCompilerService {
+  private readonly logger = new Logger(PolicyCompilerService.name);
+
+  constructor(
+    @InjectRepository(Policy)
+    private readonly policyRepository: Repository<Policy>,
+    @InjectRepository(PolicyVersion)
+    private readonly versionRepository: Repository<PolicyVersion>,
+    @InjectRepository(Location)
+    private readonly locationRepository: Repository<Location>,
+    @InjectRepository(CustomList)
+    private readonly listRepository: Repository<CustomList>,
+    @InjectRepository(CustomListEntry)
+    private readonly listEntryRepository: Repository<CustomListEntry>,
+    private readonly redisService: RedisService,
+  ) {}
+
+  /**
+   * Compile and store a policy for a specific location
+   */
+  async compileForLocation(locationId: string): Promise<CompiledPolicy | null> {
+    const location = await this.locationRepository.findOne({
+      where: { id: locationId },
+    });
+
+    if (!location || !location.policyId) {
+      this.logger.warn(`No policy found for location ${locationId}`);
+      return null;
+    }
+
+    return this.compile(location.tenantId, location.policyId, locationId);
+  }
+
+  /**
+   * Compile a policy and store it in Redis
+   */
+  async compile(
+    tenantId: string,
+    policyId: string,
+    locationId: string,
+  ): Promise<CompiledPolicy | null> {
+    // Get policy and current version
+    const policy = await this.policyRepository.findOne({
+      where: { id: policyId, tenantId },
+    });
+
+    if (!policy) {
+      this.logger.warn(`Policy ${policyId} not found for tenant ${tenantId}`);
+      return null;
+    }
+
+    const version = await this.versionRepository.findOne({
+      where: { policyId, version: policy.currentVersion },
+    });
+
+    if (!version) {
+      this.logger.warn(`Version ${policy.currentVersion} not found for policy ${policyId}`);
+      return null;
+    }
+
+    const config = version.config;
+
+    // Get custom lists for this tenant
+    const lists = await this.listRepository.find({
+      where: { tenantId },
+      relations: ['entries'],
+    });
+
+    // Build allowlist and blocklist
+    const allowlistExact: Record<string, boolean> = {};
+    const allowlistWildcardPatterns: string[] = [];
+    const blocklistExact: Record<string, boolean> = {};
+    const blocklistWildcardPatterns: string[] = [];
+
+    for (const list of lists) {
+      if (!list.isEnabled) continue;
+
+      const entries = list.entries || [];
+      for (const entry of entries) {
+        const domain = entry.domain.toLowerCase();
+        const isWildcard = entry.type === 'wildcard' || domain.startsWith('*.');
+        const cleanDomain = domain.startsWith('*.') ? domain.slice(2) : domain;
+
+        if (list.type === 'allowlist') {
+          if (isWildcard) {
+            allowlistWildcardPatterns.push(cleanDomain);
+          } else {
+            allowlistExact[cleanDomain] = true;
+          }
+        } else if (list.type === 'blocklist') {
+          if (isWildcard) {
+            blocklistWildcardPatterns.push(cleanDomain);
+          } else {
+            blocklistExact[cleanDomain] = true;
+          }
+        }
+      }
+    }
+
+    // Build blocked categories map
+    const blockedCategories: Record<string, boolean> = {};
+    if (config.blockCategories) {
+      for (const category of config.blockCategories) {
+        blockedCategories[category] = true;
+      }
+    }
+
+    // Build threat feeds
+    const threatFeeds = config.threatBlocking?.enabled
+      ? config.threatBlocking.feeds || ['malware', 'phishing', 'c2']
+      : [];
+
+    // Build SafeSearch rules
+    const safesearchRules: Record<string, SafeSearchRule> = {};
+    if (config.safesearch?.enabled) {
+      const services = config.safesearch.services || ['google', 'bing', 'youtube'];
+      for (const service of services) {
+        const rules = this.getSafeSearchRulesForService(service);
+        Object.assign(safesearchRules, rules);
+      }
+    }
+
+    // Build schedules
+    const schedules: Schedule[] = (config.schedules || []).map((s) => ({
+      name: s.name,
+      days: this.parseDays(s.days),
+      startHour: parseInt(s.startTime.split(':')[0], 10),
+      startMinute: parseInt(s.startTime.split(':')[1], 10),
+      endHour: parseInt(s.endTime.split(':')[0], 10),
+      endMinute: parseInt(s.endTime.split(':')[1], 10),
+      timezone: s.timezone || 'UTC',
+      additionalCategories: s.additionalCategories || [],
+    }));
+
+    const compiled: CompiledPolicy = {
+      tenantId,
+      locationId,
+      policyVersion: policy.currentVersion,
+      allowlistExact,
+      allowlistWildcardPatterns,
+      blocklistExact,
+      blocklistWildcardPatterns,
+      blockedCategories,
+      threatFeeds,
+      safesearchEnabled: config.safesearch?.enabled || false,
+      safesearchRules,
+      schedules,
+      blockResponseType: 'NXDOMAIN',
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Store in Redis
+    await this.storeCompiledPolicy(locationId, compiled);
+
+    this.logger.log(`Compiled policy for location ${locationId} (version ${policy.currentVersion})`);
+    return compiled;
+  }
+
+  /**
+   * Store compiled policy in Redis
+   */
+  private async storeCompiledPolicy(locationId: string, policy: CompiledPolicy): Promise<void> {
+    const key = `policy:${locationId}`;
+    await this.redisService.set(key, JSON.stringify(policy), 3600); // 1 hour TTL
+  }
+
+  /**
+   * Compile policies for all locations of a tenant
+   */
+  async compileAllForTenant(tenantId: string): Promise<void> {
+    const locations = await this.locationRepository.find({
+      where: { tenantId },
+    });
+
+    for (const location of locations) {
+      if (location.policyId) {
+        await this.compile(tenantId, location.policyId, location.id);
+      }
+    }
+
+    this.logger.log(`Compiled policies for ${locations.length} locations in tenant ${tenantId}`);
+  }
+
+  /**
+   * Get SafeSearch CNAME rules for a service
+   */
+  private getSafeSearchRulesForService(service: string): Record<string, SafeSearchRule> {
+    const rules: Record<string, Record<string, SafeSearchRule>> = {
+      google: {
+        'www.google.com': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
+        'www.google.co.uk': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
+      },
+      bing: {
+        'www.bing.com': { cname: 'strict.bing.com', type: 'CNAME' },
+      },
+      youtube: {
+        'www.youtube.com': { cname: 'restrictmoderate.youtube.com', type: 'CNAME' },
+        'm.youtube.com': { cname: 'restrictmoderate.youtube.com', type: 'CNAME' },
+      },
+      duckduckgo: {
+        'duckduckgo.com': { cname: 'safe.duckduckgo.com', type: 'CNAME' },
+      },
+    };
+    return rules[service] || {};
+  }
+
+  /**
+   * Parse day names to day numbers (0 = Sunday)
+   */
+  private parseDays(days: string[]): number[] {
+    const dayMap: Record<string, number> = {
+      sunday: 0, sun: 0,
+      monday: 1, mon: 1,
+      tuesday: 2, tue: 2,
+      wednesday: 3, wed: 3,
+      thursday: 4, thu: 4,
+      friday: 5, fri: 5,
+      saturday: 6, sat: 6,
+    };
+    return days.map((d) => dayMap[d.toLowerCase()] ?? 0);
+  }
+}
+

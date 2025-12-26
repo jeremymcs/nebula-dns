@@ -17,14 +17,14 @@ export class LocationToken {
   @Column({ name: 'location_id', type: 'uuid' })
   locationId: string;
 
-  @Column({ name: 'token_hash', length: 255 })
+  @Column({ name: 'token_hash', type: 'varchar', length: 255 })
   @Exclude()
   tokenHash: string;
 
-  @Column({ name: 'token_prefix', length: 12 })
+  @Column({ name: 'token_prefix', type: 'varchar', length: 12 })
   tokenPrefix: string;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   label: string;
 
   @Column({ name: 'expires_at', type: 'timestamp', nullable: true })
@@ -33,7 +33,7 @@ export class LocationToken {
   @Column({ name: 'last_used_at', type: 'timestamp', nullable: true })
   lastUsedAt: Date | null;
 
-  @Column({ name: 'is_active', default: true })
+  @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 
   @CreateDateColumn({ name: 'created_at' })

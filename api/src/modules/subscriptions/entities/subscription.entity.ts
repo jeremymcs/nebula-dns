@@ -8,14 +8,14 @@ export type BillingCycle = 'monthly' | 'yearly';
 
 @Entity('subscriptions')
 export class Subscription extends BaseEntity {
-  @Column({ name: 'tenant_id' })
+  @Column({ name: 'tenant_id', type: 'uuid' })
   tenantId: string;
 
   @ManyToOne(() => Tenant)
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
-  @Column({ name: 'plan_id', length: 50 })
+  @Column({ name: 'plan_id', type: 'varchar', length: 50 })
   planId: string;
 
   @ManyToOne(() => SubscriptionPlan)
@@ -28,10 +28,10 @@ export class Subscription extends BaseEntity {
   @Column({ type: 'varchar', length: 20, default: 'monthly', name: 'billing_cycle' })
   billingCycle: BillingCycle;
 
-  @Column({ length: 100, nullable: true, name: 'stripe_customer_id' })
+  @Column({ type: 'varchar', length: 100, nullable: true, name: 'stripe_customer_id' })
   stripeCustomerId: string;
 
-  @Column({ length: 100, nullable: true, name: 'stripe_subscription_id' })
+  @Column({ type: 'varchar', length: 100, nullable: true, name: 'stripe_subscription_id' })
   stripeSubscriptionId: string;
 
   @Column({ type: 'timestamptz', nullable: true, name: 'current_period_start' })
@@ -43,7 +43,7 @@ export class Subscription extends BaseEntity {
   @Column({ type: 'timestamptz', nullable: true, name: 'trial_end' })
   trialEnd: Date | null;
 
-  @Column({ default: false, name: 'cancel_at_period_end' })
+  @Column({ type: 'boolean', default: false, name: 'cancel_at_period_end' })
   cancelAtPeriodEnd: boolean;
 
   @Column({ type: 'timestamptz', nullable: true, name: 'canceled_at' })

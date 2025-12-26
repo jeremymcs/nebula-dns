@@ -25,11 +25,18 @@ type EvaluateResponse struct {
 	Decision      string `json:"decision"` // ALLOW, BLOCK, REWRITE
 	Reason        string `json:"reason"`
 	Category      string `json:"category,omitempty"`
-	BlockType     string `json:"block_type,omitempty"` // NXDOMAIN, null
+	BlockType     string `json:"block_type,omitempty"`   // NXDOMAIN, null, blockpage
 	RewriteType   string `json:"rewrite_type,omitempty"` // CNAME, A, AAAA
 	RewriteTarget string `json:"rewrite_target,omitempty"`
 	TTL           int    `json:"ttl"`
 }
+
+// Block response types
+const (
+	BlockTypeNXDOMAIN  = "NXDOMAIN"
+	BlockTypeNull      = "null"
+	BlockTypeBlockPage = "blockpage"
+)
 
 // ValidateTokenRequest represents a token validation request
 type ValidateTokenRequest struct {
@@ -55,27 +62,33 @@ type QueryLogEntry struct {
 	Action        string    `json:"action"`
 	Reason        string    `json:"reason"`
 	Category      string    `json:"category,omitempty"`
+	ThreatType    string    `json:"threat_type,omitempty"`
 	PolicyVersion int       `json:"policy_version,omitempty"`
 	RCode         int       `json:"rcode"`
 	LatencyMs     float64   `json:"latency_ms"`
+	Upstream      string    `json:"upstream,omitempty"`
+	Cached        bool      `json:"cached"`
+	ResponseIP    string    `json:"response_ip,omitempty"`
 }
 
 // CompiledPolicy represents a pre-processed policy for fast evaluation
 type CompiledPolicy struct {
-	TenantID         string              `json:"tenant_id"`
-	LocationID       string              `json:"location_id"`
-	PolicyVersion    int                 `json:"policy_version"`
-	AllowlistExact   map[string]bool     `json:"allowlist_exact"`
-	AllowlistWildcard *SuffixTrie        `json:"-"`
-	BlocklistExact   map[string]bool     `json:"blocklist_exact"`
-	BlocklistWildcard *SuffixTrie        `json:"-"`
-	BlockedCategories map[string]bool    `json:"blocked_categories"`
-	ThreatFeeds      []string            `json:"threat_feeds"`
-	SafeSearchEnabled bool               `json:"safesearch_enabled"`
-	SafeSearchRules  map[string]SafeSearchRule `json:"safesearch_rules"`
-	Schedules        []Schedule          `json:"schedules"`
-	BlockResponseType string             `json:"block_response_type"` // NXDOMAIN or null
-	UpdatedAt        time.Time           `json:"updated_at"`
+	TenantID                  string                    `json:"tenantId"`
+	LocationID                string                    `json:"locationId"`
+	PolicyVersion             int                       `json:"policyVersion"`
+	AllowlistExact            map[string]bool           `json:"allowlistExact"`
+	AllowlistWildcardPatterns []string                  `json:"allowlistWildcardPatterns"`
+	AllowlistWildcard         *SuffixTrie               `json:"-"`
+	BlocklistExact            map[string]bool           `json:"blocklistExact"`
+	BlocklistWildcardPatterns []string                  `json:"blocklistWildcardPatterns"`
+	BlocklistWildcard         *SuffixTrie               `json:"-"`
+	BlockedCategories         map[string]bool           `json:"blockedCategories"`
+	ThreatFeeds               []string                  `json:"threatFeeds"`
+	SafeSearchEnabled         bool                      `json:"safesearchEnabled"`
+	SafeSearchRules           map[string]SafeSearchRule `json:"safesearchRules"`
+	Schedules                 []Schedule                `json:"schedules"`
+	BlockResponseType         string                    `json:"blockResponseType"` // NXDOMAIN or null
+	UpdatedAt                 time.Time                 `json:"updatedAt"`
 }
 
 // SafeSearchRule defines a SafeSearch rewrite rule
@@ -87,11 +100,11 @@ type SafeSearchRule struct {
 
 // Schedule defines a time-based policy schedule
 type Schedule struct {
-	Name                string   `json:"name"`
-	Days                []string `json:"days"` // mon, tue, wed, thu, fri, sat, sun
-	StartTime           string   `json:"start_time"` // HH:MM
-	EndTime             string   `json:"end_time"`   // HH:MM
-	Timezone            string   `json:"timezone"`
+	Name                 string   `json:"name"`
+	Days                 []string `json:"days"`       // mon, tue, wed, thu, fri, sat, sun
+	StartTime            string   `json:"start_time"` // HH:MM
+	EndTime              string   `json:"end_time"`   // HH:MM
+	Timezone             string   `json:"timezone"`
 	AdditionalCategories []string `json:"additional_categories"`
 }
 

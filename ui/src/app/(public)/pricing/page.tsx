@@ -155,26 +155,26 @@ export default function PricingPage() {
   const yearlyDiscount = Math.round((1 - (99.99 / (9.99 * 12))) * 100)
 
   return (
-    <div className="bg-white">
+    <div className="bg-white dark:bg-gray-900 transition-colors">
       {/* Header */}
-      <div className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-20">
+      <div className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900">
+          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white">
             Simple, Transparent Pricing
           </h1>
-          <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Choose the plan that fits your needs. All plans include a 14-day free trial.
           </p>
 
           {/* Billing Toggle */}
           <div className="mt-10 flex items-center justify-center">
-            <div className="bg-gray-100 p-1 rounded-lg inline-flex">
+            <div className="bg-gray-100 dark:bg-gray-800 p-1 rounded-lg inline-flex">
               <button
                 onClick={() => setBillingCycle('monthly')}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
                   billingCycle === 'monthly'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 Monthly
@@ -183,12 +183,12 @@ export default function PricingPage() {
                 onClick={() => setBillingCycle('yearly')}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
                   billingCycle === 'yearly'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 Yearly
-                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
+                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300">
                   Save {yearlyDiscount}%
                 </span>
               </button>
@@ -208,10 +208,10 @@ export default function PricingPage() {
             return (
               <div
                 key={plan.id}
-                className={`relative bg-white rounded-2xl border-2 transition-all ${
+                className={`relative bg-white dark:bg-gray-800 rounded-2xl border-2 transition-all ${
                   isPopular
                     ? 'border-indigo-500 shadow-xl scale-105'
-                    : 'border-gray-200 hover:border-indigo-300 hover:shadow-lg'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-lg'
                 }`}
               >
                 {isPopular && (
@@ -223,22 +223,22 @@ export default function PricingPage() {
                 )}
 
                 <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
-                  <p className="mt-2 text-sm text-gray-500 h-10">{plan.description}</p>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">{plan.name}</h3>
+                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 h-10">{plan.description}</p>
 
                   <div className="mt-6">
                     <div className="flex items-baseline">
-                      <span className="text-4xl font-bold text-gray-900">
+                      <span className="text-4xl font-bold text-gray-900 dark:text-white">
                         ${price === 0 ? '0' : price}
                       </span>
                       {price > 0 && (
-                        <span className="ml-2 text-gray-500">
+                        <span className="ml-2 text-gray-500 dark:text-gray-400">
                           /{billingCycle === 'yearly' ? 'year' : 'month'}
                         </span>
                       )}
                     </div>
                     {monthlyEquivalent && price > 0 && (
-                      <p className="mt-1 text-sm text-gray-500">
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                         ${monthlyEquivalent}/month billed annually
                       </p>
                     )}
@@ -250,36 +250,36 @@ export default function PricingPage() {
                       isPopular
                         ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700'
                         : plan.id === 'free'
-                        ? 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                        : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                        ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
+                        : 'bg-indigo-50 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/70'
                     }`}
                   >
                     {plan.id === 'free' ? 'Get Started' : 'Start Free Trial'}
                   </Link>
 
                   {/* Limits */}
-                  <div className="mt-6 pt-6 border-t border-gray-100">
+                  <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
                     <ul className="space-y-3">
                       {Object.entries(plan.limits).map(([key, value]) => (
                         <li key={key} className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">{limitLabels[key]}</span>
-                          <span className="font-medium text-gray-900">{formatLimit(value)}</span>
+                          <span className="text-gray-600 dark:text-gray-400">{limitLabels[key]}</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{formatLimit(value)}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
                   {/* Features */}
-                  <div className="mt-6 pt-6 border-t border-gray-100">
+                  <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
                     <ul className="space-y-3">
                       {Object.entries(plan.features).map(([key, value]) => (
                         <li key={key} className="flex items-start text-sm">
                           {value ? (
                             <CheckIcon className="h-5 w-5 text-green-500 flex-shrink-0 mr-2" />
                           ) : (
-                            <XMarkIcon className="h-5 w-5 text-gray-300 flex-shrink-0 mr-2" />
+                            <XMarkIcon className="h-5 w-5 text-gray-300 dark:text-gray-600 flex-shrink-0 mr-2" />
                           )}
-                          <span className={value ? 'text-gray-700' : 'text-gray-400'}>
+                          <span className={value ? 'text-gray-700 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}>
                             {featureLabels[key] || key}
                           </span>
                         </li>
@@ -294,12 +294,12 @@ export default function PricingPage() {
       </div>
 
       {/* FAQ Section */}
-      <div className="bg-gray-50 py-20">
+      <div className="bg-gray-50 dark:bg-gray-800 py-20">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             Frequently Asked Questions
           </h2>
-          
+
           <div className="space-y-6">
             {[
               {
@@ -323,9 +323,9 @@ export default function PricingPage() {
                 a: 'Yes! We offer significant discounts for nonprofits, educational institutions, and open-source projects. Contact us for details.',
               },
             ].map((faq, index) => (
-              <div key={index} className="bg-white rounded-lg p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900">{faq.q}</h3>
-                <p className="mt-2 text-gray-600">{faq.a}</p>
+              <div key={index} className="bg-white dark:bg-gray-900 rounded-lg p-6 shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{faq.q}</h3>
+                <p className="mt-2 text-gray-600 dark:text-gray-400">{faq.a}</p>
               </div>
             ))}
           </div>

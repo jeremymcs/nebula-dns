@@ -1,4 +1,4 @@
-# Nebula DNS - Docker Compose for Local Development
+# DNS Filter - Docker Compose for Local Development
 # Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
 # Usage: docker compose up -d
 
@@ -12,9 +12,9 @@ services:
       context: ./api
       dockerfile: Dockerfile
       target: development
-    container_name: nebula-api
+    container_name: dnsfilter-api
     ports:
-      - "3000:3000"
+      - "4000:3000"
     environment:
       NODE_ENV: development
       PORT: 3000
@@ -29,6 +29,7 @@ services:
       JWT_REFRESH_SECRET: dev-jwt-refresh-secret-change-in-production
       JWT_EXPIRES_IN: 15m
       JWT_REFRESH_EXPIRES_IN: 7d
+      CORS_ORIGIN: http://localhost:4001
     depends_on:
       postgres:
         condition: service_healthy
@@ -38,31 +39,31 @@ services:
       - ./api:/app
       - /app/node_modules
     networks:
-      - nebula-network
+      - dnsfilter-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 60s
 
   ui:
     build:
       context: ./ui
       dockerfile: Dockerfile
       target: development
-    container_name: nebula-ui
+    container_name: dnsfilter-ui
     ports:
-      - "3001:3000"
+      - "4001:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3000
+      NEXT_PUBLIC_API_URL: http://localhost:4000
     depends_on:
       - api
     volumes:
       - ./ui:/app
       - /app/node_modules
     networks:
-      - nebula-network
+      - dnsfilter-network
 
   # ============================================
   # DATA PLANE
@@ -72,7 +73,7 @@ services:
     build:
       context: ./config/dnsdist
       dockerfile: Dockerfile
-    container_name: nebula-dnsdist
+    container_name: dnsfilter-dnsdist
     ports:
       - "853:853/tcp"   # DoT
       - "443:443/tcp"   # DoH
@@ -85,7 +86,7 @@ services:
       - ./config/dnsdist/dnsdist.conf:/etc/dnsdist/dnsdist.conf:ro
       - ./config/certs:/etc/dnsdist/certs:ro
     networks:
-      - nebula-network
+      - dnsfilter-network
     cap_add:
       - NET_BIND_SERVICE
 
@@ -93,13 +94,14 @@ services:
     build:
       context: ./policy-svc
       dockerfile: Dockerfile
-    container_name: nebula-policy-svc
+    container_name: dnsfilter-policy-svc
     ports:
-      - "8080:8080"
+      - "4080:8080"
     environment:
       PORT: 8080
       REDIS_URL: redis:6379
       CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_DATABASE: nebula
       POSTGRES_URL: postgresql://nebula:nebula@postgres:5432/nebula
       LOG_LEVEL: debug
       FAIL_MODE: open
@@ -109,25 +111,26 @@ services:
       clickhouse:
         condition: service_healthy
     networks:
-      - nebula-network
+      - dnsfilter-network
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   unbound:
     build:
       context: ./config/unbound
       dockerfile: Dockerfile
-    container_name: nebula-unbound
+    container_name: dnsfilter-unbound
     ports:
       - "5354:53/udp"
       - "5354:53/tcp"
     volumes:
       - ./config/unbound/unbound.conf:/etc/unbound/unbound.conf:ro
     networks:
-      - nebula-network
+      - dnsfilter-network
     healthcheck:
       test: ["CMD", "drill", "@127.0.0.1", "google.com"]
       interval: 10s
@@ -140,9 +143,9 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: nebula-postgres
+    container_name: dnsfilter-postgres
     ports:
-      - "5432:5432"
+      - "4432:5432"
     environment:
       POSTGRES_USER: nebula
       POSTGRES_PASSWORD: nebula
@@ -151,7 +154,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
       - ./scripts/init-postgres.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
-      - nebula-network
+      - dnsfilter-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U nebula -d nebula"]
       interval: 5s
@@ -160,14 +163,14 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: nebula-redis
+    container_name: dnsfilter-redis
     ports:
-      - "6379:6379"
+      - "4379:6379"
     command: redis-server --appendonly yes
     volumes:
       - redis-data:/data
     networks:
-      - nebula-network
+      - dnsfilter-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -176,19 +179,20 @@ services:
 
   clickhouse:
     image: clickhouse/clickhouse-server:24.1
-    container_name: nebula-clickhouse
+    container_name: dnsfilter-clickhouse
     ports:
-      - "8123:8123"  # HTTP
-      - "9440:9000"  # Native (mapped to 9440 to avoid conflicts)
+      - "4123:8123"  # HTTP
+      - "4900:9000"  # Native
     environment:
       CLICKHOUSE_USER: nebula
       CLICKHOUSE_PASSWORD: nebula
+      CLICKHOUSE_DB: nebula_dns
       CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
     volumes:
       - clickhouse-data:/var/lib/clickhouse
       - ./scripts/init-clickhouse.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
-      - nebula-network
+      - dnsfilter-network
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:8123/ping"]
       interval: 5s
@@ -202,27 +206,27 @@ services:
   # Adminer for PostgreSQL management
   adminer:
     image: adminer:latest
-    container_name: nebula-adminer
+    container_name: dnsfilter-adminer
     ports:
-      - "8081:8080"
+      - "4081:8080"
     networks:
-      - nebula-network
+      - dnsfilter-network
     profiles:
       - dev-tools
 
   # RedisInsight for Redis management
   redis-insight:
     image: redislabs/redisinsight:latest
-    container_name: nebula-redis-insight
+    container_name: dnsfilter-redis-insight
     ports:
-      - "8082:8001"
+      - "4082:8001"
     networks:
-      - nebula-network
+      - dnsfilter-network
     profiles:
       - dev-tools
 
 networks:
-  nebula-network:
+  dnsfilter-network:
     driver: bridge
 
 volumes:

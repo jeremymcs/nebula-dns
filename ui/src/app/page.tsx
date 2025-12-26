@@ -1,21 +1,59 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
- * Login Page Component
+ *
+ * Login Page Component - Cosmic Security Theme
  */
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useContext, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
+import { ThemeContext } from '@/contexts/ThemeContext'
+import { CSSStarField } from '@/components/StarField'
+import { SunIcon, MoonIcon } from '@heroicons/react/24/outline'
+
+// Theme toggle button component
+function ThemeToggle() {
+  const context = useContext(ThemeContext)
+  if (!context) return null
+  const { resolvedTheme, toggleTheme } = context
+
+  return (
+    <button
+      onClick={toggleTheme}
+      className="absolute top-6 right-6 z-20 p-2.5 rounded-xl bg-white/10 backdrop-blur-sm ring-1 ring-white/20 hover:bg-white/20 transition-all"
+      aria-label="Toggle theme"
+    >
+      {resolvedTheme === 'dark' ? (
+        <SunIcon className="w-5 h-5 text-yellow-400" />
+      ) : (
+        <MoonIcon className="w-5 h-5 text-space-700" />
+      )}
+    </button>
+  )
+}
 
 export default function LoginPage() {
   const router = useRouter()
+  const { login, verifyMfa, user, loading: authLoading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // MFA state
+  const [mfaRequired, setMfaRequired] = useState(false)
+  const [mfaTempToken, setMfaTempToken] = useState('')
+  const [mfaCode, setMfaCode] = useState('')
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push('/dashboard')
+    }
+  }, [authLoading, user, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,21 +61,14 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      })
+      const result = await login(email, password)
 
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.message || 'Invalid credentials')
+      if (result.mfaRequired && result.mfaChallenge) {
+        // MFA is required - show MFA input
+        setMfaRequired(true)
+        setMfaTempToken(result.mfaChallenge.tempToken)
       }
-
-      const data = await res.json()
-      localStorage.setItem('token', data.accessToken)
-      localStorage.setItem('refreshToken', data.refreshToken)
-      router.push('/dashboard')
+      // If success, login function handles redirect
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {
@@ -45,40 +76,117 @@ export default function LoginPage() {
     }
   }
 
+  const handleMfaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    try {
+      await verifyMfa(mfaTempToken, mfaCode)
+      // verifyMfa handles redirect to /dashboard
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Invalid MFA code')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleBackToLogin = () => {
+    setMfaRequired(false)
+    setMfaTempToken('')
+    setMfaCode('')
+    setError('')
+  }
+
   return (
-    <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gradient-to-b from-primary-50 to-white">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <div className="h-12 w-12 rounded-lg bg-primary-600 flex items-center justify-center">
-            <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
+    <div className="min-h-screen flex">
+      {/* Left Panel - Cosmic Background */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+        <CSSStarField />
+
+        {/* Content overlay */}
+        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20">
+          {/* Logo */}
+          <div className="flex items-center gap-4 mb-8">
+            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center shadow-2xl shadow-primary-500/30">
+              <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-white">Nebula DNS</h1>
+              <p className="text-primary-300">Enterprise Security</p>
+            </div>
+          </div>
+
+          {/* Tagline */}
+          <h2 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-6">
+            Protect your network<br />
+            <span className="text-gradient-light">from the cosmos</span>
+          </h2>
+
+          <p className="text-lg text-space-300 max-w-md mb-10">
+            Advanced DNS security, threat intelligence, and content filtering for modern enterprises.
+          </p>
+
+          {/* Features */}
+          <div className="space-y-4">
+            {[
+              'Real-time threat blocking',
+              'AI-powered categorization',
+              'Zero-latency filtering',
+            ].map((feature) => (
+              <div key={feature} className="flex items-center gap-3 text-space-200">
+                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-success-500/20 flex items-center justify-center">
+                  <svg className="w-3 h-3 text-success-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                {feature}
+              </div>
+            ))}
           </div>
         </div>
-        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-          Nebula DNS
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Enterprise DNS Security & Content Filtering
-        </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="card px-6 py-8 sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {error && (
-              <div className="rounded-md bg-red-50 p-4">
-                <div className="flex">
-                  <div className="text-sm text-red-700">{error}</div>
-                </div>
-              </div>
-            )}
+      {/* Right Panel - Login Form */}
+      <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-12 xl:px-20 bg-white dark:bg-space-900 relative">
+        <ThemeToggle />
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <div className="mt-1">
+        {/* Mobile Logo */}
+        <div className="lg:hidden flex items-center gap-3 mb-10">
+          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center shadow-lg shadow-primary-500/25">
+            <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <span className="text-2xl font-bold text-space-900 dark:text-white">Nebula DNS</span>
+        </div>
+
+        <div className="w-full max-w-sm mx-auto lg:mx-0">
+          {/* Form Header */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-space-900 dark:text-white">
+              {mfaRequired ? 'Two-Factor Authentication' : 'Welcome back'}
+            </h2>
+            <p className="mt-2 text-space-500 dark:text-space-400">
+              {mfaRequired
+                ? 'Enter the 6-digit code from your authenticator app'
+                : 'Sign in to your account to continue'}
+            </p>
+          </div>
+
+          {/* Error Alert */}
+          {error && (
+            <div className="mb-6 p-4 rounded-xl bg-danger-50 dark:bg-danger-900/20 ring-1 ring-danger-200 dark:ring-danger-800">
+              <p className="text-sm text-danger-700 dark:text-danger-300">{error}</p>
+            </div>
+          )}
+
+          {!mfaRequired ? (
+            <form className="space-y-5" onSubmit={handleSubmit}>
+              <div>
+                <label htmlFor="email" className="label">Email address</label>
                 <input
                   id="email"
                   name="email"
@@ -88,15 +196,12 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="input"
+                  placeholder="you@company.com"
                 />
               </div>
-            </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <div className="mt-1">
+              <div>
+                <label htmlFor="password" className="label">Password</label>
                 <input
                   id="password"
                   name="password"
@@ -106,22 +211,103 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="input"
+                  placeholder="••••••••"
                 />
               </div>
-            </div>
 
-            <div>
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary w-full disabled:opacity-50"
+                className="btn-primary w-full py-3"
               >
-                {loading ? 'Signing in...' : 'Sign in'}
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Signing in...
+                  </span>
+                ) : 'Sign in'}
               </button>
-            </div>
-          </form>
+            </form>
+          ) : (
+            <form className="space-y-5" onSubmit={handleMfaSubmit}>
+              <MFAInput value={mfaCode} onChange={setMfaCode} />
+
+              <p className="text-xs text-center text-space-500 dark:text-space-400">
+                You can also use a backup code (8 characters)
+              </p>
+
+              <div className="space-y-3">
+                <button
+                  type="submit"
+                  disabled={loading || mfaCode.length < 6}
+                  className="btn-primary w-full py-3"
+                >
+                  {loading ? 'Verifying...' : 'Verify Code'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBackToLogin}
+                  className="btn-ghost w-full"
+                >
+                  ← Back to login
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       </div>
+    </div>
+  )
+}
+
+// MFA Individual Digit Input Component
+function MFAInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const digits = value.padEnd(6, '').slice(0, 6).split('')
+
+  const handleChange = (index: number, newValue: string) => {
+    const digit = newValue.replace(/\D/g, '').slice(-1)
+    const newCode = digits.map((d, i) => (i === index ? digit : d)).join('')
+    onChange(newCode.replace(/ /g, ''))
+
+    if (digit && index < 5) {
+      inputRefs.current[index + 1]?.focus()
+    }
+  }
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !digits[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus()
+    }
+  }
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault()
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
+    onChange(pasted)
+    inputRefs.current[Math.min(pasted.length, 5)]?.focus()
+  }
+
+  return (
+    <div className="flex justify-center gap-2">
+      {[0, 1, 2, 3, 4, 5].map((index) => (
+        <input
+          key={index}
+          ref={(el) => { inputRefs.current[index] = el }}
+          type="text"
+          inputMode="numeric"
+          maxLength={1}
+          value={digits[index] || ''}
+          onChange={(e) => handleChange(index, e.target.value)}
+          onKeyDown={(e) => handleKeyDown(index, e)}
+          onPaste={handlePaste}
+          className="w-12 h-14 text-center text-2xl font-bold rounded-xl bg-space-50 dark:bg-space-800 ring-1 ring-space-200 dark:ring-space-700 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 transition-all"
+          autoFocus={index === 0}
+        />
+      ))}
     </div>
   )
 }

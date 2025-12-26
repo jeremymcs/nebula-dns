@@ -1,7 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import * as crypto from 'crypto';
+import * as https from 'https';
+import * as http from 'http';
 import { Webhook, WebhookEvent } from './entities/webhook.entity';
 import { WebhookDelivery } from './entities/webhook-delivery.entity';
 import {
@@ -15,6 +17,10 @@ import {
 
 @Injectable()
 export class WebhooksService {
+  private readonly logger = new Logger(WebhooksService.name);
+  private readonly maxRetries = 3;
+  private readonly retryDelays = [1000, 5000, 30000]; // 1s, 5s, 30s
+
   constructor(
     @InjectRepository(Webhook)
     private webhookRepository: Repository<Webhook>,
@@ -195,25 +201,45 @@ export class WebhooksService {
     let statusCode: number = 0;
     let responseBody: string = '';
     let error: string | null = null;
+    let retryCount = 0;
 
-    try {
-      // In production, use actual HTTP request
-      // const response = await fetch(webhook.url, {
-      //   method: 'POST',
-      //   headers,
-      //   body: payloadString,
-      // });
-      // statusCode = response.status;
-      // responseBody = await response.text();
+    // Retry loop with exponential backoff
+    while (retryCount <= this.maxRetries) {
+      try {
+        const result = await this.httpPost(webhook.url, payloadString, headers);
+        statusCode = result.statusCode;
+        responseBody = result.body;
 
-      // Simulate successful delivery
-      statusCode = 200;
-      responseBody = '{"received": true}';
-      console.log(`[Webhook] Delivered ${eventType} to ${webhook.name} (${webhook.url})`);
+        // Success - break out of retry loop
+        if (statusCode >= 200 && statusCode < 300) {
+          this.logger.log(`Delivered ${eventType} to ${webhook.name} (${webhook.url})`);
+          break;
+        }
 
-    } catch (err: any) {
-      statusCode = 0;
-      error = err.message || 'Failed to deliver webhook';
+        // Server error (5xx) - retry
+        if (statusCode >= 500 && retryCount < this.maxRetries) {
+          this.logger.warn(`Webhook ${webhook.name} returned ${statusCode}, retrying...`);
+          await this.delay(this.retryDelays[retryCount] || 30000);
+          retryCount++;
+          continue;
+        }
+
+        // Client error (4xx) - don't retry
+        error = `HTTP ${statusCode}: ${responseBody?.substring(0, 200)}`;
+        break;
+
+      } catch (err: any) {
+        error = err.message || 'Failed to deliver webhook';
+
+        // Network error - retry
+        if (retryCount < this.maxRetries) {
+          this.logger.warn(`Webhook ${webhook.name} failed: ${error}, retrying...`);
+          await this.delay(this.retryDelays[retryCount] || 30000);
+          retryCount++;
+          continue;
+        }
+        break;
+      }
     }
 
     const responseTimeMs = Date.now() - startTime;
@@ -229,6 +255,7 @@ export class WebhooksService {
         responseBody: responseBody?.substring(0, 1000), // Limit stored response
         responseTimeMs,
         error,
+        retryCount,
       });
       await this.deliveryRepository.save(delivery);
 
@@ -278,5 +305,53 @@ export class WebhooksService {
       failureCount: webhook.failureCount,
       createdAt: webhook.createdAt,
     };
+  }
+
+  private async httpPost(
+    url: string,
+    body: string,
+    headers: Record<string, string>,
+  ): Promise<{ statusCode: number; body: string }> {
+    return new Promise((resolve, reject) => {
+      const urlObj = new URL(url);
+      const isHttps = urlObj.protocol === 'https:';
+      const httpModule = isHttps ? https : http;
+
+      const options = {
+        hostname: urlObj.hostname,
+        port: urlObj.port || (isHttps ? 443 : 80),
+        path: urlObj.pathname + urlObj.search,
+        method: 'POST',
+        headers: {
+          ...headers,
+          'Content-Length': Buffer.byteLength(body),
+        },
+        timeout: 30000, // 30 second timeout
+      };
+
+      const req = httpModule.request(options, (res) => {
+        let responseBody = '';
+        res.on('data', (chunk) => (responseBody += chunk));
+        res.on('end', () => {
+          resolve({
+            statusCode: res.statusCode || 0,
+            body: responseBody,
+          });
+        });
+      });
+
+      req.on('error', reject);
+      req.on('timeout', () => {
+        req.destroy();
+        reject(new Error('Request timeout'));
+      });
+
+      req.write(body);
+      req.end();
+    });
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

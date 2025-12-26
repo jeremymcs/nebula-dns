@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { PoliciesService } from './policies.service';
+import { PolicyCompilerService } from './policy-compiler.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard, Roles, Role } from '@/common/guards/roles.guard';
 import { CurrentTenant, CurrentUser } from '@/common/decorators/tenant.decorator';
@@ -25,7 +26,10 @@ import { PaginationQueryDto } from '@/common/dto/pagination.dto';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('policies')
 export class PoliciesController {
-  constructor(private readonly policiesService: PoliciesService) {}
+  constructor(
+    private readonly policiesService: PoliciesService,
+    private readonly policyCompilerService: PolicyCompilerService,
+  ) {}
 
   @Get()
   @Roles(Role.OWNER, Role.ADMIN, Role.ANALYST, Role.READONLY)
@@ -121,5 +125,27 @@ export class PoliciesController {
     @Body('versionId') versionId: string,
   ) {
     return this.policiesService.rollback(tenantId, id, versionId, user.id);
+  }
+
+  @Post('compile')
+  @Roles(Role.OWNER, Role.ADMIN)
+  @ApiOperation({ summary: 'Compile all policies for tenant' })
+  @ApiResponse({ status: 200, description: 'Policies compiled and pushed to Redis' })
+  async compileAll(@CurrentTenant() tenantId: string) {
+    await this.policyCompilerService.compileAllForTenant(tenantId);
+    return { message: 'Policies compiled successfully' };
+  }
+
+  @Post(':id/compile/:locationId')
+  @Roles(Role.OWNER, Role.ADMIN)
+  @ApiOperation({ summary: 'Compile policy for specific location' })
+  @ApiResponse({ status: 200, description: 'Policy compiled and pushed to Redis' })
+  async compileForLocation(
+    @CurrentTenant() tenantId: string,
+    @Param('id') policyId: string,
+    @Param('locationId') locationId: string,
+  ) {
+    const compiled = await this.policyCompilerService.compile(tenantId, policyId, locationId);
+    return { message: 'Policy compiled successfully', compiled };
   }
 }

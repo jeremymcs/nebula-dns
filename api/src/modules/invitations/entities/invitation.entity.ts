@@ -8,27 +8,27 @@ export type InvitationRole = 'owner' | 'admin' | 'analyst' | 'readonly';
 
 @Entity('team_invitations')
 export class Invitation extends BaseEntity {
-  @Column({ name: 'tenant_id' })
+  @Column({ name: 'tenant_id', type: 'uuid' })
   tenantId: string;
 
   @ManyToOne(() => Tenant)
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
-  @Column({ name: 'invited_by' })
+  @Column({ name: 'invited_by', type: 'uuid' })
   invitedById: string;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'invited_by' })
   invitedBy: User;
 
-  @Column({ length: 255 })
+  @Column({ type: 'varchar', length: 255 })
   email: string;
 
   @Column({ type: 'varchar', length: 20 })
   role: InvitationRole;
 
-  @Column({ name: 'token_hash', length: 255, unique: true })
+  @Column({ name: 'token_hash', type: 'varchar', length: 255, unique: true })
   tokenHash: string;
 
   @Column({ type: 'varchar', length: 20, default: 'pending' })

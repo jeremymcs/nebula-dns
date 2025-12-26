@@ -5,16 +5,16 @@ import { PolicyVersion } from './policy-version.entity';
 
 @Entity('policies')
 export class Policy extends TenantScopedEntity {
-  @Column({ length: 255 })
+  @Column({ type: 'varchar', length: 255 })
   name: string;
 
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ name: 'current_version', default: 1 })
+  @Column({ name: 'current_version', type: 'int', default: 1 })
   currentVersion: number;
 
-  @Column({ name: 'is_default', default: false })
+  @Column({ name: 'is_default', type: 'boolean', default: false })
   isDefault: boolean;
 
   @ManyToOne(() => Tenant, (tenant) => tenant.policies)

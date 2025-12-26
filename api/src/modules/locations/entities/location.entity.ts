@@ -7,7 +7,7 @@ export type LocationStatus = 'active' | 'inactive';
 
 @Entity('locations')
 export class Location extends TenantScopedEntity {
-  @Column({ length: 255 })
+  @Column({ type: 'varchar', length: 255 })
   name: string;
 
   @Column({ type: 'text', nullable: true })
@@ -22,7 +22,7 @@ export class Location extends TenantScopedEntity {
   @Column({ type: 'inet', nullable: true })
   ipRange: string;
 
-  @Column({ name: 'rate_limit', default: 1000 })
+  @Column({ name: 'rate_limit', type: 'int', default: 1000 })
   rateLimit: number;
 
   @Column({ type: 'jsonb', nullable: true })

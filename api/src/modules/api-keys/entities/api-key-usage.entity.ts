@@ -6,23 +6,23 @@ export class ApiKeyUsage {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'api_key_id' })
+  @Column({ name: 'api_key_id', type: 'uuid' })
   apiKeyId: string;
 
   @ManyToOne(() => ApiKey)
   @JoinColumn({ name: 'api_key_id' })
   apiKey: ApiKey;
 
-  @Column({ length: 255 })
+  @Column({ type: 'varchar', length: 255 })
   endpoint: string;
 
-  @Column({ length: 10 })
+  @Column({ type: 'varchar', length: 10 })
   method: string;
 
-  @Column({ name: 'status_code', nullable: true })
+  @Column({ name: 'status_code', type: 'int', nullable: true })
   statusCode: number;
 
-  @Column({ name: 'response_time_ms', nullable: true })
+  @Column({ name: 'response_time_ms', type: 'int', nullable: true })
   responseTimeMs: number;
 
   @Column({ name: 'ip_address', type: 'inet', nullable: true })
