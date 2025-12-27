@@ -51,13 +51,13 @@ export class Partner extends BaseEntity {
   @Column({ type: 'varchar', length: 20, default: 'starter' })
   plan: PartnerPlan;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ name: 'contact_email', type: 'varchar', length: 255, nullable: true })
   contactEmail: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ name: 'contact_phone', type: 'varchar', length: 255, nullable: true })
   contactPhone: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ name: 'billing_email', type: 'varchar', length: 255, nullable: true })
   billingEmail: string;
 
   @Column({ type: 'text', nullable: true })

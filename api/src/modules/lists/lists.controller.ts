@@ -19,6 +19,7 @@ import { CurrentTenant } from '@/common/decorators/tenant.decorator';
 import { CreateListDto } from './dto/create-list.dto';
 import { UpdateListDto } from './dto/update-list.dto';
 import { AddEntriesDto } from './dto/add-entries.dto';
+import { ListQueryDto } from './dto/list-query.dto';
 import { PaginationQueryDto } from '@/common/dto/pagination.dto';
 
 @ApiTags('lists')
@@ -34,9 +35,9 @@ export class ListsController {
   @ApiResponse({ status: 200, description: 'Lists retrieved' })
   async findAll(
     @CurrentTenant() tenantId: string,
-    @Query() pagination: PaginationQueryDto,
-    @Query('type') type?: 'allowlist' | 'blocklist',
+    @Query() query: ListQueryDto,
   ) {
+    const { type, ...pagination } = query;
     return this.listsService.findAll(tenantId, pagination, type);
   }
 

@@ -33,7 +33,7 @@ export class PoliciesService {
   async findAll(
     tenantId: string,
     pagination: PaginationQueryDto,
-  ): Promise<PaginatedResponse<Policy>> {
+  ): Promise<PaginatedResponse<Policy & { currentConfig?: PolicyConfig }>> {
     const { limit = 20, cursor } = pagination;
 
     const queryBuilder = this.policyRepository
@@ -55,6 +55,19 @@ export class PoliciesService {
       policies.pop();
     }
 
+    // Fetch current config for each policy
+    const policiesWithConfig = await Promise.all(
+      policies.map(async (policy) => {
+        const currentVersionRecord = await this.versionRepository.findOne({
+          where: { policyId: policy.id, version: policy.currentVersion },
+        });
+        return {
+          ...policy,
+          currentConfig: currentVersionRecord?.config,
+        };
+      }),
+    );
+
     const nextCursor =
       hasMore && policies.length > 0
         ? Buffer.from(
@@ -63,7 +76,7 @@ export class PoliciesService {
         : null;
 
     return {
-      data: policies,
+      data: policiesWithConfig,
       pagination: {
         cursor: nextCursor,
         hasMore,

@@ -64,19 +64,31 @@ export const api = {
     request<{ data: any[]; pagination: { cursor: string | null; hasMore: boolean } }>(
       `/policies${cursor ? `?cursor=${cursor}` : ''}`
     ),
-  
+
   getPolicy: (id: string) => request<any>(`/policies/${id}`),
-  
+
   createPolicy: (data: any) =>
     request<any>('/policies', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-  
+
   updatePolicy: (id: string, data: any) =>
     request<any>(`/policies/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
+    }),
+
+  getPolicyVersions: (id: string) =>
+    request<any[]>(`/policies/${id}/versions`),
+
+  getPolicyVersion: (id: string, versionId: string) =>
+    request<any>(`/policies/${id}/versions/${versionId}`),
+
+  rollbackPolicy: (id: string, versionId: string) =>
+    request<any>(`/policies/${id}/rollback`, {
+      method: 'POST',
+      body: JSON.stringify({ versionId }),
     }),
   
   // Locations
@@ -122,13 +134,13 @@ export const api = {
   addListEntry: (listId: string, data: { domain: string; comment?: string }) =>
     request<any>(`/lists/${listId}/entries`, {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({ entries: [data] }),
     }),
   
   bulkAddListEntries: (listId: string, domains: string[]) =>
-    request<{ added: number; skipped: number }>(`/lists/${listId}/entries/bulk`, {
+    request<{ added: number; skipped: number }>(`/lists/${listId}/entries`, {
       method: 'POST',
-      body: JSON.stringify({ domains }),
+      body: JSON.stringify({ entries: domains.map(domain => ({ domain })) }),
     }),
   
   addListEntries: (listId: string, entries: any[]) =>

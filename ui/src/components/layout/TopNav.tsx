@@ -31,17 +31,22 @@ import {
   Bars3Icon,
   XMarkIcon,
   ChevronDownIcon,
+  RocketLaunchIcon,
+  MagnifyingGlassIcon,
+  SparklesIcon,
+  BoltIcon,
+  CommandLineIcon,
 } from '@heroicons/react/24/outline'
+import { useCommandBar } from '@/components/command-bar'
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+  { name: 'Mission Control', href: '/dashboard/mission-control', icon: RocketLaunchIcon },
   { name: 'Policies', href: '/dashboard/policies', icon: ShieldCheckIcon },
-  { name: 'Locations', href: '/dashboard/locations', icon: MapPinIcon },
-  { name: 'Lists', href: '/dashboard/lists', icon: ListBulletIcon },
-  { name: 'Block Pages', href: '/dashboard/block-pages', icon: NoSymbolIcon },
-  { name: 'Agents', href: '/dashboard/agents', icon: ComputerDesktopIcon },
-  { name: 'Logs', href: '/dashboard/logs', icon: DocumentTextIcon },
+  { name: 'Zones', href: '/dashboard/locations', icon: MapPinIcon },
+  { name: 'Investigate', href: '/dashboard/investigate', icon: MagnifyingGlassIcon },
   { name: 'Reports', href: '/dashboard/reports', icon: ChartBarIcon },
+  { name: 'Insights', href: '/dashboard/insights', icon: SparklesIcon },
+  { name: 'Playbooks', href: '/dashboard/playbooks', icon: BoltIcon },
 ]
 
 const adminNavigation = [
@@ -53,6 +58,7 @@ export function TopNav() {
   const pathname = usePathname()
   const { user, logout } = useAuth()
   const { theme, setTheme } = useTheme()
+  const { open: openCommandBar } = useCommandBar()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const getInitials = (name: string) => {
@@ -108,6 +114,16 @@ export function TopNav() {
 
           {/* Right section */}
           <div className="flex items-center gap-2">
+            {/* Command Bar Button */}
+            <button
+              onClick={openCommandBar}
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl text-space-500 hover:text-space-900 dark:hover:text-white bg-space-100 dark:bg-space-800 hover:bg-space-200 dark:hover:bg-space-700 transition-colors"
+              aria-label="Open command bar"
+            >
+              <CommandLineIcon className="h-4 w-4" />
+              <span className="text-xs font-medium">⌘K</span>
+            </button>
+
             {/* Theme Toggle */}
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}

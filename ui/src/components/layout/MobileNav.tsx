@@ -9,24 +9,24 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
 import {
-  HomeIcon,
+  RocketLaunchIcon,
   ShieldCheckIcon,
-  DocumentTextIcon,
+  MagnifyingGlassIcon,
   ChartBarIcon,
   Cog6ToothIcon,
 } from '@heroicons/react/24/outline'
 import {
-  HomeIcon as HomeIconSolid,
+  RocketLaunchIcon as RocketLaunchIconSolid,
   ShieldCheckIcon as ShieldCheckIconSolid,
-  DocumentTextIcon as DocumentTextIconSolid,
+  MagnifyingGlassIcon as MagnifyingGlassIconSolid,
   ChartBarIcon as ChartBarIconSolid,
   Cog6ToothIcon as Cog6ToothIconSolid,
 } from '@heroicons/react/24/solid'
 
 const mobileNavigation = [
-  { name: 'Home', href: '/dashboard', icon: HomeIcon, activeIcon: HomeIconSolid },
+  { name: 'Mission', href: '/dashboard/mission-control', icon: RocketLaunchIcon, activeIcon: RocketLaunchIconSolid },
   { name: 'Policies', href: '/dashboard/policies', icon: ShieldCheckIcon, activeIcon: ShieldCheckIconSolid },
-  { name: 'Logs', href: '/dashboard/logs', icon: DocumentTextIcon, activeIcon: DocumentTextIconSolid },
+  { name: 'Search', href: '/dashboard/investigate', icon: MagnifyingGlassIcon, activeIcon: MagnifyingGlassIconSolid },
   { name: 'Reports', href: '/dashboard/reports', icon: ChartBarIcon, activeIcon: ChartBarIconSolid },
   { name: 'Settings', href: '/dashboard/settings', icon: Cog6ToothIcon, activeIcon: Cog6ToothIconSolid },
 ]
