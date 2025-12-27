@@ -21,6 +21,7 @@ import {
   DocumentTextIcon
 } from '@heroicons/react/24/outline'
 import { Button, Card, Badge, Input, Modal, EmptyState } from '@/components/ui'
+import { BlockPageEditorModal, BlockPageFormData } from '@/components/block-pages/BlockPageEditorModal'
 
 interface BlockPage {
   id: string
@@ -50,96 +51,37 @@ export default function BlockPagesPage() {
   const { data: requestsData, isLoading: requestsLoading, mutate: mutateRequests } = useAccessRequests()
   const { showToast } = useToast()
 
-  const [showModal, setShowModal] = useState(false)
+  const [showEditorModal, setShowEditorModal] = useState(false)
   const [showPreview, setShowPreview] = useState<BlockPage | null>(null)
   const [editingPage, setEditingPage] = useState<BlockPage | null>(null)
   const [saving, setSaving] = useState(false)
-
-  const [form, setForm] = useState({
-    name: '',
-    title: 'Access Blocked',
-    message: "This website has been blocked by your organization's security policy.",
-    backgroundColor: '#f3f4f6',
-    primaryColor: '#4f46e5',
-    textColor: '#1f2937',
-    logoUrl: '',
-    showCategory: true,
-    showDomain: true,
-    showTimestamp: true,
-    showRequestAccess: true,
-    footerText: '',
-    supportEmail: '',
-    customHtml: '',
-    customCss: '',
-    useCustomHtml: false,
-  })
 
   const pages: BlockPage[] = pagesData?.data || []
   const requests: AccessRequest[] = requestsData?.data || []
   const pendingRequests = requests.filter(r => r.status === 'pending')
 
-  const resetForm = () => {
-    setForm({
-      name: '',
-      title: 'Access Blocked',
-      message: "This website has been blocked by your organization's security policy.",
-      backgroundColor: '#f3f4f6',
-      primaryColor: '#4f46e5',
-      textColor: '#1f2937',
-      logoUrl: '',
-      showCategory: true,
-      showDomain: true,
-      showTimestamp: true,
-      showRequestAccess: true,
-      footerText: '',
-      supportEmail: '',
-      customHtml: '',
-      customCss: '',
-      useCustomHtml: false,
-    })
+  const openCreateModal = () => {
+    setEditingPage(null)
+    setShowEditorModal(true)
   }
 
   const openEditModal = (page: BlockPage) => {
     setEditingPage(page)
-    setForm({
-      name: page.name,
-      title: page.title,
-      message: page.message,
-      backgroundColor: page.backgroundColor,
-      primaryColor: page.primaryColor,
-      textColor: '#1f2937',
-      logoUrl: page.logoUrl || '',
-      showCategory: true,
-      showDomain: true,
-      showTimestamp: true,
-      showRequestAccess: page.showRequestAccess,
-      footerText: '',
-      supportEmail: '',
-      customHtml: '',
-      customCss: '',
-      useCustomHtml: false,
-    })
-    setShowModal(true)
+    setShowEditorModal(true)
   }
 
-  const handleSave = async () => {
-    if (!form.name.trim()) {
-      showToast('error', 'Block page name is required')
-      return
-    }
-
+  const handleSave = async (formData: BlockPageFormData) => {
     setSaving(true)
     try {
       if (editingPage) {
-        await api.updateBlockPage(editingPage.id, form)
+        await api.updateBlockPage(editingPage.id, formData)
         showToast('success', 'Block page updated')
       } else {
-        await api.createBlockPage(form)
+        await api.createBlockPage(formData)
         showToast('success', 'Block page created')
       }
       mutatePages()
-      setShowModal(false)
-      resetForm()
+      setShowEditorModal(false)
       setEditingPage(null)
     } catch (err: any) {
       showToast('error', err.message || 'Failed to save block page')
@@ -170,11 +112,7 @@ export default function BlockPagesPage() {
         </div>
         <Button
           variant="primary"
-          onClick={() => {
-            resetForm()
-            setEditingPage(null)
-            setShowModal(true)
-          }}
+          onClick={openCreateModal}
           leftIcon={<PlusIcon className="h-5 w-5" />}
         >
           Create Block Page
@@ -247,11 +185,7 @@ export default function BlockPagesPage() {
                 action={
                   <Button
                     variant="primary"
-                    onClick={() => {
-                      resetForm()
-                      setEditingPage(null)
-                      setShowModal(true)
-                    }}
+                    onClick={openCreateModal}
                     leftIcon={<PlusIcon className="h-5 w-5" />}
                   >
                     Create Block Page
@@ -346,213 +280,25 @@ export default function BlockPagesPage() {
       </Card>
 
       {/* Create/Edit Modal */}
-      <Modal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        title={editingPage ? 'Edit Block Page' : 'Create Block Page'}
-        size="lg"
-      >
-        <div className="space-y-6">
-          <Input
-            label="Name *"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            placeholder="e.g., Corporate Block Page"
-          />
-
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-1">Background Color</label>
-              <div className="flex gap-2">
-                <input
-                  type="color"
-                  value={form.backgroundColor}
-                  onChange={(e) => setForm({ ...form, backgroundColor: e.target.value })}
-                  className="h-10 w-10 rounded-lg cursor-pointer border border-space-200 dark:border-space-600"
-                />
-                <Input
-                  value={form.backgroundColor}
-                  onChange={(e) => setForm({ ...form, backgroundColor: e.target.value })}
-                  className="flex-1"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-1">Primary Color</label>
-              <div className="flex gap-2">
-                <input
-                  type="color"
-                  value={form.primaryColor}
-                  onChange={(e) => setForm({ ...form, primaryColor: e.target.value })}
-                  className="h-10 w-10 rounded-lg cursor-pointer border border-space-200 dark:border-space-600"
-                />
-                <Input
-                  value={form.primaryColor}
-                  onChange={(e) => setForm({ ...form, primaryColor: e.target.value })}
-                  className="flex-1"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-1">Text Color</label>
-              <div className="flex gap-2">
-                <input
-                  type="color"
-                  value={form.textColor}
-                  onChange={(e) => setForm({ ...form, textColor: e.target.value })}
-                  className="h-10 w-10 rounded-lg cursor-pointer border border-space-200 dark:border-space-600"
-                />
-                <Input
-                  value={form.textColor}
-                  onChange={(e) => setForm({ ...form, textColor: e.target.value })}
-                  className="flex-1"
-                />
-              </div>
-            </div>
-          </div>
-
-          <Input
-            label="Logo URL"
-            type="url"
-            value={form.logoUrl}
-            onChange={(e) => setForm({ ...form, logoUrl: e.target.value })}
-            placeholder="https://example.com/logo.png"
-          />
-
-          <Input
-            label="Page Title"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-          />
-
-          <div>
-            <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-1">Message</label>
-            <textarea
-              value={form.message}
-              onChange={(e) => setForm({ ...form, message: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-space-200 dark:border-space-600 bg-white dark:bg-space-800 text-space-900 dark:text-white placeholder-space-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
-              rows={3}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.showCategory}
-                onChange={(e) => setForm({ ...form, showCategory: e.target.checked })}
-                className="rounded border-space-300 text-primary-600 focus:ring-primary-500"
-              />
-              <span className="text-sm text-space-700 dark:text-space-300">Show category</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.showDomain}
-                onChange={(e) => setForm({ ...form, showDomain: e.target.checked })}
-                className="rounded border-space-300 text-primary-600 focus:ring-primary-500"
-              />
-              <span className="text-sm text-space-700 dark:text-space-300">Show blocked domain</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.showTimestamp}
-                onChange={(e) => setForm({ ...form, showTimestamp: e.target.checked })}
-                className="rounded border-space-300 text-primary-600 focus:ring-primary-500"
-              />
-              <span className="text-sm text-space-700 dark:text-space-300">Show timestamp</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.showRequestAccess}
-                onChange={(e) => setForm({ ...form, showRequestAccess: e.target.checked })}
-                className="rounded border-space-300 text-primary-600 focus:ring-primary-500"
-              />
-              <span className="text-sm text-space-700 dark:text-space-300">Allow access requests</span>
-            </label>
-          </div>
-
-          <Input
-            label="Support Email"
-            type="email"
-            value={form.supportEmail}
-            onChange={(e) => setForm({ ...form, supportEmail: e.target.value })}
-            placeholder="support@company.com"
-          />
-
-          {/* Custom HTML/CSS Section */}
-          <div className="border-t border-space-200 dark:border-space-700 pt-4">
-            <label className="flex items-center gap-2 mb-4 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.useCustomHtml}
-                onChange={(e) => setForm({ ...form, useCustomHtml: e.target.checked })}
-                className="rounded border-space-300 text-primary-600 focus:ring-primary-500"
-              />
-              <span className="text-sm font-medium text-space-700 dark:text-space-300">Use custom HTML template</span>
-            </label>
-
-            {form.useCustomHtml && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-1">
-                    Custom HTML
-                    <span className="text-xs text-space-500 ml-2">
-                      Use {'{{domain}}'}, {'{{category}}'}, {'{{timestamp}}'}, {'{{title}}'}, {'{{message}}'} as placeholders
-                    </span>
-                  </label>
-                  <textarea
-                    value={form.customHtml}
-                    onChange={(e) => setForm({ ...form, customHtml: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-space-200 dark:border-space-600 bg-white dark:bg-space-800 text-space-900 dark:text-white placeholder-space-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all font-mono text-sm"
-                    rows={12}
-                    placeholder={`<!DOCTYPE html>
-<html>
-<head>
-  <title>{{title}}</title>
-  <style>/* Your CSS here */</style>
-</head>
-<body>
-  <h1>{{title}}</h1>
-  <p>{{message}}</p>
-  <p>Blocked domain: {{domain}}</p>
-  <p>Category: {{category}}</p>
-</body>
-</html>`}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-1">
-                    Additional CSS
-                    <span className="text-xs text-space-500 ml-2">Appended to the default template styles</span>
-                  </label>
-                  <textarea
-                    value={form.customCss}
-                    onChange={(e) => setForm({ ...form, customCss: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-space-200 dark:border-space-600 bg-white dark:bg-space-800 text-space-900 dark:text-white placeholder-space-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all font-mono text-sm"
-                    rows={6}
-                    placeholder={`.container { max-width: 600px; }
-.header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-.btn { border-radius: 8px; }`}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-space-200 dark:border-space-700">
-          <Button variant="secondary" onClick={() => setShowModal(false)} disabled={saving}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleSave} isLoading={saving}>
-            {editingPage ? 'Save Changes' : 'Create Page'}
-          </Button>
-        </div>
-      </Modal>
+      <BlockPageEditorModal
+        isOpen={showEditorModal}
+        onClose={() => {
+          setShowEditorModal(false)
+          setEditingPage(null)
+        }}
+        onSave={handleSave}
+        initialData={editingPage ? {
+          name: editingPage.name,
+          title: editingPage.title,
+          message: editingPage.message,
+          backgroundColor: editingPage.backgroundColor,
+          primaryColor: editingPage.primaryColor,
+          logoUrl: editingPage.logoUrl || '',
+          showRequestAccess: editingPage.showRequestAccess,
+        } : undefined}
+        isEditing={!!editingPage}
+        isSaving={saving}
+      />
 
       {/* Preview Modal */}
       <Modal

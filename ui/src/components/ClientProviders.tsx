@@ -13,15 +13,18 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { ToastProvider } from '@/components/Toast'
 import { PartnerBrandingProvider } from '@/contexts/PartnerBrandingContext'
+import { CommandBarProvider } from '@/components/command-bar'
 
 export function ClientProviders({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider>
       <AuthProvider>
         <PartnerBrandingProvider>
-          <ToastProvider>
-            {children}
-          </ToastProvider>
+          <CommandBarProvider>
+            <ToastProvider>
+              {children}
+            </ToastProvider>
+          </CommandBarProvider>
         </PartnerBrandingProvider>
       </AuthProvider>
     </ThemeProvider>

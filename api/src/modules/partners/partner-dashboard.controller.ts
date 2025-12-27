@@ -69,6 +69,16 @@ export class PartnerDashboardController {
     return { data: org };
   }
 
+  // Get locations for an organization
+  @Get('organizations/:orgId/locations')
+  async getOrganizationLocations(
+    @CurrentPartner() partnerId: string,
+    @Param('orgId') orgId: string,
+  ) {
+    const locations = await this.partnersService.getOrganizationLocations(partnerId, orgId);
+    return { data: locations };
+  }
+
   // Create a new organization
   @Post('organizations')
   async createOrganization(@CurrentPartner() partnerId: string, @Body() dto: CreateOrganizationDto) {

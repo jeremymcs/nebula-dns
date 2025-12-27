@@ -17,6 +17,7 @@ export interface SafeSearchSettings {
 
 export interface PolicyConfig {
   blockCategories: string[];
+  warnCategories?: string[];
   threatBlocking: {
     enabled: boolean;
     feeds: string[];

@@ -1,6 +1,6 @@
 /**
  * Nebula DNS - Dashboard Layout Component
- * Cosmic Security Theme - Top Navigation Layout
+ * Cosmic Security Theme - Top Navigation Layout with Command Bar and Orion AI
  */
 
 'use client'
@@ -13,6 +13,8 @@ import { MobileNav } from './MobileNav'
 import { FullPageLoading } from '@/components/LoadingSpinner'
 import { useAuth } from '@/contexts/AuthContext'
 import { ArrowsRightLeftIcon } from '@heroicons/react/24/outline'
+import { CommandBarProvider } from '@/components/command-bar'
+import { OrionFAB } from '@/components/orion'
 
 // Breadcrumb mapping
 const breadcrumbLabels: Record<string, string> = {
@@ -104,41 +106,46 @@ export function DashboardLayout({ children, showBreadcrumbs = true }: DashboardL
   }
 
   return (
-    <div className="min-h-screen bg-space-50 dark:bg-space-950">
-      {/* Impersonation Banner */}
-      {isImpersonating && (
-        <div className="bg-amber-500 text-white px-4 py-2 flex items-center justify-between">
-          <span className="text-sm font-medium">
-            <ArrowsRightLeftIcon className="h-4 w-4 inline mr-2" />
-            You are viewing this organization as a partner admin
-          </span>
-          <button
-            onClick={exitImpersonation}
-            className="text-sm bg-white/20 hover:bg-white/30 px-3 py-1 rounded transition-colors"
-          >
-            Return to Partner Portal
-          </button>
-        </div>
-      )}
-      <TopNav />
+    <CommandBarProvider>
+      <div className="min-h-screen bg-space-50 dark:bg-space-950">
+        {/* Impersonation Banner */}
+        {isImpersonating && (
+          <div className="bg-amber-500 text-white px-4 py-2 flex items-center justify-between">
+            <span className="text-sm font-medium">
+              <ArrowsRightLeftIcon className="h-4 w-4 inline mr-2" />
+              You are viewing this organization as a partner admin
+            </span>
+            <button
+              onClick={exitImpersonation}
+              className="text-sm bg-white/20 hover:bg-white/30 px-3 py-1 rounded transition-colors"
+            >
+              Return to Partner Portal
+            </button>
+          </div>
+        )}
+        <TopNav />
 
-      <main className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 py-6 pb-20 lg:pb-6">
-        {showBreadcrumbs && <Breadcrumbs />}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={pathname}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
-      </main>
+        <main className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 py-6 pb-20 lg:pb-6">
+          {showBreadcrumbs && <Breadcrumbs />}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
+        </main>
 
-      <MobileNav />
-    </div>
+        <MobileNav />
+
+        {/* Orion AI Assistant FAB */}
+        <OrionFAB />
+      </div>
+    </CommandBarProvider>
   )
 }
 

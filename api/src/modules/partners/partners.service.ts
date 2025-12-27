@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Partner } from './entities/partner.entity';
 import { PartnerUser } from './entities/partner-user.entity';
-import { Tenant } from '../tenants/entities/tenant.entity';
+import { Tenant } from '../../tenants/entities/tenant.entity';
 import {
   CreatePartnerDto,
   UpdatePartnerDto,
@@ -152,11 +152,23 @@ export class PartnersService {
   async getOrganization(partnerId: string, orgId: string): Promise<Tenant> {
     const org = await this.tenantsRepository.findOne({
       where: { id: orgId, partnerId },
+      relations: ['locations'],
     });
     if (!org) {
       throw new NotFoundException(`Organization ${orgId} not found or not accessible`);
     }
     return org;
+  }
+
+  async getOrganizationLocations(partnerId: string, orgId: string): Promise<any[]> {
+    const org = await this.tenantsRepository.findOne({
+      where: { id: orgId, partnerId },
+      relations: ['locations'],
+    });
+    if (!org) {
+      throw new NotFoundException(`Organization ${orgId} not found or not accessible`);
+    }
+    return org.locations || [];
   }
 
   async createOrganization(partnerId: string, dto: CreateOrganizationDto): Promise<Tenant> {

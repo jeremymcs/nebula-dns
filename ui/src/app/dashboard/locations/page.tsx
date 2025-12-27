@@ -2,7 +2,7 @@
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
  *
- * Locations Management Page - Cosmic Security Theme
+ * Protection Zones Management Page - Cosmic Security Theme
  */
 
 'use client'
@@ -11,7 +11,8 @@ import { useState } from 'react'
 import { useLocations, usePolicies } from '@/hooks/useApi'
 import { api } from '@/lib/api'
 import { useToast } from '@/components/Toast'
-import { Button, Card, Badge, Modal, Input, Textarea, Select } from '@/components/ui'
+import { Button, Card, Badge, Modal } from '@/components/ui'
+import { ZoneEditorModal, ZoneFormData } from '@/components/zones'
 import {
   PlusIcon,
   PencilIcon,
@@ -22,6 +23,8 @@ import {
   KeyIcon,
   GlobeAltIcon,
   SignalIcon,
+  ClockIcon,
+  DocumentTextIcon,
 } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 
@@ -42,72 +45,37 @@ export default function LocationsPage() {
   const { data, isLoading, error, mutate } = useLocations()
   const { data: policiesData } = usePolicies()
   const { showToast } = useToast()
-  
-  const [showCreateModal, setShowCreateModal] = useState(false)
+
+  const [showZoneEditor, setShowZoneEditor] = useState(false)
   const [showTokenModal, setShowTokenModal] = useState(false)
   const [editingLocation, setEditingLocation] = useState<Location | null>(null)
   const [generatedToken, setGeneratedToken] = useState<{ token: string; expiresAt: string | null } | null>(null)
   const [copiedToken, setCopiedToken] = useState(false)
   const [saving, setSaving] = useState(false)
 
-  const [form, setForm] = useState({
-    name: '',
-    description: '',
-    policyId: '',
-    ipRange: '',
-    dyndns: '',
-  })
-
   const locations: Location[] = data?.data || []
   const policies = policiesData?.data || []
 
-  const resetForm = () => {
-    setForm({
-      name: '',
-      description: '',
-      policyId: policies[0]?.id || '',
-      ipRange: '',
-      dyndns: '',
-    })
-  }
-
   const openCreateModal = () => {
-    resetForm()
     setEditingLocation(null)
-    setShowCreateModal(true)
+    setShowZoneEditor(true)
   }
 
   const openEditModal = (location: Location) => {
     setEditingLocation(location)
-    setForm({
-      name: location.name,
-      description: location.description || '',
-      policyId: location.policyId || '',
-      ipRange: location.ipRange || '',
-      dyndns: location.dyndns || '',
-    })
-    setShowCreateModal(true)
+    setShowZoneEditor(true)
   }
 
-  const handleSave = async () => {
-    if (!form.name.trim()) {
-      showToast('error', 'Location name is required')
-      return
-    }
-
-    if (!form.ipRange.trim() && !form.dyndns.trim()) {
-      showToast('error', 'Either IP Range or DynDNS hostname is required')
-      return
-    }
-
+  const handleSave = async (formData: ZoneFormData) => {
     setSaving(true)
     try {
       const payload = {
-        name: form.name,
-        description: form.description,
-        policyId: form.policyId || undefined,
-        ipRange: form.ipRange.trim() || undefined,
-        dyndns: form.dyndns.trim() || undefined,
+        name: formData.name,
+        description: formData.description,
+        policyId: formData.policyId || undefined,
+        ipRange: formData.ipRanges.join(', ') || undefined,
+        dyndns: formData.dyndns.trim() || undefined,
+        status: formData.status,
       }
 
       if (editingLocation) {
@@ -120,19 +88,31 @@ export default function LocationsPage() {
           },
           body: JSON.stringify(payload),
         })
-        showToast('success', 'Location updated successfully')
+        showToast('success', 'Zone updated successfully')
       } else {
         await api.createLocation(payload)
-        showToast('success', 'Location created successfully')
+        showToast('success', 'Zone created successfully')
       }
 
       mutate()
-      setShowCreateModal(false)
-      resetForm()
+      setShowZoneEditor(false)
+      setEditingLocation(null)
     } catch (err: any) {
-      showToast('error', err.message || 'Failed to save location')
+      showToast('error', err.message || 'Failed to save zone')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const getInitialFormData = (): Partial<ZoneFormData> | undefined => {
+    if (!editingLocation) return undefined
+    return {
+      name: editingLocation.name,
+      description: editingLocation.description || '',
+      policyId: editingLocation.policyId || '',
+      ipRanges: editingLocation.ipRange ? editingLocation.ipRange.split(',').map(ip => ip.trim()) : [''],
+      dyndns: editingLocation.dyndns || '',
+      status: editingLocation.status || 'active',
     }
   }
 
@@ -195,14 +175,16 @@ export default function LocationsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-space-900 dark:text-white">Locations</h1>
+          <h1 className="text-2xl font-bold text-space-900 dark:text-white">Protection Zones</h1>
           <p className="mt-1 text-space-500 dark:text-space-400">
             Manage network locations and their DNS filtering settings
           </p>
         </div>
-        <Button onClick={openCreateModal} leftIcon={<PlusIcon className="h-5 w-5" />}>
-          Add Location
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button onClick={openCreateModal} leftIcon={<PlusIcon className="h-5 w-5" />}>
+            Add Zone
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -331,103 +313,84 @@ export default function LocationsPage() {
         </div>
       )}
 
-      {/* Create/Edit Modal */}
-      <Modal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        title={editingLocation ? 'Edit Location' : 'Add New Location'}
-      >
-        <div className="space-y-4">
-          <Input
-            label="Location Name"
-            required
-            placeholder="e.g., Main Office"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
-          <Input
-            label="Description"
-            placeholder="Brief description"
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-          />
-          <Input
-            label="IP Range"
-            placeholder="e.g., 192.168.1.0/24 or 203.0.113.50"
-            value={form.ipRange}
-            onChange={(e) => setForm({ ...form, ipRange: e.target.value })}
-            helperText="Static IP address or CIDR range"
-          />
-          <div className="flex items-center gap-4">
-            <div className="flex-1 h-px bg-space-200 dark:bg-space-700" />
-            <span className="text-sm text-space-500 dark:text-space-400">OR</span>
-            <div className="flex-1 h-px bg-space-200 dark:bg-space-700" />
-          </div>
-          <Input
-            label="DynDNS Hostname"
-            placeholder="e.g., myoffice.dyndns.org"
-            value={form.dyndns}
-            onChange={(e) => setForm({ ...form, dyndns: e.target.value })}
-            helperText="Dynamic DNS hostname for locations with changing IPs"
-          />
-          <Select
-            label="Policy"
-            value={form.policyId}
-            onChange={(e) => setForm({ ...form, policyId: e.target.value })}
-            options={[
-              { value: '', label: 'Use default policy' },
-              ...policies.map((policy) => ({ value: policy.id, label: policy.name })),
-            ]}
-          />
-        </div>
+      {/* Zone Editor Modal */}
+      <ZoneEditorModal
+        isOpen={showZoneEditor}
+        onClose={() => {
+          setShowZoneEditor(false)
+          setEditingLocation(null)
+        }}
+        onSave={handleSave}
+        initialData={getInitialFormData()}
+        policies={policies}
+        isEditing={!!editingLocation}
+        isSaving={saving}
+      />
 
-        <div className="mt-8 flex justify-end gap-3">
-          <Button
-            variant="secondary"
-            onClick={() => setShowCreateModal(false)}
-            disabled={saving}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSave}
-            isLoading={saving}
-          >
-            {editingLocation ? 'Save Changes' : 'Create Location'}
-          </Button>
-        </div>
-      </Modal>
-
-      {/* Token Modal */}
+      {/* Token Modal - Redesigned */}
       <Modal
         isOpen={showTokenModal && !!generatedToken}
         onClose={() => setShowTokenModal(false)}
-        title={`DoH Access Token for ${editingLocation?.name}`}
+        size="lg"
       >
-        {/* Warning */}
-        <div className="p-4 rounded-xl bg-warning-50 dark:bg-warning-900/20 ring-1 ring-warning-200 dark:ring-warning-800 mb-6">
-          <p className="text-sm text-warning-800 dark:text-warning-200">
-            <strong>⚠️ Important:</strong> This token will only be shown once. Make sure to copy it now.
-          </p>
+        {/* Header with icon */}
+        <div className="flex items-center gap-4 mb-6">
+          <div className="flex-shrink-0 p-3 rounded-2xl bg-gradient-to-br from-nebula-500/20 to-cosmic-500/20 ring-1 ring-nebula-500/30">
+            <KeyIcon className="h-8 w-8 text-nebula-500" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-space-900 dark:text-white">
+              DoH Access Token
+            </h2>
+            <p className="text-sm text-space-500 dark:text-space-400">
+              {editingLocation?.name}
+            </p>
+          </div>
         </div>
 
-        {/* Token Display */}
-        <div>
-          <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
-            Access Token
-          </label>
-          <div className="flex items-center">
-            <code className="flex-1 bg-space-100 dark:bg-space-800 px-4 py-3 rounded-l-xl font-mono text-sm overflow-x-auto text-space-900 dark:text-space-100 ring-1 ring-space-200 dark:ring-space-700">
+        {/* Warning Banner */}
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-r from-warning-500/10 to-orange-500/10 ring-1 ring-warning-500/30 mb-6">
+          <div className="flex-shrink-0 p-1.5 rounded-lg bg-warning-500/20">
+            <svg className="h-5 w-5 text-warning-600 dark:text-warning-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+          </div>
+          <div>
+            <p className="font-medium text-warning-800 dark:text-warning-200 text-sm">
+              Save this token now
+            </p>
+            <p className="text-sm text-warning-700/80 dark:text-warning-300/80 mt-0.5">
+              This token will only be shown once and cannot be retrieved later.
+            </p>
+          </div>
+        </div>
+
+        {/* Token Display Card */}
+        <div className="rounded-xl bg-space-900 dark:bg-space-950 p-4 ring-1 ring-space-700">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-space-400 uppercase tracking-wider">
+              Access Token
+            </span>
+            {generatedToken?.expiresAt && (
+              <span className="flex items-center gap-1 text-xs text-space-400">
+                <ClockIcon className="h-3.5 w-3.5" />
+                Expires {new Date(generatedToken.expiresAt).toLocaleDateString()}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 font-mono text-sm text-nebula-400 break-all select-all leading-relaxed">
               {generatedToken?.token}
             </code>
             <button
               onClick={copyToken}
               className={clsx(
-                'px-4 py-3 rounded-r-xl flex items-center transition-colors',
+                'flex-shrink-0 p-2.5 rounded-lg transition-all duration-200',
                 copiedToken
-                  ? 'bg-success-500 text-white'
-                  : 'bg-space-200 dark:bg-space-700 hover:bg-space-300 dark:hover:bg-space-600 text-space-700 dark:text-space-300'
+                  ? 'bg-success-500 text-white scale-95'
+                  : 'bg-space-700 hover:bg-space-600 text-space-300 hover:text-white'
               )}
+              title={copiedToken ? 'Copied!' : 'Copy to clipboard'}
             >
               {copiedToken ? (
                 <CheckIcon className="h-5 w-5" />
@@ -436,17 +399,69 @@ export default function LocationsPage() {
               )}
             </button>
           </div>
+          {copiedToken && (
+            <p className="mt-2 text-xs text-success-400 flex items-center gap-1">
+              <CheckIcon className="h-3.5 w-3.5" />
+              Token copied to clipboard
+            </p>
+          )}
         </div>
 
-        {/* DoH Endpoint */}
-        <div className="mt-4 p-4 rounded-xl bg-space-50 dark:bg-space-800/50 ring-1 ring-space-200 dark:ring-space-700">
-          <p className="text-sm text-space-600 dark:text-space-300 mb-2">DoH Endpoint:</p>
-          <code className="text-xs bg-white dark:bg-space-900 px-3 py-2 rounded-lg ring-1 ring-space-200 dark:ring-space-700 break-all text-space-800 dark:text-space-200 block">
-            https://doh.nebuladns.io/dns-query?token={generatedToken?.token.substring(0, 20)}...
-          </code>
+        {/* Usage Instructions */}
+        <div className="mt-6 space-y-4">
+          <h3 className="text-sm font-semibold text-space-700 dark:text-space-300 flex items-center gap-2">
+            <DocumentTextIcon className="h-4 w-4" />
+            How to use this token
+          </h3>
+
+          {/* DoH Endpoint */}
+          <div className="rounded-xl bg-space-50 dark:bg-space-800/50 p-4 ring-1 ring-space-200 dark:ring-space-700">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-space-500 dark:text-space-400 uppercase tracking-wider">
+                DoH Endpoint URL
+              </span>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`https://doh.nebuladns.io/dns-query?token=${generatedToken?.token}`)
+                  showToast('success', 'Endpoint URL copied')
+                }}
+                className="text-xs text-nebula-500 hover:text-nebula-400 font-medium flex items-center gap-1"
+              >
+                <ClipboardDocumentIcon className="h-3.5 w-3.5" />
+                Copy URL
+              </button>
+            </div>
+            <code className="text-sm font-mono text-space-800 dark:text-space-200 break-all block">
+              https://doh.nebuladns.io/dns-query?token=<span className="text-nebula-500">{generatedToken?.token.substring(0, 16)}...</span>
+            </code>
+          </div>
+
+          {/* Browser/OS Setup hint */}
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-accent-50 dark:bg-accent-900/20 ring-1 ring-accent-200 dark:ring-accent-800">
+            <GlobeAltIcon className="h-5 w-5 text-accent-600 dark:text-accent-400 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-accent-800 dark:text-accent-200">
+              <p className="font-medium">Configure your devices</p>
+              <p className="text-accent-700 dark:text-accent-300 mt-0.5">
+                Use this endpoint in your browser, OS, or router&apos;s DNS-over-HTTPS settings.
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-8 flex justify-end">
+        {/* Action Buttons */}
+        <div className="mt-8 flex items-center justify-between pt-4 border-t border-space-200 dark:border-space-700">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              const text = `DoH Token: ${generatedToken?.token}\nEndpoint: https://doh.nebuladns.io/dns-query?token=${generatedToken?.token}`
+              navigator.clipboard.writeText(text)
+              showToast('success', 'All details copied')
+            }}
+          >
+            <ClipboardDocumentIcon className="h-4 w-4 mr-2" />
+            Copy All Details
+          </Button>
           <Button onClick={() => setShowTokenModal(false)}>
             Done
           </Button>
