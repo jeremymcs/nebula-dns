@@ -7,8 +7,8 @@
 
 'use client'
 
-import { useState } from 'react'
-import { useSummaryStats, useTopBlocked, useBlocksByCategory, useLocationStats } from '@/hooks/useApi'
+import { useState, useMemo } from 'react'
+import { useSummaryStats, useTopBlocked, useBlocksByCategory, useLocationStats, useQueryTrends } from '@/hooks/useApi'
 import {
   ArrowDownTrayIcon,
   ShieldExclamationIcon,
@@ -28,26 +28,23 @@ export default function ReportsPage() {
   const { data: topBlocked, isLoading: topBlockedLoading } = useTopBlocked(dateRange, 8)
   const { data: categoryStats, isLoading: categoryLoading } = useBlocksByCategory(dateRange)
   const { data: locationStats, isLoading: locationLoading } = useLocationStats(dateRange)
+  const { data: queryTrends, isLoading: trendsLoading } = useQueryTrends(dateRange)
 
-  const isLoading = summaryLoading || topBlockedLoading || categoryLoading || locationLoading
+  const isLoading = summaryLoading || topBlockedLoading || categoryLoading || locationLoading || trendsLoading
 
-  // Generate trend data for charts (mock for now, would come from API)
-  const generateTrendData = () => {
-    const days = dateRange === '24h' ? 24 : dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90
-    const data = []
-    const now = new Date()
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date(now)
-      date.setDate(date.getDate() - i)
-      data.push({
-        label: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        value: Math.floor(Math.random() * 50000) + 100000,
-      })
+  // Transform trend data from API for LineChart format
+  const trendData = useMemo(() => {
+    if (!queryTrends || queryTrends.length === 0) {
+      return []
     }
-    return data
-  }
-
-  const trendData = generateTrendData()
+    return queryTrends.map(item => {
+      const date = new Date(item.timestamp)
+      return {
+        label: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        value: item.total,
+      }
+    })
+  }, [queryTrends])
 
   // Transform category stats for donut chart
   const categoryColors = ['#ef4444', '#3b82f6', '#f97316', '#eab308', '#8b5cf6', '#6b7280']

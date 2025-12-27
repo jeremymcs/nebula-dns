@@ -7,8 +7,8 @@
 
 'use client'
 
-import { useState } from 'react'
-import { useSummaryStats, useTopBlocked, useBlocksByCategory, useLocationStats } from '@/hooks/useApi'
+import { useState, useMemo } from 'react'
+import { useSummaryStats, useTopBlocked, useBlocksByCategory, useLocationStats, useQueryTrends } from '@/hooks/useApi'
 import { Select } from '@/components/ui'
 import {
   HeroMetric,
@@ -33,23 +33,21 @@ export default function DashboardPage() {
   const { data: topBlocked, isLoading: topBlockedLoading } = useTopBlocked(period, 5)
   const { data: categoryStats, isLoading: categoryLoading } = useBlocksByCategory(period)
   const { data: locationStats, isLoading: locationLoading } = useLocationStats(period)
+  const { data: queryTrends, isLoading: trendsLoading } = useQueryTrends(period)
 
-  const isLoading = summaryLoading || topBlockedLoading || categoryLoading || locationLoading
+  const isLoading = summaryLoading || topBlockedLoading || categoryLoading || locationLoading || trendsLoading
 
-  // Generate mock trend data for charts
-  const generateTrendData = () => {
-    const days = period === '24h' ? 24 : period === '7d' ? 7 : 30
-    return Array.from({ length: days }, (_, i) => {
-      const date = new Date()
-      date.setDate(date.getDate() - (days - i - 1))
-      const queries = Math.floor(Math.random() * 50000) + 10000
-      return {
-        timestamp: date.toISOString(),
-        queries,
-        blocked: Math.floor(queries * (0.05 + Math.random() * 0.1)),
-      }
-    })
-  }
+  // Transform trend data for chart (mapping from API format to chart format)
+  const trendData = useMemo(() => {
+    if (!queryTrends || queryTrends.length === 0) {
+      return []
+    }
+    return queryTrends.map(item => ({
+      timestamp: item.timestamp,
+      queries: item.total,
+      blocked: item.blocked,
+    }))
+  }, [queryTrends])
 
   // Generate mock activity data
   const generateActivityData = () => {
@@ -130,8 +128,8 @@ export default function DashboardPage() {
 
       {/* Query Trends Chart - Full Width */}
       <QueryTrendsChart
-        data={generateTrendData()}
-        isLoading={isLoading}
+        data={trendData}
+        isLoading={trendsLoading}
       />
 
       {/* Middle Section - 3 Column Grid */}

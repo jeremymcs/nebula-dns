@@ -60,7 +60,7 @@ export function Modal({
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
+          <div className="flex min-h-full items-start justify-center p-4 pt-[5vh]">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -72,10 +72,10 @@ export function Modal({
             >
               <Dialog.Panel
                 className={clsx(
-                  'w-full transform overflow-hidden rounded-2xl',
+                  'w-full transform rounded-2xl',
                   'bg-white dark:bg-space-800 p-6 shadow-2xl',
                   'ring-1 ring-space-900/5 dark:ring-white/10',
-                  'transition-all',
+                  'transition-all max-h-[90vh] overflow-y-auto',
                   sizeStyles[size]
                 )}
               >

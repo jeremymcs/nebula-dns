@@ -45,6 +45,13 @@ export interface ThreatTrend {
   total: number;
 }
 
+export interface QueryTrend {
+  timestamp: string;
+  total: number;
+  allowed: number;
+  blocked: number;
+}
+
 export interface LocationStats {
   locationId: string;
   locationName: string;
@@ -209,6 +216,17 @@ export class ReportsService {
       limit,
       offset,
     });
+  }
+
+  async getQueryTrends(
+    tenantId: string,
+    query: ReportQueryDto,
+  ): Promise<QueryTrend[]> {
+    const period = query.period || '7d';
+
+    this.logger.debug(`Getting query trends for tenant ${tenantId}, period ${period}`);
+
+    return await this.clickhouseService.getQueryTrends(tenantId, period);
   }
 
   private getDateRange(query: ReportQueryDto): { startDate: string; endDate: string } {

@@ -110,6 +110,21 @@ export function useThreatTrends(period: string = '7d') {
   )
 }
 
+export interface QueryTrend {
+  timestamp: string
+  total: number
+  allowed: number
+  blocked: number
+}
+
+export function useQueryTrends(period: string = '7d') {
+  return useSWR<QueryTrend[]>(
+    `/reports/trends?period=${period}`,
+    fetcher,
+    defaultConfig
+  )
+}
+
 export function useLocationStats(period: string = '7d') {
   return useSWR<LocationStats[]>(
     `/reports/locations?period=${period}`,

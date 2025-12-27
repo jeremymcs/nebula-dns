@@ -34,6 +34,9 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { DoHModule } from './modules/doh/doh.module';
 
+// MSP/SaaS Multi-tenant
+import { PartnersModule } from './modules/partners/partners.module';
+
 @Module({
   imports: [
     // Configuration with validation
@@ -112,6 +115,9 @@ import { DoHModule } from './modules/doh/doh.module';
 
     // DNS-over-HTTPS for agents
     DoHModule,
+
+    // MSP/SaaS Multi-tenant
+    PartnersModule,
 
     // Observability & Logging
     MetricsModule,

@@ -12,13 +12,14 @@ import clsx from 'clsx'
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
   error?: string
+  helperText?: string
   leftIcon?: React.ReactNode
   rightIcon?: React.ReactNode
   variant?: 'default' | 'glass'
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, leftIcon, rightIcon, variant = 'default', id, ...props }, ref) => {
+  ({ className, label, error, helperText, leftIcon, rightIcon, variant = 'default', id, ...props }, ref) => {
     const inputId = id || props.name
     
     return (
@@ -54,6 +55,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         </div>
         {error && (
           <p className="mt-1.5 text-sm text-danger-600 dark:text-danger-400">{error}</p>
+        )}
+        {helperText && !error && (
+          <p className="mt-1.5 text-sm text-space-500 dark:text-space-400">{helperText}</p>
         )}
       </div>
     )
