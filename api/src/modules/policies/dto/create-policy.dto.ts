@@ -5,6 +5,7 @@ import {
   IsObject,
   ValidateNested,
   IsArray,
+  IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -20,6 +21,28 @@ class ThreatBlockingConfigDto {
   feeds: string[];
 }
 
+class SafeSearchSettingsDto {
+  @ApiPropertyOptional({ enum: ['off', 'moderate', 'strict'], default: 'off' })
+  @IsOptional()
+  @IsIn(['off', 'moderate', 'strict'])
+  google?: 'off' | 'moderate' | 'strict';
+
+  @ApiPropertyOptional({ enum: ['off', 'moderate', 'strict'], default: 'off' })
+  @IsOptional()
+  @IsIn(['off', 'moderate', 'strict'])
+  bing?: 'off' | 'moderate' | 'strict';
+
+  @ApiPropertyOptional({ enum: ['off', 'moderate', 'strict'], default: 'off' })
+  @IsOptional()
+  @IsIn(['off', 'moderate', 'strict'])
+  youtube?: 'off' | 'moderate' | 'strict';
+
+  @ApiPropertyOptional({ enum: ['off', 'moderate', 'strict'], default: 'off' })
+  @IsOptional()
+  @IsIn(['off', 'moderate', 'strict'])
+  duckduckgo?: 'off' | 'moderate' | 'strict';
+}
+
 class SafeSearchConfigDto {
   @ApiProperty()
   @IsBoolean()
@@ -29,6 +52,12 @@ class SafeSearchConfigDto {
   @IsArray()
   @IsString({ each: true })
   services: string[];
+
+  @ApiPropertyOptional({ type: SafeSearchSettingsDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => SafeSearchSettingsDto)
+  settings?: SafeSearchSettingsDto;
 }
 
 class ScheduleConfigDto {

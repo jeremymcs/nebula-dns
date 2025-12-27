@@ -96,14 +96,28 @@ export class BlockPagesService {
     return this.blockPageRepository.save(blockPage);
   }
 
-  // Generate HTML for block page
+  // Generate HTML for block page with optional partner branding
   generateBlockPageHtml(blockPage: BlockPage, context: {
     domain: string;
     category?: string;
     timestamp?: string;
     requestId?: string;
+    partnerBranding?: {
+      logoUrl?: string;
+      primaryColor?: string;
+      companyName?: string;
+      supportEmail?: string;
+      supportUrl?: string;
+    };
   }): string {
-    const { domain, category, timestamp, requestId } = context;
+    const { domain, category, timestamp, requestId, partnerBranding } = context;
+
+    // Apply partner branding overrides if available and block page doesn't have custom values
+    const effectiveLogoUrl = blockPage.logoUrl || partnerBranding?.logoUrl || '';
+    const effectivePrimaryColor = blockPage.primaryColor || partnerBranding?.primaryColor || '#4f46e5';
+    const effectiveSupportEmail = blockPage.supportEmail || partnerBranding?.supportEmail || '';
+    const effectiveSupportUrl = blockPage.supportUrl || partnerBranding?.supportUrl || '';
+    const effectiveFooterText = blockPage.footerText || (partnerBranding?.companyName ? `Protected by ${partnerBranding.companyName}` : 'Protected by Nebula DNS');
 
     // If custom HTML is provided, use it with variable substitution
     if (blockPage.customHtml) {
@@ -143,7 +157,7 @@ export class BlockPagesService {
       overflow: hidden;
     }
     .header {
-      background: ${blockPage.primaryColor};
+      background: ${effectivePrimaryColor};
       padding: 30px;
       text-align: center;
     }
@@ -191,7 +205,7 @@ export class BlockPagesService {
       margin-top: 10px;
       width: 100%;
       padding: 12px;
-      background: ${blockPage.primaryColor};
+      background: ${effectivePrimaryColor};
       color: white;
       border: none;
       border-radius: 8px;
@@ -207,14 +221,14 @@ export class BlockPagesService {
       font-size: 13px;
       color: #6b7280;
     }
-    .footer a { color: ${blockPage.primaryColor}; text-decoration: none; }
+    .footer a { color: ${effectivePrimaryColor}; text-decoration: none; }
     ${blockPage.customCss || ''}
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      ${blockPage.logoUrl ? `<img src="${blockPage.logoUrl}" alt="Logo" class="logo">` : ''}
+      ${effectiveLogoUrl ? `<img src="${effectiveLogoUrl}" alt="Logo" class="logo">` : ''}
       <div class="icon">
         <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
       </div>
@@ -251,9 +265,9 @@ export class BlockPagesService {
       </div>` : ''}
     </div>
     <div class="footer">
-      ${blockPage.footerText || 'Protected by Nebula DNS'}
-      ${blockPage.supportEmail ? `<br><a href="mailto:${blockPage.supportEmail}">Contact Support</a>` : ''}
-      ${blockPage.supportUrl ? `<br><a href="${blockPage.supportUrl}" target="_blank">Help Center</a>` : ''}
+      ${effectiveFooterText}
+      ${effectiveSupportEmail ? `<br><a href="mailto:${effectiveSupportEmail}">Contact Support</a>` : ''}
+      ${effectiveSupportUrl ? `<br><a href="${effectiveSupportUrl}" target="_blank">Help Center</a>` : ''}
     </div>
   </div>
 </body>

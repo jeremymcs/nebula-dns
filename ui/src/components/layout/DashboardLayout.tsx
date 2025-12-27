@@ -5,13 +5,14 @@
 
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TopNav } from './TopNav'
 import { MobileNav } from './MobileNav'
 import { FullPageLoading } from '@/components/LoadingSpinner'
 import { useAuth } from '@/contexts/AuthContext'
+import { ArrowsRightLeftIcon } from '@heroicons/react/24/outline'
 
 // Breadcrumb mapping
 const breadcrumbLabels: Record<string, string> = {
@@ -78,12 +79,21 @@ export function DashboardLayout({ children, showBreadcrumbs = true }: DashboardL
   const { user, loading } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
+  const [isImpersonating, setIsImpersonating] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/')
     }
+    // Check if we're in impersonation mode
+    setIsImpersonating(localStorage.getItem('impersonating') === 'true')
   }, [loading, user, router])
+
+  const exitImpersonation = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('impersonating')
+    window.location.href = '/partner/dashboard'
+  }
 
   if (loading) {
     return <FullPageLoading />
@@ -95,6 +105,21 @@ export function DashboardLayout({ children, showBreadcrumbs = true }: DashboardL
 
   return (
     <div className="min-h-screen bg-space-50 dark:bg-space-950">
+      {/* Impersonation Banner */}
+      {isImpersonating && (
+        <div className="bg-amber-500 text-white px-4 py-2 flex items-center justify-between">
+          <span className="text-sm font-medium">
+            <ArrowsRightLeftIcon className="h-4 w-4 inline mr-2" />
+            You are viewing this organization as a partner admin
+          </span>
+          <button
+            onClick={exitImpersonation}
+            className="text-sm bg-white/20 hover:bg-white/30 px-3 py-1 rounded transition-colors"
+          >
+            Return to Partner Portal
+          </button>
+        </div>
+      )}
       <TopNav />
 
       <main className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 py-6 pb-20 lg:pb-6">

@@ -154,13 +154,18 @@ export class PolicyCompilerService {
       ? config.threatBlocking.feeds || ['malware', 'phishing', 'c2']
       : [];
 
-    // Build SafeSearch rules
+    // Build SafeSearch rules based on per-engine settings
     const safesearchRules: Record<string, SafeSearchRule> = {};
     if (config.safesearch?.enabled) {
-      const services = config.safesearch.services || ['google', 'bing', 'youtube'];
-      for (const service of services) {
-        const rules = this.getSafeSearchRulesForService(service);
-        Object.assign(safesearchRules, rules);
+      const settings = config.safesearch.settings || {};
+      // Process each engine based on its individual setting
+      const engines = ['google', 'bing', 'youtube', 'duckduckgo'] as const;
+      for (const engine of engines) {
+        const level = settings[engine] || 'off';
+        if (level !== 'off') {
+          const rules = this.getSafeSearchRulesForService(engine, level);
+          Object.assign(safesearchRules, rules);
+        }
       }
     }
 
@@ -226,26 +231,60 @@ export class PolicyCompilerService {
   }
 
   /**
-   * Get SafeSearch CNAME rules for a service
+   * Get SafeSearch CNAME rules for a service with level support
+   * @param service - The search engine (google, bing, youtube, duckduckgo)
+   * @param level - The restriction level (moderate or strict)
    */
-  private getSafeSearchRulesForService(service: string): Record<string, SafeSearchRule> {
-    const rules: Record<string, Record<string, SafeSearchRule>> = {
-      google: {
-        'www.google.com': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
-        'www.google.co.uk': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
-      },
-      bing: {
-        'www.bing.com': { cname: 'strict.bing.com', type: 'CNAME' },
-      },
-      youtube: {
-        'www.youtube.com': { cname: 'restrictmoderate.youtube.com', type: 'CNAME' },
-        'm.youtube.com': { cname: 'restrictmoderate.youtube.com', type: 'CNAME' },
-      },
-      duckduckgo: {
-        'duckduckgo.com': { cname: 'safe.duckduckgo.com', type: 'CNAME' },
-      },
+  private getSafeSearchRulesForService(
+    service: string,
+    level: 'moderate' | 'strict' = 'strict'
+  ): Record<string, SafeSearchRule> {
+    // Google SafeSearch rules - same CNAME for both levels (Google only has on/off)
+    const googleRules: Record<string, SafeSearchRule> = {
+      'www.google.com': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
+      'www.google.co.uk': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
+      'www.google.ca': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
+      'www.google.de': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
+      'www.google.fr': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
+      'www.google.es': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
+      'www.google.it': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
+      'www.google.com.au': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
+      'www.google.com.br': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
+      'www.google.co.jp': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
     };
-    return rules[service] || {};
+
+    // Bing SafeSearch rules - strict.bing.com for both levels
+    const bingRules: Record<string, SafeSearchRule> = {
+      'www.bing.com': { cname: 'strict.bing.com', type: 'CNAME' },
+    };
+
+    // YouTube Restricted Mode - different CNAMEs for moderate vs strict
+    const youtubeTarget = level === 'strict'
+      ? 'restrict.youtube.com'
+      : 'restrictmoderate.youtube.com';
+    const youtubeRules: Record<string, SafeSearchRule> = {
+      'www.youtube.com': { cname: youtubeTarget, type: 'CNAME' },
+      'm.youtube.com': { cname: youtubeTarget, type: 'CNAME' },
+      'youtube.com': { cname: youtubeTarget, type: 'CNAME' },
+      'youtubei.googleapis.com': { cname: youtubeTarget, type: 'CNAME' },
+      'youtube.googleapis.com': { cname: youtubeTarget, type: 'CNAME' },
+      'www.youtube-nocookie.com': { cname: youtubeTarget, type: 'CNAME' },
+    };
+
+    // DuckDuckGo SafeSearch
+    const duckduckgoRules: Record<string, SafeSearchRule> = {
+      'duckduckgo.com': { cname: 'safe.duckduckgo.com', type: 'CNAME' },
+      'www.duckduckgo.com': { cname: 'safe.duckduckgo.com', type: 'CNAME' },
+    };
+
+    const rulesMap: Record<string, Record<string, SafeSearchRule>> = {
+      google: googleRules,
+      bing: bingRules,
+      youtube: youtubeRules,
+      duckduckgo: duckduckgoRules,
+    };
+
+    return rulesMap[service] || {};
   }
 
   /**

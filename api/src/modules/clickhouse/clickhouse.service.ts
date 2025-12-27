@@ -738,4 +738,120 @@ export class ClickHouseService implements OnModuleInit {
       { clientIp: '192.168.2.200', queryCount: 4521, blockedCount: 31 },
     ];
   }
+
+  /**
+   * Get time-series query trends for charts
+   */
+  async getQueryTrends(tenantId: string, period: string): Promise<Array<{
+    timestamp: string;
+    total: number;
+    allowed: number;
+    blocked: number;
+  }>> {
+    // Determine grouping interval based on period
+    let interval: string;
+    let dateFilter: string;
+
+    switch (period) {
+      case '24h':
+        interval = 'toStartOfHour(timestamp)';
+        dateFilter = `timestamp >= now() - INTERVAL 24 HOUR`;
+        break;
+      case '7d':
+        interval = 'toStartOfDay(timestamp)';
+        dateFilter = `timestamp >= now() - INTERVAL 7 DAY`;
+        break;
+      case '30d':
+        interval = 'toStartOfDay(timestamp)';
+        dateFilter = `timestamp >= now() - INTERVAL 30 DAY`;
+        break;
+      case '90d':
+        interval = 'toStartOfDay(timestamp)';
+        dateFilter = `timestamp >= now() - INTERVAL 90 DAY`;
+        break;
+      default:
+        interval = 'toStartOfDay(timestamp)';
+        dateFilter = `timestamp >= now() - INTERVAL 7 DAY`;
+    }
+
+    return this.safeQuery(
+      async () => {
+        const result = await this.client.query({
+          query: `
+            SELECT
+              ${interval} as ts,
+              count() as total,
+              countIf(action = 'allow') as allowed,
+              countIf(action = 'block') as blocked
+            FROM query_logs
+            WHERE tenant_id = '${tenantId}' AND ${dateFilter}
+            GROUP BY ts
+            ORDER BY ts
+          `,
+          format: 'JSONEachRow',
+        });
+
+        const data = await result.json() as any[];
+        return data.map(item => ({
+          timestamp: item.ts,
+          total: Number(item.total),
+          allowed: Number(item.allowed),
+          blocked: Number(item.blocked),
+        }));
+      },
+      () => this.getMockQueryTrends(period),
+      'getQueryTrends',
+    );
+  }
+
+  private getMockQueryTrends(period: string): Array<{
+    timestamp: string;
+    total: number;
+    allowed: number;
+    blocked: number;
+  }> {
+    const now = new Date();
+    const data: Array<{ timestamp: string; total: number; allowed: number; blocked: number }> = [];
+
+    let points: number;
+    let intervalMs: number;
+
+    switch (period) {
+      case '24h':
+        points = 24;
+        intervalMs = 60 * 60 * 1000; // 1 hour
+        break;
+      case '7d':
+        points = 7;
+        intervalMs = 24 * 60 * 60 * 1000; // 1 day
+        break;
+      case '30d':
+        points = 30;
+        intervalMs = 24 * 60 * 60 * 1000; // 1 day
+        break;
+      case '90d':
+        points = 90;
+        intervalMs = 24 * 60 * 60 * 1000; // 1 day
+        break;
+      default:
+        points = 7;
+        intervalMs = 24 * 60 * 60 * 1000;
+    }
+
+    for (let i = points - 1; i >= 0; i--) {
+      const timestamp = new Date(now.getTime() - i * intervalMs);
+      const baseTotal = 300000 + Math.floor(Math.random() * 100000);
+      const blockRate = 0.04 + Math.random() * 0.02; // 4-6% block rate
+      const blocked = Math.floor(baseTotal * blockRate);
+
+      data.push({
+        timestamp: timestamp.toISOString(),
+        total: baseTotal,
+        allowed: baseTotal - blocked,
+        blocked,
+      });
+    }
+
+    return data;
+  }
 }

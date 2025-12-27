@@ -6,4 +6,5 @@
 export { TopNav } from './TopNav'
 export { MobileNav } from './MobileNav'
 export { DashboardLayout } from './DashboardLayout'
+export { PartnerLayout } from './PartnerLayout'
 

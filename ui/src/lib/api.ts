@@ -341,8 +341,15 @@ export const api = {
 
   // Subscriptions
   getSubscription: () => request<any>('/subscriptions/current'),
-  
+
   getPlans: () => request<{ data: any[] }>('/plans'),
+
+  // Tenant/Organization Settings
+  updateTenant: (data: any) =>
+    request<any>('/tenants/current', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
 }
 
 export { ApiError }

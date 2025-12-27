@@ -7,7 +7,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   BuildingOfficeIcon,
@@ -21,9 +21,98 @@ import {
   FingerPrintIcon,
 } from '@heroicons/react/24/outline'
 import { Card, Button, Badge, Input } from '@/components/ui'
+import { useTenant } from '@/hooks/useApi'
+import { api } from '@/lib/api'
+import { useToast } from '@/components/Toast'
+
+interface TenantSettings {
+  timezone?: string
+  contactEmail?: string
+  notifications?: {
+    threatAlerts?: boolean
+    weeklyReports?: boolean
+    systemUpdates?: boolean
+  }
+}
+
+interface Tenant {
+  id: string
+  name: string
+  slug: string
+  plan: string
+  status: string
+  settings?: TenantSettings
+}
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general')
+  const { data: tenant, isLoading, mutate } = useTenant() as { data: Tenant | undefined, isLoading: boolean, mutate: () => void }
+  const { showToast } = useToast()
+
+  // Form state
+  const [orgName, setOrgName] = useState('')
+  const [contactEmail, setContactEmail] = useState('')
+  const [timezone, setTimezone] = useState('UTC')
+  const [saving, setSaving] = useState(false)
+
+  // Notification settings
+  const [threatAlerts, setThreatAlerts] = useState(true)
+  const [weeklyReports, setWeeklyReports] = useState(true)
+  const [systemUpdates, setSystemUpdates] = useState(false)
+
+  // Sync form state when tenant data loads
+  useEffect(() => {
+    if (tenant) {
+      setOrgName(tenant.name || '')
+      setContactEmail(tenant.settings?.contactEmail || '')
+      setTimezone(tenant.settings?.timezone || 'UTC')
+      setThreatAlerts(tenant.settings?.notifications?.threatAlerts ?? true)
+      setWeeklyReports(tenant.settings?.notifications?.weeklyReports ?? true)
+      setSystemUpdates(tenant.settings?.notifications?.systemUpdates ?? false)
+    }
+  }, [tenant])
+
+  const handleSaveGeneral = async () => {
+    setSaving(true)
+    try {
+      await api.updateTenant({
+        name: orgName,
+        settings: {
+          ...(tenant?.settings || {}),
+          contactEmail,
+          timezone,
+        }
+      })
+      showToast('success', 'Settings saved successfully')
+      mutate()
+    } catch (error) {
+      showToast('error', 'Failed to save settings')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleSaveNotifications = async () => {
+    setSaving(true)
+    try {
+      await api.updateTenant({
+        settings: {
+          ...(tenant?.settings || {}),
+          notifications: {
+            threatAlerts,
+            weeklyReports,
+            systemUpdates,
+          }
+        }
+      })
+      showToast('success', 'Notification preferences saved')
+      mutate()
+    } catch (error) {
+      showToast('error', 'Failed to save notification settings')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const settingsSections = [
     { href: '/dashboard/settings/team', name: 'Team Members', description: 'Manage users and invitations', icon: UsersIcon },
@@ -108,41 +197,61 @@ export default function SettingsPage() {
             <Card variant="solid" padding="lg">
               <h2 className="text-lg font-semibold text-space-900 dark:text-white mb-6">General Settings</h2>
 
-              <div className="space-y-6">
-                <Input
-                  label="Organization Name"
-                  defaultValue="Demo Company"
-                />
-
-                <div>
+              {isLoading ? (
+                <div className="animate-pulse space-y-4">
+                  <div className="h-10 bg-space-200 dark:bg-space-700 rounded-xl" />
+                  <div className="h-10 bg-space-200 dark:bg-space-700 rounded-xl" />
+                  <div className="h-10 bg-space-200 dark:bg-space-700 rounded-xl" />
+                </div>
+              ) : (
+                <div className="space-y-6">
                   <Input
-                    label="Organization Slug"
-                    defaultValue="demo"
-                    disabled
+                    label="Organization Name"
+                    value={orgName}
+                    onChange={(e) => setOrgName(e.target.value)}
                   />
-                  <p className="mt-1 text-xs text-space-500 dark:text-space-400">Used in URLs and API calls</p>
-                </div>
 
-                <Input
-                  label="Contact Email"
-                  type="email"
-                  defaultValue="admin@demo.local"
-                />
+                  <div>
+                    <Input
+                      label="Organization Slug"
+                      value={tenant?.slug || ''}
+                      disabled
+                    />
+                    <p className="mt-1 text-xs text-space-500 dark:text-space-400">Used in URLs and API calls</p>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-1">Timezone</label>
-                  <select className="w-full px-4 py-3 rounded-xl border border-space-200 dark:border-space-600 bg-white dark:bg-space-800 text-space-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all">
-                    <option>UTC</option>
-                    <option>America/New_York</option>
-                    <option>America/Los_Angeles</option>
-                    <option>Europe/London</option>
-                  </select>
-                </div>
+                  <Input
+                    label="Contact Email"
+                    type="email"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                  />
 
-                <div className="pt-4 border-t border-space-200 dark:border-space-700">
-                  <Button variant="primary">Save Changes</Button>
+                  <div>
+                    <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-1">Timezone</label>
+                    <select
+                      value={timezone}
+                      onChange={(e) => setTimezone(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-space-200 dark:border-space-600 bg-white dark:bg-space-800 text-space-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
+                    >
+                      <option value="UTC">UTC</option>
+                      <option value="America/New_York">America/New_York</option>
+                      <option value="America/Los_Angeles">America/Los_Angeles</option>
+                      <option value="America/Chicago">America/Chicago</option>
+                      <option value="Europe/London">Europe/London</option>
+                      <option value="Europe/Paris">Europe/Paris</option>
+                      <option value="Asia/Tokyo">Asia/Tokyo</option>
+                      <option value="Australia/Sydney">Australia/Sydney</option>
+                    </select>
+                  </div>
+
+                  <div className="pt-4 border-t border-space-200 dark:border-space-700">
+                    <Button variant="primary" onClick={handleSaveGeneral} disabled={saving}>
+                      {saving ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
             </Card>
           )}
 
@@ -156,8 +265,11 @@ export default function SettingsPage() {
                     <h3 className="text-sm font-medium text-space-900 dark:text-white">Threat Alerts</h3>
                     <p className="text-sm text-space-500 dark:text-space-400">Get notified about security threats</p>
                   </div>
-                  <button className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-primary-600 transition-colors duration-200 ease-in-out">
-                    <span className="translate-x-5 inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" />
+                  <button
+                    onClick={() => setThreatAlerts(!threatAlerts)}
+                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${threatAlerts ? 'bg-primary-600' : 'bg-space-200 dark:bg-space-600'}`}
+                  >
+                    <span className={`${threatAlerts ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`} />
                   </button>
                 </div>
 
@@ -166,8 +278,11 @@ export default function SettingsPage() {
                     <h3 className="text-sm font-medium text-space-900 dark:text-white">Weekly Reports</h3>
                     <p className="text-sm text-space-500 dark:text-space-400">Receive weekly summary emails</p>
                   </div>
-                  <button className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-primary-600 transition-colors duration-200 ease-in-out">
-                    <span className="translate-x-5 inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" />
+                  <button
+                    onClick={() => setWeeklyReports(!weeklyReports)}
+                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${weeklyReports ? 'bg-primary-600' : 'bg-space-200 dark:bg-space-600'}`}
+                  >
+                    <span className={`${weeklyReports ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`} />
                   </button>
                 </div>
 
@@ -176,19 +291,25 @@ export default function SettingsPage() {
                     <h3 className="text-sm font-medium text-space-900 dark:text-white">System Updates</h3>
                     <p className="text-sm text-space-500 dark:text-space-400">Notifications about system maintenance</p>
                   </div>
-                  <button className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-space-200 dark:bg-space-600 transition-colors duration-200 ease-in-out">
-                    <span className="translate-x-0 inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" />
+                  <button
+                    onClick={() => setSystemUpdates(!systemUpdates)}
+                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${systemUpdates ? 'bg-primary-600' : 'bg-space-200 dark:bg-space-600'}`}
+                  >
+                    <span className={`${systemUpdates ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`} />
                   </button>
                 </div>
 
                 <Input
                   label="Alert Email"
                   type="email"
-                  defaultValue="admin@demo.local"
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
                 />
 
                 <div className="pt-4 border-t border-space-200 dark:border-space-700">
-                  <Button variant="primary">Save Preferences</Button>
+                  <Button variant="primary" onClick={handleSaveNotifications} disabled={saving}>
+                    {saving ? 'Saving...' : 'Save Preferences'}
+                  </Button>
                 </div>
               </div>
             </Card>

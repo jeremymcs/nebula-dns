@@ -78,4 +78,15 @@ export class ReportsController {
   ) {
     return this.reportsService.getQueryLogs(tenantId, query);
   }
+
+  @Get('trends')
+  @Roles(Role.OWNER, Role.ADMIN, Role.ANALYST, Role.READONLY)
+  @ApiOperation({ summary: 'Get query trends for charts' })
+  @ApiResponse({ status: 200, description: 'Query trends retrieved' })
+  async getQueryTrends(
+    @CurrentTenant() tenantId: string,
+    @Query() query: ReportQueryDto,
+  ) {
+    return this.reportsService.getQueryTrends(tenantId, query);
+  }
 }

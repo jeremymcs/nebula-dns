@@ -22,6 +22,13 @@ import {
 } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 
+interface SafeSearchSettings {
+  google: 'off' | 'moderate' | 'strict'
+  bing: 'off' | 'moderate' | 'strict'
+  youtube: 'off' | 'moderate' | 'strict'
+  duckduckgo: 'off' | 'moderate' | 'strict'
+}
+
 interface PolicyConfig {
   blockCategories: string[]
   threatBlocking: {
@@ -31,7 +38,63 @@ interface PolicyConfig {
   safesearch: {
     enabled: boolean
     services: string[]
+    settings?: SafeSearchSettings
   }
+}
+
+// Search engine brand logos as SVG components
+const GoogleLogo = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+  </svg>
+)
+
+const BingLogo = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M5 3v16.5l4.5 2.5 8-4.5v-5l-6-2.5-2.5 1.5V5.5L5 3zm4.5 11l4 1.5v2l-4 2.5V14z" fill="#00897B"/>
+  </svg>
+)
+
+const YouTubeLogo = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill="#FF0000"/>
+  </svg>
+)
+
+const DuckDuckGoLogo = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0z" fill="#DE5833"/>
+    <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2z" fill="#DE5833"/>
+    <ellipse cx="9" cy="10" rx="2" ry="2.5" fill="#fff"/>
+    <ellipse cx="15" cy="10" rx="2" ry="2.5" fill="#fff"/>
+    <circle cx="9.5" cy="10" r="1" fill="#000"/>
+    <circle cx="15.5" cy="10" r="1" fill="#000"/>
+    <path d="M8 15c0 0 2 2 4 2s4-2 4-2" stroke="#fff" strokeWidth="1" fill="none" strokeLinecap="round"/>
+  </svg>
+)
+
+const SEARCH_ENGINE_LOGOS: Record<string, React.FC> = {
+  google: GoogleLogo,
+  bing: BingLogo,
+  youtube: YouTubeLogo,
+  duckduckgo: DuckDuckGoLogo,
+}
+
+const SEARCH_ENGINES = [
+  { id: 'google', name: 'Google' },
+  { id: 'bing', name: 'Bing' },
+  { id: 'youtube', name: 'YouTube' },
+  { id: 'duckduckgo', name: 'DuckDuckGo' },
+] as const
+
+const DEFAULT_SAFESEARCH_SETTINGS: SafeSearchSettings = {
+  google: 'off',
+  bing: 'off',
+  youtube: 'off',
+  duckduckgo: 'off',
 }
 
 interface Policy {
@@ -86,28 +149,44 @@ const POLICY_PRESETS = {
     blockCategories: ['adult', 'violence', 'drugs', 'weapons', 'gambling', 'dating', 'alcohol'],
     warnCategories: ['social_media', 'gaming', 'streaming'],
     threatBlocking: { enabled: true, feeds: ['malware', 'phishing', 'c2', 'ransomware'] },
-    safesearch: { enabled: true, services: ['google', 'bing', 'youtube'] },
+    safesearch: {
+      enabled: true,
+      services: ['google', 'bing', 'youtube', 'duckduckgo'],
+      settings: { google: 'strict', bing: 'strict', youtube: 'strict', duckduckgo: 'strict' } as SafeSearchSettings,
+    },
   },
   'Corporate Security': {
     description: 'High security for business environments',
     blockCategories: ['malware', 'phishing', 'hacking', 'scam', 'adult', 'gambling', 'piracy', 'proxy', 'vpn', 'file_sharing', 'cryptominer'],
     warnCategories: ['social_media', 'streaming', 'gaming'],
     threatBlocking: { enabled: true, feeds: ['malware', 'phishing', 'c2', 'ransomware', 'botnet', 'cryptominer', 'spam'] },
-    safesearch: { enabled: true, services: ['google', 'bing', 'youtube'] },
+    safesearch: {
+      enabled: true,
+      services: ['google', 'bing', 'youtube', 'duckduckgo'],
+      settings: { google: 'moderate', bing: 'moderate', youtube: 'moderate', duckduckgo: 'moderate' } as SafeSearchSettings,
+    },
   },
   'Education K-12': {
     description: 'Safe browsing for schools',
     blockCategories: ['adult', 'violence', 'drugs', 'weapons', 'gambling', 'dating', 'alcohol', 'hacking', 'proxy', 'vpn', 'piracy'],
     warnCategories: ['social_media', 'gaming', 'streaming', 'chat'],
     threatBlocking: { enabled: true, feeds: ['malware', 'phishing', 'c2'] },
-    safesearch: { enabled: true, services: ['google', 'bing', 'youtube'] },
+    safesearch: {
+      enabled: true,
+      services: ['google', 'bing', 'youtube', 'duckduckgo'],
+      settings: { google: 'strict', bing: 'strict', youtube: 'strict', duckduckgo: 'strict' } as SafeSearchSettings,
+    },
   },
   'Minimal Blocking': {
     description: 'Only block security threats',
     blockCategories: ['malware', 'phishing', 'scam', 'cryptominer'],
     warnCategories: [],
     threatBlocking: { enabled: true, feeds: ['malware', 'phishing', 'c2', 'ransomware'] },
-    safesearch: { enabled: false, services: ['google', 'bing', 'youtube'] },
+    safesearch: {
+      enabled: false,
+      services: [],
+      settings: { google: 'off', bing: 'off', youtube: 'off', duckduckgo: 'off' } as SafeSearchSettings,
+    },
   },
 }
 
@@ -132,7 +211,11 @@ export default function PoliciesPage() {
     blockCategories: [] as string[],
     warnCategories: [] as string[],
     threatBlocking: { enabled: true, feeds: ['malware', 'phishing', 'c2'] as string[] },
-    safesearch: { enabled: false, services: ['google', 'bing', 'youtube'] as string[] },
+    safesearch: {
+      enabled: false,
+      services: [] as string[],
+      settings: { ...DEFAULT_SAFESEARCH_SETTINGS } as SafeSearchSettings,
+    },
     isDefault: false,
   })
 
@@ -145,7 +228,11 @@ export default function PoliciesPage() {
       blockCategories: [],
       warnCategories: [],
       threatBlocking: { enabled: true, feeds: ['malware', 'phishing', 'c2'] },
-      safesearch: { enabled: false, services: ['google', 'bing', 'youtube'] },
+      safesearch: {
+        enabled: false,
+        services: [],
+        settings: { ...DEFAULT_SAFESEARCH_SETTINGS },
+      },
       isDefault: false,
     })
   }
@@ -158,7 +245,11 @@ export default function PoliciesPage() {
         blockCategories: [...preset.blockCategories],
         warnCategories: [...preset.warnCategories],
         threatBlocking: { ...preset.threatBlocking },
-        safesearch: { ...preset.safesearch },
+        safesearch: {
+          enabled: preset.safesearch.enabled,
+          services: [...preset.safesearch.services],
+          settings: { ...preset.safesearch.settings },
+        },
       }))
       showToast('success', `Applied "${presetName}" preset`)
     }
@@ -172,13 +263,18 @@ export default function PoliciesPage() {
 
   const openEditModal = (policy: Policy) => {
     setEditingPolicy(policy)
+    const existingSettings = policy.currentConfig?.safesearch?.settings || DEFAULT_SAFESEARCH_SETTINGS
     setForm({
       name: policy.name,
       description: policy.description || '',
       blockCategories: policy.currentConfig?.blockCategories || [],
       warnCategories: (policy.currentConfig as any)?.warnCategories || [],
       threatBlocking: policy.currentConfig?.threatBlocking || { enabled: true, feeds: ['malware', 'phishing', 'c2'] },
-      safesearch: policy.currentConfig?.safesearch || { enabled: false, services: ['google', 'bing', 'youtube'] },
+      safesearch: {
+        enabled: policy.currentConfig?.safesearch?.enabled || false,
+        services: policy.currentConfig?.safesearch?.services || [],
+        settings: { ...existingSettings },
+      },
       isDefault: policy.isDefault,
     })
     setShowCreateModal(true)
@@ -303,6 +399,47 @@ export default function PoliciesPage() {
         feeds: prev.threatBlocking.feeds.includes(feed)
           ? prev.threatBlocking.feeds.filter(f => f !== feed)
           : [...prev.threatBlocking.feeds, feed]
+      }
+    }))
+  }
+
+  // Update individual search engine SafeSearch setting
+  const updateSearchEngineSafety = (engine: keyof SafeSearchSettings, level: 'off' | 'moderate' | 'strict') => {
+    setForm(prev => {
+      const newSettings = { ...prev.safesearch.settings, [engine]: level }
+      // Update services array based on which engines are enabled
+      const enabledServices = SEARCH_ENGINES
+        .filter(e => newSettings[e.id as keyof SafeSearchSettings] !== 'off')
+        .map(e => e.id)
+
+      return {
+        ...prev,
+        safesearch: {
+          ...prev.safesearch,
+          enabled: enabledServices.length > 0,
+          services: enabledServices,
+          settings: newSettings,
+        }
+      }
+    })
+  }
+
+  // Set all engines to a specific level
+  const setAllEngines = (level: 'off' | 'moderate' | 'strict') => {
+    const newSettings: SafeSearchSettings = {
+      google: level,
+      bing: level,
+      youtube: level,
+      duckduckgo: level,
+    }
+    const enabledServices = level !== 'off' ? SEARCH_ENGINES.map(e => e.id) : []
+
+    setForm(prev => ({
+      ...prev,
+      safesearch: {
+        enabled: level !== 'off',
+        services: enabledServices,
+        settings: newSettings,
       }
     }))
   }
@@ -557,25 +694,96 @@ export default function PoliciesPage() {
               </div>
             </div>
 
-            {/* SafeSearch Toggle */}
-            <div className="flex items-center justify-between p-4 rounded-xl bg-space-50 dark:bg-space-800/50 ring-1 ring-space-200 dark:ring-space-700">
-              <div>
-                <h4 className="text-sm font-medium text-space-900 dark:text-white">SafeSearch</h4>
-                <p className="text-xs text-space-500 dark:text-space-400">Google, Bing, YouTube</p>
+            {/* SafeSearch Per-Engine Controls */}
+            <div className="p-4 rounded-xl bg-space-50 dark:bg-space-800/50 ring-1 ring-space-200 dark:ring-space-700">
+              <div className="flex flex-col gap-3 mb-4">
+                <div>
+                  <h4 className="text-sm font-medium text-space-900 dark:text-white">🔒 SafeSearch</h4>
+                  <p className="text-xs text-space-500 dark:text-space-400">Per-engine content filtering</p>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setAllEngines('strict')}
+                    className="px-2 py-1 text-xs rounded bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400 hover:bg-danger-200 dark:hover:bg-danger-900/50"
+                    title="Set all to Strict"
+                  >
+                    All Strict
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllEngines('moderate')}
+                    className="px-2 py-1 text-xs rounded bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400 hover:bg-warning-200 dark:hover:bg-warning-900/50"
+                    title="Set all to Moderate"
+                  >
+                    All Moderate
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllEngines('off')}
+                    className="px-2 py-1 text-xs rounded bg-space-200 text-space-600 dark:bg-space-700 dark:text-space-400 hover:bg-space-300 dark:hover:bg-space-600"
+                    title="Turn all off"
+                  >
+                    All Off
+                  </button>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setForm({ ...form, safesearch: { ...form.safesearch, enabled: !form.safesearch.enabled } })}
-                className={clsx(
-                  'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200',
-                  form.safesearch.enabled ? 'bg-primary-600' : 'bg-space-300 dark:bg-space-600'
-                )}
-              >
-                <span className={clsx(
-                  'inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200',
-                  form.safesearch.enabled ? 'translate-x-5' : 'translate-x-0.5'
-                )} />
-              </button>
+
+              <div className="space-y-2">
+                {SEARCH_ENGINES.map((engine) => {
+                  const currentLevel = form.safesearch.settings[engine.id as keyof SafeSearchSettings]
+                  const LogoComponent = SEARCH_ENGINE_LOGOS[engine.id]
+                  return (
+                    <div
+                      key={engine.id}
+                      className="flex flex-col gap-2 py-2 px-3 rounded-lg bg-white dark:bg-space-800 border border-space-200 dark:border-space-700"
+                    >
+                      <div className="flex items-center gap-2">
+                        {LogoComponent && <LogoComponent />}
+                        <span className="text-sm font-medium text-space-900 dark:text-white">{engine.name}</span>
+                      </div>
+                      <div className="flex rounded-lg overflow-hidden border border-space-200 dark:border-space-600 w-full">
+                        <button
+                          type="button"
+                          onClick={() => updateSearchEngineSafety(engine.id as keyof SafeSearchSettings, 'off')}
+                          className={clsx(
+                            'flex-1 px-2 py-1.5 text-xs font-medium transition-colors text-center',
+                            currentLevel === 'off'
+                              ? 'bg-space-600 text-white dark:bg-space-500'
+                              : 'bg-space-100 text-space-600 dark:bg-space-800 dark:text-space-400 hover:bg-space-200 dark:hover:bg-space-700'
+                          )}
+                        >
+                          Off
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateSearchEngineSafety(engine.id as keyof SafeSearchSettings, 'moderate')}
+                          className={clsx(
+                            'flex-1 px-2 py-1.5 text-xs font-medium transition-colors border-l border-r border-space-200 dark:border-space-600 text-center',
+                            currentLevel === 'moderate'
+                              ? 'bg-warning-500 text-white'
+                              : 'bg-space-100 text-space-600 dark:bg-space-800 dark:text-space-400 hover:bg-warning-100 dark:hover:bg-warning-900/20'
+                          )}
+                        >
+                          Moderate
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateSearchEngineSafety(engine.id as keyof SafeSearchSettings, 'strict')}
+                          className={clsx(
+                            'flex-1 px-2 py-1.5 text-xs font-medium transition-colors text-center',
+                            currentLevel === 'strict'
+                              ? 'bg-danger-500 text-white'
+                              : 'bg-space-100 text-space-600 dark:bg-space-800 dark:text-space-400 hover:bg-danger-100 dark:hover:bg-danger-900/20'
+                          )}
+                        >
+                          Strict
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           </div>
 

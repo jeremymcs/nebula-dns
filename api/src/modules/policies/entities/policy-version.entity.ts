@@ -8,6 +8,13 @@ import {
 } from 'typeorm';
 import { Policy } from './policy.entity';
 
+export interface SafeSearchSettings {
+  google?: 'off' | 'moderate' | 'strict';
+  bing?: 'off' | 'moderate' | 'strict';
+  youtube?: 'off' | 'moderate' | 'strict';
+  duckduckgo?: 'off' | 'moderate' | 'strict';
+}
+
 export interface PolicyConfig {
   blockCategories: string[];
   threatBlocking: {
@@ -17,6 +24,7 @@ export interface PolicyConfig {
   safesearch: {
     enabled: boolean;
     services: string[];
+    settings?: SafeSearchSettings;
   };
   schedules: PolicySchedule[];
 }
