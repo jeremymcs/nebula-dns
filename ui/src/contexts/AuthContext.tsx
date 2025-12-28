@@ -1,7 +1,7 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
+ *
  * Authentication Context Provider
  */
 
@@ -18,6 +18,20 @@ interface User {
   tenantId: string
   tenantName?: string
   mfaEnabled?: boolean
+}
+
+interface Organization {
+  id: string
+  name: string
+  slug: string
+  status: string
+}
+
+interface MspInfo {
+  isMsp: boolean
+  partnerId: string | null
+  currentOrg: Organization | null
+  organizations: Organization[]
 }
 
 interface MfaChallenge {
@@ -39,6 +53,13 @@ interface AuthContextType {
   logout: () => void
   refreshTokens: () => Promise<void>
   isAuthenticated: boolean
+  // MSP functionality
+  mspInfo: MspInfo | null
+  isMsp: boolean
+  currentOrg: Organization | null
+  organizations: Organization[]
+  switchOrganization: (orgId: string) => Promise<void>
+  refreshMspInfo: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -52,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
+  const [mspInfo, setMspInfo] = useState<MspInfo | null>(null)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -68,7 +90,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('token')
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
+    localStorage.removeItem('mspInfo')
     setUser(null)
+    setMspInfo(null)
     router.push('/')
   }, [router])
 
@@ -154,6 +178,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/dashboard')
   }
 
+  // Fetch MSP info (managed organizations)
+  const refreshMspInfo = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) return
+
+      const res = await fetch(`${API_URL}/auth/organizations`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        setMspInfo(data)
+        localStorage.setItem('mspInfo', JSON.stringify(data))
+      }
+    } catch (error) {
+      console.error('Failed to fetch MSP info:', error)
+    }
+  }, [])
+
+  // Switch to a different organization
+  const switchOrganization = useCallback(async (orgId: string) => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) throw new Error('Not authenticated')
+
+      const res = await fetch(`${API_URL}/auth/switch-tenant`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ tenantId: orgId }),
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.message || 'Failed to switch organization')
+      }
+
+      const data = await res.json()
+      localStorage.setItem('token', data.accessToken)
+      localStorage.setItem('refreshToken', data.refreshToken)
+      localStorage.setItem('user', JSON.stringify(data.user))
+      setUser(data.user)
+
+      // Refresh MSP info to update current org
+      await refreshMspInfo()
+
+      // Reload the page to ensure all data is fresh for the new org
+      window.location.href = '/dashboard'
+    } catch (error) {
+      console.error('Failed to switch organization:', error)
+      throw error
+    }
+  }, [refreshMspInfo])
+
   // Initialize auth state from localStorage (only after mount to avoid SSR issues)
   useEffect(() => {
     if (!mounted) return
@@ -162,9 +243,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const token = localStorage.getItem('token')
         const storedUser = localStorage.getItem('user')
+        const storedMspInfo = localStorage.getItem('mspInfo')
 
         if (token && storedUser) {
           setUser(JSON.parse(storedUser))
+          if (storedMspInfo) {
+            setMspInfo(JSON.parse(storedMspInfo))
+          }
 
           // Verify token is still valid by making a request
           const res = await fetch(`${API_URL}/auth/me`, {
@@ -178,6 +263,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const userData = await res.json()
             setUser(userData)
             localStorage.setItem('user', JSON.stringify(userData))
+
+            // Also fetch MSP info
+            await refreshMspInfo()
           }
         }
       } catch (error) {
@@ -189,7 +277,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     initAuth()
-  }, [mounted, logout, refreshTokens])
+  }, [mounted, logout, refreshTokens, refreshMspInfo])
 
   // Redirect unauthenticated users away from protected routes
   useEffect(() => {
@@ -207,6 +295,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, refreshTokens])
 
+  // Compute MSP convenience values
+  const isMsp = mspInfo?.isMsp ?? false
+  const currentOrg = mspInfo?.currentOrg ?? null
+  const organizations = mspInfo?.organizations ?? []
+
   return (
     <AuthContext.Provider
       value={{
@@ -217,6 +310,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         refreshTokens,
         isAuthenticated: !!user,
+        // MSP functionality
+        mspInfo,
+        isMsp,
+        currentOrg,
+        organizations,
+        switchOrganization,
+        refreshMspInfo,
       }}
     >
       {children}

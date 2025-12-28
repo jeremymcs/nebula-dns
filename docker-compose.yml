@@ -14,7 +14,7 @@ services:
       target: development
     container_name: dnsfilter-api
     ports:
-      - "4000:3000"
+      - "4010:3000"
     environment:
       NODE_ENV: development
       PORT: 3000
@@ -29,7 +29,7 @@ services:
       JWT_REFRESH_SECRET: dev-jwt-refresh-secret-change-in-production
       JWT_EXPIRES_IN: 15m
       JWT_REFRESH_EXPIRES_IN: 7d
-      CORS_ORIGIN: http://localhost:4001
+      CORS_ORIGINS: http://localhost:4011,http://localhost:4012,http://localhost:3000
     depends_on:
       postgres:
         condition: service_healthy
@@ -54,9 +54,10 @@ services:
       target: development
     container_name: dnsfilter-ui
     ports:
-      - "4001:3000"
+      - "4011:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:4000
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: http://localhost:4010
     depends_on:
       - api
     volumes:
@@ -101,7 +102,9 @@ services:
       PORT: 8080
       REDIS_URL: redis:6379
       CLICKHOUSE_URL: http://clickhouse:8123
-      CLICKHOUSE_DATABASE: nebula
+      CLICKHOUSE_DATABASE: nebula_dns
+      CLICKHOUSE_USER: nebula
+      CLICKHOUSE_PASSWORD: nebula
       POSTGRES_URL: postgresql://nebula:nebula@postgres:5432/nebula
       LOG_LEVEL: debug
       FAIL_MODE: open
@@ -113,7 +116,7 @@ services:
     networks:
       - dnsfilter-network
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8080/health"]
       interval: 10s
       timeout: 5s
       retries: 5

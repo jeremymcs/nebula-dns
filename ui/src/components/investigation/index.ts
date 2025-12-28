@@ -10,4 +10,5 @@ export { ThreatIndicators } from './ThreatIndicators'
 export { IntelligenceSection } from './IntelligenceSection'
 export { NetworkActivitySection } from './NetworkActivitySection'
 export { QuickActionBar } from './QuickActionBar'
+export { PdfExportModal } from './PdfExportModal'
 

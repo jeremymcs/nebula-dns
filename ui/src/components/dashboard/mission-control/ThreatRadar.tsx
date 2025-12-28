@@ -74,22 +74,22 @@ export function ThreatRadar({ threats = [], isLive = true, className }: ThreatRa
   return (
     <div ref={containerRef} className={clsx('relative aspect-square', className)}>
       {/* Radar background */}
-      <div className="absolute inset-0 rounded-full bg-gradient-to-b from-space-800 to-space-900 border border-space-700 overflow-hidden">
+      <div className="absolute inset-0 rounded-full bg-gradient-to-b from-space-200 to-space-300 dark:from-space-800 dark:to-space-900 border border-space-300 dark:border-space-700 overflow-hidden">
         {/* Grid circles */}
         {[0.25, 0.5, 0.75, 1].map((scale) => (
           <div
             key={scale}
-            className="absolute inset-0 m-auto rounded-full border border-space-700/50"
+            className="absolute inset-0 m-auto rounded-full border border-space-400/50 dark:border-space-700/50"
             style={{ width: `${scale * 100}%`, height: `${scale * 100}%` }}
           />
         ))}
-        
+
         {/* Cross lines */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-full h-px bg-space-700/50" />
+          <div className="w-full h-px bg-space-400/50 dark:bg-space-700/50" />
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="h-full w-px bg-space-700/50" />
+          <div className="h-full w-px bg-space-400/50 dark:bg-space-700/50" />
         </div>
 
         {/* Sweep line */}
@@ -140,9 +140,9 @@ export function ThreatRadar({ threats = [], isLive = true, className }: ThreatRa
       </div>
 
       {/* Status indicator */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1 rounded-full bg-space-800/80 backdrop-blur-sm border border-space-700">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1 rounded-full bg-white/80 dark:bg-space-800/80 backdrop-blur-sm border border-space-200 dark:border-space-700">
         <span className={clsx('w-2 h-2 rounded-full', isLive ? 'bg-green-500 animate-pulse' : 'bg-space-500')} />
-        <span className="text-xs font-medium text-space-300">{isLive ? 'Live Monitoring' : 'Paused'}</span>
+        <span className="text-xs font-medium text-space-700 dark:text-space-300">{isLive ? 'Live Monitoring' : 'Paused'}</span>
       </div>
     </div>
   )

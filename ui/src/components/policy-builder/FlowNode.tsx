@@ -7,7 +7,7 @@
 
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import clsx from 'clsx'
 import { PolicyNode, NODE_CONFIGS } from './types'
@@ -39,6 +39,8 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
 interface FlowNodeProps {
   node: PolicyNode
   isSelected: boolean
+  isConnecting?: boolean
+  isConnectTarget?: boolean
   onSelect: () => void
   onMove: (x: number, y: number) => void
   onDelete: () => void
@@ -49,6 +51,8 @@ interface FlowNodeProps {
 export function FlowNode({
   node,
   isSelected,
+  isConnecting,
+  isConnectTarget,
   onSelect,
   onMove,
   onDelete,
@@ -80,16 +84,16 @@ export function FlowNode({
   }, [])
 
   // Add/remove global listeners for drag
-  useState(() => {
+  useEffect(() => {
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove)
       document.addEventListener('mouseup', handleMouseUp)
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('mouseup', handleMouseUp)
+      }
     }
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-    }
-  })
+  }, [isDragging, handleMouseMove, handleMouseUp])
 
   const getColorClasses = (color: string) => {
     const colors: Record<string, { bg: string; border: string; text: string }> = {
@@ -106,20 +110,31 @@ export function FlowNode({
 
   const colorClasses = getColorClasses(config.color)
 
+  const handleNodeClick = useCallback((e: React.MouseEvent) => {
+    // If we're in connect mode and this is a valid target, complete the connection
+    if (isConnectTarget) {
+      e.stopPropagation()
+      e.preventDefault()
+      onEndConnect()
+    }
+  }, [isConnectTarget, onEndConnect])
+
   return (
     <motion.div
       ref={nodeRef}
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       className={clsx(
-        'absolute cursor-move select-none',
+        'absolute cursor-move select-none overflow-visible',
         'w-48 rounded-xl border-2 shadow-lg',
         'bg-white dark:bg-space-800',
         isSelected ? `${colorClasses.border} ring-2 ring-offset-2` : 'border-space-200 dark:border-space-700',
-        isDragging && 'shadow-2xl z-50'
+        isDragging && 'shadow-2xl z-50',
+        isConnectTarget && 'ring-4 ring-nebula-500/50 cursor-pointer'
       )}
       style={{ left: node.x, top: node.y }}
       onMouseDown={handleMouseDown}
+      onClick={handleNodeClick}
     >
       {/* Header */}
       <div className={clsx('px-3 py-2 rounded-t-lg flex items-center gap-2', colorClasses.bg)}>
@@ -137,17 +152,31 @@ export function FlowNode({
         <p className="text-xs text-space-500">{config.description}</p>
       </div>
 
-      {/* Connection points */}
+      {/* Connection points - Click to connect */}
       {config.maxConnections.inputs > 0 && (
         <div
-          className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-space-300 dark:bg-space-600 border-2 border-white dark:border-space-800 cursor-crosshair hover:bg-nebula-500 transition-colors"
-          onMouseUp={(e) => { e.stopPropagation(); onEndConnect() }}
+          className={clsx(
+            'absolute -left-3 top-1/2 -translate-y-1/2 rounded-full border-2 border-white dark:border-space-800 cursor-pointer transition-all z-10',
+            isConnectTarget
+              ? 'w-8 h-8 bg-nebula-500 animate-pulse shadow-lg shadow-nebula-500/50 -left-4'
+              : 'w-5 h-5 bg-space-300 dark:bg-space-600 hover:bg-nebula-500 hover:scale-125'
+          )}
+          onClick={(e) => { e.stopPropagation(); onEndConnect() }}
         />
       )}
       {config.maxConnections.outputs > 0 && (
         <div
-          className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-space-300 dark:bg-space-600 border-2 border-white dark:border-space-800 cursor-crosshair hover:bg-nebula-500 transition-colors"
-          onMouseDown={(e) => { e.stopPropagation(); onStartConnect() }}
+          className={clsx(
+            'absolute -right-3 top-1/2 -translate-y-1/2 rounded-full border-2 border-white dark:border-space-800 cursor-pointer transition-all z-10',
+            isConnecting
+              ? 'w-5 h-5 bg-nebula-400 dark:bg-nebula-500'
+              : 'w-5 h-5 bg-space-300 dark:bg-space-600 hover:bg-nebula-500 hover:scale-125'
+          )}
+          onClick={(e) => {
+            e.stopPropagation()
+            e.preventDefault()
+            onStartConnect()
+          }}
         />
       )}
     </motion.div>

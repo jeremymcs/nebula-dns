@@ -30,9 +30,8 @@ export default function PlaybooksPage() {
     setIsBuilderOpen(true)
   }
 
-  const handleRun = (playbook: Playbook) => {
-    console.log('Running playbook:', playbook.name)
-    // Would trigger manual playbook execution
+  const handleRun = (_playbook: Playbook) => {
+    // TODO: Implement manual playbook execution via API
   }
 
   const handleSave = (data: Partial<Playbook>) => {

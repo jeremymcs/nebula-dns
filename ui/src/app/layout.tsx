@@ -25,6 +25,12 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: 'Nebula DNS - Admin Dashboard',
   description: 'Nebula DNS Control Plane - Enterprise DNS Security & Content Filtering',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({

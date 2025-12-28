@@ -10,6 +10,7 @@
 import { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import clsx from 'clsx'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface MissionControlHeaderProps {
   title?: string
@@ -23,6 +24,7 @@ export function MissionControlHeader({
   className,
 }: MissionControlHeaderProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const { resolvedTheme } = useTheme()
 
   // Particle animation
   useEffect(() => {
@@ -56,11 +58,15 @@ export function MissionControlHeader({
     const animate = () => {
       ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight)
 
-      // Draw stars
+      // Draw stars - use different colors for light/dark themes
+      const isDark = resolvedTheme === 'dark'
       stars.forEach((star) => {
         ctx.beginPath()
         ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(139, 92, 246, ${star.opacity})`
+        // Purple for dark mode, nebula blue for light mode
+        ctx.fillStyle = isDark
+          ? `rgba(139, 92, 246, ${star.opacity})`
+          : `rgba(99, 102, 241, ${star.opacity * 0.7})`
         ctx.fill()
 
         // Twinkle
@@ -83,27 +89,27 @@ export function MissionControlHeader({
       window.removeEventListener('resize', resizeCanvas)
       cancelAnimationFrame(animationId)
     }
-  }, [])
+  }, [resolvedTheme])
 
   return (
     <div className={clsx('relative overflow-hidden rounded-2xl', className)}>
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-space-900 via-nebula-900/50 to-space-950" />
-      
+      <div className="absolute inset-0 bg-gradient-to-br from-nebula-100 via-indigo-100/50 to-space-100 dark:from-space-900 dark:via-nebula-900/50 dark:to-space-950" />
+
       {/* Animated particles */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full opacity-60"
+        className="absolute inset-0 w-full h-full opacity-40 dark:opacity-60"
       />
 
       {/* Gradient orbs */}
       <motion.div
-        className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-nebula-500/20 blur-3xl"
+        className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-nebula-400/20 dark:bg-nebula-500/20 blur-3xl"
         animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
         transition={{ duration: 8, repeat: Infinity }}
       />
       <motion.div
-        className="absolute -bottom-20 -left-20 w-40 h-40 rounded-full bg-cyan-500/20 blur-3xl"
+        className="absolute -bottom-20 -left-20 w-40 h-40 rounded-full bg-cyan-400/20 dark:bg-cyan-500/20 blur-3xl"
         animate={{ scale: [1.2, 1, 1.2], opacity: [0.3, 0.5, 0.3] }}
         transition={{ duration: 6, repeat: Infinity }}
       />
@@ -115,8 +121,8 @@ export function MissionControlHeader({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-3xl font-bold text-white mb-2">{title}</h1>
-          <p className="text-nebula-200/80">{subtitle}</p>
+          <h1 className="text-3xl font-bold text-space-900 dark:text-white mb-2">{title}</h1>
+          <p className="text-space-600 dark:text-nebula-200/80">{subtitle}</p>
         </motion.div>
 
         {/* Status indicators */}
@@ -127,14 +133,14 @@ export function MissionControlHeader({
             transition={{ delay: 0.2 }}
             className="flex items-center gap-2"
           >
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-sm text-green-300">All Systems Operational</span>
+            <span className="w-2 h-2 rounded-full bg-green-500 dark:bg-green-400 animate-pulse" />
+            <span className="text-sm text-green-700 dark:text-green-300">All Systems Operational</span>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="text-sm text-nebula-300/60"
+            className="text-sm text-space-500 dark:text-nebula-300/60"
           >
             Last updated: {new Date().toLocaleTimeString()}
           </motion.div>

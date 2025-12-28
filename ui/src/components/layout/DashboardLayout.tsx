@@ -33,6 +33,8 @@ const breadcrumbLabels: Record<string, string> = {
   'api-keys': 'API Keys',
   scheduled: 'Scheduled',
   onboarding: 'Onboarding',
+  clients: 'Clients',
+  billing: 'Billing',
 }
 
 function Breadcrumbs() {

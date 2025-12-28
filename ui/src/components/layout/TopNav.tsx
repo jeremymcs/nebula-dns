@@ -38,9 +38,10 @@ import {
   CommandLineIcon,
 } from '@heroicons/react/24/outline'
 import { useCommandBar } from '@/components/command-bar'
+import { OrgSwitcher } from './OrgSwitcher'
 
 const navigation = [
-  { name: 'Mission Control', href: '/dashboard/mission-control', icon: RocketLaunchIcon },
+  { name: 'Mission Control', href: '/mission-control', icon: RocketLaunchIcon },
   { name: 'Policies', href: '/dashboard/policies', icon: ShieldCheckIcon },
   { name: 'Zones', href: '/dashboard/locations', icon: MapPinIcon },
   { name: 'Investigate', href: '/dashboard/investigate', icon: MagnifyingGlassIcon },
@@ -81,17 +82,22 @@ export function TopNav() {
       
       <nav className="relative mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link href="/dashboard" className="flex items-center gap-3 group">
-            <div className="relative h-10 w-10 rounded-xl bg-gradient-to-br from-primary-600 to-accent-500 flex items-center justify-center shadow-lg shadow-primary-500/25 group-hover:shadow-primary-500/40 transition-shadow">
-              <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
-            <span className="text-xl font-bold text-space-900 dark:text-white">
-              Nebula<span className="text-gradient"> DNS</span>
-            </span>
-          </Link>
+          {/* Logo and Org Switcher */}
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className="flex items-center gap-3 group">
+              <div className="relative h-10 w-10 rounded-xl bg-gradient-to-br from-primary-600 to-accent-500 flex items-center justify-center shadow-lg shadow-primary-500/25 group-hover:shadow-primary-500/40 transition-shadow">
+                <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <span className="hidden sm:block text-xl font-bold text-space-900 dark:text-white">
+                Nebula<span className="text-gradient"> DNS</span>
+              </span>
+            </Link>
+
+            {/* Organization Switcher for MSP users */}
+            <OrgSwitcher />
+          </div>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex lg:items-center lg:gap-1">

@@ -21,8 +21,8 @@ export default function SecurityScorePage() {
   const [scoreData] = useState(generateDemoScore())
   const [achievements] = useState(generateDemoAchievements())
 
-  const handleActionClick = (actionId: string) => {
-    console.log('Action clicked:', actionId)
+  const handleActionClick = (_actionId: string) => {
+    // TODO: Implement security action handlers
   }
 
   return (

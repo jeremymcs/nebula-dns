@@ -65,9 +65,8 @@ interface QuickActionsProps {
 }
 
 export function QuickActions({ className }: QuickActionsProps) {
-  const handleAction = (actionId: string) => {
-    // Handle quick action
-    console.log('Quick action:', actionId)
+  const handleAction = (_actionId: string) => {
+    // TODO: Implement quick action handlers
   }
 
   return (

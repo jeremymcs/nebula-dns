@@ -60,6 +60,9 @@ func main() {
 		clickhouseDB = "nebula"
 	}
 
+	clickhouseUser := os.Getenv("CLICKHOUSE_USER")
+	clickhousePassword := os.Getenv("CLICKHOUSE_PASSWORD")
+
 	// Initialize Redis client
 	redisClient := redis.NewClient(&redis.Options{
 		Addr: redisURL,
@@ -77,7 +80,7 @@ func main() {
 	policyCache := cache.NewPolicyCache(redisClient, logger)
 
 	// Initialize ClickHouse client
-	chClient := clickhouse.NewClient(clickhouseURL, clickhouseDB, logger)
+	chClient := clickhouse.NewClient(clickhouseURL, clickhouseDB, clickhouseUser, clickhousePassword, logger)
 	defer chClient.Close()
 	sugar.Infow("ClickHouse client initialized", "url", clickhouseURL, "database", clickhouseDB)
 

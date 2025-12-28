@@ -26,10 +26,20 @@ async function bootstrap() {
     }),
   );
 
-  // CORS configuration
+  // CORS configuration - Using non-standard ports
+  const corsOrigins = process.env.CORS_ORIGINS?.split(',') || [
+    'http://localhost:4010',  // API (for self-reference)
+    'http://localhost:4011',  // UI (Docker)
+    'http://localhost:4012',  // UI (Local dev)
+    'http://localhost:3000',  // Fallback for local dev
+    'http://localhost:3001',  // Fallback for local dev
+  ];
+
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:4001',
+    origin: corsOrigins,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   });
 
   // Swagger documentation
@@ -51,7 +61,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT || 4010;
   await app.listen(port);
 
   logger.log(`🚀 Nebula DNS API running on port ${port}`);

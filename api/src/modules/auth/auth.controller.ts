@@ -12,8 +12,9 @@ import { AuthService } from './auth.service';
 import { LoginDto, LoginResponseDto, MfaVerifyLoginDto, MfaRequiredResponseDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { SwitchTenantDto } from './dto/switch-tenant.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { CurrentUser } from '@/common/decorators/tenant.decorator';
+import { CurrentUser, CurrentTenant } from '@/common/decorators/tenant.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -86,5 +87,33 @@ export class AuthController {
     @Body() changePasswordDto: ChangePasswordDto,
   ): Promise<void> {
     await this.authService.changePassword(user.id, changePasswordDto);
+  }
+
+  @Get('organizations')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get managed organizations for MSP users' })
+  @ApiResponse({ status: 200, description: 'Organizations retrieved' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getManagedOrganizations(
+    @CurrentUser() user: any,
+    @CurrentTenant() tenantId: string,
+  ) {
+    return this.authService.getManagedOrganizations(user.id, tenantId);
+  }
+
+  @Post('switch-tenant')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Switch to a different organization (MSP users only)' })
+  @ApiResponse({ status: 200, description: 'Switched successfully, new tokens returned', type: LoginResponseDto })
+  @ApiResponse({ status: 403, description: 'Not authorized to switch to this organization' })
+  async switchTenant(
+    @CurrentUser() user: any,
+    @CurrentTenant() currentTenantId: string,
+    @Body() dto: SwitchTenantDto,
+  ): Promise<LoginResponseDto> {
+    return this.authService.switchTenant(user.id, currentTenantId, dto.tenantId);
   }
 }

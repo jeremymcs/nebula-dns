@@ -36,6 +36,8 @@ import { DoHModule } from './modules/doh/doh.module';
 
 // MSP/SaaS Multi-tenant
 import { PartnersModule } from './modules/partners/partners.module';
+import { MspModule } from './modules/msp/msp.module';
+import { MspBillingModule } from './modules/msp-billing/msp-billing.module';
 
 @Module({
   imports: [
@@ -118,6 +120,8 @@ import { PartnersModule } from './modules/partners/partners.module';
 
     // MSP/SaaS Multi-tenant
     PartnersModule,
+    MspModule,
+    MspBillingModule,
 
     // Observability & Logging
     MetricsModule,
