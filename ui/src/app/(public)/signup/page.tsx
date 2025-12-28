@@ -95,8 +95,8 @@ function SignupFormContent() {
             setPlans(data.data)
           }
         }
-      } catch (error) {
-        console.log('Using default plans')
+      } catch {
+        // Falls back to default plans if API is unavailable
       }
     }
     fetchPlans()

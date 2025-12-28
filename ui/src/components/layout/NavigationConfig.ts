@@ -29,6 +29,8 @@ import {
   RectangleStackIcon,
   UserGroupIcon,
   Squares2X2Icon,
+  BuildingOffice2Icon,
+  CreditCardIcon,
 } from '@heroicons/react/24/outline'
 
 export interface NavigationItem {
@@ -50,7 +52,7 @@ export const navigationGroups: NavigationGroup[] = [
   {
     name: 'Mission Control',
     items: [
-      { name: 'Command Center', href: '/dashboard/mission-control', icon: RocketLaunchIcon, description: 'Real-time threat radar', shortcut: 'G M', badge: 'New' },
+      { name: 'Command Center', href: '/mission-control', icon: RocketLaunchIcon, description: 'Real-time threat radar', shortcut: 'G M', badge: 'New' },
       { name: 'Dashboard', href: '/dashboard', icon: Squares2X2Icon, description: 'Classic overview', shortcut: 'G H' },
     ]
   },
@@ -92,6 +94,8 @@ export const navigationGroups: NavigationGroup[] = [
   {
     name: 'Administration',
     items: [
+      { name: 'Clients', href: '/dashboard/clients', icon: BuildingOffice2Icon, description: 'Client organizations', badge: 'MSP' },
+      { name: 'Billing', href: '/dashboard/billing', icon: CreditCardIcon, description: 'Usage & billing', badge: 'MSP' },
       { name: 'Users', href: '/dashboard/users', icon: UsersIcon, description: 'Team members' },
       { name: 'Family Mode', href: '/dashboard/family', icon: UserGroupIcon, description: 'Family dashboard', badge: 'New' },
       { name: 'Settings', href: '/dashboard/settings', icon: Cog6ToothIcon, description: 'Account settings', shortcut: 'G S' },

@@ -346,3 +346,193 @@ export function useScheduledReports() {
     defaultConfig
   )
 }
+
+// ============================================
+// MSP Hooks
+// ============================================
+
+interface ClientOrganization {
+  id: string
+  name: string
+  slug: string
+  status: string
+  plan: string
+  locationCount: number
+  userCount: number
+  policyCount: number
+  createdAt: string
+  contactEmail?: string
+  contactPhone?: string
+  address?: string
+  industry?: string
+  companySize?: string
+}
+
+export function useMspClients() {
+  return useSWR<{ clients: ClientOrganization[] }>(
+    '/msp/clients',
+    fetcher,
+    defaultConfig
+  )
+}
+
+export function useMspClient(clientId: string | null) {
+  return useSWR<ClientOrganization>(
+    clientId ? `/msp/clients/${clientId}` : null,
+    fetcher,
+    defaultConfig
+  )
+}
+
+// Client-specific data hooks for per-client views
+export function useClientZones(clientId: string | null) {
+  return useSWR<{ zones: any[] }>(
+    clientId ? `/msp/clients/${clientId}/zones` : null,
+    fetcher,
+    defaultConfig
+  )
+}
+
+export function useClientPolicies(clientId: string | null) {
+  return useSWR<{ policies: any[] }>(
+    clientId ? `/msp/clients/${clientId}/policies` : null,
+    fetcher,
+    defaultConfig
+  )
+}
+
+export function useClientUsers(clientId: string | null) {
+  return useSWR<{ users: any[] }>(
+    clientId ? `/msp/clients/${clientId}/users` : null,
+    fetcher,
+    defaultConfig
+  )
+}
+
+export function useClientStats(clientId: string | null) {
+  return useSWR<{
+    totalQueries: number
+    blockedQueries: number
+    allowedQueries: number
+    threatsBlocked: number
+    activeZones: number
+    activeUsers: number
+    activePolicies: number
+  }>(
+    clientId ? `/msp/clients/${clientId}/stats` : null,
+    fetcher,
+    defaultConfig
+  )
+}
+
+export function useClientQueryLogs(clientId: string | null, params?: { limit?: number }) {
+  const queryString = params ? `?limit=${params.limit || 50}` : ''
+  return useSWR<{ logs: any[] }>(
+    clientId ? `/msp/clients/${clientId}/logs${queryString}` : null,
+    fetcher,
+    defaultConfig
+  )
+}
+
+// ============================================
+// MSP Billing Hooks
+// ============================================
+
+export function useMspBillingOverview() {
+  return useSWR<{
+    partnerId: string
+    status: string
+    queryBalance: number
+    totalPurchased: number
+    totalUsed: number
+    currentOverage: number
+    overageRate: number
+    alertThreshold: number | null
+    autoPurchaseEnabled: boolean
+    billingPeriodStart: string | null
+    billingPeriodEnd: string | null
+    usageThisMonth: number
+    estimatedCost: number
+  }>(
+    '/msp/billing/overview',
+    fetcher,
+    defaultConfig
+  )
+}
+
+export function useMspBundles() {
+  return useSWR<{
+    id: string
+    name: string
+    description: string
+    queryCount: string
+    price: string
+    pricePerMillion: string
+    validityDays: number
+    isActive: boolean
+  }[]>(
+    '/msp/billing/bundles',
+    fetcher,
+    defaultConfig
+  )
+}
+
+export function useMspRealTimeUsage() {
+  return useSWR<{
+    todayQueries: number
+    todayBlocked: number
+    todayThreats: number
+    lastHourQueries: number
+    byTenant: { tenantId: string; tenantName: string; queries: number }[]
+  }>(
+    '/msp/billing/usage/realtime',
+    fetcher,
+    { ...defaultConfig, refreshInterval: 30000 } // Refresh every 30 seconds
+  )
+}
+
+export function useMspUsageSummary(params?: { startDate?: string; endDate?: string; groupBy?: 'day' | 'week' | 'month' }) {
+  const queryParams = new URLSearchParams()
+  if (params?.startDate) queryParams.set('startDate', params.startDate)
+  if (params?.endDate) queryParams.set('endDate', params.endDate)
+  if (params?.groupBy) queryParams.set('groupBy', params.groupBy)
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : ''
+
+  return useSWR<{
+    date: string
+    queryCount: number
+    blockedCount: number
+    allowedCount: number
+    threatCount: number
+  }[]>(
+    `/msp/billing/usage${queryString}`,
+    fetcher,
+    defaultConfig
+  )
+}
+
+export function useMspInvoices(params?: { limit?: number; offset?: number }) {
+  const queryParams = new URLSearchParams()
+  if (params?.limit) queryParams.set('limit', params.limit.toString())
+  if (params?.offset) queryParams.set('offset', params.offset.toString())
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : ''
+
+  return useSWR<{ invoices: any[]; total: number }>(
+    `/msp/billing/invoices${queryString}`,
+    fetcher,
+    defaultConfig
+  )
+}
+
+export function useMspPurchases(params?: { limit?: number; offset?: number }) {
+  const queryParams = new URLSearchParams()
+  if (params?.limit) queryParams.set('limit', params.limit.toString())
+  if (params?.offset) queryParams.set('offset', params.offset.toString())
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : ''
+
+  return useSWR<{ purchases: any[]; total: number }>(
+    `/msp/billing/purchases${queryString}`,
+    fetcher,
+    defaultConfig
+  )
+}

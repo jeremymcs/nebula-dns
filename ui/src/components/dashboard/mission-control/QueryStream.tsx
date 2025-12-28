@@ -98,36 +98,38 @@ export function QueryStream({ maxItems = 10, isLive = true, className }: QuerySt
         </div>
       </div>
 
-      {/* Stream */}
-      <div ref={streamRef} className="divide-y divide-space-100 dark:divide-space-800 max-h-[400px] overflow-y-auto">
-        <AnimatePresence mode="popLayout">
-          {queries.map((query) => (
-            <motion.div
-              key={query.id}
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className={clsx('px-6 py-3 flex items-center gap-4 cursor-pointer hover:bg-space-50 dark:hover:bg-space-800/50 transition-colors', getDecisionBg(query.decision))}
-            >
-              {getDecisionIcon(query.decision)}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-space-900 dark:text-white truncate">{query.domain}</p>
-                <p className="text-xs text-space-500">{query.zone} • {query.category}</p>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <p className="text-xs text-space-500">{query.responseTime}ms</p>
-                <p className="text-xs text-space-400">{query.timestamp.toLocaleTimeString()}</p>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-        
-        {queries.length === 0 && (
-          <div className="px-6 py-12 text-center text-space-500">
-            <GlobeAltIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p>Waiting for DNS queries...</p>
-          </div>
-        )}
+      {/* Stream - fixed height to prevent layout shift */}
+      <div ref={streamRef} className="h-[400px] overflow-y-auto overflow-x-hidden">
+        <div className="divide-y divide-space-100 dark:divide-space-800">
+          <AnimatePresence initial={false}>
+            {queries.map((query) => (
+              <motion.div
+                key={query.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.2 }}
+                className={clsx('px-6 py-3 flex items-center gap-4 cursor-pointer hover:bg-space-50 dark:hover:bg-space-800/50 transition-colors', getDecisionBg(query.decision))}
+              >
+                {getDecisionIcon(query.decision)}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-space-900 dark:text-white truncate">{query.domain}</p>
+                  <p className="text-xs text-space-500">{query.zone} • {query.category}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-xs text-space-500">{query.responseTime}ms</p>
+                  <p className="text-xs text-space-400">{query.timestamp.toLocaleTimeString()}</p>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          {queries.length === 0 && (
+            <div className="px-6 py-12 text-center text-space-500">
+              <GlobeAltIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p>Waiting for DNS queries...</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -24,9 +24,8 @@ export default function TemplatesPage() {
     setSelectedTemplate(template)
   }
 
-  const handleUseTemplate = (template: PolicyTemplate) => {
-    console.log('Using template:', template.name)
-    // Would navigate to policy creation with template pre-filled
+  const handleUseTemplate = (_template: PolicyTemplate) => {
+    // TODO: Navigate to policy creation with template pre-filled
     setSelectedTemplate(null)
   }
 

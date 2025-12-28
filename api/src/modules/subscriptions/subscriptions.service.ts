@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
@@ -15,6 +15,8 @@ import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class SubscriptionsService {
+  private readonly logger = new Logger(SubscriptionsService.name);
+
   constructor(
     @InjectRepository(SubscriptionPlan)
     private plansRepository: Repository<SubscriptionPlan>,
@@ -299,7 +301,7 @@ export class SubscriptionsService {
 
   private async handleInvoicePaid(invoice: any): Promise<void> {
     // Log the payment or update invoice records
-    console.log('Invoice paid:', invoice.id);
+    this.logger.log(`Invoice paid: ${invoice.id}`);
   }
 
   private async handleInvoicePaymentFailed(invoice: any): Promise<void> {

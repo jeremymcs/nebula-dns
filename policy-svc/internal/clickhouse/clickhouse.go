@@ -34,6 +34,8 @@ type Client struct {
 	httpClient *http.Client
 	baseURL    string
 	database   string
+	username   string
+	password   string
 	logger     *zap.Logger
 
 	// Batching
@@ -57,11 +59,13 @@ type Client struct {
 }
 
 // NewClient creates a new ClickHouse client
-func NewClient(baseURL, database string, logger *zap.Logger) *Client {
+func NewClient(baseURL, database, username, password string, logger *zap.Logger) *Client {
 	c := &Client{
 		httpClient: &http.Client{Timeout: 5 * time.Second},
 		baseURL:    baseURL,
 		database:   database,
+		username:   username,
+		password:   password,
 		logger:     logger,
 		buffer:     make([]models.QueryLogEntry, 0, 1000),
 		batchSize:  500,
@@ -93,6 +97,9 @@ func (c *Client) testConnection() {
 		c.logger.Warn("Failed to create ClickHouse test request", zap.Error(err))
 		c.recordFailure()
 		return
+	}
+	if c.username != "" {
+		req.SetBasicAuth(c.username, c.password)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -298,6 +305,9 @@ func (c *Client) insertBatch(ctx context.Context, entries []models.QueryLogEntry
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	if c.username != "" {
+		req.SetBasicAuth(c.username, c.password)
+	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {

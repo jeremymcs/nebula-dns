@@ -98,6 +98,26 @@ export default function LoginPage() {
     setError('')
   }
 
+  const handleDemoLogin = async () => {
+    setError('')
+    setLoading(true)
+    setEmail('admin@demo.local')
+    setPassword('Admin@12345!')
+
+    try {
+      const result = await login('admin@demo.local', 'Admin@12345!')
+
+      if (result.mfaRequired && result.mfaChallenge) {
+        setMfaRequired(true)
+        setMfaTempToken(result.mfaChallenge.tempToken)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Demo login failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Cosmic Background */}
@@ -229,6 +249,30 @@ export default function LoginPage() {
                     Signing in...
                   </span>
                 ) : 'Sign in'}
+              </button>
+
+              {/* Divider */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-space-200 dark:border-space-700" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-3 bg-white dark:bg-space-900 text-space-500">or</span>
+                </div>
+              </div>
+
+              {/* Demo Login Button */}
+              <button
+                type="button"
+                onClick={handleDemoLogin}
+                disabled={loading}
+                className="w-full py-3 px-4 rounded-xl ring-1 ring-space-200 dark:ring-space-700 bg-space-50 dark:bg-space-800 hover:bg-space-100 dark:hover:bg-space-700 text-space-700 dark:text-space-300 font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <svg className="w-5 h-5 text-accent-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Try Demo Account
               </button>
             </form>
           ) : (

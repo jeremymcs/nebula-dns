@@ -24,7 +24,7 @@ import {
 } from '@heroicons/react/24/solid'
 
 const mobileNavigation = [
-  { name: 'Mission', href: '/dashboard/mission-control', icon: RocketLaunchIcon, activeIcon: RocketLaunchIconSolid },
+  { name: 'Mission', href: '/mission-control', icon: RocketLaunchIcon, activeIcon: RocketLaunchIconSolid },
   { name: 'Policies', href: '/dashboard/policies', icon: ShieldCheckIcon, activeIcon: ShieldCheckIconSolid },
   { name: 'Search', href: '/dashboard/investigate', icon: MagnifyingGlassIcon, activeIcon: MagnifyingGlassIconSolid },
   { name: 'Reports', href: '/dashboard/reports', icon: ChartBarIcon, activeIcon: ChartBarIconSolid },

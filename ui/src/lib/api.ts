@@ -362,6 +362,186 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
+
+  // MSP
+  getMspClients: () =>
+    request<{ clients: any[] }>('/msp/clients'),
+
+  getMspClient: (id: string) =>
+    request<any>(`/msp/clients/${id}`),
+
+  createMspClient: (data: {
+    name: string;
+    slug?: string;
+    plan?: string;
+    contactEmail?: string;
+    contactPhone?: string;
+    address?: string;
+    industry?: string;
+    companySize?: string;
+  }) =>
+    request<any>('/msp/clients', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateMspClient: (id: string, data: {
+    name?: string;
+    plan?: string;
+    status?: string;
+    contactEmail?: string;
+    contactPhone?: string;
+    address?: string;
+    industry?: string;
+    companySize?: string;
+  }) =>
+    request<any>(`/msp/clients/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deleteMspClient: (id: string) =>
+    request<void>(`/msp/clients/${id}`, { method: 'DELETE' }),
+
+  switchOrganization: (orgId: string) =>
+    request<{ accessToken: string; refreshToken: string; user: any }>('/msp/switch', {
+      method: 'POST',
+      body: JSON.stringify({ organizationId: orgId }),
+    }),
+
+  // MSP Billing
+  getMspBillingOverview: () =>
+    request<{
+      partnerId: string;
+      status: string;
+      queryBalance: number;
+      totalPurchased: number;
+      totalUsed: number;
+      currentOverage: number;
+      overageRate: number;
+      alertThreshold: number | null;
+      autoPurchaseEnabled: boolean;
+      billingPeriodStart: string | null;
+      billingPeriodEnd: string | null;
+      usageThisMonth: number;
+      estimatedCost: number;
+    }>('/msp/billing/overview'),
+
+  updateMspBillingSettings: (data: {
+    overageRate?: number;
+    alertThreshold?: number | null;
+    autoPurchaseThreshold?: number | null;
+    autoPurchaseBundleId?: string | null;
+  }) =>
+    request<any>('/msp/billing/settings', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  getMspBundles: () =>
+    request<{
+      id: string;
+      name: string;
+      description: string;
+      queryCount: string;
+      price: string;
+      pricePerMillion: string;
+      validityDays: number;
+      isActive: boolean;
+    }[]>('/msp/billing/bundles'),
+
+  purchaseMspBundle: (bundleId: string, paymentMethodId?: string) =>
+    request<any>('/msp/billing/bundles/purchase', {
+      method: 'POST',
+      body: JSON.stringify({ bundleId, paymentMethodId }),
+    }),
+
+  getMspPurchases: (params?: { page?: number; limit?: number }) =>
+    request<{ purchases: any[]; total: number }>(`/msp/billing/purchases${params ? `?page=${params.page || 1}&limit=${params.limit || 10}` : ''}`),
+
+  getMspUsage: (params?: { startDate?: string; endDate?: string }) =>
+    request<{ usageByDate: any[]; totalQueries: number; totalBlocked: number }>('/msp/billing/usage', {
+      ...(params && { body: JSON.stringify(params) }),
+    }),
+
+  getMspUsageByTenant: (params?: { startDate?: string; endDate?: string }) =>
+    request<{ usageByTenant: any[] }>(`/msp/billing/usage/by-tenant${params ? `?startDate=${params.startDate || ''}&endDate=${params.endDate || ''}` : ''}`),
+
+  getMspRealTimeUsage: () =>
+    request<{
+      todayQueries: number;
+      todayBlocked: number;
+      todayThreats: number;
+      lastHourQueries: number;
+      byTenant: { tenantId: string; tenantName: string; queries: number }[];
+    }>('/msp/billing/usage/realtime'),
+
+  getMspInvoices: (params?: { page?: number; limit?: number }) =>
+    request<{ invoices: any[]; total: number }>(`/msp/billing/invoices${params ? `?page=${params.page || 1}&limit=${params.limit || 10}` : ''}`),
+
+  getMspInvoice: (id: string) =>
+    request<any>(`/msp/billing/invoices/${id}`),
+
+  // Client-specific operations (per-client view)
+  getClientZones: (clientId: string) =>
+    request<{ zones: any[] }>(`/msp/clients/${clientId}/zones`),
+
+  createClientZone: (clientId: string, data: { name: string; type: string; ipAddresses?: string[] }) =>
+    request<any>(`/msp/clients/${clientId}/zones`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateClientZone: (clientId: string, zoneId: string, data: { name?: string; status?: string }) =>
+    request<any>(`/msp/clients/${clientId}/zones/${zoneId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deleteClientZone: (clientId: string, zoneId: string) =>
+    request<void>(`/msp/clients/${clientId}/zones/${zoneId}`, { method: 'DELETE' }),
+
+  getClientPolicies: (clientId: string) =>
+    request<{ policies: any[] }>(`/msp/clients/${clientId}/policies`),
+
+  createClientPolicy: (clientId: string, data: { name: string; description?: string; enabled?: boolean }) =>
+    request<any>(`/msp/clients/${clientId}/policies`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateClientPolicy: (clientId: string, policyId: string, data: { name?: string; enabled?: boolean }) =>
+    request<any>(`/msp/clients/${clientId}/policies/${policyId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deleteClientPolicy: (clientId: string, policyId: string) =>
+    request<void>(`/msp/clients/${clientId}/policies/${policyId}`, { method: 'DELETE' }),
+
+  getClientUsers: (clientId: string) =>
+    request<{ users: any[] }>(`/msp/clients/${clientId}/users`),
+
+  inviteClientUser: (clientId: string, data: { email: string; role: string; name?: string }) =>
+    request<any>(`/msp/clients/${clientId}/users/invite`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateClientUser: (clientId: string, userId: string, data: { role?: string }) =>
+    request<any>(`/msp/clients/${clientId}/users/${userId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  removeClientUser: (clientId: string, userId: string) =>
+    request<void>(`/msp/clients/${clientId}/users/${userId}`, { method: 'DELETE' }),
+
+  getClientStats: (clientId: string) =>
+    request<any>(`/msp/clients/${clientId}/stats`),
+
+  getClientQueryLogs: (clientId: string, params?: { limit?: number; offset?: number }) =>
+    request<{ logs: any[] }>(`/msp/clients/${clientId}/logs${params ? `?limit=${params.limit || 50}` : ''}`),
 }
 
 export { ApiError }

@@ -44,6 +44,13 @@ export function PolicyFlowCanvas({
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
   const [showPalette, setShowPalette] = useState(false)
   const [connectingFrom, setConnectingFrom] = useState<string | null>(null)
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const connectingFromRef = useRef<string | null>(null)
+
+  // Keep ref in sync with state for use in event handlers
+  useEffect(() => {
+    connectingFromRef.current = connectingFrom
+  }, [connectingFrom])
 
   // Handle canvas pan
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -57,10 +64,27 @@ export function PolicyFlowCanvas({
     if (isPanning) {
       setPan({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y })
     }
-  }, [isPanning, dragStart])
+    // Always track mouse position for connection line preview
+    if (canvasRef.current) {
+      const rect = canvasRef.current.getBoundingClientRect()
+      setMousePos({
+        x: (e.clientX - rect.left - pan.x) / zoom,
+        y: (e.clientY - rect.top - pan.y) / zoom,
+      })
+    }
+  }, [isPanning, dragStart, pan, zoom])
 
   const handleMouseUp = useCallback(() => {
     setIsPanning(false)
+    // Don't clear connectingFrom here - let click on target node handle it
+  }, [])
+
+  // Click on canvas background cancels connection
+  const handleCanvasClick = useCallback((e: React.MouseEvent) => {
+    // Only cancel if clicking directly on canvas (not on a node)
+    if (e.target === e.currentTarget || (e.target as HTMLElement).tagName === 'svg') {
+      setConnectingFrom(null)
+    }
   }, [])
 
   // Handle zoom
@@ -133,6 +157,19 @@ export function PolicyFlowCanvas({
         </button>
       </div>
 
+      {/* Connection Mode Indicator */}
+      {connectingFrom && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-4 py-2 bg-nebula-500 text-white rounded-lg shadow-lg animate-pulse">
+          Click on a target node to connect
+          <button
+            onClick={() => setConnectingFrom(null)}
+            className="ml-3 px-2 py-1 bg-white/20 rounded hover:bg-white/30"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
       {/* Node Palette */}
       <AnimatePresence>
         {showPalette && (
@@ -149,6 +186,7 @@ export function PolicyFlowCanvas({
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         onWheel={handleWheel}
+        onClick={handleCanvasClick}
       >
         {/* Grid background */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none">
@@ -163,13 +201,40 @@ export function PolicyFlowCanvas({
         {/* Connections and Nodes container */}
         <div style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: '0 0' }}>
           {/* Connection lines */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ overflow: 'visible' }}>
+          <svg
+            className="absolute pointer-events-none"
+            style={{
+              overflow: 'visible',
+              left: 0,
+              top: 0,
+              width: '5000px',
+              height: '5000px',
+              zIndex: 1000
+            }}
+          >
             {connections.map((conn) => {
               const fromNode = nodes.find((n) => n.id === conn.from)
               const toNode = nodes.find((n) => n.id === conn.to)
               if (!fromNode || !toNode) return null
               return <ConnectionLine key={conn.id} from={fromNode} to={toNode} />
             })}
+            {/* Preview line while connecting */}
+            {connectingFrom && (() => {
+              const fromNode = nodes.find((n) => n.id === connectingFrom)
+              if (!fromNode) return null
+              const startX = fromNode.x + 192 // node width
+              const startY = fromNode.y + 40 // approx center
+              return (
+                <path
+                  d={`M ${startX} ${startY} C ${startX + 50} ${startY}, ${mousePos.x - 50} ${mousePos.y}, ${mousePos.x} ${mousePos.y}`}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeDasharray="5,5"
+                  className="text-nebula-500"
+                />
+              )
+            })()}
           </svg>
 
           {/* Nodes */}
@@ -178,11 +243,17 @@ export function PolicyFlowCanvas({
               key={node.id}
               node={node}
               isSelected={selectedNode === node.id}
+              isConnecting={connectingFrom !== null}
+              isConnectTarget={connectingFrom !== null && connectingFrom !== node.id}
               onSelect={() => handleNodeSelect(node.id)}
               onMove={(x, y) => handleNodeMove(node.id, x, y)}
               onDelete={() => handleDeleteNode(node.id)}
               onStartConnect={() => setConnectingFrom(node.id)}
-              onEndConnect={() => connectingFrom && handleConnect(connectingFrom, node.id)}
+              onEndConnect={() => {
+                if (connectingFromRef.current && connectingFromRef.current !== node.id) {
+                  handleConnect(connectingFromRef.current, node.id)
+                }
+              }}
             />
           ))}
         </div>

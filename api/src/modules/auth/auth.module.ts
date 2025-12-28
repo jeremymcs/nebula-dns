@@ -8,6 +8,8 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { User } from '../users/entities/user.entity';
+import { Tenant } from '../tenants/entities/tenant.entity';
+import { PartnerUser } from '../partners/entities/partner-user.entity';
 import { MfaModule } from '../mfa/mfa.module';
 
 @Module({
@@ -23,7 +25,7 @@ import { MfaModule } from '../mfa/mfa.module';
         },
       }),
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Tenant, PartnerUser]),
     forwardRef(() => MfaModule),
   ],
   controllers: [AuthController],

@@ -48,9 +48,9 @@ export function ThreatHeatmap({ data, className }: ThreatHeatmapProps) {
 
   const getColor = (value: number) => {
     const intensity = value / maxValue
-    if (intensity < 0.2) return 'bg-space-800'
-    if (intensity < 0.4) return 'bg-nebula-900/50'
-    if (intensity < 0.6) return 'bg-nebula-700/60'
+    if (intensity < 0.2) return 'bg-space-200 dark:bg-space-800'
+    if (intensity < 0.4) return 'bg-nebula-200/50 dark:bg-nebula-900/50'
+    if (intensity < 0.6) return 'bg-nebula-400/60 dark:bg-nebula-700/60'
     if (intensity < 0.8) return 'bg-nebula-500/70'
     return 'bg-nebula-400'
   }
@@ -108,9 +108,9 @@ export function ThreatHeatmap({ data, className }: ThreatHeatmapProps) {
           <div className="flex items-center justify-end gap-2 mt-4">
             <span className="text-xs text-space-500">Less</span>
             <div className="flex gap-0.5">
-              <div className="w-3 h-3 rounded-sm bg-space-800" />
-              <div className="w-3 h-3 rounded-sm bg-nebula-900/50" />
-              <div className="w-3 h-3 rounded-sm bg-nebula-700/60" />
+              <div className="w-3 h-3 rounded-sm bg-space-200 dark:bg-space-800" />
+              <div className="w-3 h-3 rounded-sm bg-nebula-200/50 dark:bg-nebula-900/50" />
+              <div className="w-3 h-3 rounded-sm bg-nebula-400/60 dark:bg-nebula-700/60" />
               <div className="w-3 h-3 rounded-sm bg-nebula-500/70" />
               <div className="w-3 h-3 rounded-sm bg-nebula-400" />
             </div>

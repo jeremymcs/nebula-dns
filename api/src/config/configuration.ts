@@ -33,7 +33,7 @@ class EnvironmentVariables {
   @IsNumber()
   @Min(1)
   @Max(65535)
-  PORT: number = 3000;
+  PORT: number = 4010;
 
   @IsString()
   APP_NAME: string = 'nebula-dns';
@@ -65,7 +65,7 @@ class EnvironmentVariables {
   // Frontend
   @IsUrl({ require_tld: false })
   @IsOptional()
-  FRONTEND_URL: string = 'http://localhost:4001';
+  FRONTEND_URL: string = 'http://localhost:4012';
 
   // Email (SendGrid)
   @IsString()
@@ -161,7 +161,7 @@ export function validate(config: Record<string, unknown>) {
   // Transform string values to appropriate types
   const transformedConfig = {
     ...config,
-    PORT: config.PORT ? parseInt(config.PORT as string, 10) : 3000,
+    PORT: config.PORT ? parseInt(config.PORT as string, 10) : 4010,
     RATE_LIMIT_WINDOW_MS: config.RATE_LIMIT_WINDOW_MS
       ? parseInt(config.RATE_LIMIT_WINDOW_MS as string, 10)
       : 60000,
@@ -203,7 +203,7 @@ export default () => ({
     name: process.env.APP_NAME || 'nebula-dns',
     version: process.env.APP_VERSION || '1.0.0',
     env: process.env.NODE_ENV || 'development',
-    port: parseInt(process.env.PORT || '3000', 10),
+    port: parseInt(process.env.PORT || '4010', 10),
   },
   database: {
     url: process.env.DATABASE_URL,
@@ -217,7 +217,7 @@ export default () => ({
     refreshExpiry: process.env.JWT_REFRESH_EXPIRY || '7d',
   },
   frontend: {
-    url: process.env.FRONTEND_URL || 'http://localhost:4001',
+    url: process.env.FRONTEND_URL || 'http://localhost:4012',
   },
   email: {
     sendgridApiKey: process.env.SENDGRID_API_KEY,

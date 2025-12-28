@@ -26,8 +26,8 @@ export function ConnectionLine({ from, to, label }: ConnectionLineProps) {
   const endY = to.y + nodeHeight / 2
 
   // Calculate bezier curve control points
-  const midX = (startX + endX) / 2
   const controlOffset = Math.min(100, Math.abs(endX - startX) / 2)
+  const midX = (startX + endX) / 2
 
   const path = `M ${startX} ${startY} C ${startX + controlOffset} ${startY}, ${endX - controlOffset} ${endY}, ${endX} ${endY}`
 
