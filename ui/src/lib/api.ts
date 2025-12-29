@@ -341,15 +341,84 @@ export const api = {
   // Scheduled Reports
   getScheduledReports: () =>
     request<{ data: any[]; pagination: { cursor: string | null; hasMore: boolean } }>('/scheduled-reports'),
-  
+
   createScheduledReport: (data: any) =>
     request<any>('/scheduled-reports', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-  
+
   runScheduledReport: (id: string) =>
     request<void>(`/scheduled-reports/${id}/run`, { method: 'POST' }),
+
+  // Audit Logs
+  getAuditLogs: (params?: { cursor?: string; limit?: number; action?: string; resourceType?: string }) => {
+    const searchParams = new URLSearchParams()
+    if (params?.cursor) searchParams.set('cursor', params.cursor)
+    if (params?.limit) searchParams.set('limit', params.limit.toString())
+    if (params?.action) searchParams.set('action', params.action)
+    if (params?.resourceType) searchParams.set('resourceType', params.resourceType)
+    const query = searchParams.toString()
+    return request<{ data: any[]; pagination: { cursor: string | null; hasMore: boolean } }>(`/audit-logs${query ? `?${query}` : ''}`)
+  },
+
+  // Sessions
+  getSessions: () =>
+    request<{ data: any[] }>('/auth/sessions'),
+
+  revokeSession: (sessionId: string) =>
+    request<void>(`/auth/sessions/${sessionId}`, { method: 'DELETE' }),
+
+  revokeAllSessions: () =>
+    request<void>('/auth/sessions', { method: 'DELETE' }),
+
+  // Insights (AI-generated security insights)
+  getInsights: (period?: string) =>
+    request<any>(`/reports/insights${period ? `?period=${period}` : ''}`),
+
+  // Security Score
+  getSecurityScore: () =>
+    request<any>('/reports/security-score'),
+
+  // Threat data for mission control
+  getThreatData: (period?: string) =>
+    request<any>(`/reports/threats${period ? `?period=${period}` : ''}`),
+
+  getQueryTrends: (period?: string) =>
+    request<any>(`/reports/trends${period ? `?period=${period}` : ''}`),
+
+  // Investigation
+  investigateDomain: (domain: string) =>
+    request<any>(`/reports/investigate?domain=${encodeURIComponent(domain)}`),
+
+  // Playbooks
+  getPlaybooks: () =>
+    request<{ data: any[] }>('/playbooks'),
+
+  createPlaybook: (data: any) =>
+    request<any>('/playbooks', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updatePlaybook: (id: string, data: any) =>
+    request<any>(`/playbooks/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deletePlaybook: (id: string) =>
+    request<void>(`/playbooks/${id}`, { method: 'DELETE' }),
+
+  runPlaybook: (id: string) =>
+    request<any>(`/playbooks/${id}/run`, { method: 'POST' }),
+
+  // Policy Templates
+  getPolicyTemplates: () =>
+    request<{ data: any[] }>('/policy-templates'),
+
+  getPolicyTemplate: (id: string) =>
+    request<any>(`/policy-templates/${id}`),
 
   // Subscriptions
   getSubscription: () => request<any>('/subscriptions/current'),

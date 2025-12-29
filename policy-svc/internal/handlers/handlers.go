@@ -14,6 +14,7 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/nebuladns/policy-svc/internal/cache"
 	"github.com/nebuladns/policy-svc/internal/clickhouse"
 	"github.com/nebuladns/policy-svc/internal/models"
 	"github.com/nebuladns/policy-svc/internal/policy"
@@ -22,14 +23,16 @@ import (
 // Handlers contains HTTP handlers for the policy service
 type Handlers struct {
 	policySvc  *policy.Service
+	cache      *cache.PolicyCache
 	clickhouse *clickhouse.Client
 	logger     *zap.Logger
 }
 
 // NewHandlers creates a new handlers instance
-func NewHandlers(policySvc *policy.Service, ch *clickhouse.Client, logger *zap.Logger) *Handlers {
+func NewHandlers(policySvc *policy.Service, policyCache *cache.PolicyCache, ch *clickhouse.Client, logger *zap.Logger) *Handlers {
 	return &Handlers{
 		policySvc:  policySvc,
+		cache:      policyCache,
 		clickhouse: ch,
 		logger:     logger,
 	}
@@ -114,6 +117,32 @@ func (h *Handlers) ValidateToken(w http.ResponseWriter, r *http.Request) {
 
 	// Validate token
 	result := h.policySvc.ValidateToken(r.Context(), tokenHash)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}
+
+// LookupIP handles IP-based location lookup requests
+func (h *Handlers) LookupIP(w http.ResponseWriter, r *http.Request) {
+	var req models.LookupIPRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Warn("Invalid lookup IP request", zap.Error(err))
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.ClientIP == "" {
+		http.Error(w, "client_ip is required", http.StatusBadRequest)
+		return
+	}
+
+	// Lookup location by IP
+	result, err := h.cache.LookupByIP(req.ClientIP)
+	if err != nil {
+		h.logger.Error("IP lookup failed", zap.Error(err))
+		http.Error(w, "Lookup failed", http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)

@@ -8,6 +8,7 @@ package cache
 import (
 	"context"
 	"encoding/json"
+	"net"
 	"sync"
 	"time"
 
@@ -23,17 +24,20 @@ type PolicyCache struct {
 	logger *zap.Logger
 
 	// In-memory caches
-	policies      map[string]*models.CompiledPolicy // key: locationId
-	policiesMu    sync.RWMutex
+	policies   map[string]*models.CompiledPolicy // key: locationId
+	policiesMu sync.RWMutex
 
-	tokens        map[string]*TokenInfo // key: tokenHash
-	tokensMu      sync.RWMutex
+	tokens   map[string]*TokenInfo // key: tokenHash
+	tokensMu sync.RWMutex
+
+	ipRanges   []IPRangeEntry // sorted list for IP matching
+	ipRangesMu sync.RWMutex
 
 	threatDomains map[string]string // domain -> threat type
 	threatMu      sync.RWMutex
 
-	categories    map[string]string // domain -> category
-	categoriesMu  sync.RWMutex
+	categories   map[string]string // domain -> category
+	categoriesMu sync.RWMutex
 }
 
 // TokenInfo contains validated token information
@@ -44,13 +48,22 @@ type TokenInfo struct {
 	ExpiresAt  time.Time
 }
 
+// IPRangeEntry represents a parsed IP range for matching
+type IPRangeEntry struct {
+	Network    *net.IPNet
+	TenantID   string
+	LocationID string
+	RateLimit  int
+}
+
 // NewPolicyCache creates a new policy cache
-func NewPolicyCache(redis *redis.Client, logger *zap.Logger) *PolicyCache {
+func NewPolicyCache(redisClient *redis.Client, logger *zap.Logger) *PolicyCache {
 	return &PolicyCache{
-		redis:         redis,
+		redis:         redisClient,
 		logger:        logger,
 		policies:      make(map[string]*models.CompiledPolicy),
 		tokens:        make(map[string]*TokenInfo),
+		ipRanges:      make([]IPRangeEntry, 0),
 		threatDomains: make(map[string]string),
 		categories:    make(map[string]string),
 	}
@@ -283,5 +296,91 @@ func (c *PolicyCache) handleInvalidation(payload string) {
 		c.categories = make(map[string]string)
 		c.categoriesMu.Unlock()
 		c.logger.Debug("Invalidated category cache")
+
+	case "ip_ranges":
+		// Reload IP ranges from Redis
+		go c.LoadIPRanges(context.Background())
+		c.logger.Debug("Reloading IP ranges cache")
 	}
+}
+
+// LookupByIP finds a location by client IP address
+func (c *PolicyCache) LookupByIP(clientIP string) (*models.LookupIPResponse, error) {
+	ip := net.ParseIP(clientIP)
+	if ip == nil {
+		return &models.LookupIPResponse{Found: false}, nil
+	}
+
+	c.ipRangesMu.RLock()
+	defer c.ipRangesMu.RUnlock()
+
+	for _, entry := range c.ipRanges {
+		if entry.Network.Contains(ip) {
+			return &models.LookupIPResponse{
+				Found:      true,
+				TenantID:   entry.TenantID,
+				LocationID: entry.LocationID,
+				RateLimit:  entry.RateLimit,
+			}, nil
+		}
+	}
+
+	return &models.LookupIPResponse{Found: false}, nil
+}
+
+// LoadIPRanges loads all IP range mappings from Redis
+func (c *PolicyCache) LoadIPRanges(ctx context.Context) error {
+	// Get all IP range keys from Redis
+	keys, err := c.redis.Keys(ctx, "ip_range:*").Result()
+	if err != nil {
+		c.logger.Error("Failed to get IP range keys from Redis", zap.Error(err))
+		return err
+	}
+
+	entries := make([]IPRangeEntry, 0, len(keys))
+
+	for _, key := range keys {
+		data, err := c.redis.Get(ctx, key).Bytes()
+		if err != nil {
+			c.logger.Warn("Failed to get IP range data", zap.String("key", key), zap.Error(err))
+			continue
+		}
+
+		var mapping models.IPRangeMapping
+		if err := json.Unmarshal(data, &mapping); err != nil {
+			c.logger.Warn("Failed to unmarshal IP range mapping", zap.String("key", key), zap.Error(err))
+			continue
+		}
+
+		// Parse the CIDR
+		_, network, err := net.ParseCIDR(mapping.IPRange)
+		if err != nil {
+			// Try as single IP
+			ip := net.ParseIP(mapping.IPRange)
+			if ip == nil {
+				c.logger.Warn("Invalid IP range", zap.String("range", mapping.IPRange))
+				continue
+			}
+			// Convert single IP to /32 or /128
+			if ip.To4() != nil {
+				_, network, _ = net.ParseCIDR(mapping.IPRange + "/32")
+			} else {
+				_, network, _ = net.ParseCIDR(mapping.IPRange + "/128")
+			}
+		}
+
+		entries = append(entries, IPRangeEntry{
+			Network:    network,
+			TenantID:   mapping.TenantID,
+			LocationID: mapping.LocationID,
+			RateLimit:  mapping.RateLimit,
+		})
+	}
+
+	c.ipRangesMu.Lock()
+	c.ipRanges = entries
+	c.ipRangesMu.Unlock()
+
+	c.logger.Info("Loaded IP range mappings", zap.Int("count", len(entries)))
+	return nil
 }

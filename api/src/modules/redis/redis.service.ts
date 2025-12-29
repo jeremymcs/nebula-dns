@@ -3,10 +3,17 @@ import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
 export interface CacheInvalidationMessage {
-  type: 'policy' | 'token' | 'list' | 'threat' | 'category';
+  type: 'policy' | 'token' | 'list' | 'threat' | 'category' | 'ip_ranges';
   locationId?: string;
   token?: string;
   tenantId?: string;
+}
+
+export interface IPRangeMapping {
+  tenant_id: string;
+  location_id: string;
+  ip_range: string;
+  rate_limit: number;
 }
 
 @Injectable()
@@ -129,6 +136,44 @@ export class RedisService implements OnModuleDestroy {
     const key = `token:${tokenHash}`;
     await this.del(key);
     await this.invalidateToken(tokenHash);
+  }
+
+  // IP Range storage for location-based lookup
+  async storeIPRange(locationId: string, mapping: IPRangeMapping): Promise<void> {
+    const key = `ip_range:${locationId}`;
+    await this.set(key, JSON.stringify(mapping));
+    await this.invalidateIPRanges();
+  }
+
+  async deleteIPRange(locationId: string): Promise<void> {
+    const key = `ip_range:${locationId}`;
+    await this.del(key);
+    await this.invalidateIPRanges();
+  }
+
+  async invalidateIPRanges(): Promise<void> {
+    const message: CacheInvalidationMessage = {
+      type: 'ip_ranges',
+    };
+    await this.publish(this.INVALIDATION_CHANNEL, JSON.stringify(message));
+    this.logger.debug('Published IP ranges invalidation');
+  }
+
+  async getAllIPRanges(): Promise<IPRangeMapping[]> {
+    const keys = await this.client.keys('ip_range:*');
+    if (keys.length === 0) {
+      return [];
+    }
+
+    const mappings: IPRangeMapping[] = [];
+    for (const key of keys) {
+      const data = await this.get(key);
+      if (data) {
+        mappings.push(JSON.parse(data));
+      }
+    }
+
+    return mappings;
   }
 }
 

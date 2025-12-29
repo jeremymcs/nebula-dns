@@ -39,6 +39,13 @@ import { PartnersModule } from './modules/partners/partners.module';
 import { MspModule } from './modules/msp/msp.module';
 import { MspBillingModule } from './modules/msp-billing/msp-billing.module';
 
+// Audit Logging
+import { AuditLogsModule } from './audit-logs/audit-logs.module';
+
+// Security Automation
+import { PlaybooksModule } from './modules/playbooks/playbooks.module';
+import { PolicyTemplatesModule } from './modules/policy-templates/policy-templates.module';
+
 @Module({
   imports: [
     // Configuration with validation
@@ -127,6 +134,13 @@ import { MspBillingModule } from './modules/msp-billing/msp-billing.module';
     MetricsModule,
     SentryModule.forRootAsync(),
     LoggerModule,
+
+    // Audit Logging
+    AuditLogsModule,
+
+    // Security Automation
+    PlaybooksModule,
+    PolicyTemplatesModule,
   ],
 })
 export class AppModule implements NestModule {

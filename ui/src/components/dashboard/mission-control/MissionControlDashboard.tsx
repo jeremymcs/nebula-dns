@@ -7,7 +7,6 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { ThreatRadar } from './ThreatRadar'
 import { NetworkStatus } from './NetworkStatus'
@@ -16,11 +15,55 @@ import { QueryStream } from './QueryStream'
 import { MissionControlHeader } from './MissionControlHeader'
 import { QuickActions } from './QuickActions'
 import { ThreatHeatmap } from './ThreatHeatmap'
-import { generateDemoThreats, generateDemoHeatmapData } from './types'
+import { useThreatData, useSecurityScore } from '@/hooks/useApi'
+import { ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
 export function MissionControlDashboard() {
-  const [threats] = useState(generateDemoThreats())
-  const [heatmapData] = useState(generateDemoHeatmapData())
+  const { data: threatData, error: threatError, isLoading: threatLoading, mutate: mutateThreat } = useThreatData('24h')
+  const { data: securityScoreData, error: scoreError, isLoading: scoreLoading, mutate: mutateScore } = useSecurityScore()
+
+  const isLoading = threatLoading || scoreLoading
+  const hasError = threatError || scoreError
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen -mx-4 sm:-mx-6 lg:-mx-8 -my-6 bg-gradient-to-b from-space-100 via-space-50 to-white dark:from-space-900 dark:via-space-950 dark:to-black flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-nebula-500"></div>
+          <p className="text-space-500 text-lg">Loading Mission Control...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (hasError) {
+    return (
+      <div className="min-h-screen -mx-4 sm:-mx-6 lg:-mx-8 -my-6 bg-gradient-to-b from-space-100 via-space-50 to-white dark:from-space-900 dark:via-space-950 dark:to-black flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-center max-w-md">
+          <div className="p-4 rounded-full bg-danger-100 dark:bg-danger-900/30">
+            <ExclamationTriangleIcon className="h-12 w-12 text-danger-500" />
+          </div>
+          <h2 className="text-xl font-semibold text-space-900 dark:text-white">Failed to Load Mission Control</h2>
+          <p className="text-space-500">
+            {threatError?.message || scoreError?.message || 'Unable to fetch data. Please try again later.'}
+          </p>
+          <button
+            onClick={() => { mutateThreat(); mutateScore(); }}
+            className="flex items-center gap-2 px-4 py-2 bg-nebula-500 text-white rounded-lg hover:bg-nebula-600"
+          >
+            <ArrowPathIcon className="h-4 w-4" />
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const threats = threatData?.threats || []
+  const heatmapData = threatData?.heatmap || []
+  const securityScore = securityScoreData?.score || 0
 
   const handleBlockDomain = () => {
     // TODO: Implement domain blocking modal
@@ -64,10 +107,10 @@ export function MissionControlDashboard() {
             className="lg:col-span-3 flex flex-col gap-4"
           >
             <ProtectionShield
-              score={85}
-              threatsBlocked={847}
-              policiesActive={5}
-              zonesProtected={5}
+              score={securityScore}
+              threatsBlocked={threatData?.blockedCount || 847}
+              policiesActive={securityScoreData?.policiesActive || 5}
+              zonesProtected={securityScoreData?.zonesProtected || 5}
             />
             <QuickActions
               onBlockDomain={handleBlockDomain}

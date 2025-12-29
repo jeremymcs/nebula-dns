@@ -351,7 +351,12 @@ export function ZoneEditorModal({
                 <InformationCircleIcon className="h-5 w-5 text-accent-600 dark:text-accent-400 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-space-600 dark:text-space-300">
                   <p className="font-medium mb-1">How network identification works</p>
-                  <p>DNS queries are matched to zones based on the source IP address. For static IPs, enter the public IP or CIDR range. For dynamic IPs, configure a DynDNS hostname that resolves to your current IP.</p>
+                  <p className="mb-2">DNS queries can be identified by two methods:</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li><strong>Token-based:</strong> Use a DoH token in browser/device settings (recommended for roaming clients)</li>
+                    <li><strong>IP-based:</strong> Automatically identify queries from configured IP ranges (ideal for office networks)</li>
+                  </ul>
+                  <p className="mt-2">For static IPs, enter the public IP or CIDR range. For dynamic IPs, use DynDNS or generate a DoH token.</p>
                 </div>
               </div>
             </Card>

@@ -22,12 +22,23 @@ import { CreateTokenDto } from './dto/create-token.dto';
 import { PaginationQueryDto } from '@/common/dto/pagination.dto';
 
 @ApiTags('locations')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('locations')
 export class LocationsController {
   constructor(private readonly locationsService: LocationsService) {}
 
+  /**
+   * Public endpoint for dnsdist to look up location by source IP
+   * No authentication required - restricted to internal network in production
+   */
+  @Get('by-ip/:ip')
+  @ApiOperation({ summary: 'Look up location by source IP (internal use)' })
+  @ApiResponse({ status: 200, description: 'Location lookup result' })
+  async findByIP(@Param('ip') ip: string) {
+    return this.locationsService.findByIP(ip);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
   @Roles(Role.OWNER, Role.ADMIN, Role.ANALYST, Role.READONLY)
   @ApiOperation({ summary: 'List all locations' })
@@ -39,6 +50,8 @@ export class LocationsController {
     return this.locationsService.findAll(tenantId, pagination);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id')
   @Roles(Role.OWNER, Role.ADMIN, Role.ANALYST, Role.READONLY)
   @ApiOperation({ summary: 'Get location by ID' })
@@ -51,6 +64,8 @@ export class LocationsController {
     return this.locationsService.findOne(tenantId, id);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   @Roles(Role.OWNER, Role.ADMIN)
   @ApiOperation({ summary: 'Create a new location' })
@@ -62,6 +77,8 @@ export class LocationsController {
     return this.locationsService.create(tenantId, createDto);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id')
   @Roles(Role.OWNER, Role.ADMIN)
   @ApiOperation({ summary: 'Update location' })
@@ -74,6 +91,8 @@ export class LocationsController {
     return this.locationsService.update(tenantId, id, updateDto);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
   @Roles(Role.OWNER)
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -88,6 +107,8 @@ export class LocationsController {
 
   // Token management endpoints
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id/tokens')
   @Roles(Role.OWNER, Role.ADMIN)
   @ApiOperation({ summary: 'List location tokens' })
@@ -99,6 +120,8 @@ export class LocationsController {
     return this.locationsService.getTokens(tenantId, id);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post(':id/tokens')
   @Roles(Role.OWNER, Role.ADMIN)
   @ApiOperation({ summary: 'Create new location token' })
@@ -114,6 +137,8 @@ export class LocationsController {
     return this.locationsService.createToken(tenantId, id, createTokenDto);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id/tokens/:tokenId')
   @Roles(Role.OWNER, Role.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)

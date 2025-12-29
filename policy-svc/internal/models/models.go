@@ -51,6 +51,27 @@ type ValidateTokenResponse struct {
 	RateLimit  int    `json:"rate_limit,omitempty"`
 }
 
+// LookupIPRequest represents an IP-based location lookup request
+type LookupIPRequest struct {
+	ClientIP string `json:"client_ip"`
+}
+
+// LookupIPResponse represents the IP-based location lookup response
+type LookupIPResponse struct {
+	Found      bool   `json:"found"`
+	TenantID   string `json:"tenant_id,omitempty"`
+	LocationID string `json:"location_id,omitempty"`
+	RateLimit  int    `json:"rate_limit,omitempty"`
+}
+
+// IPRangeMapping represents a mapping from IP range to location
+type IPRangeMapping struct {
+	TenantID   string `json:"tenant_id"`
+	LocationID string `json:"location_id"`
+	IPRange    string `json:"ip_range"` // CIDR notation e.g., "192.168.1.0/24"
+	RateLimit  int    `json:"rate_limit"`
+}
+
 // QueryLogEntry represents a DNS query log entry for ClickHouse
 type QueryLogEntry struct {
 	Timestamp     time.Time `json:"timestamp"`

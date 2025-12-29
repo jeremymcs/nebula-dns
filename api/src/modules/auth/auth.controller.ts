@@ -2,6 +2,8 @@ import {
   Controller,
   Post,
   Get,
+  Delete,
+  Param,
   Body,
   HttpCode,
   HttpStatus,
@@ -115,5 +117,37 @@ export class AuthController {
     @Body() dto: SwitchTenantDto,
   ): Promise<LoginResponseDto> {
     return this.authService.switchTenant(user.id, currentTenantId, dto.tenantId);
+  }
+
+  @Get('sessions')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get active sessions for current user' })
+  @ApiResponse({ status: 200, description: 'Sessions retrieved' })
+  async getSessions(@CurrentUser() user: any) {
+    return this.authService.getSessions(user.id);
+  }
+
+  @Delete('sessions/:sessionId')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Revoke a specific session' })
+  @ApiResponse({ status: 204, description: 'Session revoked' })
+  async revokeSession(
+    @CurrentUser() user: any,
+    @Param('sessionId') sessionId: string,
+  ): Promise<void> {
+    await this.authService.revokeSession(user.id, sessionId);
+  }
+
+  @Delete('sessions')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Revoke all sessions except current' })
+  @ApiResponse({ status: 204, description: 'All other sessions revoked' })
+  async revokeAllSessions(@CurrentUser() user: any): Promise<void> {
+    await this.authService.revokeAllSessions(user.id);
   }
 }

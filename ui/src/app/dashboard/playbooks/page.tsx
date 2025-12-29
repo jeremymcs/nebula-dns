@@ -7,22 +7,39 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   PlaybookList,
   PlaybookBuilder,
   Playbook,
-  generateDemoPlaybooks,
 } from '@/components/playbooks'
-import { BoltIcon, PlusIcon } from '@heroicons/react/24/outline'
+import { usePlaybooks } from '@/hooks/useApi'
+import { api } from '@/lib/api'
+import { BoltIcon, PlusIcon, ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
 export default function PlaybooksPage() {
-  const [playbooks, setPlaybooks] = useState<Playbook[]>(generateDemoPlaybooks())
+  const { data: playbooksData, error, isLoading, mutate } = usePlaybooks()
+  const [playbooks, setPlaybooks] = useState<Playbook[]>([])
   const [isBuilderOpen, setIsBuilderOpen] = useState(false)
   const [editingPlaybook, setEditingPlaybook] = useState<Playbook | undefined>()
 
-  const handleToggle = (id: string, enabled: boolean) => {
+  // Sync with API data
+  useEffect(() => {
+    if (playbooksData?.data) {
+      setPlaybooks(playbooksData.data)
+    }
+  }, [playbooksData])
+
+  const handleToggle = async (id: string, enabled: boolean) => {
+    // Optimistic update
     setPlaybooks(playbooks.map((p) => (p.id === id ? { ...p, isEnabled: enabled } : p)))
+    try {
+      await api.updatePlaybook(id, { isEnabled: enabled })
+      mutate()
+    } catch (err) {
+      // Revert on error
+      setPlaybooks(playbooks.map((p) => (p.id === id ? { ...p, isEnabled: !enabled } : p)))
+    }
   }
 
   const handleEdit = (playbook: Playbook) => {
@@ -30,27 +47,30 @@ export default function PlaybooksPage() {
     setIsBuilderOpen(true)
   }
 
-  const handleRun = (_playbook: Playbook) => {
-    // TODO: Implement manual playbook execution via API
+  const handleRun = async (playbook: Playbook) => {
+    try {
+      await api.runPlaybook(playbook.id)
+    } catch (err) {
+      console.error('Failed to run playbook:', err)
+    }
   }
 
-  const handleSave = (data: Partial<Playbook>) => {
-    if (editingPlaybook) {
-      setPlaybooks(playbooks.map((p) => (p.id === editingPlaybook.id ? { ...p, ...data } : p)))
-    } else {
-      const newPlaybook: Playbook = {
-        id: `pb-${Date.now()}`,
-        name: data.name || 'New Playbook',
-        description: data.description || '',
-        trigger: { type: 'manual', conditions: [] },
-        steps: data.steps || [],
-        isEnabled: false,
-        isBuiltIn: false,
-        triggerCount: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+  const handleSave = async (data: Partial<Playbook>) => {
+    try {
+      if (editingPlaybook) {
+        await api.updatePlaybook(editingPlaybook.id, data)
+      } else {
+        await api.createPlaybook({
+          name: data.name || 'New Playbook',
+          description: data.description || '',
+          trigger: data.trigger || { type: 'manual', conditions: [] },
+          steps: data.steps || [],
+          isEnabled: false,
+        })
       }
-      setPlaybooks([...playbooks, newPlaybook])
+      mutate()
+    } catch (err: any) {
+      console.error('Failed to save playbook:', err?.message || err)
     }
     setIsBuilderOpen(false)
     setEditingPlaybook(undefined)
@@ -59,6 +79,42 @@ export default function PlaybooksPage() {
   const handleCancel = () => {
     setIsBuilderOpen(false)
     setEditingPlaybook(undefined)
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500"></div>
+          <p className="text-space-500">Loading playbooks...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4 text-center max-w-md">
+          <div className="p-4 rounded-full bg-danger-100 dark:bg-danger-900/30">
+            <ExclamationTriangleIcon className="h-12 w-12 text-danger-500" />
+          </div>
+          <h2 className="text-xl font-semibold text-space-900 dark:text-white">Failed to Load Playbooks</h2>
+          <p className="text-space-500">
+            {error?.message || 'Unable to fetch playbooks. Please try again later.'}
+          </p>
+          <button
+            onClick={() => mutate()}
+            className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600"
+          >
+            <ArrowPathIcon className="h-4 w-4" />
+            Retry
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

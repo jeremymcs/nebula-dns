@@ -71,6 +71,9 @@ describe('LocationsService', () => {
     storeToken: jest.fn(),
     deleteToken: jest.fn(),
     publishPolicyUpdate: jest.fn(),
+    storeIPRange: jest.fn(),
+    deleteIPRange: jest.fn(),
+    getAllIPRanges: jest.fn(),
   };
 
   const mockPolicyCompilerService = {
@@ -156,12 +159,15 @@ describe('LocationsService', () => {
         name: 'New Location',
         description: 'A new location',
         policyId: 'policy-123',
+        ipRange: '192.168.1.0/24',
       };
 
+      mockLocationRepository.findOne.mockResolvedValue(null); // No existing location with same IP
       mockLocationRepository.create.mockReturnValue({
         ...mockLocation,
         name: createDto.name,
         description: createDto.description,
+        ipRange: createDto.ipRange,
       });
       mockLocationRepository.save.mockImplementation((loc) => Promise.resolve(loc));
 
@@ -245,6 +251,86 @@ describe('LocationsService', () => {
         locationId: mockLocation.id,
       });
       expect(mockLocationRepository.remove).toHaveBeenCalled();
+    });
+  });
+
+  describe('findByIP', () => {
+    const mockIPRangeMapping = {
+      tenant_id: mockTenantId,
+      location_id: 'location-123',
+      ip_range: '192.168.1.0/24',
+      rate_limit: 1000,
+    };
+
+    it('should find location by exact IP match in Redis', async () => {
+      mockRedisService.getAllIPRanges.mockResolvedValue([
+        { ...mockIPRangeMapping, ip_range: '192.168.1.100' },
+      ]);
+
+      const result = await service.findByIP('192.168.1.100');
+
+      expect(result.found).toBe(true);
+      expect(result.tenantId).toBe(mockTenantId);
+      expect(result.locationId).toBe('location-123');
+    });
+
+    it('should find location by CIDR range match', async () => {
+      mockRedisService.getAllIPRanges.mockResolvedValue([mockIPRangeMapping]);
+
+      const result = await service.findByIP('192.168.1.50');
+
+      expect(result.found).toBe(true);
+      expect(result.tenantId).toBe(mockTenantId);
+      expect(result.locationId).toBe('location-123');
+    });
+
+    it('should return not found for non-matching IP', async () => {
+      mockRedisService.getAllIPRanges.mockResolvedValue([mockIPRangeMapping]);
+      const mockQueryBuilder = {
+        where: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      };
+      mockLocationRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+
+      const result = await service.findByIP('10.0.0.1');
+
+      expect(result.found).toBe(false);
+    });
+
+    it('should handle comma-separated IP ranges', async () => {
+      mockRedisService.getAllIPRanges.mockResolvedValue([
+        { ...mockIPRangeMapping, ip_range: '10.0.0.0/8, 192.168.1.0/24' },
+      ]);
+
+      const result = await service.findByIP('192.168.1.50');
+
+      expect(result.found).toBe(true);
+    });
+
+    it('should handle IPv6-mapped IPv4 addresses', async () => {
+      mockRedisService.getAllIPRanges.mockResolvedValue([
+        { ...mockIPRangeMapping, ip_range: '192.168.1.100' },
+      ]);
+
+      const result = await service.findByIP('::ffff:192.168.1.100');
+
+      expect(result.found).toBe(true);
+    });
+
+    it('should fall back to database if Redis returns empty', async () => {
+      mockRedisService.getAllIPRanges.mockResolvedValue([]);
+      const mockQueryBuilder = {
+        where: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([
+          { ...mockLocation, ipRange: '192.168.1.0/24' },
+        ]),
+      };
+      mockLocationRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+
+      const result = await service.findByIP('192.168.1.50');
+
+      expect(result.found).toBe(true);
+      expect(result.tenantId).toBe(mockTenantId);
     });
   });
 });
