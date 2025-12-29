@@ -7,22 +7,55 @@
 
 'use client'
 
-import { useState } from 'react'
 import {
   SecurityScore,
   Achievements,
   Recommendations,
-  generateDemoScore,
-  generateDemoAchievements,
 } from '@/components/security-score'
-import { ShieldCheckIcon } from '@heroicons/react/24/outline'
+import { useSecurityScore } from '@/hooks/useApi'
+import { ShieldCheckIcon, ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
 export default function SecurityScorePage() {
-  const [scoreData] = useState(generateDemoScore())
-  const [achievements] = useState(generateDemoAchievements())
+  const { data: securityScoreData, error, isLoading, mutate } = useSecurityScore()
 
   const handleActionClick = (_actionId: string) => {
     // TODO: Implement security action handlers
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nebula-500"></div>
+          <p className="text-space-500">Loading security score...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error || !securityScoreData) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4 text-center max-w-md">
+          <div className="p-4 rounded-full bg-danger-100 dark:bg-danger-900/30">
+            <ExclamationTriangleIcon className="h-12 w-12 text-danger-500" />
+          </div>
+          <h2 className="text-xl font-semibold text-space-900 dark:text-white">Failed to Load Security Score</h2>
+          <p className="text-space-500">
+            {error?.message || 'Unable to fetch security score. Please try again later.'}
+          </p>
+          <button
+            onClick={() => mutate()}
+            className="flex items-center gap-2 px-4 py-2 bg-nebula-500 text-white rounded-lg hover:bg-nebula-600"
+          >
+            <ArrowPathIcon className="h-4 w-4" />
+            Retry
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -40,16 +73,16 @@ export default function SecurityScorePage() {
 
       {/* Main Score Card */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <SecurityScore score={scoreData.totalScore} data={scoreData} />
+        <SecurityScore score={securityScoreData.totalScore} data={securityScoreData} />
         <Recommendations
-          factors={scoreData.factors}
+          factors={securityScoreData.factors}
           onAction={handleActionClick}
           className="lg:col-span-2"
         />
       </div>
 
       {/* Achievements */}
-      <Achievements achievements={achievements} />
+      <Achievements achievements={securityScoreData.achievements || []} />
     </div>
   )
 }

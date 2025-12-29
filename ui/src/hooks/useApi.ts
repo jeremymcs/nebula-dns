@@ -327,6 +327,96 @@ export function useSsoConfig() {
   return useSWR('/sso/config', fetcher, defaultConfig)
 }
 
+// ============================================
+// AI Insights Hooks
+// ============================================
+
+export function useInsights(period?: string) {
+  return useSWR<any>(
+    `/reports/insights${period ? `?period=${period}` : ''}`,
+    fetcher,
+    defaultConfig
+  )
+}
+
+// ============================================
+// Security Score Hooks
+// ============================================
+
+export function useSecurityScore() {
+  return useSWR<any>(
+    '/reports/security-score',
+    fetcher,
+    defaultConfig
+  )
+}
+
+// ============================================
+// Playbooks Hooks
+// ============================================
+
+export function usePlaybooks() {
+  return useSWR<{ data: any[] }>(
+    '/playbooks',
+    fetcher,
+    defaultConfig
+  )
+}
+
+// ============================================
+// Policy Templates Hooks
+// ============================================
+
+export function usePolicyTemplates() {
+  return useSWR<{ data: any[] }>(
+    '/policy-templates',
+    fetcher,
+    defaultConfig
+  )
+}
+
+// ============================================
+// Session Hooks
+// ============================================
+
+export function useSessions() {
+  return useSWR<{ data: any[] }>(
+    '/auth/sessions',
+    fetcher,
+    defaultConfig
+  )
+}
+
+// ============================================
+// Audit Logs Hooks
+// ============================================
+
+export function useAuditLogs(params?: { cursor?: string; limit?: number; action?: string; resourceType?: string }) {
+  const searchParams = new URLSearchParams()
+  if (params?.cursor) searchParams.set('cursor', params.cursor)
+  if (params?.limit) searchParams.set('limit', params.limit.toString())
+  if (params?.action) searchParams.set('action', params.action)
+  if (params?.resourceType) searchParams.set('resourceType', params.resourceType)
+  const query = searchParams.toString()
+  return useSWR<PaginatedResponse<any>>(
+    `/audit-logs${query ? `?${query}` : ''}`,
+    fetcher,
+    defaultConfig
+  )
+}
+
+// ============================================
+// Threat Data Hooks (for Mission Control)
+// ============================================
+
+export function useThreatData(period?: string) {
+  return useSWR<any>(
+    `/reports/threats${period ? `?period=${period}` : ''}`,
+    fetcher,
+    defaultConfig
+  )
+}
+
 export function useSubscription() {
   return useSWR('/subscriptions/current', fetcher, defaultConfig)
 }

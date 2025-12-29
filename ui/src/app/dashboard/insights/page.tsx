@@ -11,19 +11,54 @@ import { useState } from 'react'
 import {
   WeeklyInsights,
   TrendChart,
-  generateDemoWeeklyInsight,
 } from '@/components/insights'
-import { SparklesIcon, CalendarIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
+import { useInsights } from '@/hooks/useApi'
+import { SparklesIcon, CalendarIcon, ArrowPathIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
 export default function InsightsPage() {
-  const [insight] = useState(generateDemoWeeklyInsight())
+  const { data: insightData, error, mutate, isLoading } = useInsights('7d')
   const [isGenerating, setIsGenerating] = useState(false)
 
   const handleRegenerate = async () => {
     setIsGenerating(true)
-    // Simulate AI generation
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    await mutate()
     setIsGenerating(false)
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+          <p className="text-space-500">Loading insights...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error || !insightData) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4 text-center max-w-md">
+          <div className="p-4 rounded-full bg-danger-100 dark:bg-danger-900/30">
+            <ExclamationTriangleIcon className="h-12 w-12 text-danger-500" />
+          </div>
+          <h2 className="text-xl font-semibold text-space-900 dark:text-white">Failed to Load Insights</h2>
+          <p className="text-space-500">
+            {error?.message || 'Unable to fetch AI insights. Please try again later.'}
+          </p>
+          <button
+            onClick={() => mutate()}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
+          >
+            <ArrowPathIcon className="h-4 w-4" />
+            Retry
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -42,7 +77,7 @@ export default function InsightsPage() {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 text-sm text-space-500">
             <CalendarIcon className="h-4 w-4" />
-            Generated {new Date(insight.generatedAt).toLocaleDateString()}
+            Generated {new Date(insightData.generatedAt).toLocaleDateString()}
           </div>
           <button
             onClick={handleRegenerate}
@@ -57,8 +92,8 @@ export default function InsightsPage() {
 
       {/* Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <WeeklyInsights insight={insight} className="lg:col-span-2" />
-        <TrendChart trends={insight.trends} />
+        <WeeklyInsights insight={insightData} className="lg:col-span-2" />
+        <TrendChart trends={insightData.trends} />
       </div>
 
       {/* Metrics Overview */}
@@ -66,12 +101,12 @@ export default function InsightsPage() {
         <h3 className="font-semibold text-space-900 dark:text-white mb-4">Weekly Metrics</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {[
-            { label: 'Total Queries', value: insight.metrics.totalQueries.toLocaleString() },
-            { label: 'Blocked', value: insight.metrics.blockedQueries.toLocaleString() },
-            { label: 'Threats', value: insight.metrics.threatsBlocked.toLocaleString() },
-            { label: 'Clients', value: insight.metrics.uniqueClients.toString() },
-            { label: 'Avg Response', value: `${insight.metrics.avgResponseTime}ms` },
-            { label: 'Uptime', value: `${insight.metrics.uptime}%` },
+            { label: 'Total Queries', value: insightData.metrics.totalQueries.toLocaleString() },
+            { label: 'Blocked', value: insightData.metrics.blockedQueries.toLocaleString() },
+            { label: 'Threats', value: insightData.metrics.threatsBlocked.toLocaleString() },
+            { label: 'Clients', value: insightData.metrics.uniqueClients.toString() },
+            { label: 'Avg Response', value: `${insightData.metrics.avgResponseTime}ms` },
+            { label: 'Uptime', value: `${insightData.metrics.uptime}%` },
           ].map((metric) => (
             <div key={metric.label} className="text-center p-4 bg-space-50 dark:bg-space-900 rounded-lg">
               <p className="text-2xl font-bold text-space-900 dark:text-white">{metric.value}</p>

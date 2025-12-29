@@ -131,6 +131,16 @@ export class LocationsService {
     await this.locationRepository.save(location);
     this.logger.log(`Location ${location.id} created in tenant ${tenantId}`);
 
+    // Store IP range mapping in Redis for policy-svc lookups
+    if (location.ipRange) {
+      await this.redisService.storeIPRange(location.id, {
+        tenant_id: tenantId,
+        location_id: location.id,
+        ip_range: location.ipRange,
+        rate_limit: location.rateLimit || 1000,
+      });
+    }
+
     return location;
   }
 
@@ -164,6 +174,19 @@ export class LocationsService {
     Object.assign(location, updateDto);
     await this.locationRepository.save(location);
 
+    // Update IP range mapping in Redis
+    if (location.ipRange) {
+      await this.redisService.storeIPRange(location.id, {
+        tenant_id: tenantId,
+        location_id: location.id,
+        ip_range: location.ipRange,
+        rate_limit: location.rateLimit || 1000,
+      });
+    } else {
+      // Remove IP range mapping if ipRange was cleared
+      await this.redisService.deleteIPRange(location.id);
+    }
+
     this.logger.log(`Location ${id} updated in tenant ${tenantId}`);
     return location;
   }
@@ -173,6 +196,10 @@ export class LocationsService {
 
     // Revoke all tokens first
     await this.tokenRepository.delete({ locationId: id });
+
+    // Remove IP range mapping from Redis
+    await this.redisService.deleteIPRange(id);
+
     await this.locationRepository.remove(location);
 
     this.logger.log(`Location ${id} deleted from tenant ${tenantId}`);
@@ -314,5 +341,108 @@ export class LocationsService {
 
   private hashToken(token: string): string {
     return crypto.createHash('sha256').update(token).digest('hex');
+  }
+
+  /**
+   * Look up a location by client IP address
+   * Searches all locations' IP ranges to find a matching location
+   */
+  async findByIP(
+    clientIP: string,
+  ): Promise<{ found: boolean; tenantId?: string; locationId?: string }> {
+    // Get all IP range mappings from Redis
+    const mappings = await this.redisService.getAllIPRanges();
+
+    for (const mapping of mappings) {
+      if (this.ipMatchesRange(clientIP, mapping.ip_range)) {
+        return {
+          found: true,
+          tenantId: mapping.tenant_id,
+          locationId: mapping.location_id,
+        };
+      }
+    }
+
+    // Fallback: check database for locations with ipRange field
+    // This handles cases where Redis might not have all mappings
+    const locations = await this.locationRepository
+      .createQueryBuilder('location')
+      .where('location.ip_range IS NOT NULL')
+      .getMany();
+
+    for (const location of locations) {
+      if (location.ipRange && this.ipMatchesRange(clientIP, location.ipRange)) {
+        return {
+          found: true,
+          tenantId: location.tenantId,
+          locationId: location.id,
+        };
+      }
+    }
+
+    return { found: false };
+  }
+
+  /**
+   * Check if an IP address matches a CIDR range or individual IP
+   */
+  private ipMatchesRange(ip: string, range: string): boolean {
+    // Handle comma-separated ranges
+    const ranges = range.split(',').map((r) => r.trim());
+
+    for (const r of ranges) {
+      if (this.ipMatchesSingleRange(ip, r)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private ipMatchesSingleRange(ip: string, range: string): boolean {
+    try {
+      const ipNum = this.ipToNumber(ip);
+      const rangeIP = range.includes('/') ? range.split('/')[0] : range;
+      const rangeNum = this.ipToNumber(rangeIP);
+
+      if (ipNum === null || rangeNum === null) {
+        return false;
+      }
+
+      // Handle exact IP match
+      if (!range.includes('/')) {
+        return ipNum === rangeNum;
+      }
+
+      // Handle CIDR notation
+      const prefix = parseInt(range.split('/')[1], 10);
+      const mask = ~((1 << (32 - prefix)) - 1) >>> 0;
+      return (ipNum & mask) === (rangeNum & mask);
+    } catch {
+      return false;
+    }
+  }
+
+  private ipToNumber(ip: string): number | null {
+    // Handle IPv6 mapped addresses (::ffff:192.168.1.1)
+    if (ip.startsWith('::ffff:')) {
+      ip = ip.substring(7);
+    }
+
+    const parts = ip.split('.');
+    if (parts.length !== 4) {
+      return null;
+    }
+
+    let num = 0;
+    for (const part of parts) {
+      const n = parseInt(part, 10);
+      if (isNaN(n) || n < 0 || n > 255) {
+        return null;
+      }
+      num = (num << 8) + n;
+    }
+
+    return num >>> 0;
   }
 }

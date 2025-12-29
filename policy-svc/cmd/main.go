@@ -88,7 +88,7 @@ func main() {
 	policySvc := policy.NewService(policyCache, logger, failMode == "closed")
 
 	// Initialize handlers
-	h := handlers.NewHandlers(policySvc, chClient, logger)
+	h := handlers.NewHandlers(policySvc, policyCache, chClient, logger)
 
 	// Setup router
 	r := chi.NewRouter()
@@ -105,11 +105,17 @@ func main() {
 	r.Get("/live", h.Live)
 	r.Post("/evaluate", h.Evaluate)
 	r.Post("/auth/validate", h.ValidateToken)
+	r.Post("/auth/lookup-ip", h.LookupIP) // IP-based location lookup
 	r.Post("/log", h.LogQuery)
 	r.Get("/metrics", h.Metrics)
 
 	// Start background workers
 	go policyCache.StartSubscriber(ctx)
+
+	// Load IP ranges on startup
+	if err := policyCache.LoadIPRanges(ctx); err != nil {
+		sugar.Warnw("Failed to load IP ranges", "error", err)
+	}
 
 	// Create server
 	srv := &http.Server{

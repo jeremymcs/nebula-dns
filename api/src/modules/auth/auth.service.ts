@@ -408,4 +408,40 @@ export class AuthService {
       },
     };
   }
+
+  async getSessions(userId: string): Promise<{ data: any[] }> {
+    // In a production system, sessions would be stored in Redis or a sessions table
+    // For now, return mock session data based on the current user
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Return current session info
+    return {
+      data: [
+        {
+          id: 'current',
+          device: 'Current Device',
+          browser: 'Unknown',
+          location: 'Unknown',
+          ipAddress: '0.0.0.0',
+          lastActive: new Date().toISOString(),
+          isCurrent: true,
+        },
+      ],
+    };
+  }
+
+  async revokeSession(userId: string, sessionId: string): Promise<void> {
+    // In a production system, this would invalidate the specific session token
+    this.logger.log(`Revoking session ${sessionId} for user ${userId}`);
+    // For now, this is a no-op since we don't have persistent session storage
+  }
+
+  async revokeAllSessions(userId: string): Promise<void> {
+    // In a production system, this would invalidate all refresh tokens for the user
+    this.logger.log(`Revoking all sessions for user ${userId}`);
+    // For now, this is a no-op since we don't have persistent session storage
+  }
 }

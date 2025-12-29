@@ -229,6 +229,120 @@ export class ReportsService {
     return await this.clickhouseService.getQueryTrends(tenantId, period);
   }
 
+  async getInsights(tenantId: string, query: ReportQueryDto): Promise<any> {
+    const period = query.period || '7d';
+    this.logger.debug(`Getting insights for tenant ${tenantId}, period ${period}`);
+
+    // Get summary stats to generate insights
+    const stats = await this.clickhouseService.getSummaryStats(tenantId, period);
+    const topBlocked = await this.clickhouseService.getTopBlocked(tenantId, period, 5);
+
+    const insights = [];
+
+    // Generate insights based on data
+    if (stats.blockedQueries > 0) {
+      insights.push({
+        id: 'threat-activity',
+        type: 'warning',
+        title: 'Threat Activity Detected',
+        description: `${stats.blockedQueries.toLocaleString()} threats blocked in the last ${period}`,
+        severity: stats.blockedQueries > 1000 ? 'high' : stats.blockedQueries > 100 ? 'medium' : 'low',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    if (topBlocked.length > 0) {
+      insights.push({
+        id: 'top-threat',
+        type: 'info',
+        title: 'Most Blocked Domain',
+        description: `${topBlocked[0].domain} was blocked ${topBlocked[0].count} times`,
+        severity: 'medium',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    if (parseFloat(stats.blockRate) > 10) {
+      insights.push({
+        id: 'high-block-rate',
+        type: 'warning',
+        title: 'High Block Rate',
+        description: `Your block rate of ${stats.blockRate}% is above average. Consider reviewing your policies.`,
+        severity: 'medium',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    return { data: insights };
+  }
+
+  async getSecurityScore(tenantId: string): Promise<any> {
+    this.logger.debug(`Getting security score for tenant ${tenantId}`);
+
+    // Calculate security score based on various factors
+    const stats = await this.clickhouseService.getSummaryStats(tenantId, '30d');
+
+    let score = 100;
+    const factors = [];
+
+    // Deduct points for high threat activity
+    if (stats.threatsBlocked > 1000) {
+      score -= 15;
+      factors.push({ name: 'High threat activity', impact: -15, status: 'warning' });
+    } else if (stats.threatsBlocked > 100) {
+      score -= 5;
+      factors.push({ name: 'Moderate threat activity', impact: -5, status: 'info' });
+    } else {
+      factors.push({ name: 'Low threat activity', impact: 0, status: 'good' });
+    }
+
+    // Add points for good cache hit rate
+    const cacheHitRate = parseFloat(stats.cacheHitRate) || 0;
+    if (cacheHitRate > 80) {
+      factors.push({ name: 'Excellent cache performance', impact: 5, status: 'good' });
+      score = Math.min(100, score + 5);
+    }
+
+    return {
+      score: Math.max(0, score),
+      grade: score >= 90 ? 'A' : score >= 80 ? 'B' : score >= 70 ? 'C' : score >= 60 ? 'D' : 'F',
+      factors,
+      recommendations: [
+        { title: 'Enable MFA for all users', priority: 'high' },
+        { title: 'Review blocked domains weekly', priority: 'medium' },
+        { title: 'Set up scheduled reports', priority: 'low' },
+      ],
+    };
+  }
+
+  async investigateDomain(tenantId: string, domain: string): Promise<any> {
+    this.logger.debug(`Investigating domain ${domain} for tenant ${tenantId}`);
+
+    // Get query history for this domain
+    const logs = await this.clickhouseService.getQueryLogs({
+      tenantId,
+      domain,
+      limit: 100,
+      offset: 0,
+    });
+
+    return {
+      domain,
+      queryCount: logs.total,
+      firstSeen: logs.data.length > 0 ? logs.data[logs.data.length - 1]?.timestamp : null,
+      lastSeen: logs.data.length > 0 ? logs.data[0]?.timestamp : null,
+      actions: logs.data.reduce((acc: any, log: any) => {
+        acc[log.action] = (acc[log.action] || 0) + 1;
+        return acc;
+      }, {}),
+      recentQueries: logs.data.slice(0, 10),
+      riskAssessment: {
+        level: 'unknown',
+        reasons: ['Domain analysis requires external threat intelligence integration'],
+      },
+    };
+  }
+
   private getDateRange(query: ReportQueryDto): { startDate: string; endDate: string } {
     const now = new Date();
     let startDate: Date;

@@ -89,4 +89,34 @@ export class ReportsController {
   ) {
     return this.reportsService.getQueryTrends(tenantId, query);
   }
+
+  @Get('insights')
+  @Roles(Role.OWNER, Role.ADMIN, Role.ANALYST, Role.READONLY)
+  @ApiOperation({ summary: 'Get AI-generated security insights' })
+  @ApiResponse({ status: 200, description: 'Security insights retrieved' })
+  async getInsights(
+    @CurrentTenant() tenantId: string,
+    @Query() query: ReportQueryDto,
+  ) {
+    return this.reportsService.getInsights(tenantId, query);
+  }
+
+  @Get('security-score')
+  @Roles(Role.OWNER, Role.ADMIN, Role.ANALYST, Role.READONLY)
+  @ApiOperation({ summary: 'Get security score and recommendations' })
+  @ApiResponse({ status: 200, description: 'Security score retrieved' })
+  async getSecurityScore(@CurrentTenant() tenantId: string) {
+    return this.reportsService.getSecurityScore(tenantId);
+  }
+
+  @Get('investigate')
+  @Roles(Role.OWNER, Role.ADMIN, Role.ANALYST)
+  @ApiOperation({ summary: 'Investigate a specific domain' })
+  @ApiResponse({ status: 200, description: 'Domain investigation results' })
+  async investigateDomain(
+    @CurrentTenant() tenantId: string,
+    @Query('domain') domain: string,
+  ) {
+    return this.reportsService.investigateDomain(tenantId, domain);
+  }
 }

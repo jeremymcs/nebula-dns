@@ -9,6 +9,8 @@ import { useState, useEffect } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { Card, Button, Input, Badge, Modal, Tabs } from '@/components/ui'
 import { useToast } from '@/components/Toast'
+import { useSessions, useAuditLogs } from '@/hooks/useApi'
+import { api } from '@/lib/api'
 import {
   ShieldCheckIcon,
   KeyIcon,
@@ -64,24 +66,13 @@ interface AuditLog {
   success: boolean
 }
 
-// Mock data for sessions
-const MOCK_SESSIONS: Session[] = [
-  { id: '1', device: 'MacBook Pro', browser: 'Chrome 120', location: 'San Francisco, CA', ip: '192.168.1.100', lastActive: 'Now', isCurrent: true },
-  { id: '2', device: 'iPhone 15', browser: 'Safari Mobile', location: 'San Francisco, CA', ip: '192.168.1.101', lastActive: '2 hours ago', isCurrent: false },
-  { id: '3', device: 'Windows Desktop', browser: 'Firefox 121', location: 'New York, NY', ip: '10.0.0.50', lastActive: '1 day ago', isCurrent: false },
-]
-
-// Mock audit logs
-const MOCK_AUDIT_LOGS: AuditLog[] = [
-  { id: '1', action: 'Login', details: 'Successful login from Chrome on MacBook', ip: '192.168.1.100', timestamp: '2024-01-15 10:30:00', success: true },
-  { id: '2', action: 'Password Change', details: 'Password updated successfully', ip: '192.168.1.100', timestamp: '2024-01-14 15:22:00', success: true },
-  { id: '3', action: 'MFA Enabled', details: 'Two-factor authentication enabled', ip: '192.168.1.100', timestamp: '2024-01-14 15:20:00', success: true },
-  { id: '4', action: 'Failed Login', details: 'Invalid password attempt', ip: '203.0.113.50', timestamp: '2024-01-13 08:45:00', success: false },
-  { id: '5', action: 'API Key Created', details: 'New API key "Production" created', ip: '192.168.1.100', timestamp: '2024-01-12 11:00:00', success: true },
-]
-
 export default function SecuritySettingsPage() {
   const { showToast } = useToast()
+
+  // API hooks for sessions and audit logs
+  const { data: sessionsData, error: sessionsError, isLoading: sessionsLoading, mutate: mutateSessions } = useSessions()
+  const { data: auditLogsData, error: auditLogsError, isLoading: auditLogsLoading } = useAuditLogs({ limit: 50 })
+
   const [activeTab, setActiveTab] = useState('mfa')
   const [mfaStatus, setMfaStatus] = useState<MfaStatus | null>(null)
   const [setupData, setSetupData] = useState<SetupData | null>(null)
@@ -98,12 +89,12 @@ export default function SecuritySettingsPage() {
   const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false })
   const [changingPassword, setChangingPassword] = useState(false)
 
-  // Sessions state
-  const [sessions, setSessions] = useState<Session[]>(MOCK_SESSIONS)
+  // Sessions state - use API data
+  const sessions: Session[] = sessionsData?.data || []
   const [revokingSession, setRevokingSession] = useState<string | null>(null)
 
-  // Audit logs state
-  const [auditLogs] = useState<AuditLog[]>(MOCK_AUDIT_LOGS)
+  // Audit logs state - use API data
+  const auditLogs: AuditLog[] = auditLogsData?.data || []
 
   // Security settings state
   const [securitySettings, setSecuritySettings] = useState({
@@ -225,8 +216,8 @@ export default function SecuritySettingsPage() {
   const handleRevokeSession = async (sessionId: string) => {
     setRevokingSession(sessionId)
     try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setSessions(sessions.filter(s => s.id !== sessionId))
+      await api.revokeSession(sessionId)
+      mutateSessions()
       showToast('success', 'Session revoked successfully')
     } catch (err) {
       showToast('error', 'Failed to revoke session')
@@ -238,8 +229,8 @@ export default function SecuritySettingsPage() {
   const handleRevokeAllSessions = async () => {
     if (!confirm('This will log you out of all other devices. Continue?')) return
     try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setSessions(sessions.filter(s => s.isCurrent))
+      await api.revokeAllSessions()
+      mutateSessions()
       showToast('success', 'All other sessions revoked')
     } catch (err) {
       showToast('error', 'Failed to revoke sessions')
@@ -605,11 +596,34 @@ export default function SecuritySettingsPage() {
                   Manage devices that are currently logged into your account
                 </p>
               </div>
-              <Button variant="secondary" size="sm" onClick={handleRevokeAllSessions}>
+              <Button variant="secondary" size="sm" onClick={handleRevokeAllSessions} disabled={sessions.length === 0}>
                 <TrashIcon className="h-4 w-4 mr-2" />
                 Revoke All Other Sessions
               </Button>
             </div>
+
+            {sessionsLoading && (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-nebula-500"></div>
+              </div>
+            )}
+
+            {sessionsError && (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <ExclamationTriangleIcon className="h-8 w-8 text-danger-500 mb-2" />
+                <p className="text-space-500">{sessionsError?.message || 'Failed to load sessions'}</p>
+                <Button variant="secondary" size="sm" onClick={() => mutateSessions()} className="mt-4">
+                  <ArrowPathIcon className="h-4 w-4 mr-2" />
+                  Retry
+                </Button>
+              </div>
+            )}
+
+            {!sessionsLoading && !sessionsError && sessions.length === 0 && (
+              <div className="text-center py-8 text-space-500">
+                No active sessions found.
+              </div>
+            )}
 
             <div className="space-y-4">
               {sessions.map((session) => (
@@ -796,48 +810,71 @@ export default function SecuritySettingsPage() {
                 Recent security-related events on your account
               </p>
             </div>
-            <Button variant="secondary" size="sm">
+            <Button variant="secondary" size="sm" disabled={auditLogs.length === 0}>
               <DocumentTextIcon className="h-4 w-4 mr-2" />
               Export Log
             </Button>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-space-200 dark:border-space-700">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-space-500 dark:text-space-400">Action</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-space-500 dark:text-space-400">Details</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-space-500 dark:text-space-400">IP Address</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-space-500 dark:text-space-400">Timestamp</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-space-500 dark:text-space-400">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-space-100 dark:divide-space-700">
-                {auditLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-space-50 dark:hover:bg-space-800/50">
-                    <td className="py-3 px-4">
-                      <span className="font-medium text-space-900 dark:text-white">{log.action}</span>
-                    </td>
-                    <td className="py-3 px-4 text-sm text-space-600 dark:text-space-400">{log.details}</td>
-                    <td className="py-3 px-4 text-sm font-mono text-space-600 dark:text-space-400">{log.ip}</td>
-                    <td className="py-3 px-4 text-sm text-space-600 dark:text-space-400">{log.timestamp}</td>
-                    <td className="py-3 px-4">
-                      <Badge variant={log.success ? 'success' : 'danger'} size="sm">
-                        {log.success ? 'Success' : 'Failed'}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {auditLogsLoading && (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-nebula-500"></div>
+            </div>
+          )}
 
-          <div className="mt-4 text-center">
-            <Button variant="ghost" size="sm">
-              Load More
-            </Button>
-          </div>
+          {auditLogsError && (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <ExclamationTriangleIcon className="h-8 w-8 text-danger-500 mb-2" />
+              <p className="text-space-500">{auditLogsError?.message || 'Failed to load audit logs'}</p>
+            </div>
+          )}
+
+          {!auditLogsLoading && !auditLogsError && auditLogs.length === 0 && (
+            <div className="text-center py-8 text-space-500">
+              No audit logs found.
+            </div>
+          )}
+
+          {!auditLogsLoading && !auditLogsError && auditLogs.length > 0 && (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-space-200 dark:border-space-700">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-space-500 dark:text-space-400">Action</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-space-500 dark:text-space-400">Details</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-space-500 dark:text-space-400">IP Address</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-space-500 dark:text-space-400">Timestamp</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-space-500 dark:text-space-400">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-space-100 dark:divide-space-700">
+                    {auditLogs.map((log) => (
+                      <tr key={log.id} className="hover:bg-space-50 dark:hover:bg-space-800/50">
+                        <td className="py-3 px-4">
+                          <span className="font-medium text-space-900 dark:text-white">{log.action}</span>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-space-600 dark:text-space-400">{log.details}</td>
+                        <td className="py-3 px-4 text-sm font-mono text-space-600 dark:text-space-400">{log.ip}</td>
+                        <td className="py-3 px-4 text-sm text-space-600 dark:text-space-400">{log.timestamp}</td>
+                        <td className="py-3 px-4">
+                          <Badge variant={log.success ? 'success' : 'danger'} size="sm">
+                            {log.success ? 'Success' : 'Failed'}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-4 text-center">
+                <Button variant="ghost" size="sm">
+                  Load More
+                </Button>
+              </div>
+            </>
+          )}
         </Card>
       )}
 

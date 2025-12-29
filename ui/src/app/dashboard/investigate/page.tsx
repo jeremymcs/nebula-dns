@@ -8,7 +8,7 @@
 'use client'
 
 import { useState } from 'react'
-import { DomainInvestigationPanel, generateDemoInvestigation, InvestigationData, PdfExportModal } from '@/components/investigation'
+import { DomainInvestigationPanel, InvestigationData, PdfExportModal } from '@/components/investigation'
 import { useToast } from '@/components/Toast'
 import { useLists } from '@/hooks/useApi'
 import { api } from '@/lib/api'
@@ -73,21 +73,27 @@ export default function InvestigatePage() {
     setIsLoading(true)
     setDomain(targetDomain)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    const result = generateDemoInvestigation(targetDomain)
-    setInvestigation(result)
+    try {
+      // Call real API
+      const result = await api.investigateDomain(targetDomain)
+      setInvestigation(result)
 
-    // Add to recent investigations
-    const isMalicious = targetDomain.includes('malware') || targetDomain.includes('phishing')
-    const isSuspicious = targetDomain.includes('suspicious') || targetDomain.includes('tracker')
-    const newRecent: RecentInvestigation = {
-      domain: targetDomain,
-      timestamp: new Date(),
-      status: isMalicious ? 'malicious' : isSuspicious ? 'suspicious' : 'clean',
-      threatScore: isMalicious ? 85 : isSuspicious ? 35 : 0,
+      // Add to recent investigations based on API response
+      const status: RecentInvestigation['status'] =
+        result.riskScore >= 70 ? 'malicious' :
+        result.riskScore >= 30 ? 'suspicious' : 'clean'
+
+      const newRecent: RecentInvestigation = {
+        domain: targetDomain,
+        timestamp: new Date(),
+        status,
+        threatScore: result.riskScore || 0,
+      }
+      setRecentInvestigations((prev) => [newRecent, ...prev.filter(r => r.domain !== targetDomain)].slice(0, 10))
+    } catch (err: any) {
+      showToast('error', err?.message || 'Failed to investigate domain. Please try again.')
+      setInvestigation(null)
     }
-    setRecentInvestigations((prev) => [newRecent, ...prev.filter(r => r.domain !== targetDomain)].slice(0, 10))
 
     setIsLoading(false)
   }

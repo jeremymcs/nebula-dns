@@ -12,12 +12,13 @@ import {
   TemplateBrowser,
   TemplateDetail,
   PolicyTemplate,
-  generateDemoTemplates,
 } from '@/components/templates'
-import { RectangleStackIcon } from '@heroicons/react/24/outline'
+import { usePolicyTemplates } from '@/hooks/useApi'
+import { RectangleStackIcon, ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
 export default function TemplatesPage() {
-  const [templates] = useState<PolicyTemplate[]>(generateDemoTemplates())
+  const { data: templatesData, error, isLoading, mutate } = usePolicyTemplates()
+  const templates: PolicyTemplate[] = templatesData?.data || []
   const [selectedTemplate, setSelectedTemplate] = useState<PolicyTemplate | null>(null)
 
   const handleSelectTemplate = (template: PolicyTemplate) => {
@@ -27,6 +28,42 @@ export default function TemplatesPage() {
   const handleUseTemplate = (_template: PolicyTemplate) => {
     // TODO: Navigate to policy creation with template pre-filled
     setSelectedTemplate(null)
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500"></div>
+          <p className="text-space-500">Loading templates...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4 text-center max-w-md">
+          <div className="p-4 rounded-full bg-danger-100 dark:bg-danger-900/30">
+            <ExclamationTriangleIcon className="h-12 w-12 text-danger-500" />
+          </div>
+          <h2 className="text-xl font-semibold text-space-900 dark:text-white">Failed to Load Templates</h2>
+          <p className="text-space-500">
+            {error?.message || 'Unable to fetch policy templates. Please try again later.'}
+          </p>
+          <button
+            onClick={() => mutate()}
+            className="flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600"
+          >
+            <ArrowPathIcon className="h-4 w-4" />
+            Retry
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
