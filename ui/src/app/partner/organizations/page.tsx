@@ -185,9 +185,9 @@ export default function OrganizationsPage() {
                 <td className="px-6 py-4">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     org.status === 'active'
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                      ? 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-300'
                       : org.status === 'suspended'
-                      ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                      ? 'bg-danger-100 dark:bg-danger-900/30 text-danger-700 dark:text-danger-300'
                       : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
                   }`}>
                     {org.status}

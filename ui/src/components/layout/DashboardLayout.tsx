@@ -40,11 +40,11 @@ const breadcrumbLabels: Record<string, string> = {
 function Breadcrumbs() {
   const pathname = usePathname()
   const segments = pathname?.split('/').filter(Boolean) || []
-  
+
   if (segments.length <= 1) return null
 
   return (
-    <nav className="flex items-center gap-2 text-sm mb-6">
+    <nav className="flex items-center gap-2 text-sm mb-4">
       {segments.map((segment, index) => {
         const href = '/' + segments.slice(0, index + 1).join('/')
         const isLast = index === segments.length - 1
@@ -127,7 +127,7 @@ export function DashboardLayout({ children, showBreadcrumbs = true }: DashboardL
         )}
         <TopNav />
 
-        <main className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 py-6 pb-20 lg:pb-6">
+        <main className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 pt-4 pb-20 lg:pb-6">
           {showBreadcrumbs && <Breadcrumbs />}
           <AnimatePresence mode="wait">
             <motion.div

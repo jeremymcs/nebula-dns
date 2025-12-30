@@ -1,7 +1,7 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
+ *
  * Family Dashboard - Family-focused home view
  */
 
@@ -14,6 +14,7 @@ import { FamilyMember, generateDemoFamilyMembers } from './types'
 import { FamilyMemberCard } from './FamilyMemberCard'
 import { QuickActions } from './QuickActions'
 import { ActivitySummary } from './ActivitySummary'
+import { useFamilyMembers } from '@/hooks/useApi'
 import {
   ShieldCheckIcon,
   PlusIcon,
@@ -25,11 +26,15 @@ interface FamilyDashboardProps {
 }
 
 export function FamilyDashboard({ className }: FamilyDashboardProps) {
-  const [members] = useState<FamilyMember[]>(generateDemoFamilyMembers())
+  const { data: familyData, isLoading } = useFamilyMembers()
   const [selectedMember, setSelectedMember] = useState<string | null>(null)
 
+  // Use API data if available, otherwise fall back to demo data
+  const demoMembers = generateDemoFamilyMembers()
+  const members: FamilyMember[] = (familyData?.data?.length ?? 0) > 0 ? familyData!.data : demoMembers
+
   const onlineCount = members.filter((m) => m.isOnline).length
-  const totalThreatsBlocked = 47 // Demo value
+  const totalThreatsBlocked = 47 // TODO: Fetch from API
 
   return (
     <div className={clsx('min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-space-900 dark:to-space-800', className)}>

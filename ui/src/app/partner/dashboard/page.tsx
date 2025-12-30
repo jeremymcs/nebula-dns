@@ -193,7 +193,7 @@ export default function PartnerDashboardPage() {
                 </div>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                   org.status === 'active'
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                    ? 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-300'
                     : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
                 }`}>
                   {org.status}
@@ -233,7 +233,7 @@ function StatCard({ title, value, subtitle, icon: Icon, color }: StatCardProps) 
     emerald: 'from-emerald-500/20 to-teal-500/20 text-emerald-600 dark:text-emerald-400',
     blue: 'from-blue-500/20 to-indigo-500/20 text-blue-600 dark:text-blue-400',
     purple: 'from-purple-500/20 to-pink-500/20 text-purple-600 dark:text-purple-400',
-    green: 'from-green-500/20 to-emerald-500/20 text-green-600 dark:text-green-400',
+    green: 'from-green-500/20 to-emerald-500/20 text-success-600 dark:text-success-400',
     amber: 'from-amber-500/20 to-orange-500/20 text-amber-600 dark:text-amber-400',
   }
 

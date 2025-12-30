@@ -55,8 +55,8 @@ export function ActivitySummary({ members, className }: ActivitySummaryProps) {
       label: 'Threats Blocked',
       value: threatsBlocked.toString(),
       icon: ShieldCheckIcon,
-      color: 'text-green-500',
-      bgColor: 'bg-green-100 dark:bg-green-900/30',
+      color: 'text-success-500',
+      bgColor: 'bg-success-100 dark:bg-success-900/30',
     },
     {
       label: 'Categories Blocked',
@@ -112,7 +112,7 @@ export function ActivitySummary({ members, className }: ActivitySummaryProps) {
                         transition={{ delay: 0.5, duration: 0.5 }}
                         className={clsx(
                           'h-full rounded-full',
-                          percent >= 90 ? 'bg-red-500' : percent >= 70 ? 'bg-amber-500' : 'bg-green-500'
+                          percent >= 90 ? 'bg-danger-500' : percent >= 70 ? 'bg-amber-500' : 'bg-success-500'
                         )}
                       />
                     </div>

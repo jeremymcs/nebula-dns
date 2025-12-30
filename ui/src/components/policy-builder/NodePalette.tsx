@@ -62,8 +62,8 @@ const nodeCategories = [
 export function NodePalette({ onSelect, onClose }: NodePaletteProps) {
   const getColorClasses = (color: string) => {
     const colors: Record<string, string> = {
-      green: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/30',
-      red: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30',
+      green: 'bg-success-500/10 text-success-600 dark:text-success-400 border-green-500/30',
+      red: 'bg-danger-500/10 text-danger-600 dark:text-danger-400 border-red-500/30',
       blue: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30',
       purple: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30',
       amber: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30',

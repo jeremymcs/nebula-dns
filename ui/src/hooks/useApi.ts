@@ -248,7 +248,7 @@ export function useUser(id: string | null) {
 // ============================================
 
 export function useAgents() {
-  return useSWR<PaginatedResponse<any>>(
+  return useSWR<{ data: any[] }>(
     '/agents',
     fetcher,
     defaultConfig
@@ -256,11 +256,19 @@ export function useAgents() {
 }
 
 export function useAgentStats() {
-  return useSWR('/agents/stats', fetcher, defaultConfig)
+  return useSWR<{ data: any }>(
+    '/agents/stats',
+    fetcher,
+    defaultConfig
+  )
 }
 
 export function useAgentVersions() {
-  return useSWR('/agents/versions', fetcher, { ...defaultConfig, revalidateOnMount: true })
+  return useSWR<{ data: Record<string, any> }>(
+    '/agents/versions',
+    fetcher,
+    { ...defaultConfig, revalidateOnMount: true }
+  )
 }
 
 // ============================================
@@ -324,7 +332,7 @@ export function useMfaStatus() {
 }
 
 export function useSsoConfig() {
-  return useSWR('/sso/config', fetcher, defaultConfig)
+  return useSWR<{ data: any }>('/sso/config', fetcher, defaultConfig)
 }
 
 // ============================================
@@ -622,6 +630,38 @@ export function useMspPurchases(params?: { limit?: number; offset?: number }) {
 
   return useSWR<{ purchases: any[]; total: number }>(
     `/msp/billing/purchases${queryString}`,
+    fetcher,
+    defaultConfig
+  )
+}
+
+// ============================================
+// Family Hooks
+// ============================================
+
+export function useFamilyMembers() {
+  return useSWR<PaginatedResponse<any>>(
+    '/family/members',
+    fetcher,
+    defaultConfig
+  )
+}
+
+export function useFamilyMember(id: string | null) {
+  return useSWR<{ data: any }>(
+    id ? `/family/members/${id}` : null,
+    fetcher,
+    defaultConfig
+  )
+}
+
+// ============================================
+// Onboarding Hooks
+// ============================================
+
+export function useOnboardingProgress() {
+  return useSWR<{ data: any }>(
+    '/onboarding/progress',
     fetcher,
     defaultConfig
   )

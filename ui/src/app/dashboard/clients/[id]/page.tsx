@@ -38,7 +38,7 @@ export default function ClientOverviewPage() {
       value: stats?.threatsBlocked?.toLocaleString() || '0',
       icon: ShieldCheckIcon,
       color: 'from-red-500 to-orange-500',
-      bgColor: 'bg-red-50 dark:bg-red-900/20',
+      bgColor: 'bg-danger-50 dark:bg-danger-900/20',
     },
     {
       label: 'Active Zones',

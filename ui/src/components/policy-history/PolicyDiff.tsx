@@ -69,9 +69,9 @@ export function PolicyDiff({ fromVersion, toVersion, className }: PolicyDiffProp
   const getIcon = (type: DiffType['type']) => {
     switch (type) {
       case 'added':
-        return <PlusIcon className="h-4 w-4 text-green-500" />
+        return <PlusIcon className="h-4 w-4 text-success-500" />
       case 'removed':
-        return <MinusIcon className="h-4 w-4 text-red-500" />
+        return <MinusIcon className="h-4 w-4 text-danger-500" />
       case 'changed':
         return <ArrowsRightLeftIcon className="h-4 w-4 text-amber-500" />
     }
@@ -80,9 +80,9 @@ export function PolicyDiff({ fromVersion, toVersion, className }: PolicyDiffProp
   const getRowColor = (type: DiffType['type']) => {
     switch (type) {
       case 'added':
-        return 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+        return 'bg-success-50 dark:bg-success-900/20 border-green-200 dark:border-green-800'
       case 'removed':
-        return 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+        return 'bg-danger-50 dark:bg-danger-900/20 border-red-200 dark:border-red-800'
       case 'changed':
         return 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
     }
@@ -120,15 +120,15 @@ export function PolicyDiff({ fromVersion, toVersion, className }: PolicyDiffProp
                 <p className="font-medium text-space-900 dark:text-white">{diff.path}</p>
                 <div className="mt-1 text-sm">
                   {diff.type === 'added' && (
-                    <span className="text-green-600 dark:text-green-400">+ {formatValue(diff.newValue)}</span>
+                    <span className="text-success-600 dark:text-success-400">+ {formatValue(diff.newValue)}</span>
                   )}
                   {diff.type === 'removed' && (
-                    <span className="text-red-600 dark:text-red-400">- {formatValue(diff.oldValue)}</span>
+                    <span className="text-danger-600 dark:text-danger-400">- {formatValue(diff.oldValue)}</span>
                   )}
                   {diff.type === 'changed' && (
                     <div className="space-y-1">
-                      <div className="text-red-600 dark:text-red-400">- {formatValue(diff.oldValue)}</div>
-                      <div className="text-green-600 dark:text-green-400">+ {formatValue(diff.newValue)}</div>
+                      <div className="text-danger-600 dark:text-danger-400">- {formatValue(diff.oldValue)}</div>
+                      <div className="text-success-600 dark:text-success-400">+ {formatValue(diff.newValue)}</div>
                     </div>
                   )}
                 </div>

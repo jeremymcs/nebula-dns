@@ -44,7 +44,7 @@ export function PlatformSelector({ deviceType, selected, onSelect }: PlatformSel
           <div className="text-3xl mb-2">{platform.icon}</div>
           <p className="font-medium text-space-900 dark:text-white text-sm">{platform.name}</p>
           {platform.supportsProfile && (
-            <span className="inline-block mt-2 px-2 py-0.5 text-xs bg-green-500/10 text-green-600 dark:text-green-400 rounded-full">
+            <span className="inline-block mt-2 px-2 py-0.5 text-xs bg-success-500/10 text-success-600 dark:text-success-400 rounded-full">
               Auto-config
             </span>
           )}

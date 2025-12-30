@@ -77,7 +77,7 @@ export function Achievements({ achievements, className }: AchievementsProps) {
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center"
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-success-500 flex items-center justify-center"
                 >
                   <span className="text-white text-xs">✓</span>
                 </motion.div>
@@ -114,7 +114,7 @@ export function Achievements({ achievements, className }: AchievementsProps) {
                 <p className="text-space-500 mb-4">{selectedAchievement.description}</p>
 
                 {selectedAchievement.unlockedAt ? (
-                  <p className="text-sm text-green-600 dark:text-green-400">
+                  <p className="text-sm text-success-600 dark:text-success-400">
                     Unlocked on {new Date(selectedAchievement.unlockedAt).toLocaleDateString()}
                   </p>
                 ) : selectedAchievement.progress !== undefined ? (

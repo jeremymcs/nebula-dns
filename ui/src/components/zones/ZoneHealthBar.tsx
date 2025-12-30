@@ -50,8 +50,8 @@ export function ZoneHealthBar({ zones, className }: ZoneHealthBarProps) {
       health: 'healthy',
       label: 'Healthy',
       icon: CheckCircleIcon,
-      color: 'text-green-600 dark:text-green-400',
-      bgColor: 'bg-green-500',
+      color: 'text-success-600 dark:text-success-400',
+      bgColor: 'bg-success-500',
     },
     {
       health: 'warning',
@@ -64,8 +64,8 @@ export function ZoneHealthBar({ zones, className }: ZoneHealthBarProps) {
       health: 'critical',
       label: 'Critical',
       icon: XCircleIcon,
-      color: 'text-red-600 dark:text-red-400',
-      bgColor: 'bg-red-500',
+      color: 'text-danger-600 dark:text-danger-400',
+      bgColor: 'bg-danger-500',
     },
     {
       health: 'offline',

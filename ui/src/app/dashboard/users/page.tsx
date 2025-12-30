@@ -206,8 +206,8 @@ export default function UsersPage() {
   if (usersError) {
     return (
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <Card variant="solid" padding="lg" className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
-          <p className="text-red-800 dark:text-red-200">Failed to load users. Make sure the API is running.</p>
+        <Card variant="solid" padding="lg" className="border-red-200 dark:border-red-800 bg-danger-50 dark:bg-danger-900/20">
+          <p className="text-danger-800 dark:text-danger-200">Failed to load users. Make sure the API is running.</p>
         </Card>
       </div>
     )
@@ -320,7 +320,7 @@ export default function UsersPage() {
                       </td>
                       <td className="table-cell">
                         {user.mfaEnabled ? (
-                          <ShieldCheckIcon className="h-5 w-5 text-green-500 dark:text-green-400" title="MFA Enabled" />
+                          <ShieldCheckIcon className="h-5 w-5 text-success-500 dark:text-success-400" title="MFA Enabled" />
                         ) : (
                           <span className="text-xs text-space-400">Not set up</span>
                         )}
@@ -342,7 +342,7 @@ export default function UsersPage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleRemoveUser(user)}
-                                leftIcon={<TrashIcon className="h-4 w-4 text-red-500" />}
+                                leftIcon={<TrashIcon className="h-4 w-4 text-danger-500" />}
                               />
                             </div>
                           )}
@@ -428,7 +428,7 @@ export default function UsersPage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleRevokeInvitation(invitation)}
-                                className="text-red-600 hover:text-red-400"
+                                className="text-danger-600 hover:text-danger-400"
                               >
                                 Revoke
                               </Button>

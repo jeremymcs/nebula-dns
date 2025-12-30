@@ -22,11 +22,11 @@ interface SecurityScoreProps {
 
 export function SecurityScore({ score, data, showDetails = true, size = 'lg', className }: SecurityScoreProps) {
   const grade = useMemo((): SecurityGrade => {
-    if (score >= 90) return { letter: 'A', label: 'Excellent', color: 'text-green-500', bgColor: 'bg-green-500' }
+    if (score >= 90) return { letter: 'A', label: 'Excellent', color: 'text-success-500', bgColor: 'bg-success-500' }
     if (score >= 80) return { letter: 'B', label: 'Good', color: 'text-blue-500', bgColor: 'bg-blue-500' }
     if (score >= 70) return { letter: 'C', label: 'Fair', color: 'text-amber-500', bgColor: 'bg-amber-500' }
     if (score >= 60) return { letter: 'D', label: 'Poor', color: 'text-orange-500', bgColor: 'bg-orange-500' }
-    return { letter: 'F', label: 'Critical', color: 'text-red-500', bgColor: 'bg-red-500' }
+    return { letter: 'F', label: 'Critical', color: 'text-danger-500', bgColor: 'bg-danger-500' }
   }, [score])
 
   const sizeClasses = {
@@ -117,7 +117,7 @@ export function SecurityScore({ score, data, showDetails = true, size = 'lg', cl
                     initial={{ width: 0 }}
                     animate={{ width: `${(factor.score / factor.maxScore) * 100}%` }}
                     transition={{ delay: 1 + index * 0.1, duration: 0.5 }}
-                    className={clsx('h-full rounded-full', factor.score === factor.maxScore ? 'bg-green-500' : 'bg-nebula-500')}
+                    className={clsx('h-full rounded-full', factor.score === factor.maxScore ? 'bg-success-500' : 'bg-nebula-500')}
                   />
                 </div>
               </div>

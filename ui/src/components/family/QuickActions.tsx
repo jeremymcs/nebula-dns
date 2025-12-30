@@ -55,8 +55,8 @@ const QUICK_ACTIONS: QuickAction[] = [
     name: 'Pause Internet',
     description: 'For everyone',
     icon: NoSymbolIcon,
-    color: 'text-red-600',
-    bgColor: 'bg-red-100 dark:bg-red-900/30',
+    color: 'text-danger-600',
+    bgColor: 'bg-danger-100 dark:bg-danger-900/30',
   },
 ]
 

@@ -116,6 +116,7 @@ export class PoliciesService {
       tenantId,
       currentVersion: 1,
       isDefault: createDto.isDefault || false,
+      visualFlow: (createDto as any).visualFlow || null,
     });
 
     await this.policyRepository.save(policy);

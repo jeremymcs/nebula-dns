@@ -52,6 +52,30 @@ async function request<T>(
 }
 
 export const api = {
+  // Generic HTTP methods for custom endpoints
+  get: <T = any>(endpoint: string) => request<T>(endpoint),
+
+  post: <T = any>(endpoint: string, data?: any) =>
+    request<T>(endpoint, {
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    }),
+
+  patch: <T = any>(endpoint: string, data?: any) =>
+    request<T>(endpoint, {
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    }),
+
+  put: <T = any>(endpoint: string, data?: any) =>
+    request<T>(endpoint, {
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    }),
+
+  delete: <T = any>(endpoint: string) =>
+    request<T>(endpoint, { method: 'DELETE' }),
+
   // Auth
   login: (email: string, password: string) =>
     request<{ accessToken: string; refreshToken: string; user: any }>('/auth/login', {

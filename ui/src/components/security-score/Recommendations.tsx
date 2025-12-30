@@ -34,10 +34,10 @@ export function Recommendations({ factors, onAction, className }: Recommendation
 
   if (sortedRecommendations.length === 0) {
     return (
-      <div className={clsx('bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800 p-6 text-center', className)}>
-        <CheckCircleIcon className="h-12 w-12 text-green-500 mx-auto mb-3" />
-        <h3 className="font-semibold text-green-800 dark:text-green-200 mb-1">Perfect Score!</h3>
-        <p className="text-sm text-green-600 dark:text-green-400">
+      <div className={clsx('bg-success-50 dark:bg-success-900/20 rounded-xl border border-green-200 dark:border-green-800 p-6 text-center', className)}>
+        <CheckCircleIcon className="h-12 w-12 text-success-500 mx-auto mb-3" />
+        <h3 className="font-semibold text-success-800 dark:text-success-200 mb-1">Perfect Score!</h3>
+        <p className="text-sm text-success-600 dark:text-success-400">
           All security recommendations have been implemented.
         </p>
       </div>

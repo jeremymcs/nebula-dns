@@ -42,11 +42,11 @@ export function NetworkStatus({ zones = demoZones, className }: NetworkStatusPro
   const getStatusIcon = (status: Zone['status']) => {
     switch (status) {
       case 'healthy':
-        return <CheckCircleIcon className="h-5 w-5 text-green-500" />
+        return <CheckCircleIcon className="h-5 w-5 text-success-500" />
       case 'warning':
         return <ExclamationTriangleIcon className="h-5 w-5 text-amber-500" />
       case 'critical':
-        return <XCircleIcon className="h-5 w-5 text-red-500" />
+        return <XCircleIcon className="h-5 w-5 text-danger-500" />
       case 'offline':
         return <SignalIcon className="h-5 w-5 text-space-500" />
     }
@@ -54,9 +54,9 @@ export function NetworkStatus({ zones = demoZones, className }: NetworkStatusPro
 
   const getStatusBg = (status: Zone['status']) => {
     switch (status) {
-      case 'healthy': return 'bg-green-500/10 border-green-500/20'
+      case 'healthy': return 'bg-success-500/10 border-green-500/20'
       case 'warning': return 'bg-amber-500/10 border-amber-500/20'
-      case 'critical': return 'bg-red-500/10 border-red-500/20'
+      case 'critical': return 'bg-danger-500/10 border-red-500/20'
       case 'offline': return 'bg-space-500/10 border-space-500/20'
     }
   }
@@ -72,8 +72,8 @@ export function NetworkStatus({ zones = demoZones, className }: NetworkStatusPro
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-space-900 dark:text-white">Network Status</h3>
           <div className="flex items-center gap-3 text-sm">
-            <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
-              <span className="w-2 h-2 rounded-full bg-green-500" />
+            <span className="flex items-center gap-1 text-success-600 dark:text-success-400">
+              <span className="w-2 h-2 rounded-full bg-success-500" />
               {healthyCount} Healthy
             </span>
             {warningCount > 0 && (
@@ -83,8 +83,8 @@ export function NetworkStatus({ zones = demoZones, className }: NetworkStatusPro
               </span>
             )}
             {criticalCount > 0 && (
-              <span className="flex items-center gap-1 text-red-600 dark:text-red-400">
-                <span className="w-2 h-2 rounded-full bg-red-500" />
+              <span className="flex items-center gap-1 text-danger-600 dark:text-danger-400">
+                <span className="w-2 h-2 rounded-full bg-danger-500" />
                 {criticalCount} Critical
               </span>
             )}

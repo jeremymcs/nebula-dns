@@ -68,9 +68,9 @@ export function QueryStream({ maxItems = 10, isLive = true, className }: QuerySt
   const getDecisionIcon = (decision: Query['decision']) => {
     switch (decision) {
       case 'allowed':
-        return <CheckCircleIcon className="h-4 w-4 text-green-500" />
+        return <CheckCircleIcon className="h-4 w-4 text-success-500" />
       case 'blocked':
-        return <XCircleIcon className="h-4 w-4 text-red-500" />
+        return <XCircleIcon className="h-4 w-4 text-danger-500" />
       case 'warned':
         return <ExclamationTriangleIcon className="h-4 w-4 text-amber-500" />
     }
@@ -78,8 +78,8 @@ export function QueryStream({ maxItems = 10, isLive = true, className }: QuerySt
 
   const getDecisionBg = (decision: Query['decision']) => {
     switch (decision) {
-      case 'allowed': return 'bg-green-500/5 border-green-500/10'
-      case 'blocked': return 'bg-red-500/5 border-red-500/10'
+      case 'allowed': return 'bg-success-500/5 border-green-500/10'
+      case 'blocked': return 'bg-danger-500/5 border-red-500/10'
       case 'warned': return 'bg-amber-500/5 border-amber-500/10'
     }
   }
@@ -93,7 +93,7 @@ export function QueryStream({ maxItems = 10, isLive = true, className }: QuerySt
           <h3 className="text-lg font-semibold text-space-900 dark:text-white">Live Query Stream</h3>
         </div>
         <div className="flex items-center gap-2">
-          <span className={clsx('w-2 h-2 rounded-full', isLive ? 'bg-green-500 animate-pulse' : 'bg-space-400')} />
+          <span className={clsx('w-2 h-2 rounded-full', isLive ? 'bg-success-500 animate-pulse' : 'bg-space-400')} />
           <span className="text-xs text-space-500">{isLive ? 'Live' : 'Paused'}</span>
         </div>
       </div>

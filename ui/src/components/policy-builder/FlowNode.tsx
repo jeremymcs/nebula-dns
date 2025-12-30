@@ -97,8 +97,8 @@ export function FlowNode({
 
   const getColorClasses = (color: string) => {
     const colors: Record<string, { bg: string; border: string; text: string }> = {
-      green: { bg: 'bg-green-500/10', border: 'border-green-500', text: 'text-green-600 dark:text-green-400' },
-      red: { bg: 'bg-red-500/10', border: 'border-red-500', text: 'text-red-600 dark:text-red-400' },
+      green: { bg: 'bg-success-500/10', border: 'border-green-500', text: 'text-success-600 dark:text-success-400' },
+      red: { bg: 'bg-danger-500/10', border: 'border-red-500', text: 'text-danger-600 dark:text-danger-400' },
       blue: { bg: 'bg-blue-500/10', border: 'border-blue-500', text: 'text-blue-600 dark:text-blue-400' },
       purple: { bg: 'bg-purple-500/10', border: 'border-purple-500', text: 'text-purple-600 dark:text-purple-400' },
       amber: { bg: 'bg-amber-500/10', border: 'border-amber-500', text: 'text-amber-600 dark:text-amber-400' },
@@ -141,8 +141,8 @@ export function FlowNode({
         <Icon className={clsx('h-5 w-5', colorClasses.text)} />
         <span className={clsx('font-medium text-sm', colorClasses.text)}>{config.label}</span>
         {node.type !== 'start' && (
-          <button onClick={(e) => { e.stopPropagation(); onDelete() }} className="ml-auto p-1 hover:bg-red-500/20 rounded">
-            <XMarkIcon className="h-4 w-4 text-space-400 hover:text-red-500" />
+          <button onClick={(e) => { e.stopPropagation(); onDelete() }} className="ml-auto p-1 hover:bg-danger-500/20 rounded">
+            <XMarkIcon className="h-4 w-4 text-space-400 hover:text-danger-500" />
           </button>
         )}
       </div>
