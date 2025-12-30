@@ -169,8 +169,8 @@ export function PolicyTestSimulator({
               className="px-4 py-3 border-b border-space-100 dark:border-space-700 last:border-0"
             >
               <div className="flex items-center gap-3">
-                {result.decision === 'allowed' && <CheckCircleIcon className="h-5 w-5 text-green-500" />}
-                {result.decision === 'blocked' && <XCircleIcon className="h-5 w-5 text-red-500" />}
+                {result.decision === 'allowed' && <CheckCircleIcon className="h-5 w-5 text-success-500" />}
+                {result.decision === 'blocked' && <XCircleIcon className="h-5 w-5 text-danger-500" />}
                 {result.decision === 'warned' && <ExclamationTriangleIcon className="h-5 w-5 text-amber-500" />}
                 <div className="flex-1">
                   <p className="font-medium text-sm text-space-900 dark:text-white">{result.domain}</p>
@@ -180,8 +180,8 @@ export function PolicyTestSimulator({
                 </div>
                 <span className={clsx(
                   'px-2 py-1 rounded text-xs font-medium',
-                  result.decision === 'allowed' && 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-                  result.decision === 'blocked' && 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                  result.decision === 'allowed' && 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400',
+                  result.decision === 'blocked' && 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400',
                   result.decision === 'warned' && 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                 )}>
                   {result.decision.toUpperCase()}

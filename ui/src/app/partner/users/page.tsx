@@ -27,7 +27,7 @@ interface PartnerUser {
 const roleLabels: Record<string, { label: string; color: string }> = {
   partner_owner: { label: 'Owner', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' },
   partner_admin: { label: 'Admin', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' },
-  partner_support: { label: 'Support', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' },
+  partner_support: { label: 'Support', color: 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-300' },
 }
 
 export default function PartnerUsersPage() {
@@ -120,15 +120,15 @@ export default function PartnerUsersPage() {
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${roleLabels[user.role]?.color || 'bg-gray-100 text-gray-700'}`}>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${roleLabels[user.role]?.color || 'bg-space-100 dark:bg-space-700 text-space-700 dark:text-space-300'}`}>
                     {roleLabels[user.role]?.label || user.role}
                   </span>
                 </td>
                 <td className="px-6 py-4">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     user.status === 'active'
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                      : 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300'
+                      ? 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-300'
+                      : 'bg-space-100 dark:bg-space-800 text-space-700 dark:text-space-300'
                   }`}>
                     {user.status}
                   </span>

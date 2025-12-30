@@ -20,16 +20,16 @@ const colorClasses = {
     icon: 'text-primary-600 dark:text-primary-400',
   },
   green: {
-    bg: 'bg-green-50 dark:bg-green-900/30',
-    icon: 'text-green-600 dark:text-green-400',
+    bg: 'bg-success-50 dark:bg-success-900/30',
+    icon: 'text-success-600 dark:text-success-400',
   },
   red: {
-    bg: 'bg-red-50 dark:bg-red-900/30',
-    icon: 'text-red-600 dark:text-red-400',
+    bg: 'bg-danger-50 dark:bg-danger-900/30',
+    icon: 'text-danger-600 dark:text-danger-400',
   },
   yellow: {
-    bg: 'bg-yellow-50 dark:bg-yellow-900/30',
-    icon: 'text-yellow-600 dark:text-yellow-400',
+    bg: 'bg-warning-50 dark:bg-warning-900/30',
+    icon: 'text-warning-600 dark:text-warning-400',
   },
 }
 
@@ -51,16 +51,16 @@ export function StatsCard({
           </div>
           <div className="ml-5 w-0 flex-1">
             <dl>
-              <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">
+              <dt className="truncate text-sm font-medium text-space-500 dark:text-space-400">
                 {title}
               </dt>
               <dd className="flex items-baseline">
-                <p className="text-2xl font-semibold text-gray-900 dark:text-white">{value}</p>
+                <p className="text-2xl font-semibold text-space-900 dark:text-white">{value}</p>
                 {trend && (
                   <p
                     className={clsx(
                       'ml-2 flex items-baseline text-sm font-semibold',
-                      trend.isUp ? 'text-green-600' : 'text-red-600'
+                      trend.isUp ? 'text-success-600' : 'text-danger-600'
                     )}
                   >
                     {trend.isUp ? (

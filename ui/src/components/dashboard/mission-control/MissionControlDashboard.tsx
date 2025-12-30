@@ -172,7 +172,7 @@ export function MissionControlDashboard() {
               <p className="text-sm text-space-500 dark:text-space-400">{stat.label}</p>
               <p className="text-2xl font-bold text-space-900 dark:text-white mt-1">{stat.value}</p>
               {stat.change && (
-                <p className={`text-xs mt-1 ${stat.change.startsWith('+') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                <p className={`text-xs mt-1 ${stat.change.startsWith('+') ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'}`}>
                   {stat.change} vs last week
                 </p>
               )}

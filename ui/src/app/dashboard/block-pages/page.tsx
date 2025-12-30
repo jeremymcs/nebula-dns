@@ -249,14 +249,14 @@ export default function BlockPagesPage() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleReviewRequest(request, 'approve')}
-                            className="p-2 rounded-lg text-green-500 hover:bg-green-500/10 transition-colors"
+                            className="p-2 rounded-lg text-success-500 hover:bg-success-500/10 transition-colors"
                             title="Approve"
                           >
                             <CheckCircleIcon className="h-5 w-5" />
                           </button>
                           <button
                             onClick={() => handleReviewRequest(request, 'deny')}
-                            className="p-2 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors"
+                            className="p-2 rounded-lg text-danger-500 hover:bg-danger-500/10 transition-colors"
                             title="Deny"
                           >
                             <XCircleIcon className="h-5 w-5" />

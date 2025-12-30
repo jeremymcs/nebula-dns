@@ -132,7 +132,7 @@ export function PlaybookBuilder({ playbook, onSave, onCancel }: PlaybookBuilderP
                   <Icon className="h-5 w-5 text-space-500" />
                   <span className="flex-1 text-space-900 dark:text-white">{step.name}</span>
                   <button onClick={() => removeStep(step.id)} className="p-1 hover:bg-space-200 dark:hover:bg-space-700 rounded">
-                    <TrashIcon className="h-4 w-4 text-red-500" />
+                    <TrashIcon className="h-4 w-4 text-danger-500" />
                   </button>
                 </motion.div>
               )

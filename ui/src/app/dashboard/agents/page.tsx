@@ -4,7 +4,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   ComputerDesktopIcon,
   DevicePhoneMobileIcon,
@@ -16,6 +16,8 @@ import {
 } from '@heroicons/react/24/outline'
 import { Button, Card, Badge, Modal, EmptyState } from '@/components/ui'
 import { HeroMetric, HeroMetricsGrid } from '@/components/dashboard'
+import { useAgents, useAgentStats, useAgentVersions } from '@/hooks/useApi'
+import { api } from '@/lib/api'
 
 interface AgentVersion {
   version: string
@@ -60,78 +62,33 @@ const platformNames: Record<string, string> = {
 }
 
 export default function AgentsPage() {
-  const [versions, setVersions] = useState<Record<string, AgentVersion>>({})
-  const [agents, setAgents] = useState<AgentInstallation[]>([])
-  const [stats, setStats] = useState<AgentStats | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { data: versionsData, isLoading: versionsLoading } = useAgentVersions()
+  const { data: agentsData, isLoading: agentsLoading } = useAgents()
+  const { data: statsData, isLoading: statsLoading } = useAgentStats()
+
+  const versions: Record<string, AgentVersion> = versionsData?.data || {}
+  const agents: AgentInstallation[] = agentsData?.data || []
+  const stats: AgentStats | null = statsData?.data || null
+  const loading = versionsLoading || agentsLoading || statsLoading
+
   const [downloading, setDownloading] = useState<string | null>(null)
   const [showDownloadModal, setShowDownloadModal] = useState(false)
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null)
   const [downloadLink, setDownloadLink] = useState<{ url: string; token: string; expiresAt: string } | null>(null)
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  const fetchData = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      
-      // Fetch versions
-      const versionsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/agents/versions`)
-      if (versionsRes.ok) {
-        const data = await versionsRes.json()
-        setVersions(data.data)
-      }
-
-      // Fetch installed agents
-      const agentsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/agents`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (agentsRes.ok) {
-        const data = await agentsRes.json()
-        setAgents(data.data || [])
-      }
-
-      // Fetch stats
-      const statsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/agents/stats`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (statsRes.ok) {
-        const data = await statsRes.json()
-        setStats(data.data)
-      }
-    } catch (err) {
-      console.error('Failed to fetch data')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleDownload = async (platform: string) => {
     setSelectedPlatform(platform)
     setDownloading(platform)
-    
-    try {
-      const token = localStorage.getItem('token')
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/agents/download-link`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ platform }),
-      })
 
-      if (res.ok) {
-        const data = await res.json()
-        setDownloadLink({
-          url: data.data.downloadUrl,
-          token: data.data.installationToken,
-          expiresAt: data.data.expiresAt,
-        })
-        setShowDownloadModal(true)
-      }
+    try {
+      const response = await api.post('/agents/download-link', { platform })
+      const data = response.data
+      setDownloadLink({
+        url: data.downloadUrl,
+        token: data.installationToken,
+        expiresAt: data.expiresAt,
+      })
+      setShowDownloadModal(true)
     } catch (err) {
       console.error('Failed to generate download link')
     } finally {
@@ -326,12 +283,12 @@ export default function AgentsPage() {
       >
         {downloadLink && (
           <div className="space-y-4">
-            <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl p-4">
-              <div className="flex items-center text-green-700 dark:text-green-300 mb-2">
+            <div className="bg-success-50 dark:bg-success-900/30 border border-green-200 dark:border-green-800 rounded-xl p-4">
+              <div className="flex items-center text-success-700 dark:text-success-300 mb-2">
                 <CheckCircleIcon className="h-5 w-5 mr-2" />
                 <span className="font-medium">Download link ready!</span>
               </div>
-              <p className="text-sm text-green-600 dark:text-green-400">
+              <p className="text-sm text-success-600 dark:text-success-400">
                 Your installation token has been generated. Use it during setup.
               </p>
             </div>

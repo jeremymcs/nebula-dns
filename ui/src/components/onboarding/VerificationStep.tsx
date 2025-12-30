@@ -78,10 +78,10 @@ export function VerificationStep({ onVerified }: VerificationStepProps) {
           animate={{ opacity: 1, scale: 1 }}
           className="space-y-4"
         >
-          <div className="w-24 h-24 mx-auto rounded-full bg-green-500/10 flex items-center justify-center">
-            <CheckCircleIcon className="h-16 w-16 text-green-500" />
+          <div className="w-24 h-24 mx-auto rounded-full bg-success-500/10 flex items-center justify-center">
+            <CheckCircleIcon className="h-16 w-16 text-success-500" />
           </div>
-          <h3 className="text-xl font-semibold text-green-600 dark:text-green-400">
+          <h3 className="text-xl font-semibold text-success-600 dark:text-success-400">
             Protection Active! 🎉
           </h3>
           <p className="text-space-500">
@@ -89,7 +89,7 @@ export function VerificationStep({ onVerified }: VerificationStepProps) {
           </p>
           <button
             onClick={onVerified}
-            className="mt-4 px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+            className="mt-4 px-6 py-2 bg-success-500 text-white rounded-lg hover:bg-success-600 transition-colors"
           >
             Continue to Dashboard
           </button>

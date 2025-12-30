@@ -46,6 +46,12 @@ import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { PlaybooksModule } from './modules/playbooks/playbooks.module';
 import { PolicyTemplatesModule } from './modules/policy-templates/policy-templates.module';
 
+// Family Mode
+import { FamilyModule } from './modules/family/family.module';
+
+// Onboarding
+import { OnboardingModule } from './modules/onboarding/onboarding.module';
+
 @Module({
   imports: [
     // Configuration with validation
@@ -141,6 +147,12 @@ import { PolicyTemplatesModule } from './modules/policy-templates/policy-templat
     // Security Automation
     PlaybooksModule,
     PolicyTemplatesModule,
+
+    // Family Mode
+    FamilyModule,
+
+    // Onboarding
+    OnboardingModule,
   ],
 })
 export class AppModule implements NestModule {

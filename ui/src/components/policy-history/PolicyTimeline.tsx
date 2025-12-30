@@ -89,7 +89,7 @@ export function PolicyTimeline({
               {/* Icon */}
               <div className={clsx(
                 'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5',
-                isCurrent ? 'bg-green-500' : 'bg-space-200 dark:bg-space-600'
+                isCurrent ? 'bg-success-500' : 'bg-space-200 dark:bg-space-600'
               )}>
                 <Icon className={clsx('h-4 w-4', isCurrent ? 'text-white' : 'text-space-600 dark:text-space-300')} />
               </div>
@@ -99,7 +99,7 @@ export function PolicyTimeline({
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-space-900 dark:text-white">v{version.version}</span>
                   {isCurrent && (
-                    <span className="px-1.5 py-0.5 text-[10px] font-medium bg-green-500 text-white rounded">
+                    <span className="px-1.5 py-0.5 text-[10px] font-medium bg-success-500 text-white rounded">
                       Current
                     </span>
                   )}

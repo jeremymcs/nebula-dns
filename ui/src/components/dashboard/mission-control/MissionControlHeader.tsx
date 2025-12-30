@@ -133,8 +133,8 @@ export function MissionControlHeader({
             transition={{ delay: 0.2 }}
             className="flex items-center gap-2"
           >
-            <span className="w-2 h-2 rounded-full bg-green-500 dark:bg-green-400 animate-pulse" />
-            <span className="text-sm text-green-700 dark:text-green-300">All Systems Operational</span>
+            <span className="w-2 h-2 rounded-full bg-success-500 dark:bg-success-400 animate-pulse" />
+            <span className="text-sm text-success-700 dark:text-success-300">All Systems Operational</span>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, x: -20 }}

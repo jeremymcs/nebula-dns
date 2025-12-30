@@ -44,7 +44,7 @@ export function PolicyTemplateSelector({ selected, onSelect }: PolicyTemplateSel
                   key={feature}
                   className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-space-100 dark:bg-space-700 text-space-600 dark:text-space-400 rounded-full"
                 >
-                  <CheckIcon className="h-3 w-3 text-green-500" />
+                  <CheckIcon className="h-3 w-3 text-success-500" />
                   {feature}
                 </span>
               ))}

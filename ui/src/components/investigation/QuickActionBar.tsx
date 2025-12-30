@@ -27,13 +27,13 @@ export function QuickActionBar({ domain, onAction, className }: QuickActionBarPr
       id: 'block',
       label: 'Block',
       icon: NoSymbolIcon,
-      color: 'bg-red-500 hover:bg-red-600 text-white',
+      color: 'bg-danger-500 hover:bg-danger-600 text-white',
     },
     {
       id: 'allow',
       label: 'Allow',
       icon: CheckCircleIcon,
-      color: 'bg-green-500 hover:bg-green-600 text-white',
+      color: 'bg-success-500 hover:bg-success-600 text-white',
     },
     {
       id: 'add-to-list',

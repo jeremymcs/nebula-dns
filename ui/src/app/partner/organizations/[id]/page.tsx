@@ -223,12 +223,12 @@ export default function OrganizationDetailPage() {
                   <div className="flex items-center gap-4">
                     <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
                       location.status === 'active'
-                        ? 'bg-green-100 dark:bg-green-900/30'
+                        ? 'bg-success-100 dark:bg-success-900/30'
                         : 'bg-amber-100 dark:bg-amber-900/30'
                     }`}>
                       <SignalIcon className={`h-5 w-5 ${
                         location.status === 'active'
-                          ? 'text-green-600 dark:text-green-400'
+                          ? 'text-success-600 dark:text-success-400'
                           : 'text-amber-600 dark:text-amber-400'
                       }`} />
                     </div>
@@ -241,7 +241,7 @@ export default function OrganizationDetailPage() {
                   </div>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     location.status === 'active'
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                      ? 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-300'
                       : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
                   }`}>
                     {location.status}
@@ -266,7 +266,7 @@ export default function OrganizationDetailPage() {
 
 function StatCard({ label, value, color }: { label: string; value: string | number; color: string }) {
   const colorMap: Record<string, string> = {
-    green: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
+    green: 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-300',
     amber: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
     blue: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
     purple: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300',

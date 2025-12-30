@@ -17,6 +17,14 @@ export class Policy extends TenantScopedEntity {
   @Column({ name: 'is_default', type: 'boolean', default: false })
   isDefault: boolean;
 
+  // Visual flow representation for the policy builder UI
+  @Column({ name: 'visual_flow', type: 'jsonb', nullable: true })
+  visualFlow: {
+    nodes: any[];
+    connections: any[];
+    templateName?: string;
+  } | null;
+
   @ManyToOne(() => Tenant, (tenant) => tenant.policies)
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;

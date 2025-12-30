@@ -228,8 +228,8 @@ export default function ListsPage() {
   if (error) {
     return (
       <div className="space-y-8">
-        <Card variant="solid" padding="lg" className="border-red-500/50 bg-red-500/10">
-          <p className="text-red-600 dark:text-red-400">Failed to load lists. Make sure the API is running.</p>
+        <Card variant="solid" padding="lg" className="border-red-500/50 bg-danger-500/10">
+          <p className="text-danger-600 dark:text-danger-400">Failed to load lists. Make sure the API is running.</p>
         </Card>
       </div>
     )
@@ -249,7 +249,7 @@ export default function ListsPage() {
           <Button
             variant="secondary"
             onClick={() => openCreateModal('allowlist')}
-            leftIcon={<CheckCircleIcon className="h-5 w-5 text-green-500" />}
+            leftIcon={<CheckCircleIcon className="h-5 w-5 text-success-500" />}
           >
             New Allowlist
           </Button>
@@ -294,9 +294,9 @@ export default function ListsPage() {
                       : 'bg-gradient-to-br from-red-500/20 to-rose-500/20 border border-red-500/30'
                   }`}>
                     {list.type === 'allowlist' ? (
-                      <CheckCircleIcon className="h-6 w-6 text-green-500" />
+                      <CheckCircleIcon className="h-6 w-6 text-success-500" />
                     ) : (
-                      <NoSymbolIcon className="h-6 w-6 text-red-500" />
+                      <NoSymbolIcon className="h-6 w-6 text-danger-500" />
                     )}
                   </div>
                   <div className="ml-3">
@@ -322,7 +322,7 @@ export default function ListsPage() {
                       e.stopPropagation()
                       handleDelete(list)
                     }}
-                    className="p-2 rounded-lg text-space-400 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                    className="p-2 rounded-lg text-space-400 hover:text-danger-500 hover:bg-danger-500/10 transition-colors"
                     title="Delete"
                   >
                     <TrashIcon className="h-4 w-4" />
@@ -356,7 +356,7 @@ export default function ListsPage() {
                     <Button
                       variant="secondary"
                       onClick={() => openCreateModal('allowlist')}
-                      leftIcon={<CheckCircleIcon className="h-5 w-5 text-green-500" />}
+                      leftIcon={<CheckCircleIcon className="h-5 w-5 text-success-500" />}
                     >
                       New Allowlist
                     </Button>
@@ -537,7 +537,7 @@ export default function ListsPage() {
                     <span className="text-sm font-mono text-space-900 dark:text-white">{entry.domain}</span>
                     <button
                       onClick={() => removeDomain(entry.id)}
-                      className="p-2 rounded-lg text-space-400 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                      className="p-2 rounded-lg text-space-400 hover:text-danger-500 hover:bg-danger-500/10 transition-colors"
                     >
                       <TrashIcon className="h-4 w-4" />
                     </button>

@@ -25,11 +25,11 @@ export function ThreatIndicators({ threats, className }: ThreatIndicatorsProps) 
   const getStatusIcon = (status: ThreatIndicator['status']) => {
     switch (status) {
       case 'clean':
-        return <CheckCircleIcon className="h-5 w-5 text-green-500" />
+        return <CheckCircleIcon className="h-5 w-5 text-success-500" />
       case 'suspicious':
         return <ExclamationTriangleIcon className="h-5 w-5 text-amber-500" />
       case 'malicious':
-        return <XCircleIcon className="h-5 w-5 text-red-500" />
+        return <XCircleIcon className="h-5 w-5 text-danger-500" />
       default:
         return <QuestionMarkCircleIcon className="h-5 w-5 text-space-400" />
     }
@@ -38,11 +38,11 @@ export function ThreatIndicators({ threats, className }: ThreatIndicatorsProps) 
   const getStatusColor = (status: ThreatIndicator['status']) => {
     switch (status) {
       case 'clean':
-        return 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+        return 'bg-success-50 dark:bg-success-900/20 border-green-200 dark:border-green-800'
       case 'suspicious':
         return 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
       case 'malicious':
-        return 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+        return 'bg-danger-50 dark:bg-danger-900/20 border-red-200 dark:border-red-800'
       default:
         return 'bg-space-50 dark:bg-space-800 border-space-200 dark:border-space-700'
     }
@@ -83,9 +83,9 @@ export function ThreatIndicators({ threats, className }: ThreatIndicatorsProps) 
             <div className="text-right">
               <span className={clsx(
                 'text-sm font-medium',
-                threat.status === 'clean' ? 'text-green-600 dark:text-green-400' :
+                threat.status === 'clean' ? 'text-success-600 dark:text-success-400' :
                 threat.status === 'suspicious' ? 'text-amber-600 dark:text-amber-400' :
-                threat.status === 'malicious' ? 'text-red-600 dark:text-red-400' :
+                threat.status === 'malicious' ? 'text-danger-600 dark:text-danger-400' :
                 'text-space-500'
               )}>
                 {threat.score}/{threat.maxScore}

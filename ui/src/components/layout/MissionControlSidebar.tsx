@@ -113,7 +113,7 @@ export function MissionControlSidebar() {
                       {item.badge && item.badge !== 'MSP' && (
                         <span className={clsx(
                           'ml-2 px-1.5 py-0.5 text-xs font-medium rounded',
-                          item.badge === 'Live' ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400' :
+                          item.badge === 'Live' ? 'bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-400' :
                           item.badge === 'New' ? 'bg-nebula-100 text-nebula-700 dark:bg-nebula-900/50 dark:text-nebula-400' :
                           'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400'
                         )}>
@@ -178,7 +178,7 @@ export function MissionControlSidebar() {
               </Link>
             </div>
             <div className="border-t border-space-100 dark:border-space-700 py-1">
-              <button onClick={() => { setShowUserMenu(false); logout() }} className="flex w-full items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
+              <button onClick={() => { setShowUserMenu(false); logout() }} className="flex w-full items-center px-4 py-2 text-sm text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20">
                 <ArrowRightOnRectangleIcon className="mr-3 h-5 w-5" />
                 Sign out
               </button>

@@ -27,7 +27,7 @@ function ThemeToggle() {
       aria-label="Toggle theme"
     >
       {resolvedTheme === 'dark' ? (
-        <SunIcon className="w-5 h-5 text-yellow-400" />
+        <SunIcon className="w-5 h-5 text-warning-400" />
       ) : (
         <MoonIcon className="w-5 h-5 text-space-700" />
       )}

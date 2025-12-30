@@ -206,11 +206,11 @@ export default function InvestigatePage() {
   const getStatusIcon = (status: RecentInvestigation['status']) => {
     switch (status) {
       case 'malicious':
-        return <ShieldExclamationIcon className="h-5 w-5 text-red-500" />
+        return <ShieldExclamationIcon className="h-5 w-5 text-danger-500" />
       case 'suspicious':
         return <ExclamationTriangleIcon className="h-5 w-5 text-amber-500" />
       default:
-        return <CheckCircleIcon className="h-5 w-5 text-green-500" />
+        return <CheckCircleIcon className="h-5 w-5 text-success-500" />
     }
   }
 
@@ -327,7 +327,7 @@ export default function InvestigatePage() {
             {recentInvestigations.length > 0 && (
               <button
                 onClick={() => setRecentInvestigations([])}
-                className="text-sm text-space-500 hover:text-red-500 flex items-center gap-1"
+                className="text-sm text-space-500 hover:text-danger-500 flex items-center gap-1"
               >
                 <TrashIcon className="h-4 w-4" />
                 Clear
@@ -356,9 +356,9 @@ export default function InvestigatePage() {
                   </div>
                   <div className={clsx(
                     'px-2 py-1 rounded text-xs font-medium',
-                    item.status === 'malicious' && 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+                    item.status === 'malicious' && 'bg-danger-100 dark:bg-danger-900/30 text-danger-700 dark:text-danger-400',
                     item.status === 'suspicious' && 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
-                    item.status === 'clean' && 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                    item.status === 'clean' && 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400'
                   )}>
                     {item.threatScore}% threat
                   </div>
@@ -432,12 +432,12 @@ export default function InvestigatePage() {
             <div className="flex items-center justify-between p-4 border-b border-space-200 dark:border-space-700">
               <div className="flex items-center gap-3">
                 {pendingAction.action === 'block' ? (
-                  <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30">
-                    <NoSymbolIcon className="h-5 w-5 text-red-600 dark:text-red-400" />
+                  <div className="p-2 rounded-lg bg-danger-100 dark:bg-danger-900/30">
+                    <NoSymbolIcon className="h-5 w-5 text-danger-600 dark:text-danger-400" />
                   </div>
                 ) : (
-                  <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
-                    <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <div className="p-2 rounded-lg bg-success-100 dark:bg-success-900/30">
+                    <CheckCircleIcon className="h-5 w-5 text-success-600 dark:text-success-400" />
                   </div>
                 )}
                 <div>
@@ -480,9 +480,9 @@ export default function InvestigatePage() {
                     >
                       <div className="flex items-center gap-3">
                         {pendingAction.action === 'block' ? (
-                          <NoSymbolIcon className="h-5 w-5 text-red-500" />
+                          <NoSymbolIcon className="h-5 w-5 text-danger-500" />
                         ) : (
-                          <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                          <CheckCircleIcon className="h-5 w-5 text-success-500" />
                         )}
                         <div>
                           <p className="font-medium text-space-900 dark:text-white">{list.name}</p>

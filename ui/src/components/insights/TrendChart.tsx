@@ -37,7 +37,7 @@ export function TrendChart({ trends, className }: TrendChartProps) {
     if (trend === 'stable') return 'text-space-500'
     // For some metrics, down is good (threats, response time)
     const isGood = isPositive ? trend === 'up' : trend === 'down'
-    return isGood ? 'text-green-500' : 'text-red-500'
+    return isGood ? 'text-success-500' : 'text-danger-500'
   }
 
   const formatValue = (value: number, label: string) => {

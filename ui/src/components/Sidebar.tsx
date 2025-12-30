@@ -79,24 +79,24 @@ export function Sidebar() {
       case 'admin':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300'
       case 'analyst':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300'
+        return 'bg-success-100 text-success-800 dark:bg-success-900/50 dark:text-success-300'
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+        return 'bg-space-100 text-space-800 dark:bg-space-700 dark:text-space-300'
     }
   }
 
   const { resolvedTheme, toggleTheme } = useTheme()
 
   return (
-    <div className="flex h-full w-64 flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-colors">
+    <div className="flex h-full w-64 flex-col bg-white dark:bg-space-800 border-r border-space-200 dark:border-space-700 transition-colors">
       {/* Logo */}
-      <div className="flex h-16 shrink-0 items-center px-6 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex h-16 shrink-0 items-center px-6 border-b border-space-200 dark:border-space-700">
         <div className="h-8 w-8 rounded-lg bg-primary-600 flex items-center justify-center">
           <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
         </div>
-        <span className="ml-3 text-lg font-semibold text-gray-900 dark:text-white">Nebula DNS</span>
+        <span className="ml-3 text-lg font-semibold text-space-900 dark:text-white">Nebula DNS</span>
       </div>
 
       {/* Navigation */}
@@ -113,7 +113,7 @@ export function Sidebar() {
                 'group flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors',
                 isActive
                   ? 'bg-primary-50 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                  : 'text-space-700 dark:text-space-300 hover:bg-space-50 dark:hover:bg-space-700 hover:text-space-900 dark:hover:text-white'
               )}
             >
               <item.icon
@@ -121,7 +121,7 @@ export function Sidebar() {
                   'mr-3 h-5 w-5 flex-shrink-0',
                   isActive
                     ? 'text-primary-600 dark:text-primary-400'
-                    : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-500 dark:group-hover:text-gray-400'
+                    : 'text-space-400 dark:text-space-500 group-hover:text-space-500 dark:group-hover:text-space-400'
                 )}
               />
               {item.name}
@@ -131,25 +131,25 @@ export function Sidebar() {
       </nav>
 
       {/* Theme toggle */}
-      <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-700">
+      <div className="px-3 py-2 border-t border-space-200 dark:border-space-700">
         <button
           onClick={toggleTheme}
-          className="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          className="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium text-space-700 dark:text-space-300 hover:bg-space-50 dark:hover:bg-space-700 transition-colors"
         >
           {resolvedTheme === 'dark' ? (
             <SunIcon className="mr-3 h-5 w-5 text-yellow-500" />
           ) : (
-            <MoonIcon className="mr-3 h-5 w-5 text-gray-400" />
+            <MoonIcon className="mr-3 h-5 w-5 text-space-400" />
           )}
           {resolvedTheme === 'dark' ? 'Light Mode' : 'Dark Mode'}
         </button>
       </div>
 
       {/* User section with dropdown */}
-      <div className="relative shrink-0 border-t border-gray-200 dark:border-gray-700" ref={menuRef}>
+      <div className="relative shrink-0 border-t border-space-200 dark:border-space-700" ref={menuRef}>
         <button
           onClick={() => setShowUserMenu(!showUserMenu)}
-          className="flex w-full items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          className="flex w-full items-center justify-between p-4 hover:bg-space-50 dark:hover:bg-space-700 transition-colors"
         >
           <div className="flex items-center min-w-0">
             <div className="h-9 w-9 rounded-full bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center flex-shrink-0">
@@ -158,24 +158,24 @@ export function Sidebar() {
               </span>
             </div>
             <div className="ml-3 min-w-0">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
+              <p className="text-sm font-medium text-space-700 dark:text-space-200 truncate">
                 {user?.name || 'User'}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              <p className="text-xs text-space-500 dark:text-space-400 truncate">
                 {user?.email || 'user@example.com'}
               </p>
             </div>
           </div>
-          <ChevronUpDownIcon className="h-5 w-5 text-gray-400 flex-shrink-0" />
+          <ChevronUpDownIcon className="h-5 w-5 text-space-400 flex-shrink-0" />
         </button>
 
         {/* Dropdown Menu */}
         {showUserMenu && (
-          <div className="absolute bottom-full left-0 right-0 mb-1 mx-3 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+          <div className="absolute bottom-full left-0 right-0 mb-1 mx-3 bg-white dark:bg-space-800 rounded-lg shadow-lg border border-space-200 dark:border-space-700 py-1 z-50">
             {/* User info header */}
-            <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-              <p className="text-sm font-medium text-gray-900 dark:text-white">{user?.name}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
+            <div className="px-4 py-3 border-b border-space-100 dark:border-space-700">
+              <p className="text-sm font-medium text-space-900 dark:text-white">{user?.name}</p>
+              <p className="text-xs text-space-500 dark:text-space-400">{user?.email}</p>
               {user?.role && (
                 <span className={`mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium capitalize ${getRoleBadgeColor(user.role)}`}>
                   {user.role}
@@ -188,37 +188,37 @@ export function Sidebar() {
               <Link
                 href="/dashboard/settings"
                 onClick={() => setShowUserMenu(false)}
-                className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="flex items-center px-4 py-2 text-sm text-space-700 dark:text-space-300 hover:bg-space-100 dark:hover:bg-space-700"
               >
-                <UserCircleIcon className="mr-3 h-5 w-5 text-gray-400" />
+                <UserCircleIcon className="mr-3 h-5 w-5 text-space-400" />
                 Account Settings
               </Link>
               <Link
                 href="/dashboard/settings/security"
                 onClick={() => setShowUserMenu(false)}
-                className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="flex items-center px-4 py-2 text-sm text-space-700 dark:text-space-300 hover:bg-space-100 dark:hover:bg-space-700"
               >
-                <KeyIcon className="mr-3 h-5 w-5 text-gray-400" />
+                <KeyIcon className="mr-3 h-5 w-5 text-space-400" />
                 Security
               </Link>
               <Link
                 href="/dashboard/settings/api-keys"
                 onClick={() => setShowUserMenu(false)}
-                className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="flex items-center px-4 py-2 text-sm text-space-700 dark:text-space-300 hover:bg-space-100 dark:hover:bg-space-700"
               >
-                <BellIcon className="mr-3 h-5 w-5 text-gray-400" />
+                <BellIcon className="mr-3 h-5 w-5 text-space-400" />
                 API Keys
               </Link>
             </div>
 
             {/* Logout */}
-            <div className="border-t border-gray-100 dark:border-gray-700 py-1">
+            <div className="border-t border-space-100 dark:border-space-700 py-1">
               <button
                 onClick={() => {
                   setShowUserMenu(false)
                   logout()
                 }}
-                className="flex w-full items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                className="flex w-full items-center px-4 py-2 text-sm text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20"
               >
                 <ArrowRightOnRectangleIcon className="mr-3 h-5 w-5" />
                 Sign out

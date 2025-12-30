@@ -33,7 +33,7 @@ export function WeeklyInsights({ insight, className }: WeeklyInsightsProps) {
   const getHighlightIcon = (type: string) => {
     switch (type) {
       case 'positive':
-        return <CheckCircleIcon className="h-5 w-5 text-green-500" />
+        return <CheckCircleIcon className="h-5 w-5 text-success-500" />
       case 'warning':
         return <ExclamationTriangleIcon className="h-5 w-5 text-amber-500" />
       default:
@@ -44,7 +44,7 @@ export function WeeklyInsights({ insight, className }: WeeklyInsightsProps) {
   const getHighlightBg = (type: string) => {
     switch (type) {
       case 'positive':
-        return 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+        return 'bg-success-50 dark:bg-success-900/20 border-green-200 dark:border-green-800'
       case 'warning':
         return 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
       default:
@@ -97,7 +97,7 @@ export function WeeklyInsights({ insight, className }: WeeklyInsightsProps) {
                     <p className="font-bold text-space-900 dark:text-white">
                       {highlight.metric.value.toLocaleString()}
                     </p>
-                    <p className={clsx('text-xs flex items-center gap-1', highlight.metric.change > 0 ? 'text-red-500' : 'text-green-500')}>
+                    <p className={clsx('text-xs flex items-center gap-1', highlight.metric.change > 0 ? 'text-danger-500' : 'text-success-500')}>
                       {highlight.metric.change > 0 ? <ArrowTrendingUpIcon className="h-3 w-3" /> : <ArrowTrendingDownIcon className="h-3 w-3" />}
                       {Math.abs(highlight.metric.change)}%
                     </p>
@@ -118,7 +118,7 @@ export function WeeklyInsights({ insight, className }: WeeklyInsightsProps) {
               <div className="flex items-center gap-3">
                 <span className={clsx(
                   'w-2 h-2 rounded-full',
-                  rec.priority === 'high' ? 'bg-red-500' : rec.priority === 'medium' ? 'bg-amber-500' : 'bg-blue-500'
+                  rec.priority === 'high' ? 'bg-danger-500' : rec.priority === 'medium' ? 'bg-amber-500' : 'bg-blue-500'
                 )} />
                 <span className="text-sm text-space-700 dark:text-space-300">{rec.title}</span>
               </div>

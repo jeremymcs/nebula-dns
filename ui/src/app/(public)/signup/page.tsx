@@ -31,25 +31,25 @@ function SignupFormSkeleton() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="animate-pulse">
-          <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto mb-8" />
+          <div className="h-10 bg-space-200 dark:bg-space-700 rounded w-1/2 mx-auto mb-8" />
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+              <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-8">
                 <div className="space-y-6">
-                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
-                  <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded" />
-                  <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded" />
-                  <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded" />
+                  <div className="h-8 bg-space-200 dark:bg-space-700 rounded w-2/3" />
+                  <div className="h-12 bg-space-200 dark:bg-space-700 rounded" />
+                  <div className="h-12 bg-space-200 dark:bg-space-700 rounded" />
+                  <div className="h-12 bg-space-200 dark:bg-space-700 rounded" />
                 </div>
               </div>
             </div>
             <div className="lg:col-span-1">
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
-                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-4" />
+              <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-6">
+                <div className="h-6 bg-space-200 dark:bg-space-700 rounded w-1/2 mb-4" />
                 <div className="space-y-3">
-                  <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
-                  <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
-                  <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
+                  <div className="h-16 bg-space-200 dark:bg-space-700 rounded" />
+                  <div className="h-16 bg-space-200 dark:bg-space-700 rounded" />
+                  <div className="h-16 bg-space-200 dark:bg-space-700 rounded" />
                 </div>
               </div>
             </div>
@@ -212,15 +212,15 @@ function SignupFormContent() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-12 px-4">
         <div className="max-w-md w-full text-center">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircleIcon className="h-10 w-10 text-green-500" />
+          <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-8">
+            <div className="w-16 h-16 bg-success-100 dark:bg-success-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircleIcon className="h-10 w-10 text-success-500" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome to Nebula DNS!</h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <h2 className="text-2xl font-bold text-space-900 dark:text-white mb-2">Welcome to Nebula DNS!</h2>
+            <p className="text-space-600 dark:text-space-400 mb-6">
               Your account has been created successfully. Check your email for a welcome message with getting started instructions.
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Redirecting to login...</p>
+            <p className="text-sm text-space-500 dark:text-space-400">Redirecting to login...</p>
           </div>
         </div>
       </div>
@@ -241,7 +241,7 @@ function SignupFormContent() {
                       ? 'bg-indigo-600 text-white'
                       : s === step
                       ? 'bg-indigo-600 text-white'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                      : 'bg-space-200 dark:bg-space-700 text-space-500 dark:text-space-400'
                   }`}
                 >
                   {s < step ? (
@@ -253,7 +253,7 @@ function SignupFormContent() {
                 {s < 3 && (
                   <div
                     className={`w-20 h-1 ${
-                      s < step ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'
+                      s < step ? 'bg-indigo-600' : 'bg-space-200 dark:bg-space-700'
                     }`}
                   />
                 )}
@@ -261,7 +261,7 @@ function SignupFormContent() {
             ))}
           </div>
           <div className="flex justify-center mt-2">
-            <span className="text-sm text-gray-600 dark:text-gray-400">
+            <span className="text-sm text-space-600 dark:text-space-400">
               Step {step} of 3:{' '}
               {step === 1 ? 'Account Details' : step === 2 ? 'Company Info' : 'Review & Confirm'}
             </span>
@@ -271,22 +271,22 @@ function SignupFormContent() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Form */}
           <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+            <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-8">
               <form onSubmit={handleSubmit}>
                 {error && (
-                  <div className="mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/30 flex items-start">
-                    <ExclamationCircleIcon className="h-5 w-5 text-red-500 mt-0.5 mr-2 flex-shrink-0" />
-                    <span className="text-sm text-red-700 dark:text-red-300">{error}</span>
+                  <div className="mb-6 p-4 rounded-lg bg-danger-50 dark:bg-danger-900/30 flex items-start">
+                    <ExclamationCircleIcon className="h-5 w-5 text-danger-500 mt-0.5 mr-2 flex-shrink-0" />
+                    <span className="text-sm text-danger-700 dark:text-danger-300">{error}</span>
                   </div>
                 )}
 
                 {/* Step 1: Account Details */}
                 {step === 1 && (
                   <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Create Your Account</h2>
+                    <h2 className="text-2xl font-bold text-space-900 dark:text-white">Create Your Account</h2>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
                         Email Address *
                       </label>
                       <input
@@ -294,14 +294,14 @@ function SignupFormContent() {
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full px-4 py-3 rounded-lg border border-space-300 dark:border-space-600 bg-white dark:bg-space-700 text-space-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         placeholder="you@company.com"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
                         Password *
                       </label>
                       <input
@@ -309,14 +309,14 @@ function SignupFormContent() {
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full px-4 py-3 rounded-lg border border-space-300 dark:border-space-600 bg-white dark:bg-space-700 text-space-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         placeholder="At least 8 characters"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
                         Confirm Password *
                       </label>
                       <input
@@ -324,7 +324,7 @@ function SignupFormContent() {
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full px-4 py-3 rounded-lg border border-space-300 dark:border-space-600 bg-white dark:bg-space-700 text-space-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         placeholder="Repeat your password"
                         required
                       />
@@ -335,10 +335,10 @@ function SignupFormContent() {
                 {/* Step 2: Company Info */}
                 {step === 2 && (
                   <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Tell Us About Your Organization</h2>
+                    <h2 className="text-2xl font-bold text-space-900 dark:text-white">Tell Us About Your Organization</h2>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
                         Full Name *
                       </label>
                       <input
@@ -346,14 +346,14 @@ function SignupFormContent() {
                         name="fullName"
                         value={formData.fullName}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full px-4 py-3 rounded-lg border border-space-300 dark:border-space-600 bg-white dark:bg-space-700 text-space-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         placeholder="John Smith"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
                         Company Name *
                       </label>
                       <input
@@ -361,7 +361,7 @@ function SignupFormContent() {
                         name="companyName"
                         value={formData.companyName}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full px-4 py-3 rounded-lg border border-space-300 dark:border-space-600 bg-white dark:bg-space-700 text-space-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         placeholder="Acme Corporation"
                         required
                       />
@@ -369,14 +369,14 @@ function SignupFormContent() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
                           Industry
                         </label>
                         <select
                           name="industry"
                           value={formData.industry}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          className="w-full px-4 py-3 rounded-lg border border-space-300 dark:border-space-600 bg-white dark:bg-space-700 text-space-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         >
                           <option value="">Select...</option>
                           <option value="technology">Technology</option>
@@ -391,14 +391,14 @@ function SignupFormContent() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
                           Company Size
                         </label>
                         <select
                           name="companySize"
                           value={formData.companySize}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          className="w-full px-4 py-3 rounded-lg border border-space-300 dark:border-space-600 bg-white dark:bg-space-700 text-space-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         >
                           <option value="">Select...</option>
                           <option value="1-10">1-10 employees</option>
@@ -411,14 +411,14 @@ function SignupFormContent() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
                         Country
                       </label>
                       <select
                         name="country"
                         value={formData.country}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full px-4 py-3 rounded-lg border border-space-300 dark:border-space-600 bg-white dark:bg-space-700 text-space-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                       >
                         <option value="">Select...</option>
                         <option value="US">United States</option>
@@ -436,27 +436,27 @@ function SignupFormContent() {
                 {/* Step 3: Review & Confirm */}
                 {step === 3 && (
                   <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Review & Confirm</h2>
+                    <h2 className="text-2xl font-bold text-space-900 dark:text-white">Review & Confirm</h2>
 
-                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 space-y-3">
+                    <div className="bg-space-50 dark:bg-space-700 rounded-lg p-4 space-y-3">
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">Email</span>
+                        <span className="text-space-600 dark:text-space-400">Email</span>
                         <span className="font-medium dark:text-white">{formData.email}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">Name</span>
+                        <span className="text-space-600 dark:text-space-400">Name</span>
                         <span className="font-medium dark:text-white">{formData.fullName}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">Company</span>
+                        <span className="text-space-600 dark:text-space-400">Company</span>
                         <span className="font-medium dark:text-white">{formData.companyName}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">Plan</span>
+                        <span className="text-space-600 dark:text-space-400">Plan</span>
                         <span className="font-medium dark:text-white">{selectedPlan.name}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">Billing</span>
+                        <span className="text-space-600 dark:text-space-400">Billing</span>
                         <span className="font-medium capitalize dark:text-white">{formData.billingCycle}</span>
                       </div>
                     </div>
@@ -468,9 +468,9 @@ function SignupFormContent() {
                         id="agreeTerms"
                         checked={formData.agreeTerms}
                         onChange={handleChange}
-                        className="mt-1 h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500 bg-white dark:bg-gray-700"
+                        className="mt-1 h-4 w-4 text-indigo-600 border-space-300 dark:border-space-600 rounded focus:ring-indigo-500 bg-white dark:bg-space-700"
                       />
-                      <label htmlFor="agreeTerms" className="ml-3 text-sm text-gray-600 dark:text-gray-400">
+                      <label htmlFor="agreeTerms" className="ml-3 text-sm text-space-600 dark:text-space-400">
                         I agree to the{' '}
                         <Link href="/terms" className="text-indigo-600 dark:text-indigo-400 hover:underline">
                           Terms of Service
@@ -490,7 +490,7 @@ function SignupFormContent() {
                     <button
                       type="button"
                       onClick={() => setStep(step - 1)}
-                      className="px-6 py-3 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700"
+                      className="px-6 py-3 rounded-lg border border-space-300 dark:border-space-600 text-space-700 dark:text-space-300 font-medium hover:bg-space-50 dark:hover:bg-space-700"
                     >
                       Back
                     </button>
@@ -518,8 +518,8 @@ function SignupFormContent() {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 sticky top-24">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Order Summary</h3>
+            <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-6 sticky top-24">
+              <h3 className="text-lg font-semibold text-space-900 dark:text-white mb-4">Order Summary</h3>
 
               {/* Plan Selection */}
               <div className="space-y-3 mb-6">
@@ -529,7 +529,7 @@ function SignupFormContent() {
                     className={`flex items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
                       formData.planId === plan.id
                         ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        : 'border-space-200 dark:border-space-700 hover:border-space-300 dark:hover:border-space-600'
                     }`}
                   >
                     <input
@@ -538,11 +538,11 @@ function SignupFormContent() {
                       value={plan.id}
                       checked={formData.planId === plan.id}
                       onChange={handleChange}
-                      className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 focus:ring-indigo-500"
+                      className="h-4 w-4 text-indigo-600 border-space-300 dark:border-space-600 focus:ring-indigo-500"
                     />
                     <div className="ml-3 flex-1">
-                      <div className="font-medium text-gray-900 dark:text-white">{plan.name}</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                      <div className="font-medium text-space-900 dark:text-white">{plan.name}</div>
+                      <div className="text-sm text-space-500 dark:text-space-400">
                         ${formData.billingCycle === 'yearly' ? plan.priceYearly : plan.priceMonthly}
                         /{formData.billingCycle === 'yearly' ? 'year' : 'month'}
                       </div>
@@ -553,14 +553,14 @@ function SignupFormContent() {
 
               {/* Billing Cycle Toggle */}
               <div className="mb-6">
-                <div className="bg-gray-100 dark:bg-gray-700 p-1 rounded-lg flex">
+                <div className="bg-space-100 dark:bg-space-700 p-1 rounded-lg flex">
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, billingCycle: 'monthly' }))}
                     className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
                       formData.billingCycle === 'monthly'
-                        ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                        : 'text-gray-600 dark:text-gray-400'
+                        ? 'bg-white dark:bg-space-600 text-space-900 dark:text-white shadow-sm'
+                        : 'text-space-600 dark:text-space-400'
                     }`}
                   >
                     Monthly
@@ -570,39 +570,39 @@ function SignupFormContent() {
                     onClick={() => setFormData(prev => ({ ...prev, billingCycle: 'yearly' }))}
                     className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
                       formData.billingCycle === 'yearly'
-                        ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                        : 'text-gray-600 dark:text-gray-400'
+                        ? 'bg-white dark:bg-space-600 text-space-900 dark:text-white shadow-sm'
+                        : 'text-space-600 dark:text-space-400'
                     }`}
                   >
                     Yearly
                   </button>
                 </div>
                 {formData.billingCycle === 'yearly' && (
-                  <p className="text-xs text-green-600 dark:text-green-400 mt-2 text-center">
+                  <p className="text-xs text-success-600 dark:text-success-400 mt-2 text-center">
                     Save up to 17% with yearly billing!
                   </p>
                 )}
               </div>
 
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <div className="border-t border-space-200 dark:border-space-700 pt-4">
                 <div className="flex justify-between mb-2">
-                  <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
+                  <span className="text-space-600 dark:text-space-400">Subtotal</span>
                   <span className="font-medium dark:text-white">${price.toFixed(2)}</span>
                 </div>
                 {price > 0 && (
-                  <div className="flex justify-between mb-2 text-green-600 dark:text-green-400">
+                  <div className="flex justify-between mb-2 text-success-600 dark:text-success-400">
                     <span>14-day free trial</span>
                     <span>-${price.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex justify-between text-lg font-bold pt-2 border-t border-space-200 dark:border-space-700">
                   <span className="dark:text-white">Due Today</span>
                   <span className="dark:text-white">$0.00</span>
                 </div>
               </div>
 
               {price > 0 && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-4">
+                <p className="text-xs text-space-500 dark:text-space-400 mt-4">
                   Your card will be charged ${price.toFixed(2)} after your 14-day trial ends.
                   Cancel anytime.
                 </p>
@@ -612,7 +612,7 @@ function SignupFormContent() {
         </div>
 
         {/* Already have an account */}
-        <p className="text-center mt-8 text-gray-600 dark:text-gray-400">
+        <p className="text-center mt-8 text-space-600 dark:text-space-400">
           Already have an account?{' '}
           <Link href="/" className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">
             Sign in

@@ -42,7 +42,7 @@ export function FamilyMemberCard({ member, isSelected, onClick, index }: FamilyM
       case 'teen':
         return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
       case 'child':
-        return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+        return 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400'
     }
   }
 
@@ -65,7 +65,7 @@ export function FamilyMemberCard({ member, isSelected, onClick, index }: FamilyM
           <div className="relative">
             <span className="text-4xl">{member.avatar}</span>
             {member.isOnline && (
-              <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-space-800" />
+              <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-success-500 rounded-full border-2 border-white dark:border-space-800" />
             )}
           </div>
           <div>
@@ -80,7 +80,7 @@ export function FamilyMemberCard({ member, isSelected, onClick, index }: FamilyM
             e.stopPropagation()
             // Pause internet action
           }}
-          className="p-2 hover:bg-space-100 dark:hover:bg-space-700 rounded-lg text-space-400 hover:text-red-500"
+          className="p-2 hover:bg-space-100 dark:hover:bg-space-700 rounded-lg text-space-400 hover:text-danger-500"
           title="Pause Internet"
         >
           <PauseCircleIcon className="h-5 w-5" />
@@ -109,7 +109,7 @@ export function FamilyMemberCard({ member, isSelected, onClick, index }: FamilyM
               transition={{ delay: 0.3, duration: 0.5 }}
               className={clsx(
                 'h-full rounded-full',
-                limitPercent >= 90 ? 'bg-red-500' : limitPercent >= 70 ? 'bg-amber-500' : 'bg-green-500'
+                limitPercent >= 90 ? 'bg-danger-500' : limitPercent >= 70 ? 'bg-amber-500' : 'bg-success-500'
               )}
             />
           </div>

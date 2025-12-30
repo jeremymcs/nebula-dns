@@ -43,14 +43,14 @@ export function DomainInvestigationPanel({ investigation, onAction }: DomainInve
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => onAction?.('block', domain)}
-            className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-danger-500 text-white rounded-lg hover:bg-danger-600 transition-colors"
           >
             <NoSymbolIcon className="h-4 w-4" />
             Block Domain
           </button>
           <button
             onClick={() => onAction?.('allowlist', domain)}
-            className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-success-500 text-white rounded-lg hover:bg-success-600 transition-colors"
           >
             <CheckCircleIcon className="h-4 w-4" />
             Add to Allowlist
@@ -87,10 +87,10 @@ export function DomainInvestigationPanel({ investigation, onAction }: DomainInve
                 <div
                   className={`w-3 h-3 rounded-full ${
                     event.event === 'blocked'
-                      ? 'bg-red-500'
+                      ? 'bg-danger-500'
                       : event.event === 'threat_detected'
                       ? 'bg-amber-500'
-                      : 'bg-green-500'
+                      : 'bg-success-500'
                   }`}
                 />
                 {index < timeline.length - 1 && <div className="w-0.5 h-full bg-space-200 dark:bg-space-700" />}

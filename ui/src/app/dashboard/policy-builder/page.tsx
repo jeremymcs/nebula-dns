@@ -15,6 +15,7 @@ import { PolicyTemplate } from '@/components/policy-builder/templates'
 import { ArrowLeftIcon, XMarkIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { api } from '@/lib/api'
 
 // Initialize with a Start node (used for blank template)
 const blankNodes: PolicyNode[] = [
@@ -139,23 +140,19 @@ export default function PolicyBuilderPage() {
     try {
       const config = flowToPolicyConfig(nodes, connections)
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4010'}/policies`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          name: policyName,
-          description: policyDescription,
-          config,
-        }),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to save policy')
+      // Store visual flow data along with the policy
+      const visualFlow = {
+        nodes,
+        connections,
+        templateName: selectedTemplateName,
       }
+
+      await api.post('/policies', {
+        name: policyName,
+        description: policyDescription,
+        config,
+        visualFlow, // Store visual representation for future editing
+      })
 
       // Success - redirect to policies list
       router.push('/dashboard/policies')
@@ -254,7 +251,7 @@ export default function PolicyBuilderPage() {
             </div>
             <div className="p-6 space-y-4">
               {saveError && (
-                <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
+                <div className="p-3 bg-danger-50 dark:bg-danger-900/20 border border-red-200 dark:border-red-800 rounded-lg text-danger-600 dark:text-danger-400 text-sm">
                   {saveError}
                 </div>
               )}

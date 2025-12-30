@@ -88,8 +88,8 @@ export function QuickActions({
         return clsx(
           base,
           isActive
-            ? 'bg-red-500 border-red-400 text-white shadow-lg shadow-red-500/25'
-            : 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/20'
+            ? 'bg-danger-500 border-red-400 text-white shadow-lg shadow-red-500/25'
+            : 'bg-danger-500/10 border-red-500/20 text-danger-600 dark:text-danger-400 hover:bg-danger-500/20'
         )
       case 'warning':
         return clsx(

@@ -47,9 +47,9 @@ export function ZoneNode({ zone, x, y, isSelected, onClick, onAction }: ZoneNode
 
   const getHealthColor = (health: ZoneHealth) => {
     switch (health) {
-      case 'healthy': return 'bg-green-500'
+      case 'healthy': return 'bg-success-500'
       case 'warning': return 'bg-amber-500'
-      case 'critical': return 'bg-red-500'
+      case 'critical': return 'bg-danger-500'
       case 'offline': return 'bg-space-400'
     }
   }
@@ -78,7 +78,7 @@ export function ZoneNode({ zone, x, y, isSelected, onClick, onAction }: ZoneNode
       {/* Health indicator */}
       <div className={clsx('absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full border-2 border-white dark:border-space-800', getHealthColor(zone.health))}>
         {zone.health === 'healthy' && (
-          <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-50" />
+          <span className="absolute inset-0 rounded-full bg-success-500 animate-ping opacity-50" />
         )}
       </div>
 
@@ -136,7 +136,7 @@ export function ZoneNode({ zone, x, y, isSelected, onClick, onAction }: ZoneNode
                 onClick={() => { onAction(item.id); setShowMenu(false) }}
                 className={clsx(
                   'w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-space-50 dark:hover:bg-space-700',
-                  item.danger ? 'text-red-600 dark:text-red-400' : 'text-space-700 dark:text-space-300'
+                  item.danger ? 'text-danger-600 dark:text-danger-400' : 'text-space-700 dark:text-space-300'
                 )}
               >
                 <item.icon className="h-4 w-4" />

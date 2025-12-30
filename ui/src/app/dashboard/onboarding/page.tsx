@@ -7,7 +7,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -20,6 +20,8 @@ import {
 } from '@heroicons/react/24/outline'
 import { CheckCircleIcon as CheckCircleSolidIcon } from '@heroicons/react/24/solid'
 import { Button, Card, Badge } from '@/components/ui'
+import { useOnboardingProgress } from '@/hooks/useApi'
+import { api } from '@/lib/api'
 
 interface OnboardingStep {
   id: string
@@ -69,17 +71,48 @@ const initialSteps: OnboardingStep[] = [
 
 export default function OnboardingPage() {
   const router = useRouter()
+  const { data: progressData, mutate: mutateProgress } = useOnboardingProgress()
   const [currentStep, setCurrentStep] = useState(0)
   const [steps, setSteps] = useState<OnboardingStep[]>(initialSteps)
   const [dnsToken, setDnsToken] = useState('')
   const [copied, setCopied] = useState(false)
 
-  const completeStep = (stepId: string) => {
-    setSteps(prev => prev.map(step => 
+  // Sync with API progress
+  useEffect(() => {
+    if (progressData?.data) {
+      const apiProgress = progressData.data
+      // Find current step index
+      const stepIds = initialSteps.map(s => s.id)
+      const currentIndex = stepIds.indexOf(apiProgress.currentStep)
+      if (currentIndex >= 0) {
+        setCurrentStep(currentIndex)
+      }
+      // Sync completed steps
+      if (apiProgress.stepsCompleted) {
+        setSteps(prev => prev.map(step => {
+          const apiStep = apiProgress.stepsCompleted.find((s: any) => s.id === step.id)
+          return apiStep ? { ...step, completed: apiStep.completed } : step
+        }))
+      }
+    }
+  }, [progressData])
+
+  const completeStep = async (stepId: string) => {
+    setSteps(prev => prev.map(step =>
       step.id === stepId ? { ...step, completed: true } : step
     ))
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1)
+    }
+    // Save to API
+    try {
+      await api.patch('/onboarding/progress', {
+        completeStep: stepId,
+        currentStep: initialSteps[currentStep + 1]?.id || stepId
+      })
+      mutateProgress()
+    } catch (error) {
+      console.error('Failed to save onboarding progress:', error)
     }
   }
 
@@ -89,14 +122,22 @@ export default function OnboardingPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const handleSkip = () => {
-    // Save that onboarding was skipped
+  const handleSkip = async () => {
+    try {
+      await api.post('/onboarding/complete', { skipped: true })
+    } catch (error) {
+      console.error('Failed to save skip status:', error)
+    }
     localStorage.setItem('onboardingSkipped', 'true')
     router.push('/dashboard')
   }
 
-  const handleComplete = () => {
-    // Save that onboarding was completed
+  const handleComplete = async () => {
+    try {
+      await api.post('/onboarding/complete', { skipped: false })
+    } catch (error) {
+      console.error('Failed to save completion status:', error)
+    }
     localStorage.setItem('onboardingCompleted', 'true')
     router.push('/dashboard')
   }
@@ -203,8 +244,8 @@ export default function OnboardingPage() {
             </p>
 
             <div className="space-y-4">
-              <Card variant="solid" padding="md" className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
-                <h3 className="font-semibold text-red-900 dark:text-red-200 mb-2 flex items-center">
+              <Card variant="solid" padding="md" className="border-red-200 dark:border-red-800 bg-danger-50 dark:bg-danger-900/20">
+                <h3 className="font-semibold text-danger-900 dark:text-danger-200 mb-2 flex items-center">
                   <ShieldCheckIcon className="h-5 w-5 mr-2" />
                   Blocked by Default
                 </h3>
@@ -215,8 +256,8 @@ export default function OnboardingPage() {
                 </div>
               </Card>
 
-              <Card variant="solid" padding="md" className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20">
-                <h3 className="font-semibold text-green-900 dark:text-green-200 mb-2">Available to Enable</h3>
+              <Card variant="solid" padding="md" className="border-green-200 dark:border-green-800 bg-success-50 dark:bg-success-900/20">
+                <h3 className="font-semibold text-success-900 dark:text-success-200 mb-2">Available to Enable</h3>
                 <div className="flex flex-wrap gap-2">
                   {['Social Media', 'Gambling', 'Gaming', 'Streaming', 'Dating'].map((cat) => (
                     <Badge key={cat} variant="success" size="sm">{cat}</Badge>
@@ -273,7 +314,7 @@ export default function OnboardingPage() {
                 </div>
               </div>
               {copied && (
-                <div className="mt-2 text-sm text-green-400">Copied to clipboard!</div>
+                <div className="mt-2 text-sm text-success-400">Copied to clipboard!</div>
               )}
             </div>
 
@@ -336,7 +377,7 @@ export default function OnboardingPage() {
               ].map((item) => (
                 <div key={item.title} className="p-4 flex items-center justify-between">
                   <div className="flex items-center">
-                    <CheckCircleSolidIcon className="h-6 w-6 text-green-500 mr-3" />
+                    <CheckCircleSolidIcon className="h-6 w-6 text-success-500 mr-3" />
                     <div>
                       <div className="font-medium text-space-900 dark:text-white">{item.title}</div>
                       <div className="text-sm text-space-500 dark:text-space-400">{item.desc}</div>
@@ -347,12 +388,12 @@ export default function OnboardingPage() {
               ))}
             </Card>
 
-            <Card variant="solid" padding="lg" className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 text-center">
-              <CheckCircleSolidIcon className="h-12 w-12 text-green-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-green-900 dark:text-green-200 mb-2">
+            <Card variant="solid" padding="lg" className="border-green-200 dark:border-green-800 bg-success-50 dark:bg-success-900/20 text-center">
+              <CheckCircleSolidIcon className="h-12 w-12 text-success-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-success-900 dark:text-success-200 mb-2">
                 You're All Set! 🎉
               </h3>
-              <p className="text-green-700 dark:text-green-300">
+              <p className="text-success-700 dark:text-success-300">
                 Your network is now protected by Nebula DNS. You can access your dashboard
                 to view analytics, adjust policies, and manage your settings.
               </p>
@@ -404,7 +445,7 @@ export default function OnboardingPage() {
                   onClick={() => step.completed || index === currentStep ? setCurrentStep(index) : null}
                   className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                     step.completed
-                      ? 'bg-green-500 text-white'
+                      ? 'bg-success-500 text-white'
                       : index === currentStep
                       ? 'bg-primary-600 text-white'
                       : 'bg-space-200 dark:bg-space-700 text-space-500 dark:text-space-400'
@@ -419,7 +460,7 @@ export default function OnboardingPage() {
                 {index < steps.length - 1 && (
                   <div
                     className={`flex-1 h-1 mx-2 rounded-full ${
-                      step.completed ? 'bg-green-500' : 'bg-space-200 dark:bg-space-700'
+                      step.completed ? 'bg-success-500' : 'bg-space-200 dark:bg-space-700'
                     }`}
                   />
                 )}

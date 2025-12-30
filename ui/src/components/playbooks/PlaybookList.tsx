@@ -74,11 +74,11 @@ export function PlaybookList({ playbooks, onToggle, onEdit, onRun, className }: 
               <div
                 className={clsx(
                   'p-3 rounded-xl',
-                  playbook.isEnabled ? 'bg-green-500/10' : 'bg-space-100 dark:bg-space-700'
+                  playbook.isEnabled ? 'bg-success-500/10' : 'bg-space-100 dark:bg-space-700'
                 )}
               >
                 <BoltIcon
-                  className={clsx('h-6 w-6', playbook.isEnabled ? 'text-green-500' : 'text-space-400')}
+                  className={clsx('h-6 w-6', playbook.isEnabled ? 'text-success-500' : 'text-space-400')}
                 />
               </div>
 
@@ -92,7 +92,7 @@ export function PlaybookList({ playbooks, onToggle, onEdit, onRun, className }: 
                     className={clsx(
                       'px-2 py-0.5 text-xs rounded-full',
                       playbook.isEnabled
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                        ? 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400'
                         : 'bg-space-100 dark:bg-space-700 text-space-500'
                     )}
                   >
@@ -152,7 +152,7 @@ export function PlaybookList({ playbooks, onToggle, onEdit, onRun, className }: 
                 className={clsx(
                   'p-2 rounded-lg',
                   playbook.isEnabled
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-600 hover:bg-green-200'
+                    ? 'bg-success-100 dark:bg-success-900/30 text-success-600 hover:bg-success-200'
                     : 'bg-space-100 dark:bg-space-700 text-space-500 hover:bg-space-200'
                 )}
                 title={playbook.isEnabled ? 'Disable' : 'Enable'}

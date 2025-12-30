@@ -102,14 +102,14 @@ export function OnboardingWizard({ isOpen, onClose, onComplete }: OnboardingWiza
               <div key={step.id} className="flex items-center">
                 <div className={clsx(
                   'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors',
-                  index < state.step ? 'bg-green-500 text-white' :
+                  index < state.step ? 'bg-success-500 text-white' :
                   index === state.step ? 'bg-nebula-500 text-white' :
                   'bg-space-200 dark:bg-space-700 text-space-500'
                 )}>
                   {index < state.step ? '✓' : index + 1}
                 </div>
                 {index < ONBOARDING_STEPS.length - 1 && (
-                  <div className={clsx('w-8 h-0.5 mx-1', index < state.step ? 'bg-green-500' : 'bg-space-200 dark:bg-space-700')} />
+                  <div className={clsx('w-8 h-0.5 mx-1', index < state.step ? 'bg-success-500' : 'bg-space-200 dark:bg-space-700')} />
                 )}
               </div>
             ))}

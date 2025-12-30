@@ -8,7 +8,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useSummaryStats, useTopBlocked, useBlocksByCategory, useLocationStats, useQueryTrends } from '@/hooks/useApi'
+import { useSummaryStats, useTopBlocked, useBlocksByCategory, useLocationStats, useQueryTrends, useInsights } from '@/hooks/useApi'
 import {
   ArrowDownTrayIcon,
   ShieldExclamationIcon,
@@ -56,25 +56,25 @@ const reportTypes = [
   { id: 'compliance', label: 'Compliance', icon: DocumentChartBarIcon },
 ]
 
-// Quick insights data (would come from API)
-const quickInsights = [
+// Default quick insights (used as fallback when API data is empty)
+const defaultQuickInsights = [
   {
-    type: 'warning',
-    title: 'Unusual Traffic Spike',
-    description: 'Query volume increased 45% between 2-4 AM',
-    action: 'Investigate',
+    type: 'info',
+    title: 'Getting Started',
+    description: 'Configure your DNS settings to start seeing insights',
+    action: 'Configure',
   },
   {
     type: 'success',
-    title: 'Threat Reduction',
-    description: 'Blocked threats down 23% from last week',
-    action: 'View Details',
+    title: 'Protection Active',
+    description: 'Your DNS protection is configured and running',
+    action: 'View Status',
   },
   {
     type: 'info',
-    title: 'New Category Detected',
-    description: '12 domains categorized as cryptocurrency mining',
-    action: 'Review',
+    title: 'Enable Reports',
+    description: 'Schedule automated reports to stay informed',
+    action: 'Schedule',
   },
 ]
 
@@ -124,8 +124,22 @@ export default function ReportsPage() {
   const { data: categoryStats, isLoading: categoryLoading } = useBlocksByCategory(dateRange)
   const { data: locationStats, isLoading: locationLoading } = useLocationStats(dateRange)
   const { data: queryTrends, isLoading: trendsLoading } = useQueryTrends(dateRange)
+  const { data: insightsData } = useInsights(dateRange)
 
   const isLoading = summaryLoading || topBlockedLoading || categoryLoading || locationLoading || trendsLoading
+
+  // Transform API insights to quickInsights format
+  const quickInsights: { type: string; title: string; description: string; action: string }[] = useMemo(() => {
+    if (!insightsData?.highlights || insightsData.highlights.length === 0) {
+      return defaultQuickInsights
+    }
+    return insightsData.highlights.map((h: any) => ({
+      type: h.type === 'positive' ? 'success' : h.type === 'warning' ? 'warning' : 'info',
+      title: h.title,
+      description: h.description,
+      action: 'View Details',
+    }))
+  }, [insightsData])
 
   // Transform trend data from API for LineChart format
   const trendData = useMemo(() => {

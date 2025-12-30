@@ -88,7 +88,7 @@ export function TemplateDetail({ template, isOpen, onClose, onUseTemplate }: Tem
             <div className="grid grid-cols-2 gap-2">
               {template.features.map((feature) => (
                 <div key={feature} className="flex items-center gap-2 text-sm text-space-600 dark:text-space-400">
-                  <CheckIcon className="h-4 w-4 text-green-500" />
+                  <CheckIcon className="h-4 w-4 text-success-500" />
                   {feature}
                 </div>
               ))}

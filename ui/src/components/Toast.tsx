@@ -42,17 +42,17 @@ const toastIcons = {
 }
 
 const toastStyles = {
-  success: 'bg-green-50 dark:bg-green-900/50 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200',
-  error: 'bg-red-50 dark:bg-red-900/50 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200',
-  warning: 'bg-yellow-50 dark:bg-yellow-900/50 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200',
-  info: 'bg-blue-50 dark:bg-blue-900/50 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200',
+  success: 'bg-success-50 dark:bg-success-900/50 border-success-200 dark:border-success-800 text-success-800 dark:text-success-200',
+  error: 'bg-danger-50 dark:bg-danger-900/50 border-danger-200 dark:border-danger-800 text-danger-800 dark:text-danger-200',
+  warning: 'bg-warning-50 dark:bg-warning-900/50 border-warning-200 dark:border-warning-800 text-warning-800 dark:text-warning-200',
+  info: 'bg-accent-50 dark:bg-accent-900/50 border-accent-200 dark:border-accent-800 text-accent-800 dark:text-accent-200',
 }
 
 const iconStyles = {
-  success: 'text-green-500',
-  error: 'text-red-500',
-  warning: 'text-yellow-500',
-  info: 'text-blue-500',
+  success: 'text-success-500',
+  error: 'text-danger-500',
+  warning: 'text-warning-500',
+  info: 'text-accent-500',
 }
 
 export function ToastProvider({ children }: { children: ReactNode }) {

@@ -163,9 +163,9 @@ export default function PartnerSettingsPage() {
       )}
 
       {success && (
-        <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 flex items-center gap-2">
-          <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
-          <p className="text-green-700 dark:text-green-300">{success}</p>
+        <div className="bg-success-50 dark:bg-success-900/20 rounded-xl p-4 flex items-center gap-2">
+          <CheckIcon className="h-5 w-5 text-success-600 dark:text-success-400" />
+          <p className="text-success-700 dark:text-success-300">{success}</p>
         </div>
       )}
 

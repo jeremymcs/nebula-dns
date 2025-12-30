@@ -64,9 +64,9 @@ export function ThreatRadar({ threats = [], isLive = true, className }: ThreatRa
 
   const getSeverityColor = (severity: ThreatBlip['severity']) => {
     switch (severity) {
-      case 'critical': return 'bg-red-500 shadow-red-500/50'
+      case 'critical': return 'bg-danger-500 shadow-red-500/50'
       case 'high': return 'bg-orange-500 shadow-orange-500/50'
-      case 'medium': return 'bg-yellow-500 shadow-yellow-500/50'
+      case 'medium': return 'bg-warning-500 shadow-warning-500/50'
       case 'low': return 'bg-blue-400 shadow-blue-400/50'
     }
   }
@@ -141,7 +141,7 @@ export function ThreatRadar({ threats = [], isLive = true, className }: ThreatRa
 
       {/* Status indicator */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1 rounded-full bg-white/80 dark:bg-space-800/80 backdrop-blur-sm border border-space-200 dark:border-space-700">
-        <span className={clsx('w-2 h-2 rounded-full', isLive ? 'bg-green-500 animate-pulse' : 'bg-space-500')} />
+        <span className={clsx('w-2 h-2 rounded-full', isLive ? 'bg-success-500 animate-pulse' : 'bg-space-500')} />
         <span className="text-xs font-medium text-space-700 dark:text-space-300">{isLive ? 'Live Monitoring' : 'Paused'}</span>
       </div>
     </div>

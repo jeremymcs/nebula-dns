@@ -29,12 +29,12 @@ const roleDescriptions: Record<string, { label: string; description: string; col
   analyst: {
     label: 'Analyst',
     description: 'View reports and analytics, manage lists',
-    color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200',
+    color: 'bg-success-100 dark:bg-success-900/50 text-success-800 dark:text-success-200',
   },
   readonly: {
     label: 'Read Only',
     description: 'View-only access to dashboard',
-    color: 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200',
+    color: 'bg-space-100 dark:bg-space-700 text-space-800 dark:text-space-200',
   },
 };
 
@@ -170,8 +170,8 @@ export default function TeamPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Team Members</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage who has access to your Nebula DNS dashboard</p>
+          <h1 className="text-2xl font-bold text-space-900 dark:text-white">Team Members</h1>
+          <p className="text-space-600 dark:text-space-400">Manage who has access to your Nebula DNS dashboard</p>
         </div>
         <div className="flex gap-3">
           <button
@@ -192,21 +192,21 @@ export default function TeamPage() {
       {/* Role Permissions Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {Object.entries(roleDescriptions).map(([role, info]) => (
-          <div key={role} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+          <div key={role} className="bg-white dark:bg-space-800 rounded-xl border border-space-200 dark:border-space-700 p-4">
             <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${info.color}`}>
               {info.label}
             </span>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{info.description}</p>
+            <p className="text-sm text-space-600 dark:text-space-400 mt-2">{info.description}</p>
           </div>
         ))}
       </div>
 
       {/* Team Members List */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-space-800 rounded-xl shadow-sm border border-space-200 dark:border-space-700">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="text-left text-sm text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
+              <tr className="text-left text-sm text-space-500 dark:text-space-400 border-b dark:border-space-700">
                 <th className="px-6 py-4 font-medium">Member</th>
                 <th className="px-6 py-4 font-medium">Role</th>
                 <th className="px-6 py-4 font-medium">Status</th>
@@ -216,17 +216,17 @@ export default function TeamPage() {
             </thead>
             <tbody>
               {members.map((member) => (
-                <tr key={member.id} className="border-b dark:border-gray-700 last:border-b-0">
+                <tr key={member.id} className="border-b dark:border-space-700 last:border-b-0">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-medium">
                         {member.name ? member.name.charAt(0) : member.email.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <div className="font-medium text-gray-900 dark:text-white">
+                        <div className="font-medium text-space-900 dark:text-white">
                           {member.name || 'Pending Invitation'}
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">{member.email}</div>
+                        <div className="text-sm text-space-500 dark:text-space-400">{member.email}</div>
                       </div>
                     </div>
                   </td>
@@ -237,16 +237,16 @@ export default function TeamPage() {
                   </td>
                   <td className="px-6 py-4">
                     {member.status === 'active' ? (
-                      <span className="px-2 py-1 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 rounded-full text-xs">
+                      <span className="px-2 py-1 bg-success-100 dark:bg-success-900/50 text-success-800 dark:text-success-200 rounded-full text-xs">
                         Active
                       </span>
                     ) : (
-                      <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200 rounded-full text-xs">
+                      <span className="px-2 py-1 bg-warning-100 dark:bg-warning-900/50 text-warning-800 dark:text-warning-200 rounded-full text-xs">
                         Pending
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                  <td className="px-6 py-4 text-sm text-space-600 dark:text-space-400">
                     {member.lastActive
                       ? new Date(member.lastActive).toLocaleString()
                       : member.invitedAt
@@ -266,7 +266,7 @@ export default function TeamPage() {
                           </button>
                           <button
                             onClick={() => handleRevokeInvitation(member.id)}
-                            className="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                            className="text-sm text-danger-600 dark:text-danger-400 hover:text-danger-800 dark:hover:text-danger-300"
                           >
                             Revoke
                           </button>
@@ -278,13 +278,13 @@ export default function TeamPage() {
                           </button>
                           <button
                             onClick={() => handleRemoveUser(member.id)}
-                            className="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                            className="text-sm text-danger-600 dark:text-danger-400 hover:text-danger-800 dark:hover:text-danger-300"
                           >
                             Remove
                           </button>
                         </>
                       ) : (
-                        <span className="text-sm text-gray-400">—</span>
+                        <span className="text-sm text-space-400">—</span>
                       )}
                     </div>
                   </td>
@@ -298,31 +298,31 @@ export default function TeamPage() {
       {/* Invite Modal */}
       {showInviteModal && (
         <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-md">
-            <div className="p-6 border-b dark:border-gray-700">
+          <div className="bg-white dark:bg-space-800 rounded-xl w-full max-w-md">
+            <div className="p-6 border-b dark:border-space-700">
               <h2 className="text-xl font-semibold dark:text-white">Invite Team Member</h2>
             </div>
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
+                <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-1">Email Address</label>
                 <input
                   type="email"
                   value={inviteForm.email}
                   onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white"
                   placeholder="colleague@company.com"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Role</label>
+                <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">Role</label>
                 <div className="space-y-2">
                   {Object.entries(roleDescriptions).filter(([role]) => role !== 'owner').map(([role, info]) => (
                     <label
                       key={role}
-                      className={`flex items-start gap-3 p-3 border dark:border-gray-600 rounded-lg cursor-pointer transition ${
-                        inviteForm.role === role ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                      className={`flex items-start gap-3 p-3 border dark:border-space-600 rounded-lg cursor-pointer transition ${
+                        inviteForm.role === role ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30' : 'hover:bg-space-50 dark:hover:bg-space-700'
                       }`}
                     >
                       <input
@@ -334,8 +334,8 @@ export default function TeamPage() {
                         className="mt-1"
                       />
                       <div>
-                        <div className="font-medium text-gray-900 dark:text-white">{info.label}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">{info.description}</div>
+                        <div className="font-medium text-space-900 dark:text-white">{info.label}</div>
+                        <div className="text-sm text-space-500 dark:text-space-400">{info.description}</div>
                       </div>
                     </label>
                   ))}
@@ -343,23 +343,23 @@ export default function TeamPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-1">
                   Personal Message (optional)
                 </label>
                 <textarea
                   value={inviteForm.message}
                   onChange={(e) => setInviteForm({ ...inviteForm, message: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white"
                   rows={3}
                   placeholder="Add a personal note to the invitation email..."
                 />
               </div>
             </div>
 
-            <div className="p-6 border-t dark:border-gray-700 flex justify-end gap-3">
+            <div className="p-6 border-t dark:border-space-700 flex justify-end gap-3">
               <button
                 onClick={() => setShowInviteModal(false)}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                className="px-4 py-2 text-space-700 dark:text-space-300 hover:bg-space-100 dark:hover:bg-space-700 rounded-lg"
               >
                 Cancel
               </button>
@@ -378,23 +378,23 @@ export default function TeamPage() {
       {/* Bulk Invite Modal */}
       {showBulkInvite && (
         <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-lg">
-            <div className="p-6 border-b dark:border-gray-700">
+          <div className="bg-white dark:bg-space-800 rounded-xl w-full max-w-lg">
+            <div className="p-6 border-b dark:border-space-700">
               <h2 className="text-xl font-semibold dark:text-white">Bulk Invite</h2>
             </div>
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-1">
                   Email Addresses
                 </label>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                <p className="text-sm text-space-500 dark:text-space-400 mb-2">
                   Enter one email address per line
                 </p>
                 <textarea
                   value={bulkEmails}
                   onChange={(e) => setBulkEmails(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-mono text-sm bg-white dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg font-mono text-sm bg-white dark:bg-space-700 dark:text-white"
                   rows={8}
                   placeholder="user1@company.com
 user2@company.com
@@ -403,11 +403,11 @@ user3@company.com"
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Default Role</label>
+                <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-1">Default Role</label>
                 <select
                   value={bulkRole}
                   onChange={(e) => setBulkRole(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white"
                 >
                   <option value="analyst">Analyst</option>
                   <option value="readonly">Read Only</option>
@@ -415,15 +415,15 @@ user3@company.com"
                 </select>
               </div>
 
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 text-sm text-gray-600 dark:text-gray-400">
+              <div className="bg-space-50 dark:bg-space-700 rounded-lg p-3 text-sm text-space-600 dark:text-space-400">
                 {bulkEmails.split('\n').filter(e => e.trim()).length} email addresses entered
               </div>
             </div>
 
-            <div className="p-6 border-t dark:border-gray-700 flex justify-end gap-3">
+            <div className="p-6 border-t dark:border-space-700 flex justify-end gap-3">
               <button
                 onClick={() => setShowBulkInvite(false)}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                className="px-4 py-2 text-space-700 dark:text-space-300 hover:bg-space-100 dark:hover:bg-space-700 rounded-lg"
               >
                 Cancel
               </button>

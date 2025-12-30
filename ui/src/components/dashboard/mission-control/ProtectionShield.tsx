@@ -27,9 +27,9 @@ export function ProtectionShield({
   className,
 }: ProtectionShieldProps) {
   const getScoreColor = (score: number) => {
-    if (score >= 80) return { text: 'text-green-500', bg: 'from-green-500 to-emerald-600', glow: 'shadow-green-500/30' }
+    if (score >= 80) return { text: 'text-success-500', bg: 'from-green-500 to-emerald-600', glow: 'shadow-green-500/30' }
     if (score >= 60) return { text: 'text-amber-500', bg: 'from-amber-500 to-orange-600', glow: 'shadow-amber-500/30' }
-    return { text: 'text-red-500', bg: 'from-red-500 to-rose-600', glow: 'shadow-red-500/30' }
+    return { text: 'text-danger-500', bg: 'from-red-500 to-rose-600', glow: 'shadow-red-500/30' }
   }
 
   const getScoreLabel = (score: number) => {
