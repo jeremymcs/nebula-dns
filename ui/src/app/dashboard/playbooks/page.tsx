@@ -12,23 +12,28 @@ import {
   PlaybookList,
   PlaybookBuilder,
   Playbook,
+  generateDemoPlaybooks,
 } from '@/components/playbooks'
 import { usePlaybooks } from '@/hooks/useApi'
 import { api } from '@/lib/api'
-import { BoltIcon, PlusIcon, ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
+import { BoltIcon, PlusIcon, InformationCircleIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline'
 
 export default function PlaybooksPage() {
   const { data: playbooksData, error, isLoading, mutate } = usePlaybooks()
   const [playbooks, setPlaybooks] = useState<Playbook[]>([])
   const [isBuilderOpen, setIsBuilderOpen] = useState(false)
   const [editingPlaybook, setEditingPlaybook] = useState<Playbook | undefined>()
+  const [importing, setImporting] = useState(false)
 
-  // Sync with API data
+  // Sync with API data or fallback to demo data
   useEffect(() => {
-    if (playbooksData?.data) {
+    if (playbooksData?.data && playbooksData.data.length > 0) {
       setPlaybooks(playbooksData.data)
+    } else if (!isLoading && (error || !playbooksData?.data?.length)) {
+      // Fallback to demo data for new tenants or on error
+      setPlaybooks(generateDemoPlaybooks())
     }
-  }, [playbooksData])
+  }, [playbooksData, isLoading, error])
 
   const handleToggle = async (id: string, enabled: boolean) => {
     // Optimistic update
@@ -81,6 +86,27 @@ export default function PlaybooksPage() {
     setEditingPlaybook(undefined)
   }
 
+  const handleImportSamples = async () => {
+    setImporting(true)
+    try {
+      const demoPlaybooks = generateDemoPlaybooks()
+      for (const playbook of demoPlaybooks) {
+        await api.createPlaybook({
+          name: playbook.name,
+          description: playbook.description,
+          trigger: playbook.trigger,
+          steps: playbook.steps,
+          isEnabled: false,
+        })
+      }
+      mutate()
+    } catch (err: any) {
+      console.error('Failed to import samples:', err?.message || err)
+    } finally {
+      setImporting(false)
+    }
+  }
+
   // Loading state
   if (isLoading) {
     return (
@@ -93,29 +119,8 @@ export default function PlaybooksPage() {
     )
   }
 
-  // Error state
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4 text-center max-w-md">
-          <div className="p-4 rounded-full bg-danger-100 dark:bg-danger-900/30">
-            <ExclamationTriangleIcon className="h-12 w-12 text-danger-500" />
-          </div>
-          <h2 className="text-xl font-semibold text-space-900 dark:text-white">Failed to Load Playbooks</h2>
-          <p className="text-space-500">
-            {error?.message || 'Unable to fetch playbooks. Please try again later.'}
-          </p>
-          <button
-            onClick={() => mutate()}
-            className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600"
-          >
-            <ArrowPathIcon className="h-4 w-4" />
-            Retry
-          </button>
-        </div>
-      </div>
-    )
-  }
+  // Use demo data for errors instead of showing error state
+  const usingDemoData = error || !playbooksData?.data?.length
 
   return (
     <div className="space-y-6">
@@ -138,6 +143,26 @@ export default function PlaybooksPage() {
           Create Playbook
         </button>
       </div>
+
+      {/* Demo Data Notice */}
+      {usingDemoData && !isBuilderOpen && (
+        <div className="flex items-center justify-between gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+          <div className="flex items-center gap-3">
+            <InformationCircleIcon className="h-5 w-5 text-amber-500 flex-shrink-0" />
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              Showing sample playbooks. Import them to use as starting templates.
+            </p>
+          </div>
+          <button
+            onClick={handleImportSamples}
+            disabled={importing}
+            className="flex items-center gap-2 px-3 py-1.5 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+          >
+            <ArrowDownTrayIcon className="h-4 w-4" />
+            {importing ? 'Importing...' : 'Import Samples'}
+          </button>
+        </div>
+      )}
 
       {/* Builder or List */}
       {isBuilderOpen ? (

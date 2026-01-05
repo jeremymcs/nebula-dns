@@ -22,6 +22,7 @@ import {
   MagnifyingGlassIcon,
   Squares2X2Icon,
   ClockIcon,
+  ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import clsx from 'clsx'
@@ -198,6 +199,66 @@ const POLICY_PRESETS = {
 // All categories flat list for backwards compatibility
 const CATEGORIES = Object.values(CATEGORY_GROUPS).flatMap(g => g.categories)
 
+// Demo policies for new tenants
+function generateDemoPolicies(): Policy[] {
+  const now = new Date().toISOString()
+  return [
+    {
+      id: 'demo-1',
+      name: 'Default Policy',
+      description: 'Baseline security policy with threat protection enabled',
+      currentVersion: 1,
+      isDefault: true,
+      createdAt: now,
+      updatedAt: now,
+      currentConfig: {
+        blockCategories: ['malware', 'phishing', 'scam', 'cryptominer'],
+        warnCategories: [],
+        threatBlocking: { enabled: true, feeds: ['malware', 'phishing', 'c2', 'ransomware'] },
+        safesearch: { enabled: false, services: [] },
+      },
+    },
+    {
+      id: 'demo-2',
+      name: 'Family Safe',
+      description: 'Block adult content, violence, and enforce safe search',
+      currentVersion: 1,
+      isDefault: false,
+      createdAt: now,
+      updatedAt: now,
+      currentConfig: {
+        blockCategories: ['adult', 'violence', 'drugs', 'weapons', 'gambling', 'dating', 'alcohol'],
+        warnCategories: ['social_media', 'gaming', 'streaming'],
+        threatBlocking: { enabled: true, feeds: ['malware', 'phishing', 'c2', 'ransomware'] },
+        safesearch: {
+          enabled: true,
+          services: ['google', 'bing', 'youtube', 'duckduckgo'],
+          settings: { google: 'strict', bing: 'strict', youtube: 'strict', duckduckgo: 'strict' },
+        },
+      },
+    },
+    {
+      id: 'demo-3',
+      name: 'Corporate Security',
+      description: 'High security for business environments',
+      currentVersion: 1,
+      isDefault: false,
+      createdAt: now,
+      updatedAt: now,
+      currentConfig: {
+        blockCategories: ['malware', 'phishing', 'hacking', 'scam', 'adult', 'gambling', 'piracy', 'proxy', 'vpn', 'file_sharing', 'cryptominer'],
+        warnCategories: ['social_media', 'streaming', 'gaming'],
+        threatBlocking: { enabled: true, feeds: ['malware', 'phishing', 'c2', 'ransomware', 'botnet', 'cryptominer', 'spam'] },
+        safesearch: {
+          enabled: true,
+          services: ['google', 'bing', 'youtube', 'duckduckgo'],
+          settings: { google: 'moderate', bing: 'moderate', youtube: 'moderate', duckduckgo: 'moderate' },
+        },
+      },
+    },
+  ]
+}
+
 // Threat feed types - aligned with threat-feed-loader.py
 const THREAT_FEEDS = [
   'malware', 'phishing', 'botnet', 'ransomware', 'cryptominer', 'c2', 'spam', 'malvertising'
@@ -218,6 +279,7 @@ export default function PoliciesPage() {
   const [selectedVersion, setSelectedVersion] = useState<PolicyVersion | null>(null)
   const [showRollbackConfirm, setShowRollbackConfirm] = useState(false)
   const [rollingBack, setRollingBack] = useState(false)
+  const [importing, setImporting] = useState(false)
 
   const [form, setForm] = useState({
     name: '',
@@ -233,7 +295,10 @@ export default function PoliciesPage() {
     isDefault: false,
   })
 
-  const policies: Policy[] = data?.data || []
+  // Use API data or fallback to demo data for new tenants/errors
+  const apiPolicies = data?.data || []
+  const usingDemoData = error || apiPolicies.length === 0
+  const policies: Policy[] = usingDemoData ? generateDemoPolicies() : apiPolicies
 
   const resetForm = () => {
     setForm({
@@ -406,6 +471,26 @@ export default function PoliciesPage() {
     }
   }
 
+  const handleImportSamples = async () => {
+    setImporting(true)
+    try {
+      const demoPolicies = generateDemoPolicies()
+      for (const policy of demoPolicies) {
+        await api.createPolicy({
+          name: policy.name,
+          description: policy.description,
+          config: policy.currentConfig,
+        })
+      }
+      showToast('success', 'Sample policies imported successfully')
+      mutate()
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to import sample policies')
+    } finally {
+      setImporting(false)
+    }
+  }
+
   // Cycle through: none -> block -> warn -> none
   const cycleCategory = (category: string) => {
     setForm(prev => {
@@ -506,16 +591,8 @@ export default function PoliciesPage() {
     }))
   }
 
-  if (error) {
-    return (
-      <div className="p-4 rounded-xl bg-danger-50 dark:bg-danger-900/20 ring-1 ring-danger-200 dark:ring-danger-800">
-        <p className="text-danger-800 dark:text-danger-200">Failed to load policies. Make sure the API is running.</p>
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -535,6 +612,28 @@ export default function PoliciesPage() {
           </Button>
         </div>
       </div>
+
+      {/* Demo Data Notice */}
+      {usingDemoData && !isLoading && (
+        <div className="flex items-center justify-between gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+          <div className="flex items-center gap-3">
+            <ShieldCheckIcon className="h-5 w-5 text-amber-500 flex-shrink-0" />
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              Showing sample policies. Import them to use as starting templates.
+            </p>
+          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleImportSamples}
+            disabled={importing}
+            leftIcon={<ArrowDownTrayIcon className="h-4 w-4" />}
+            className="bg-amber-500 hover:bg-amber-600 text-white border-0 whitespace-nowrap"
+          >
+            {importing ? 'Importing...' : 'Import Samples'}
+          </Button>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

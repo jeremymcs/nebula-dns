@@ -11,14 +11,14 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-      target: development
+      target: production
     container_name: dnsfilter-api
     ports:
       - "4010:3000"
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: postgresql://nebula:nebula@postgres:5432/nebula
+      DATABASE_URL: postgresql://nebula:nebula@postgres:5432/nebula?sslmode=disable
       REDIS_URL: redis://redis:6379
       CLICKHOUSE_HOST: clickhouse
       CLICKHOUSE_PORT: 8123
@@ -35,9 +35,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - ./api:/app
-      - /app/node_modules
     networks:
       - dnsfilter-network
     healthcheck:

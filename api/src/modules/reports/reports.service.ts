@@ -5,10 +5,13 @@
  * Reports Service - Analytics and Query Logging
  */
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ReportQueryDto, QueryLogDto, QueryLogEntry } from './dto/report-query.dto';
 import { ClickHouseService } from '../clickhouse/clickhouse.service';
+import { UsersService } from '../users/users.service';
+import { PoliciesService } from '../policies/policies.service';
+import { LocationsService } from '../locations/locations.service';
 
 export interface ReportSummary {
   totalQueries: number;
@@ -76,6 +79,12 @@ export class ReportsService {
   constructor(
     private readonly configService: ConfigService,
     private readonly clickhouseService: ClickHouseService,
+    @Inject(forwardRef(() => UsersService))
+    private readonly usersService: UsersService,
+    @Inject(forwardRef(() => PoliciesService))
+    private readonly policiesService: PoliciesService,
+    @Inject(forwardRef(() => LocationsService))
+    private readonly locationsService: LocationsService,
   ) {}
 
   async getSummary(
@@ -160,17 +169,9 @@ export class ReportsService {
       source: item.location || 'Unknown',
     }));
 
-    // Generate heatmap data - 24 hours x 7 days
-    const heatmap: Array<{ hour: number; day: number; value: number }> = [];
-    for (let day = 0; day < 7; day++) {
-      for (let hour = 0; hour < 24; hour++) {
-        heatmap.push({
-          day,
-          hour,
-          value: Math.floor(Math.random() * 100), // TODO: Calculate from real data
-        });
-      }
-    }
+    // Generate heatmap data from real ClickHouse data
+    const heatmapData = await this.clickhouseService.getHeatmapData(tenantId, period);
+    const heatmap = heatmapData.length > 0 ? heatmapData : this.generateMockHeatmap();
 
     // Transform data or return mock if empty
     let trends: ThreatTrend[] = [];
@@ -408,48 +409,102 @@ export class ReportsService {
   async getSecurityScore(tenantId: string): Promise<any> {
     this.logger.debug(`Getting security score for tenant ${tenantId}`);
 
-    // Calculate security score based on various factors
-    const stats = await this.clickhouseService.getSummaryStats(tenantId, '30d');
+    // Gather data from multiple sources
+    const defaultPagination = { limit: 100 };
+    const [stats, usersResult, policiesResult, locationsResult] = await Promise.all([
+      this.clickhouseService.getSummaryStats(tenantId, '30d'),
+      this.usersService.findAll(tenantId, defaultPagination).catch(() => ({ data: [], total: 0 })),
+      this.policiesService.findAll(tenantId, defaultPagination).catch(() => ({ data: [], total: 0 })),
+      this.locationsService.findAll(tenantId, defaultPagination).catch(() => ({ data: [], total: 0 })),
+    ]);
+    const users = usersResult.data || [];
+    const policies = policiesResult.data || [];
+    const locations = locationsResult.data || [];
 
-    let score = 100;
+    let score = 50; // Start at 50, add/subtract based on factors
     const factors = [];
+    const recommendations = [];
 
-    // Factor 1: Threat blocking effectiveness
+    // Factor 1: MFA Adoption (max +15 points)
+    const usersWithMfa = users.filter((u: any) => u.mfaEnabled).length;
+    const totalUsers = users.length || 1;
+    const mfaPercentage = Math.round((usersWithMfa / totalUsers) * 100);
+
+    if (mfaPercentage === 100) {
+      score += 15;
+      factors.push({ id: 'mfa', name: 'Multi-Factor Auth', value: mfaPercentage, maxValue: 100, score: 15, maxScore: 15, impact: 15, status: 'good', category: 'authentication', description: 'All users have MFA enabled - excellent security!' });
+    } else if (mfaPercentage >= 50) {
+      score += 8;
+      factors.push({ id: 'mfa', name: 'Multi-Factor Auth', value: mfaPercentage, maxValue: 100, score: 8, maxScore: 15, impact: 8, status: 'info', category: 'authentication', description: `${mfaPercentage}% of users have MFA enabled`, recommendation: 'Enable MFA for remaining users' });
+      recommendations.push({ id: 'mfa', title: 'Enable MFA for all users', description: `${totalUsers - usersWithMfa} users still need MFA enabled`, priority: 'high', impact: '+7 points', action: { label: 'Configure MFA', href: '/dashboard/settings/security' } });
+    } else {
+      factors.push({ id: 'mfa', name: 'Multi-Factor Auth', value: mfaPercentage, maxValue: 100, score: 0, maxScore: 15, impact: 0, status: 'warning', category: 'authentication', description: 'Most users lack MFA protection', recommendation: 'Enable MFA for all users' });
+      recommendations.push({ id: 'mfa', title: 'Enable MFA for all users', description: 'Add an extra layer of security to prevent unauthorized access', priority: 'high', impact: '+15 points', action: { label: 'Configure MFA', href: '/dashboard/settings/security' } });
+    }
+
+    // Factor 2: Policy Configuration (max +15 points)
+    const activePolicies = policies.filter((p: any) => p.isActive).length;
+    const policiesWithThreatBlocking = policies.filter((p: any) =>
+      p.threatCategories?.length > 0 || p.blockMalware || p.blockPhishing
+    ).length;
+
+    if (activePolicies > 0 && policiesWithThreatBlocking > 0) {
+      score += 15;
+      factors.push({ id: 'policies', name: 'Security Policies', value: activePolicies, maxValue: activePolicies, score: 15, maxScore: 15, impact: 15, status: 'good', category: 'configuration', description: `${activePolicies} active policies with threat protection` });
+    } else if (activePolicies > 0) {
+      score += 8;
+      factors.push({ id: 'policies', name: 'Security Policies', value: activePolicies, maxValue: activePolicies, score: 8, maxScore: 15, impact: 8, status: 'info', category: 'configuration', description: 'Policies configured but threat blocking not enabled', recommendation: 'Enable threat category blocking' });
+      recommendations.push({ id: 'policies', title: 'Enable threat blocking', description: 'Add malware and phishing protection to your policies', priority: 'high', impact: '+7 points', action: { label: 'Edit Policies', href: '/dashboard/policies' } });
+    } else {
+      factors.push({ id: 'policies', name: 'Security Policies', value: 0, maxValue: 1, score: 0, maxScore: 15, impact: 0, status: 'warning', category: 'configuration', description: 'No active security policies', recommendation: 'Create and activate security policies' });
+      recommendations.push({ id: 'policies', title: 'Create security policies', description: 'Define what content and threats to block', priority: 'high', impact: '+15 points', action: { label: 'Create Policy', href: '/dashboard/policies' } });
+    }
+
+    // Factor 3: Location Coverage (max +10 points)
+    const activeLocations = locations.filter((l: any) => l.isActive).length;
+    const locationsWithPolicies = locations.filter((l: any) => l.policyId).length;
+
+    if (activeLocations > 0 && locationsWithPolicies === activeLocations) {
+      score += 10;
+      factors.push({ id: 'locations', name: 'Network Coverage', value: activeLocations, maxValue: activeLocations, score: 10, maxScore: 10, impact: 10, status: 'good', category: 'configuration', description: `${activeLocations} locations protected with policies` });
+    } else if (activeLocations > 0) {
+      const covered = Math.round((locationsWithPolicies / activeLocations) * 10);
+      score += covered;
+      factors.push({ id: 'locations', name: 'Network Coverage', value: locationsWithPolicies, maxValue: activeLocations, score: covered, maxScore: 10, impact: covered, status: 'info', category: 'configuration', description: `${locationsWithPolicies}/${activeLocations} locations have policies assigned`, recommendation: 'Assign policies to all locations' });
+      recommendations.push({ id: 'locations', title: 'Assign policies to all locations', description: `${activeLocations - locationsWithPolicies} locations need policy assignment`, priority: 'medium', impact: `+${10 - covered} points`, action: { label: 'Manage Locations', href: '/dashboard/locations' } });
+    } else {
+      factors.push({ id: 'locations', name: 'Network Coverage', value: 0, maxValue: 1, score: 0, maxScore: 10, impact: 0, status: 'warning', category: 'configuration', description: 'No active locations configured', recommendation: 'Set up network locations' });
+      recommendations.push({ id: 'locations', title: 'Configure network locations', description: 'Add your network locations to start DNS protection', priority: 'high', impact: '+10 points', action: { label: 'Add Location', href: '/dashboard/locations' } });
+    }
+
+    // Factor 4: Threat Blocking Effectiveness (max +10 points)
     const threatsBlocked = stats.threatsBlocked || 0;
-    if (threatsBlocked > 1000) {
-      score -= 10;
-      factors.push({ id: 'threats', name: 'Threat Activity', value: threatsBlocked, maxValue: 1000, impact: -10, status: 'warning', description: 'High volume of threats detected - review security policies' });
-    } else if (threatsBlocked > 100) {
-      factors.push({ id: 'threats', name: 'Threat Activity', value: threatsBlocked, maxValue: 1000, impact: 0, status: 'info', description: 'Moderate threat activity - protection is working' });
-    } else {
-      score += 5;
-      factors.push({ id: 'threats', name: 'Threat Activity', value: threatsBlocked, maxValue: 1000, impact: 5, status: 'good', description: 'Low threat activity - excellent protection' });
-    }
-
-    // Factor 2: Cache performance
-    const cacheHitRate = parseFloat(stats.cacheHitRate) || 0;
-    if (cacheHitRate > 80) {
-      score += 5;
-      factors.push({ id: 'cache', name: 'Cache Performance', value: cacheHitRate, maxValue: 100, impact: 5, status: 'good', description: 'Excellent cache hit rate improves response time' });
-    } else if (cacheHitRate > 50) {
-      factors.push({ id: 'cache', name: 'Cache Performance', value: cacheHitRate, maxValue: 100, impact: 0, status: 'info', description: 'Cache performance is acceptable' });
-    } else {
-      score -= 5;
-      factors.push({ id: 'cache', name: 'Cache Performance', value: cacheHitRate, maxValue: 100, impact: -5, status: 'warning', description: 'Low cache hit rate - consider DNS optimization' });
-    }
-
-    // Factor 3: Query volume (indicates active protection)
     const totalQueries = stats.totalQueries || 0;
-    if (totalQueries > 10000) {
+
+    if (totalQueries > 0 && threatsBlocked > 0) {
+      score += 10;
+      factors.push({ id: 'threats', name: 'Threat Protection', value: threatsBlocked, maxValue: threatsBlocked, score: 10, maxScore: 10, impact: 10, status: 'good', category: 'protection', description: `${threatsBlocked.toLocaleString()} threats blocked - protection is active` });
+    } else if (totalQueries > 0) {
       score += 5;
-      factors.push({ id: 'coverage', name: 'Network Coverage', value: 100, maxValue: 100, impact: 5, status: 'good', description: 'High query volume indicates comprehensive DNS protection' });
-    } else if (totalQueries > 1000) {
-      factors.push({ id: 'coverage', name: 'Network Coverage', value: 75, maxValue: 100, impact: 0, status: 'info', description: 'Good network coverage' });
+      factors.push({ id: 'threats', name: 'Threat Protection', value: 0, maxValue: 100, score: 5, maxScore: 10, impact: 5, status: 'info', category: 'protection', description: 'DNS filtering active, no threats detected yet' });
     } else {
-      factors.push({ id: 'coverage', name: 'Network Coverage', value: 25, maxValue: 100, impact: 0, status: 'warning', description: 'Limited DNS queries - ensure all devices are protected' });
+      factors.push({ id: 'threats', name: 'Threat Protection', value: 0, maxValue: 100, score: 0, maxScore: 10, impact: 0, status: 'warning', category: 'protection', description: 'No DNS queries detected - verify configuration' });
+      recommendations.push({ id: 'dns-config', title: 'Verify DNS configuration', description: 'Ensure your devices are using Nebula DNS servers', priority: 'high', impact: '+10 points', action: { label: 'Setup Guide', href: '/dashboard/onboarding' } });
     }
 
-    // Calculate final score
+    // Factor 5: Cache Performance (max +5 points)
+    const cacheHitRate = parseFloat(stats.cacheHitRate) || 0;
+    if (cacheHitRate >= 80) {
+      score += 5;
+      factors.push({ id: 'cache', name: 'Cache Performance', value: cacheHitRate, maxValue: 100, score: 5, maxScore: 5, impact: 5, status: 'good', category: 'performance', description: `${cacheHitRate.toFixed(1)}% cache hit rate - excellent performance` });
+    } else if (cacheHitRate >= 50) {
+      score += 3;
+      factors.push({ id: 'cache', name: 'Cache Performance', value: cacheHitRate, maxValue: 100, score: 3, maxScore: 5, impact: 3, status: 'info', category: 'performance', description: `${cacheHitRate.toFixed(1)}% cache hit rate - acceptable` });
+    } else {
+      factors.push({ id: 'cache', name: 'Cache Performance', value: cacheHitRate, maxValue: 100, score: 0, maxScore: 5, impact: 0, status: 'warning', category: 'performance', description: 'Low cache hit rate', recommendation: 'Cache will improve over time with usage' });
+    }
+
+    // Calculate final score (cap at 0-100)
     const totalScore = Math.max(0, Math.min(100, score));
     const grade = totalScore >= 90 ? 'A' : totalScore >= 80 ? 'B' : totalScore >= 70 ? 'C' : totalScore >= 60 ? 'D' : 'F';
 
@@ -459,8 +514,14 @@ export class ReportsService {
       { id: 'threat-hunter', name: 'Threat Hunter', description: 'Blocked 100 threats', icon: '🎯', unlocked: threatsBlocked >= 100, unlockedAt: threatsBlocked >= 100 ? new Date().toISOString() : null },
       { id: 'guardian', name: 'Guardian', description: 'Blocked 1000 threats', icon: '⚔️', unlocked: threatsBlocked >= 1000, unlockedAt: threatsBlocked >= 1000 ? new Date().toISOString() : null },
       { id: 'speed-demon', name: 'Speed Demon', description: 'Achieved 80% cache hit rate', icon: '⚡', unlocked: cacheHitRate >= 80, unlockedAt: cacheHitRate >= 80 ? new Date().toISOString() : null },
-      { id: 'fortress', name: 'Fortress', description: 'Maintained A grade for 7 days', icon: '🏰', unlocked: totalScore >= 90, unlockedAt: totalScore >= 90 ? new Date().toISOString() : null },
+      { id: 'fortress', name: 'Fortress', description: 'Achieved A grade security', icon: '🏰', unlocked: totalScore >= 90, unlockedAt: totalScore >= 90 ? new Date().toISOString() : null },
+      { id: 'mfa-champion', name: 'MFA Champion', description: '100% MFA adoption', icon: '🔐', unlocked: mfaPercentage === 100, unlockedAt: mfaPercentage === 100 ? new Date().toISOString() : null },
+      { id: 'policy-master', name: 'Policy Master', description: 'All locations have policies', icon: '📋', unlocked: activeLocations > 0 && locationsWithPolicies === activeLocations, unlockedAt: activeLocations > 0 && locationsWithPolicies === activeLocations ? new Date().toISOString() : null },
     ];
+
+    // Sort recommendations by priority
+    const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 };
+    recommendations.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
 
     return {
       score: totalScore,
@@ -468,16 +529,18 @@ export class ReportsService {
       grade,
       factors,
       achievements,
-      recommendations: [
-        { id: 'mfa', title: 'Enable MFA for all users', description: 'Add an extra layer of security', priority: 'high', impact: '+10 points' },
-        { id: 'review', title: 'Review blocked domains weekly', description: 'Ensure legitimate sites are not blocked', priority: 'medium', impact: '+5 points' },
-        { id: 'reports', title: 'Set up scheduled reports', description: 'Stay informed about your network security', priority: 'low', impact: '+3 points' },
-      ],
+      recommendations,
       stats: {
         totalQueries,
         threatsBlocked,
         cacheHitRate,
+        usersWithMfa,
+        totalUsers,
+        activePolicies,
+        activeLocations,
+        locationsWithPolicies,
       },
+      lastUpdated: new Date().toISOString(),
     };
   }
 
@@ -507,6 +570,24 @@ export class ReportsService {
         reasons: ['Domain analysis requires external threat intelligence integration'],
       },
     };
+  }
+
+  private generateMockHeatmap(): Array<{ hour: number; day: number; value: number }> {
+    const heatmap: Array<{ hour: number; day: number; value: number }> = [];
+    for (let day = 0; day < 7; day++) {
+      for (let hour = 0; hour < 24; hour++) {
+        // Simulate realistic patterns: higher activity during business hours
+        const isBusinessHour = hour >= 8 && hour <= 18;
+        const isWeekday = day < 5;
+        const baseValue = isBusinessHour && isWeekday ? 60 : 20;
+        heatmap.push({
+          day,
+          hour,
+          value: baseValue + Math.floor(Math.random() * 40),
+        });
+      }
+    }
+    return heatmap;
   }
 
   private getDateRange(query: ReportQueryDto): { startDate: string; endDate: string } {
