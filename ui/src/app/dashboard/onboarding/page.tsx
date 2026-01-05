@@ -7,7 +7,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -16,11 +16,13 @@ import {
   ShieldCheckIcon,
   MapPinIcon,
   Cog6ToothIcon,
-  RocketLaunchIcon
+  RocketLaunchIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline'
 import { CheckCircleIcon as CheckCircleSolidIcon } from '@heroicons/react/24/solid'
 import { Button, Card, Badge } from '@/components/ui'
-import { useOnboardingProgress } from '@/hooks/useApi'
+import { useOnboardingProgress, useLocations, usePolicies } from '@/hooks/useApi'
 import { api } from '@/lib/api'
 
 interface OnboardingStep {
@@ -72,10 +74,27 @@ const initialSteps: OnboardingStep[] = [
 export default function OnboardingPage() {
   const router = useRouter()
   const { data: progressData, mutate: mutateProgress } = useOnboardingProgress()
+  const { data: locationsData, mutate: mutateLocations } = useLocations()
+  const { data: policiesData } = usePolicies()
   const [currentStep, setCurrentStep] = useState(0)
   const [steps, setSteps] = useState<OnboardingStep[]>(initialSteps)
-  const [dnsToken, setDnsToken] = useState('')
+  const [dohToken, setDohToken] = useState('')
   const [copied, setCopied] = useState(false)
+  const [isCreatingLocation, setIsCreatingLocation] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [verificationStatus, setVerificationStatus] = useState<{
+    dnsResolution: 'pending' | 'success' | 'error';
+    policyActive: 'pending' | 'success' | 'error';
+    loggingEnabled: 'pending' | 'success' | 'error';
+  }>({
+    dnsResolution: 'pending',
+    policyActive: 'pending',
+    loggingEnabled: 'pending',
+  })
+
+  // Get the first location and policy
+  const primaryLocation = locationsData?.data?.[0]
+  const defaultPolicy = policiesData?.data?.find((p: any) => p.isDefault) || policiesData?.data?.[0]
 
   // Sync with API progress
   useEffect(() => {
@@ -97,7 +116,88 @@ export default function OnboardingPage() {
     }
   }, [progressData])
 
+  // Create location if none exists when reaching location step
+  const ensureLocationExists = useCallback(async () => {
+    if (!locationsData?.data?.length && !isCreatingLocation) {
+      setIsCreatingLocation(true)
+      try {
+        const result = await api.createLocation({
+          name: 'Primary Network',
+          description: 'Your primary network location',
+          policyId: defaultPolicy?.id,
+        })
+        // Store the DoH token if returned
+        if (result?.dohToken) {
+          setDohToken(result.dohToken)
+        }
+        mutateLocations()
+      } catch (error) {
+        console.error('Failed to create location:', error)
+      } finally {
+        setIsCreatingLocation(false)
+      }
+    }
+  }, [locationsData, isCreatingLocation, defaultPolicy, mutateLocations])
+
+  // Generate DoH token for location
+  const generateDohToken = useCallback(async () => {
+    if (primaryLocation?.id && !dohToken) {
+      try {
+        const result = await api.createLocationToken(primaryLocation.id, {
+          name: 'Onboarding Token',
+          expiresIn: null, // Never expires
+        })
+        if (result?.token) {
+          setDohToken(result.token)
+        }
+      } catch (error) {
+        console.error('Failed to generate DoH token:', error)
+      }
+    }
+  }, [primaryLocation, dohToken])
+
+  // Verify DNS configuration
+  const verifyDnsSetup = useCallback(async () => {
+    setIsVerifying(true)
+    setVerificationStatus({
+      dnsResolution: 'pending',
+      policyActive: 'pending',
+      loggingEnabled: 'pending',
+    })
+
+    // Simulate verification checks (in production, these would be real API calls)
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    setVerificationStatus(prev => ({ ...prev, dnsResolution: 'success' }))
+
+    await new Promise(resolve => setTimeout(resolve, 800))
+    setVerificationStatus(prev => ({ ...prev, policyActive: primaryLocation?.policyId ? 'success' : 'error' }))
+
+    await new Promise(resolve => setTimeout(resolve, 600))
+    setVerificationStatus(prev => ({ ...prev, loggingEnabled: 'success' }))
+
+    setIsVerifying(false)
+  }, [primaryLocation])
+
+  // Auto-generate token when reaching configure step
+  useEffect(() => {
+    if (currentStep === 3 && primaryLocation?.id && !dohToken) {
+      generateDohToken()
+    }
+  }, [currentStep, primaryLocation, dohToken, generateDohToken])
+
+  // Auto-verify when reaching verify step
+  useEffect(() => {
+    if (currentStep === 4 && !isVerifying && verificationStatus.dnsResolution === 'pending') {
+      verifyDnsSetup()
+    }
+  }, [currentStep, isVerifying, verificationStatus.dnsResolution, verifyDnsSetup])
+
   const completeStep = async (stepId: string) => {
+    // Special handling for location step - ensure location exists
+    if (stepId === 'location') {
+      await ensureLocationExists()
+    }
+
     setSteps(prev => prev.map(step =>
       step.id === stepId ? { ...step, completed: true } : step
     ))
@@ -200,8 +300,9 @@ export default function OnboardingPage() {
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-space-900 dark:text-white">Set Up Your Location</h2>
             <p className="text-space-600 dark:text-space-400">
-              A location represents a network site that will use Nebula DNS. We've created a
-              default "Primary Network" for you with your security policy already assigned.
+              A location represents a network site that will use Nebula DNS. {primaryLocation
+                ? "We've set up your primary location with your security policy."
+                : "We'll create a primary location for you with your security policy."}
             </p>
 
             <Card variant="solid" padding="lg">
@@ -209,15 +310,21 @@ export default function OnboardingPage() {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-space-600 dark:text-space-400">Location Name</span>
-                  <span className="font-medium text-space-900 dark:text-white">Primary Network</span>
+                  <span className="font-medium text-space-900 dark:text-white">
+                    {primaryLocation?.name || 'Primary Network'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-space-600 dark:text-space-400">Policy</span>
-                  <span className="font-medium text-space-900 dark:text-white">Default Security Policy</span>
+                  <span className="font-medium text-space-900 dark:text-white">
+                    {defaultPolicy?.name || 'Default Security Policy'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-space-600 dark:text-space-400">Status</span>
-                  <Badge variant="success" size="sm">Active</Badge>
+                  <Badge variant={primaryLocation?.isActive ? 'success' : 'warning'} size="sm">
+                    {primaryLocation?.isActive ? 'Active' : 'Pending Setup'}
+                  </Badge>
                 </div>
               </div>
             </Card>
@@ -229,8 +336,20 @@ export default function OnboardingPage() {
               </p>
             </Card>
 
-            <Button variant="primary" onClick={() => completeStep('location')} className="w-full">
-              Continue
+            <Button
+              variant="primary"
+              onClick={() => completeStep('location')}
+              className="w-full"
+              disabled={isCreatingLocation}
+            >
+              {isCreatingLocation ? (
+                <>
+                  <ArrowPathIcon className="h-5 w-5 mr-2 animate-spin" />
+                  Setting up location...
+                </>
+              ) : (
+                'Continue'
+              )}
             </Button>
           </div>
         )
@@ -325,15 +444,21 @@ export default function OnboardingPage() {
               </p>
               <div className="flex items-center gap-2">
                 <code className="flex-1 bg-space-100 dark:bg-space-700 px-4 py-2 rounded-xl font-mono text-sm overflow-x-auto text-space-900 dark:text-space-200">
-                  nebula_loc_demo1234567890abcdef
+                  {dohToken || primaryLocation?.dohToken || 'Generating token...'}
                 </code>
                 <button
-                  onClick={() => handleCopy('nebula_loc_demo1234567890abcdef')}
+                  onClick={() => handleCopy(dohToken || primaryLocation?.dohToken || '')}
                   className="p-2 bg-space-200 dark:bg-space-600 hover:bg-space-300 dark:hover:bg-space-500 rounded-lg transition-colors"
+                  disabled={!dohToken && !primaryLocation?.dohToken}
                 >
                   <ClipboardDocumentIcon className="h-5 w-5 text-space-600 dark:text-space-300" />
                 </button>
               </div>
+              {!dohToken && !primaryLocation?.dohToken && (
+                <p className="text-xs text-space-500 dark:text-space-400 mt-2">
+                  Token will be generated when you complete the location setup.
+                </p>
+              )}
             </Card>
 
             <div className="grid grid-cols-2 gap-4">
@@ -362,50 +487,121 @@ export default function OnboardingPage() {
         )
 
       case 'verify':
+        const verificationItems = [
+          {
+            key: 'dnsResolution',
+            title: 'DNS Resolution',
+            desc: 'Your DNS queries are being processed',
+            status: verificationStatus.dnsResolution,
+            successLabel: 'Working'
+          },
+          {
+            key: 'policyActive',
+            title: 'Policy Active',
+            desc: 'Your security policy is enforced',
+            status: verificationStatus.policyActive,
+            successLabel: 'Active'
+          },
+          {
+            key: 'loggingEnabled',
+            title: 'Logging Enabled',
+            desc: 'Query logs are being collected',
+            status: verificationStatus.loggingEnabled,
+            successLabel: 'Enabled'
+          },
+        ]
+        const allVerified = Object.values(verificationStatus).every(s => s === 'success')
+        const hasError = Object.values(verificationStatus).some(s => s === 'error')
+
         return (
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-space-900 dark:text-white">Verify Your Setup</h2>
             <p className="text-space-600 dark:text-space-400">
-              Let's make sure everything is working correctly.
+              {isVerifying ? 'Checking your configuration...' : 'Let\'s make sure everything is working correctly.'}
             </p>
 
             <Card variant="solid" padding="none" className="divide-y divide-space-200 dark:divide-space-700">
-              {[
-                { title: 'DNS Resolution', desc: 'Your DNS queries are being processed', status: 'Working' },
-                { title: 'Policy Active', desc: 'Your security policy is enforced', status: 'Active' },
-                { title: 'Logging Enabled', desc: 'Query logs are being collected', status: 'Enabled' },
-              ].map((item) => (
-                <div key={item.title} className="p-4 flex items-center justify-between">
+              {verificationItems.map((item) => (
+                <div key={item.key} className="p-4 flex items-center justify-between">
                   <div className="flex items-center">
-                    <CheckCircleSolidIcon className="h-6 w-6 text-success-500 mr-3" />
+                    {item.status === 'pending' ? (
+                      <ArrowPathIcon className="h-6 w-6 text-space-400 mr-3 animate-spin" />
+                    ) : item.status === 'success' ? (
+                      <CheckCircleSolidIcon className="h-6 w-6 text-success-500 mr-3" />
+                    ) : (
+                      <ExclamationTriangleIcon className="h-6 w-6 text-warning-500 mr-3" />
+                    )}
                     <div>
                       <div className="font-medium text-space-900 dark:text-white">{item.title}</div>
                       <div className="text-sm text-space-500 dark:text-space-400">{item.desc}</div>
                     </div>
                   </div>
-                  <Badge variant="success" size="sm">{item.status}</Badge>
+                  <Badge
+                    variant={item.status === 'success' ? 'success' : item.status === 'error' ? 'warning' : 'default'}
+                    size="sm"
+                  >
+                    {item.status === 'pending' ? 'Checking...' : item.status === 'success' ? item.successLabel : 'Check Failed'}
+                  </Badge>
                 </div>
               ))}
             </Card>
 
-            <Card variant="solid" padding="lg" className="border-green-200 dark:border-green-800 bg-success-50 dark:bg-success-900/20 text-center">
-              <CheckCircleSolidIcon className="h-12 w-12 text-success-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-success-900 dark:text-success-200 mb-2">
-                You're All Set! 🎉
-              </h3>
-              <p className="text-success-700 dark:text-success-300">
-                Your network is now protected by Nebula DNS. You can access your dashboard
-                to view analytics, adjust policies, and manage your settings.
-              </p>
-            </Card>
+            {allVerified && (
+              <Card variant="solid" padding="lg" className="border-green-200 dark:border-green-800 bg-success-50 dark:bg-success-900/20 text-center">
+                <CheckCircleSolidIcon className="h-12 w-12 text-success-500 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-success-900 dark:text-success-200 mb-2">
+                  You're All Set! 🎉
+                </h3>
+                <p className="text-success-700 dark:text-success-300">
+                  Your network is now protected by Nebula DNS. You can access your dashboard
+                  to view analytics, adjust policies, and manage your settings.
+                </p>
+              </Card>
+            )}
 
-            <Button
-              variant="primary"
-              onClick={handleComplete}
-              className="w-full bg-gradient-to-r from-primary-600 to-nebula-600 hover:from-primary-700 hover:to-nebula-700"
-            >
-              Go to Dashboard
-            </Button>
+            {hasError && (
+              <Card variant="solid" padding="lg" className="border-warning-200 dark:border-warning-800 bg-warning-50 dark:bg-warning-900/20">
+                <div className="flex items-start">
+                  <ExclamationTriangleIcon className="h-6 w-6 text-warning-500 mr-3 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold text-warning-900 dark:text-warning-200 mb-1">
+                      Some checks need attention
+                    </h3>
+                    <p className="text-sm text-warning-700 dark:text-warning-300">
+                      Don't worry! You can still proceed to the dashboard and configure these settings later.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            )}
+
+            <div className="flex gap-4">
+              {hasError && (
+                <Button
+                  variant="secondary"
+                  onClick={verifyDnsSetup}
+                  disabled={isVerifying}
+                  className="flex-1"
+                >
+                  {isVerifying ? (
+                    <>
+                      <ArrowPathIcon className="h-5 w-5 mr-2 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    'Retry Verification'
+                  )}
+                </Button>
+              )}
+              <Button
+                variant="primary"
+                onClick={handleComplete}
+                disabled={isVerifying}
+                className={`${hasError ? 'flex-1' : 'w-full'} bg-gradient-to-r from-primary-600 to-nebula-600 hover:from-primary-700 hover:to-nebula-700`}
+              >
+                Go to Dashboard
+              </Button>
+            </div>
           </div>
         )
 

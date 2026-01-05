@@ -571,6 +571,39 @@ export class ClickHouseService implements OnModuleInit {
     );
   }
 
+  async getHeatmapData(tenantId: string, period: string): Promise<Array<{ hour: number; day: number; value: number }>> {
+    const dateFilter = this.getPeriodFilter(period);
+
+    return this.safeQuery(
+      async () => {
+        const result = await this.client.query({
+          query: `
+            SELECT
+              toDayOfWeek(timestamp) - 1 as day,
+              toHour(timestamp) as hour,
+              count() as value
+            FROM query_logs
+            WHERE tenant_id = '${tenantId}'
+              AND action = 'block'
+              AND ${dateFilter}
+            GROUP BY day, hour
+            ORDER BY day, hour
+          `,
+          format: 'JSONEachRow',
+        });
+
+        const data = await result.json() as any[];
+        return data.map((item: any) => ({
+          day: Number(item.day),
+          hour: Number(item.hour),
+          value: Number(item.value),
+        }));
+      },
+      () => [],
+      'getHeatmapData',
+    );
+  }
+
   async getThreatTrends(tenantId: string, period: string): Promise<any[]> {
     const dateFilter = this.getPeriodFilter(period);
 
