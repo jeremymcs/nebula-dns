@@ -1,4 +1,10 @@
-import { IsEmail, IsString, MinLength, IsOptional, Length } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  MinLength,
+  IsOptional,
+  Length,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class LoginDto {
@@ -17,7 +23,9 @@ export class MfaVerifyLoginDto {
   @IsString()
   tempToken: string;
 
-  @ApiProperty({ description: 'MFA code from authenticator app or backup code' })
+  @ApiProperty({
+    description: 'MFA code from authenticator app or backup code',
+  })
   @IsString()
   @Length(6, 8) // 6 for TOTP, 8 for backup code
   code: string;

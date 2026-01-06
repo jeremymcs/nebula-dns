@@ -1,7 +1,7 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
+ *
  * API Key Authentication Guard with Rate Limiting
  */
 
@@ -52,7 +52,9 @@ export class ApiKeyGuard implements CanActivate {
 
     for (const scope of requiredScopes) {
       if (!this.apiKeysService.hasScope(keyEntity, scope)) {
-        throw new UnauthorizedException(`API key does not have required scope: ${scope}`);
+        throw new UnauthorizedException(
+          `API key does not have required scope: ${scope}`,
+        );
       }
     }
 
@@ -64,11 +66,19 @@ export class ApiKeyGuard implements CanActivate {
 
     // Set rate limit headers
     response.setHeader('X-RateLimit-Limit', keyEntity.rateLimit.toString());
-    response.setHeader('X-RateLimit-Remaining', rateLimitResult.remaining.toString());
-    response.setHeader('X-RateLimit-Reset', Math.ceil(rateLimitResult.resetAt.getTime() / 1000).toString());
+    response.setHeader(
+      'X-RateLimit-Remaining',
+      rateLimitResult.remaining.toString(),
+    );
+    response.setHeader(
+      'X-RateLimit-Reset',
+      Math.ceil(rateLimitResult.resetAt.getTime() / 1000).toString(),
+    );
 
     if (!rateLimitResult.allowed) {
-      const retryAfter = Math.ceil((rateLimitResult.resetAt.getTime() - Date.now()) / 1000);
+      const retryAfter = Math.ceil(
+        (rateLimitResult.resetAt.getTime() - Date.now()) / 1000,
+      );
       response.setHeader('Retry-After', retryAfter.toString());
       throw new HttpException(
         {
@@ -88,17 +98,19 @@ export class ApiKeyGuard implements CanActivate {
     const startTime = Date.now();
     response.on('finish', () => {
       const responseTime = Date.now() - startTime;
-      this.apiKeysService.recordUsage(
-        keyEntity.id,
-        request.path,
-        request.method,
-        response.statusCode,
-        responseTime,
-        request.ip,
-        request.headers['user-agent'],
-      ).catch(() => {
-        // Ignore usage recording errors
-      });
+      this.apiKeysService
+        .recordUsage(
+          keyEntity.id,
+          request.path,
+          request.method,
+          response.statusCode,
+          responseTime,
+          request.ip,
+          request.headers['user-agent'],
+        )
+        .catch(() => {
+          // Ignore usage recording errors
+        });
     });
 
     return true;
@@ -125,4 +137,3 @@ export class ApiKeyGuard implements CanActivate {
     return null;
   }
 }
-

@@ -1,12 +1,17 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
+ *
  * Rate Limiting Middleware
  * Implements sliding window rate limiting with in-memory storage
  */
 
-import { Injectable, NestMiddleware, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  NestMiddleware,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { ConfigService } from '@nestjs/config';
 
@@ -42,32 +47,74 @@ export class RateLimitMiddleware implements NestMiddleware {
 
   private configureEndpointLimits() {
     // Auth endpoints - stricter limits to prevent brute force
-    this.endpointConfigs.set('POST:/auth/login', { windowMs: 60000, maxRequests: 5 });
-    this.endpointConfigs.set('POST:/auth/refresh', { windowMs: 60000, maxRequests: 20 });
-    this.endpointConfigs.set('POST:/auth/forgot-password', { windowMs: 300000, maxRequests: 3 });
-    
+    this.endpointConfigs.set('POST:/auth/login', {
+      windowMs: 60000,
+      maxRequests: 5,
+    });
+    this.endpointConfigs.set('POST:/auth/refresh', {
+      windowMs: 60000,
+      maxRequests: 20,
+    });
+    this.endpointConfigs.set('POST:/auth/forgot-password', {
+      windowMs: 300000,
+      maxRequests: 3,
+    });
+
     // MFA endpoints
-    this.endpointConfigs.set('POST:/mfa/verify', { windowMs: 60000, maxRequests: 10 });
-    this.endpointConfigs.set('POST:/mfa/setup', { windowMs: 300000, maxRequests: 5 });
-    
+    this.endpointConfigs.set('POST:/mfa/verify', {
+      windowMs: 60000,
+      maxRequests: 10,
+    });
+    this.endpointConfigs.set('POST:/mfa/setup', {
+      windowMs: 300000,
+      maxRequests: 5,
+    });
+
     // Report generation - expensive operations
-    this.endpointConfigs.set('GET:/reports', { windowMs: 60000, maxRequests: 30 });
-    this.endpointConfigs.set('POST:/scheduled-reports/:id/run', { windowMs: 60000, maxRequests: 5 });
-    
+    this.endpointConfigs.set('GET:/reports', {
+      windowMs: 60000,
+      maxRequests: 30,
+    });
+    this.endpointConfigs.set('POST:/scheduled-reports/:id/run', {
+      windowMs: 60000,
+      maxRequests: 5,
+    });
+
     // Webhook testing
-    this.endpointConfigs.set('POST:/webhooks/:id/test', { windowMs: 60000, maxRequests: 10 });
-    
+    this.endpointConfigs.set('POST:/webhooks/:id/test', {
+      windowMs: 60000,
+      maxRequests: 10,
+    });
+
     // SIEM integration testing
-    this.endpointConfigs.set('POST:/siem/:id/test', { windowMs: 60000, maxRequests: 5 });
-    
+    this.endpointConfigs.set('POST:/siem/:id/test', {
+      windowMs: 60000,
+      maxRequests: 5,
+    });
+
     // Bulk operations
-    this.endpointConfigs.set('POST:/lists/:id/entries/bulk', { windowMs: 60000, maxRequests: 10 });
-    this.endpointConfigs.set('POST:/invitations/bulk', { windowMs: 60000, maxRequests: 5 });
-    
+    this.endpointConfigs.set('POST:/lists/:id/entries/bulk', {
+      windowMs: 60000,
+      maxRequests: 10,
+    });
+    this.endpointConfigs.set('POST:/invitations/bulk', {
+      windowMs: 60000,
+      maxRequests: 5,
+    });
+
     // Health/metrics endpoints - higher limits for monitoring
-    this.endpointConfigs.set('GET:/health', { windowMs: 60000, maxRequests: 300 });
-    this.endpointConfigs.set('GET:/health/detailed', { windowMs: 60000, maxRequests: 60 });
-    this.endpointConfigs.set('GET:/metrics', { windowMs: 60000, maxRequests: 300 });
+    this.endpointConfigs.set('GET:/health', {
+      windowMs: 60000,
+      maxRequests: 300,
+    });
+    this.endpointConfigs.set('GET:/health/detailed', {
+      windowMs: 60000,
+      maxRequests: 60,
+    });
+    this.endpointConfigs.set('GET:/metrics', {
+      windowMs: 60000,
+      maxRequests: 300,
+    });
   }
 
   use(req: Request, res: Response, next: NextFunction) {
@@ -123,7 +170,9 @@ export class RateLimitMiddleware implements NestMiddleware {
     // Check various headers for the real IP (behind proxies/load balancers)
     const forwardedFor = req.headers['x-forwarded-for'];
     if (forwardedFor) {
-      const ips = (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor).split(',');
+      const ips = (
+        Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor
+      ).split(',');
       return ips[0].trim();
     }
 
@@ -138,7 +187,10 @@ export class RateLimitMiddleware implements NestMiddleware {
   private normalizeEndpoint(path: string): string {
     // Replace UUIDs and numeric IDs with placeholders
     return path
-      .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, ':id')
+      .replace(
+        /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+        ':id',
+      )
       .replace(/\/\d+/g, '/:num');
   }
 
@@ -151,7 +203,9 @@ export class RateLimitMiddleware implements NestMiddleware {
 
     // Check for pattern matches (with :id or :num placeholders)
     for (const [pattern, config] of this.endpointConfigs) {
-      const regexPattern = pattern.replace(/:id/g, '[^/]+').replace(/:num/g, '\\d+');
+      const regexPattern = pattern
+        .replace(/:id/g, '[^/]+')
+        .replace(/:num/g, '\\d+');
       const regex = new RegExp(`^${regexPattern}$`);
       if (regex.test(endpoint)) {
         return config;

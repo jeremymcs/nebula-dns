@@ -117,7 +117,10 @@ export class HealthService {
     }
   }
 
-  async checkReady(): Promise<{ ready: boolean; checks: Record<string, boolean> }> {
+  async checkReady(): Promise<{
+    ready: boolean;
+    checks: Record<string, boolean>;
+  }> {
     const [postgres, redis] = await Promise.all([
       this.checkPostgres(),
       this.checkRedis(),

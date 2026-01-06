@@ -4,10 +4,16 @@ import { Repository, LessThanOrEqual } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import * as PDFDocument from 'pdfkit';
 import { Parser as Json2CsvParser } from 'json2csv';
-import { ScheduledReport, ScheduleType } from './entities/scheduled-report.entity';
+import {
+  ScheduledReport,
+  ScheduleType,
+} from './entities/scheduled-report.entity';
 import { ReportHistory } from './entities/report-history.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
-import { CreateScheduledReportDto, UpdateScheduledReportDto } from './dto/scheduled-report.dto';
+import {
+  CreateScheduledReportDto,
+  UpdateScheduledReportDto,
+} from './dto/scheduled-report.dto';
 import { EmailService } from '../email/email.service';
 import { ConfigService } from '@nestjs/config';
 
@@ -26,15 +32,25 @@ export class ScheduledReportsService {
     private emailService: EmailService,
     private configService: ConfigService,
   ) {
-    this.frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:4001';
+    this.frontendUrl =
+      this.configService.get('FRONTEND_URL') || 'http://localhost:4001';
   }
 
-  async create(tenantId: string, userId: string, dto: CreateScheduledReportDto): Promise<ScheduledReport> {
+  async create(
+    tenantId: string,
+    userId: string,
+    dto: CreateScheduledReportDto,
+  ): Promise<ScheduledReport> {
     const report = this.reportRepository.create({
       tenantId,
       createdById: userId,
       ...dto,
-      nextRunAt: this.calculateNextRun(dto.scheduleType, dto.scheduleDay, dto.scheduleTime || '08:00', dto.timezone || 'UTC'),
+      nextRunAt: this.calculateNextRun(
+        dto.scheduleType,
+        dto.scheduleDay,
+        dto.scheduleTime || '08:00',
+        dto.timezone || 'UTC',
+      ),
     });
 
     return this.reportRepository.save(report);
@@ -59,13 +75,22 @@ export class ScheduledReportsService {
     return report;
   }
 
-  async update(tenantId: string, id: string, dto: UpdateScheduledReportDto): Promise<ScheduledReport> {
+  async update(
+    tenantId: string,
+    id: string,
+    dto: UpdateScheduledReportDto,
+  ): Promise<ScheduledReport> {
     const report = await this.findOne(tenantId, id);
 
     Object.assign(report, dto);
 
     // Recalculate next run if schedule changed
-    if (dto.scheduleType || dto.scheduleDay || dto.scheduleTime || dto.timezone) {
+    if (
+      dto.scheduleType ||
+      dto.scheduleDay ||
+      dto.scheduleTime ||
+      dto.timezone
+    ) {
       report.nextRunAt = this.calculateNextRun(
         report.scheduleType,
         report.scheduleDay,
@@ -82,7 +107,10 @@ export class ScheduledReportsService {
     await this.reportRepository.remove(report);
   }
 
-  async getHistory(tenantId: string, reportId: string): Promise<ReportHistory[]> {
+  async getHistory(
+    tenantId: string,
+    reportId: string,
+  ): Promise<ReportHistory[]> {
     return this.historyRepository.find({
       where: { scheduledReportId: reportId, tenantId },
       order: { createdAt: 'DESC' },
@@ -99,7 +127,7 @@ export class ScheduledReportsService {
   @Cron(CronExpression.EVERY_MINUTE)
   async processScheduledReports(): Promise<void> {
     const now = new Date();
-    
+
     const dueReports = await this.reportRepository.find({
       where: {
         isEnabled: true,
@@ -110,7 +138,7 @@ export class ScheduledReportsService {
     for (const report of dueReports) {
       try {
         await this.generateAndSendReport(report);
-        
+
         // Update next run time
         report.lastSentAt = now;
         report.nextRunAt = this.calculateNextRun(
@@ -126,7 +154,9 @@ export class ScheduledReportsService {
     }
   }
 
-  private async generateAndSendReport(report: ScheduledReport): Promise<ReportHistory> {
+  private async generateAndSendReport(
+    report: ScheduledReport,
+  ): Promise<ReportHistory> {
     const history = this.historyRepository.create({
       scheduledReportId: report.id,
       tenantId: report.tenantId,
@@ -138,15 +168,22 @@ export class ScheduledReportsService {
     try {
       // Generate report data based on type
       const reportData = await this.generateReportData(report);
-      
+
       // Generate report content
       const content = this.formatReport(report, reportData);
-      
+
       // Send to all recipients
       const sentRecipients: string[] = [];
       for (const recipient of report.recipients) {
         try {
-          await this.sendReportEmail(recipient, report.name, content, report.format, report, reportData);
+          await this.sendReportEmail(
+            recipient,
+            report.name,
+            content,
+            report.format,
+            report,
+            reportData,
+          );
           sentRecipients.push(recipient);
         } catch (error) {
           this.logger.error(`Failed to send report to ${recipient}:`, error);
@@ -156,7 +193,6 @@ export class ScheduledReportsService {
       history.status = 'sent';
       history.recipientsSent = sentRecipients;
       history.completedAt = new Date();
-      
     } catch (error) {
       history.status = 'failed';
       history.errorMessage = error.message;
@@ -170,7 +206,9 @@ export class ScheduledReportsService {
     // This would query ClickHouse for actual data
     // For now, return sample data structure
     const now = new Date();
-    const startDate = this.getStartDate(report.filters?.dateRangeType || 'last_week');
+    const startDate = this.getStartDate(
+      report.filters?.dateRangeType || 'last_week',
+    );
 
     const sampleData = {
       period: {
@@ -258,13 +296,17 @@ export class ScheduledReportsService {
         <th>Category</th>
         <th>Count</th>
       </tr>
-      ${data.topBlocked.map((item: any) => `
+      ${data.topBlocked
+        .map(
+          (item: any) => `
       <tr>
         <td>${item.domain}</td>
         <td>${item.category}</td>
         <td>${item.count.toLocaleString()}</td>
       </tr>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </table>
   </div>
 
@@ -276,13 +318,17 @@ export class ScheduledReportsService {
         <th>Count</th>
         <th>Percentage</th>
       </tr>
-      ${data.categoryBreakdown.map((item: any) => `
+      ${data.categoryBreakdown
+        .map(
+          (item: any) => `
       <tr>
         <td>${item.category}</td>
         <td>${item.count.toLocaleString()}</td>
         <td>${item.percentage}%</td>
       </tr>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </table>
   </div>
 
@@ -304,7 +350,9 @@ export class ScheduledReportsService {
     this.logger.log(`Sending report "${reportName}" to ${to} as ${format}`);
 
     // Get tenant name
-    const tenant = await this.tenantRepository.findOne({ where: { id: report.tenantId } });
+    const tenant = await this.tenantRepository.findOne({
+      where: { id: report.tenantId },
+    });
     const tenantName = tenant?.name || 'Nebula DNS';
 
     // Calculate report period
@@ -339,10 +387,14 @@ export class ScheduledReportsService {
       summary: {
         totalQueries: data.summary.totalQueries,
         blockedQueries: data.summary.blockedQueries,
-        threatBlocks: data.topBlocked.filter((d: any) =>
-          ['malware', 'phishing', 'c2'].includes(d.category)
-        ).reduce((sum: number, d: any) => sum + d.count, 0),
-        topBlockedDomains: data.topBlocked.slice(0, 5).map((d: any) => d.domain),
+        threatBlocks: data.topBlocked
+          .filter((d: any) =>
+            ['malware', 'phishing', 'c2'].includes(d.category),
+          )
+          .reduce((sum: number, d: any) => sum + d.count, 0),
+        topBlockedDomains: data.topBlocked
+          .slice(0, 5)
+          .map((d: any) => d.domain),
       },
       reportUrl: `${this.frontendUrl}/dashboard/reports`,
       attachmentBuffer,
@@ -359,8 +411,8 @@ export class ScheduledReportsService {
   ): Date {
     const now = new Date();
     const [hours, minutes] = scheduleTime.split(':').map(Number);
-    
-    let nextRun = new Date(now);
+
+    const nextRun = new Date(now);
     nextRun.setHours(hours, minutes, 0, 0);
 
     // If time has passed today, move to next occurrence
@@ -422,10 +474,13 @@ export class ScheduledReportsService {
         // Header with gradient-like effect
         doc.rect(0, 0, doc.page.width, 100).fill('#667eea');
         doc.fontSize(24).fillColor('#ffffff').text(report.name, 50, 35);
-        doc.fontSize(12).text(
-          `Report Period: ${new Date(data.period.start).toLocaleDateString()} - ${new Date(data.period.end).toLocaleDateString()}`,
-          50, 65
-        );
+        doc
+          .fontSize(12)
+          .text(
+            `Report Period: ${new Date(data.period.start).toLocaleDateString()} - ${new Date(data.period.end).toLocaleDateString()}`,
+            50,
+            65,
+          );
 
         // Summary Section
         doc.moveDown(3);
@@ -438,21 +493,48 @@ export class ScheduledReportsService {
 
         // Summary boxes
         const summaryItems = [
-          { label: 'Total Queries', value: data.summary.totalQueries.toLocaleString() },
-          { label: 'Blocked', value: data.summary.blockedQueries.toLocaleString() },
-          { label: 'Allowed', value: data.summary.allowedQueries.toLocaleString() },
+          {
+            label: 'Total Queries',
+            value: data.summary.totalQueries.toLocaleString(),
+          },
+          {
+            label: 'Blocked',
+            value: data.summary.blockedQueries.toLocaleString(),
+          },
+          {
+            label: 'Allowed',
+            value: data.summary.allowedQueries.toLocaleString(),
+          },
           { label: 'Block Rate', value: `${data.summary.blockRate}%` },
         ];
 
         summaryItems.forEach((item, i) => {
-          const x = 50 + (i * colWidth);
-          doc.rect(x, summaryY, colWidth - 10, 60).fill('#f9fafb').stroke('#e5e7eb');
-          doc.fillColor('#1f2937').fontSize(18).text(item.value, x + 10, summaryY + 15, { width: colWidth - 20, align: 'center' });
-          doc.fillColor('#6b7280').fontSize(9).text(item.label, x + 10, summaryY + 40, { width: colWidth - 20, align: 'center' });
+          const x = 50 + i * colWidth;
+          doc
+            .rect(x, summaryY, colWidth - 10, 60)
+            .fill('#f9fafb')
+            .stroke('#e5e7eb');
+          doc
+            .fillColor('#1f2937')
+            .fontSize(18)
+            .text(item.value, x + 10, summaryY + 15, {
+              width: colWidth - 20,
+              align: 'center',
+            });
+          doc
+            .fillColor('#6b7280')
+            .fontSize(9)
+            .text(item.label, x + 10, summaryY + 40, {
+              width: colWidth - 20,
+              align: 'center',
+            });
         });
 
         // Top Blocked Domains Section
-        doc.fillColor('#1f2937').fontSize(16).text('Top Blocked Domains', 50, 260);
+        doc
+          .fillColor('#1f2937')
+          .fontSize(16)
+          .text('Top Blocked Domains', 50, 260);
         doc.moveTo(50, 280).lineTo(550, 280).stroke('#e5e7eb');
 
         let tableY = 295;
@@ -473,8 +555,14 @@ export class ScheduledReportsService {
 
         // Category Breakdown Section
         tableY += 20;
-        doc.fillColor('#1f2937').fontSize(16).text('Blocks by Category', 50, tableY);
-        doc.moveTo(50, tableY + 20).lineTo(550, tableY + 20).stroke('#e5e7eb');
+        doc
+          .fillColor('#1f2937')
+          .fontSize(16)
+          .text('Blocks by Category', 50, tableY);
+        doc
+          .moveTo(50, tableY + 20)
+          .lineTo(550, tableY + 20)
+          .stroke('#e5e7eb');
 
         tableY += 35;
         doc.fillColor('#6b7280').fontSize(10);
@@ -495,8 +583,9 @@ export class ScheduledReportsService {
         doc.fillColor('#9ca3af').fontSize(8);
         doc.text(
           `Generated by Nebula DNS on ${new Date().toLocaleString()}`,
-          50, doc.page.height - 50,
-          { align: 'center', width: doc.page.width - 100 }
+          50,
+          doc.page.height - 50,
+          { align: 'center', width: doc.page.width - 100 },
         );
 
         doc.end();
@@ -546,7 +635,10 @@ export class ScheduledReportsService {
 
         // Add top blocked domains
         data.topBlocked.forEach((item: any, index: number) => {
-          csvData.push({ metric: `Top Blocked #${index + 1}`, value: `${item.domain} (${item.count})` });
+          csvData.push({
+            metric: `Top Blocked #${index + 1}`,
+            value: `${item.domain} (${item.count})`,
+          });
         });
 
         fields = ['metric', 'value'];

@@ -7,9 +7,7 @@ import { MfaBackupCode } from './entities/mfa-backup-code.entity';
 import { User } from '../users/entities/user.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([UserMfa, MfaBackupCode, User]),
-  ],
+  imports: [TypeOrmModule.forFeature([UserMfa, MfaBackupCode, User])],
   controllers: [MfaController],
   providers: [MfaService],
   exports: [MfaService],

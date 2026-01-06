@@ -5,7 +5,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { OnboardingProgress, OnboardingStep } from './entities/onboarding-progress.entity';
+import {
+  OnboardingProgress,
+  OnboardingStep,
+} from './entities/onboarding-progress.entity';
 
 const DEFAULT_STEPS = ['welcome', 'location', 'policy', 'configure', 'verify'];
 
@@ -28,7 +31,7 @@ export class OnboardingService {
       progress = this.progressRepository.create({
         tenantId,
         currentStep: 'welcome',
-        stepsCompleted: DEFAULT_STEPS.map(id => ({ id, completed: false })),
+        stepsCompleted: DEFAULT_STEPS.map((id) => ({ id, completed: false })),
       });
       progress = await this.progressRepository.save(progress);
     }
@@ -36,15 +39,21 @@ export class OnboardingService {
     return progress;
   }
 
-  async updateProgress(tenantId: string, currentStep?: string, completeStep?: string): Promise<OnboardingProgress> {
-    let progress = await this.getProgress(tenantId);
+  async updateProgress(
+    tenantId: string,
+    currentStep?: string,
+    completeStep?: string,
+  ): Promise<OnboardingProgress> {
+    const progress = await this.getProgress(tenantId);
 
     if (currentStep) {
       progress.currentStep = currentStep;
     }
 
     if (completeStep) {
-      const stepIndex = progress.stepsCompleted.findIndex(s => s.id === completeStep);
+      const stepIndex = progress.stepsCompleted.findIndex(
+        (s) => s.id === completeStep,
+      );
       if (stepIndex >= 0) {
         progress.stepsCompleted[stepIndex] = {
           ...progress.stepsCompleted[stepIndex],
@@ -63,7 +72,10 @@ export class OnboardingService {
     return this.progressRepository.save(progress);
   }
 
-  async completeOnboarding(tenantId: string, skipped = false): Promise<OnboardingProgress> {
+  async completeOnboarding(
+    tenantId: string,
+    skipped = false,
+  ): Promise<OnboardingProgress> {
     const progress = await this.getProgress(tenantId);
 
     if (skipped) {
@@ -71,7 +83,7 @@ export class OnboardingService {
     } else {
       progress.completedAt = new Date();
       // Mark all steps as completed
-      progress.stepsCompleted = progress.stepsCompleted.map(step => ({
+      progress.stepsCompleted = progress.stepsCompleted.map((step) => ({
         ...step,
         completed: true,
         completedAt: step.completedAt || new Date().toISOString(),
@@ -83,13 +95,15 @@ export class OnboardingService {
 
   async resetProgress(tenantId: string): Promise<OnboardingProgress> {
     const progress = await this.getProgress(tenantId);
-    
+
     progress.currentStep = 'welcome';
-    progress.stepsCompleted = DEFAULT_STEPS.map(id => ({ id, completed: false }));
+    progress.stepsCompleted = DEFAULT_STEPS.map((id) => ({
+      id,
+      completed: false,
+    }));
     progress.completedAt = null;
     progress.skippedAt = null;
 
     return this.progressRepository.save(progress);
   }
 }
-

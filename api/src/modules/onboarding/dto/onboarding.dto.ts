@@ -23,4 +23,3 @@ export class CompleteOnboardingDto {
   @IsOptional()
   skipped?: boolean;
 }
-

@@ -1,7 +1,7 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * DNS-over-HTTPS (DoH) Module
- * 
+ *
  * Handles DoH requests from agents and provides policy-based DNS resolution
  */
 
@@ -29,4 +29,3 @@ import { ClickHouseModule } from '../clickhouse/clickhouse.module';
   exports: [DoHService],
 })
 export class DoHModule {}
-

@@ -6,9 +6,7 @@ import { ApiKey } from './entities/api-key.entity';
 import { ApiKeyUsage } from './entities/api-key-usage.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([ApiKey, ApiKeyUsage]),
-  ],
+  imports: [TypeOrmModule.forFeature([ApiKey, ApiKeyUsage])],
   controllers: [ApiKeysController],
   providers: [ApiKeysService],
   exports: [ApiKeysService],

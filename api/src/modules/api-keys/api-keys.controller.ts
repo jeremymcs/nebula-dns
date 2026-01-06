@@ -9,7 +9,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiKeysService } from './api-keys.service';
-import { CreateApiKeyDto, UpdateApiKeyDto, RotateApiKeyDto } from './dto/api-key.dto';
+import {
+  CreateApiKeyDto,
+  UpdateApiKeyDto,
+  RotateApiKeyDto,
+} from './dto/api-key.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -31,7 +35,8 @@ export class ApiKeysController {
     const apiKey = await this.apiKeysService.create(tenantId, user.id, dto);
     return {
       data: apiKey,
-      message: 'API key created. Make sure to copy the key now - it will not be shown again.',
+      message:
+        'API key created. Make sure to copy the key now - it will not be shown again.',
     };
   }
 
@@ -42,10 +47,7 @@ export class ApiKeysController {
   }
 
   @Get(':id')
-  async findOne(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async findOne(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     const apiKey = await this.apiKeysService.findOne(tenantId, id);
     return { data: apiKey };
   }
@@ -72,10 +74,7 @@ export class ApiKeysController {
 
   @Post(':id/revoke')
   @Roles('admin', 'owner')
-  async revoke(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async revoke(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     const apiKey = await this.apiKeysService.revoke(tenantId, id);
     return { data: apiKey, message: 'API key revoked successfully' };
   }
@@ -87,7 +86,11 @@ export class ApiKeysController {
     @Param('id') id: string,
     @Body() dto: RotateApiKeyDto,
   ) {
-    const newApiKey = await this.apiKeysService.rotate(tenantId, id, dto.gracePeriodHours);
+    const newApiKey = await this.apiKeysService.rotate(
+      tenantId,
+      id,
+      dto.gracePeriodHours,
+    );
     return {
       data: newApiKey,
       message: `API key rotated. Old key will remain active for ${dto.gracePeriodHours || 24} hours. Make sure to copy the new key now - it will not be shown again.`,
@@ -96,10 +99,7 @@ export class ApiKeysController {
 
   @Delete(':id')
   @Roles('admin', 'owner')
-  async delete(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async delete(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     await this.apiKeysService.delete(tenantId, id);
     return { success: true };
   }

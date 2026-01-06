@@ -1,4 +1,13 @@
-import { IsString, IsNumber, IsOptional, IsUUID, IsBoolean, IsIn, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsUUID,
+  IsBoolean,
+  IsIn,
+  Min,
+  Max,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 // Query Bundle DTOs
@@ -163,4 +172,3 @@ export class TenantUsageDto {
   blockedCount: number;
   percentage: number;
 }
-

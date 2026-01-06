@@ -10,7 +10,10 @@ import { Policy } from './entities/policy.entity';
 import { PolicyVersion, PolicyConfig } from './entities/policy-version.entity';
 import { CreatePolicyDto } from './dto/create-policy.dto';
 import { UpdatePolicyDto } from './dto/update-policy.dto';
-import { PaginationQueryDto, PaginatedResponse } from '@/common/dto/pagination.dto';
+import {
+  PaginationQueryDto,
+  PaginatedResponse,
+} from '@/common/dto/pagination.dto';
 import { RedisService } from '../redis/redis.service';
 import { Location } from '../locations/entities/location.entity';
 import { PolicyCompilerService } from './policy-compiler.service';
@@ -84,7 +87,10 @@ export class PoliciesService {
     };
   }
 
-  async findOne(tenantId: string, id: string): Promise<Policy & { currentConfig: PolicyConfig }> {
+  async findOne(
+    tenantId: string,
+    id: string,
+  ): Promise<Policy & { currentConfig: PolicyConfig }> {
     const policy = await this.policyRepository.findOne({
       where: { id, tenantId },
     });
@@ -100,7 +106,7 @@ export class PoliciesService {
 
     return {
       ...policy,
-      currentConfig: currentVersionRecord?.config || {} as PolicyConfig,
+      currentConfig: currentVersionRecord?.config || ({} as PolicyConfig),
     };
   }
 

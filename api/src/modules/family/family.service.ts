@@ -6,7 +6,11 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FamilyMember } from './entities/family-member.entity';
-import { CreateFamilyMemberDto, UpdateFamilyMemberDto, AssignDeviceDto } from './dto/family.dto';
+import {
+  CreateFamilyMemberDto,
+  UpdateFamilyMemberDto,
+  AssignDeviceDto,
+} from './dto/family.dto';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -35,18 +39,30 @@ export class FamilyService {
     return member;
   }
 
-  async create(tenantId: string, dto: CreateFamilyMemberDto): Promise<FamilyMember> {
+  async create(
+    tenantId: string,
+    dto: CreateFamilyMemberDto,
+  ): Promise<FamilyMember> {
     const member = this.familyMemberRepository.create({
       tenantId,
       name: dto.name,
       avatar: dto.avatar,
       role: dto.role,
       restrictions: dto.restrictions || {
-        blockedCategories: dto.role === 'child' ? ['adult', 'gambling', 'social-media'] : ['adult', 'gambling'],
+        blockedCategories:
+          dto.role === 'child'
+            ? ['adult', 'gambling', 'social-media']
+            : ['adult', 'gambling'],
         allowedApps: [],
         safeSearch: dto.role !== 'parent',
-        dailyLimit: dto.role === 'child' ? 120 : dto.role === 'teen' ? 180 : undefined,
-        bedtime: dto.role === 'child' ? { start: '20:00', end: '07:00' } : dto.role === 'teen' ? { start: '22:00', end: '07:00' } : undefined,
+        dailyLimit:
+          dto.role === 'child' ? 120 : dto.role === 'teen' ? 180 : undefined,
+        bedtime:
+          dto.role === 'child'
+            ? { start: '20:00', end: '07:00' }
+            : dto.role === 'teen'
+              ? { start: '22:00', end: '07:00' }
+              : undefined,
       },
       devices: [],
       screenTime: { today: 0, weekAverage: 0, byCategory: [] },
@@ -55,14 +71,19 @@ export class FamilyService {
     return this.familyMemberRepository.save(member);
   }
 
-  async update(tenantId: string, id: string, dto: UpdateFamilyMemberDto): Promise<FamilyMember> {
+  async update(
+    tenantId: string,
+    id: string,
+    dto: UpdateFamilyMemberDto,
+  ): Promise<FamilyMember> {
     const member = await this.findOne(tenantId, id);
-    
+
     if (dto.name !== undefined) member.name = dto.name;
     if (dto.avatar !== undefined) member.avatar = dto.avatar;
     if (dto.role !== undefined) member.role = dto.role;
-    if (dto.restrictions !== undefined) member.restrictions = dto.restrictions as any;
-    
+    if (dto.restrictions !== undefined)
+      member.restrictions = dto.restrictions as any;
+
     return this.familyMemberRepository.save(member);
   }
 
@@ -71,11 +92,17 @@ export class FamilyService {
     await this.familyMemberRepository.remove(member);
   }
 
-  async assignDevice(tenantId: string, memberId: string, dto: AssignDeviceDto): Promise<FamilyMember> {
+  async assignDevice(
+    tenantId: string,
+    memberId: string,
+    dto: AssignDeviceDto,
+  ): Promise<FamilyMember> {
     const member = await this.findOne(tenantId, memberId);
-    
+
     // Check if device already assigned
-    const existingIndex = member.devices.findIndex(d => d.id === dto.deviceId);
+    const existingIndex = member.devices.findIndex(
+      (d) => d.id === dto.deviceId,
+    );
     if (existingIndex >= 0) {
       member.devices[existingIndex] = {
         ...member.devices[existingIndex],
@@ -90,27 +117,38 @@ export class FamilyService {
         isOnline: false,
       });
     }
-    
+
     return this.familyMemberRepository.save(member);
   }
 
-  async removeDevice(tenantId: string, memberId: string, deviceId: string): Promise<FamilyMember> {
+  async removeDevice(
+    tenantId: string,
+    memberId: string,
+    deviceId: string,
+  ): Promise<FamilyMember> {
     const member = await this.findOne(tenantId, memberId);
-    member.devices = member.devices.filter(d => d.id !== deviceId);
+    member.devices = member.devices.filter((d) => d.id !== deviceId);
     return this.familyMemberRepository.save(member);
   }
 
-  async updateScreenTime(tenantId: string, memberId: string, screenTimeData: any): Promise<FamilyMember> {
+  async updateScreenTime(
+    tenantId: string,
+    memberId: string,
+    screenTimeData: any,
+  ): Promise<FamilyMember> {
     const member = await this.findOne(tenantId, memberId);
     member.screenTime = { ...member.screenTime, ...screenTimeData };
     return this.familyMemberRepository.save(member);
   }
 
-  async setOnlineStatus(tenantId: string, memberId: string, isOnline: boolean): Promise<void> {
+  async setOnlineStatus(
+    tenantId: string,
+    memberId: string,
+    isOnline: boolean,
+  ): Promise<void> {
     await this.familyMemberRepository.update(
       { id: memberId, tenantId },
-      { isOnline }
+      { isOnline },
     );
   }
 }
-

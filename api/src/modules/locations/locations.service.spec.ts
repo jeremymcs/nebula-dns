@@ -1,7 +1,7 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
+ *
  * Locations Service Unit Tests
  */
 
@@ -125,7 +125,9 @@ describe('LocationsService', () => {
         andWhere: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue([mockLocation]),
       };
-      mockLocationRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+      mockLocationRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder,
+      );
 
       const result = await service.findAll(mockTenantId, {});
 
@@ -169,7 +171,9 @@ describe('LocationsService', () => {
         description: createDto.description,
         ipRange: createDto.ipRange,
       });
-      mockLocationRepository.save.mockImplementation((loc) => Promise.resolve(loc));
+      mockLocationRepository.save.mockImplementation((loc) =>
+        Promise.resolve(loc),
+      );
 
       const result = await service.create(mockTenantId, createDto);
 
@@ -196,7 +200,9 @@ describe('LocationsService', () => {
       mockLocationRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.createToken(mockTenantId, 'invalid-location', { label: 'Token' }),
+        service.createToken(mockTenantId, 'invalid-location', {
+          label: 'Token',
+        }),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -204,7 +210,9 @@ describe('LocationsService', () => {
       const expiresIn = 30; // days
       mockLocationRepository.findOne.mockResolvedValue(mockLocation);
       mockTokenRepository.create.mockReturnValue(mockToken);
-      mockTokenRepository.save.mockImplementation((token) => Promise.resolve(token));
+      mockTokenRepository.save.mockImplementation((token) =>
+        Promise.resolve(token),
+      );
 
       await service.createToken(mockTenantId, mockLocation.id, {
         label: 'Expiring Token',
@@ -290,7 +298,9 @@ describe('LocationsService', () => {
         where: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue([]),
       };
-      mockLocationRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+      mockLocationRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder,
+      );
 
       const result = await service.findByIP('10.0.0.1');
 
@@ -321,11 +331,13 @@ describe('LocationsService', () => {
       mockRedisService.getAllIPRanges.mockResolvedValue([]);
       const mockQueryBuilder = {
         where: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([
-          { ...mockLocation, ipRange: '192.168.1.0/24' },
-        ]),
+        getMany: jest
+          .fn()
+          .mockResolvedValue([{ ...mockLocation, ipRange: '192.168.1.0/24' }]),
       };
-      mockLocationRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+      mockLocationRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder,
+      );
 
       const result = await service.findByIP('192.168.1.50');
 

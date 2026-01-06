@@ -23,14 +23,20 @@ export class PartnerAuthController {
     private readonly emailService: EmailService,
     private readonly configService: ConfigService,
   ) {
-    this.partnerPortalUrl = this.configService.get('PARTNER_PORTAL_URL', 'http://localhost:3001');
+    this.partnerPortalUrl = this.configService.get(
+      'PARTNER_PORTAL_URL',
+      'http://localhost:3001',
+    );
   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() dto: PartnerLoginDto) {
     // Validate credentials
-    const user = await this.partnersService.validatePartnerUser(dto.email, dto.password);
+    const user = await this.partnersService.validatePartnerUser(
+      dto.email,
+      dto.password,
+    );
 
     // Check if MFA is required
     if (user.mfaEnabled) {
@@ -41,7 +47,10 @@ export class PartnerAuthController {
         };
       }
       // Validate MFA code
-      const isValidMfa = await this.partnersService.verifyPartnerMfaCode(user.id, dto.mfaCode);
+      const isValidMfa = await this.partnersService.verifyPartnerMfaCode(
+        user.id,
+        dto.mfaCode,
+      );
       if (!isValidMfa) {
         throw new UnauthorizedException('Invalid MFA code');
       }
@@ -86,14 +95,17 @@ export class PartnerAuthController {
   async refresh(@Body() body: { token: string }) {
     try {
       const decoded = this.jwtService.verify(body.token);
-      
+
       if (decoded.type !== 'partner') {
         throw new UnauthorizedException('Invalid token type');
       }
 
       // Fetch fresh user data
-      const user = await this.partnersService.findUserById(decoded.partnerId, decoded.sub);
-      
+      const user = await this.partnersService.findUserById(
+        decoded.partnerId,
+        decoded.sub,
+      );
+
       if (!user || user.status !== 'active') {
         throw new UnauthorizedException('User not found or inactive');
       }
@@ -127,7 +139,9 @@ export class PartnerAuthController {
     }
 
     // Generate password reset token
-    const result = await this.partnersService.generatePasswordResetToken(body.email);
+    const result = await this.partnersService.generatePasswordResetToken(
+      body.email,
+    );
 
     // If user exists, send reset email
     if (result) {
@@ -141,7 +155,8 @@ export class PartnerAuthController {
 
     // Always return success to avoid email enumeration
     return {
-      message: 'If an account with that email exists, a password reset link has been sent.',
+      message:
+        'If an account with that email exists, a password reset link has been sent.',
     };
   }
 
@@ -159,7 +174,8 @@ export class PartnerAuthController {
     await this.partnersService.resetPassword(body.token, body.password);
 
     return {
-      message: 'Password has been reset successfully. You can now log in with your new password.',
+      message:
+        'Password has been reset successfully. You can now log in with your new password.',
     };
   }
 
@@ -170,12 +186,15 @@ export class PartnerAuthController {
       throw new BadRequestException('Token is required');
     }
 
-    const user = await this.partnersService.validatePasswordResetToken(body.token);
+    const user = await this.partnersService.validatePasswordResetToken(
+      body.token,
+    );
 
     return {
       valid: !!user,
-      email: user?.email ? user.email.replace(/(.{2})(.*)(@.*)/, '$1***$3') : null, // Partially mask email
+      email: user?.email
+        ? user.email.replace(/(.{2})(.*)(@.*)/, '$1***$3')
+        : null, // Partially mask email
     };
   }
 }
-

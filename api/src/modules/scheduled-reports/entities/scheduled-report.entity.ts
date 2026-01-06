@@ -3,7 +3,12 @@ import { BaseEntity } from '@/common/entities/base.entity';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 import { User } from '../../users/entities/user.entity';
 
-export type ReportType = 'summary' | 'threats' | 'top_blocked' | 'activity' | 'compliance';
+export type ReportType =
+  | 'summary'
+  | 'threats'
+  | 'top_blocked'
+  | 'activity'
+  | 'compliance';
 export type ScheduleType = 'daily' | 'weekly' | 'monthly';
 export type ReportFormat = 'pdf' | 'csv' | 'html';
 

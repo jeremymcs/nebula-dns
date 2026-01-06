@@ -3,7 +3,12 @@ import { BaseEntity } from '@/common/entities/base.entity';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 import { SubscriptionPlan } from './subscription-plan.entity';
 
-export type SubscriptionStatus = 'active' | 'past_due' | 'canceled' | 'trialing' | 'paused';
+export type SubscriptionStatus =
+  | 'active'
+  | 'past_due'
+  | 'canceled'
+  | 'trialing'
+  | 'paused';
 export type BillingCycle = 'monthly' | 'yearly';
 
 @Entity('subscriptions')
@@ -25,13 +30,28 @@ export class Subscription extends BaseEntity {
   @Column({ type: 'varchar', length: 20, default: 'active' })
   status: SubscriptionStatus;
 
-  @Column({ type: 'varchar', length: 20, default: 'monthly', name: 'billing_cycle' })
+  @Column({
+    type: 'varchar',
+    length: 20,
+    default: 'monthly',
+    name: 'billing_cycle',
+  })
   billingCycle: BillingCycle;
 
-  @Column({ type: 'varchar', length: 100, nullable: true, name: 'stripe_customer_id' })
+  @Column({
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+    name: 'stripe_customer_id',
+  })
   stripeCustomerId: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true, name: 'stripe_subscription_id' })
+  @Column({
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+    name: 'stripe_subscription_id',
+  })
   stripeSubscriptionId: string;
 
   @Column({ type: 'timestamptz', nullable: true, name: 'current_period_start' })

@@ -10,4 +10,3 @@ export class SwitchTenantDto {
   @IsNotEmpty()
   tenantId: string;
 }
-

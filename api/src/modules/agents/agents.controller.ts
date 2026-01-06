@@ -9,7 +9,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AgentsService, AgentVersion } from './agents.service';
-import { CreateDownloadLinkDto, RegisterAgentDto, AgentHeartbeatDto, UpdateAgentDto } from './dto/agent.dto';
+import {
+  CreateDownloadLinkDto,
+  RegisterAgentDto,
+  AgentHeartbeatDto,
+  UpdateAgentDto,
+} from './dto/agent.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -36,7 +41,7 @@ export class AgentsController {
   @Post('register')
   async registerAgent(@Body() dto: RegisterAgentDto) {
     const agent = await this.agentsService.registerAgent(dto);
-    return { 
+    return {
       success: true,
       message: 'Agent registered successfully',
       data: {
@@ -48,9 +53,7 @@ export class AgentsController {
   }
 
   @Post('heartbeat')
-  async heartbeat(
-    @Body() dto: AgentHeartbeatDto,
-  ) {
+  async heartbeat(@Body() dto: AgentHeartbeatDto) {
     // Note: In production, authenticate via API key or token from header
     // For now, we'll use the device ID to look up the agent
     const result = await this.agentsService.handleHeartbeatPublic(dto);
@@ -95,10 +98,7 @@ export class AgentsController {
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
-  async getAgent(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async getAgent(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     const agent = await this.agentsService.getAgent(tenantId, id);
     return { data: agent };
   }
@@ -111,7 +111,7 @@ export class AgentsController {
     @Body() dto: CreateDownloadLinkDto,
   ) {
     const result = await this.agentsService.createDownloadLink(tenantId, dto);
-    return { 
+    return {
       success: true,
       data: result,
     };

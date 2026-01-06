@@ -1,11 +1,17 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
+ *
  * Sentry Error Tracking Module
  */
 
-import { Global, Module, DynamicModule, Provider, Logger } from '@nestjs/common';
+import {
+  Global,
+  Module,
+  DynamicModule,
+  Provider,
+  Logger,
+} from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Sentry from '@sentry/node';
 
@@ -27,11 +33,16 @@ export class SentryModule {
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const dsn = configService.get<string>('SENTRY_DSN');
-        const environment = configService.get<string>('NODE_ENV', 'development');
+        const environment = configService.get<string>(
+          'NODE_ENV',
+          'development',
+        );
         const release = configService.get<string>('APP_VERSION', '1.0.0');
 
         if (!dsn) {
-          this.logger.warn('Sentry DSN not configured - error tracking disabled');
+          this.logger.warn(
+            'Sentry DSN not configured - error tracking disabled',
+          );
           return null;
         }
 
@@ -41,10 +52,7 @@ export class SentryModule {
           release,
           tracesSampleRate: environment === 'production' ? 0.1 : 1.0,
           profilesSampleRate: environment === 'production' ? 0.1 : 0,
-          integrations: [
-            Sentry.httpIntegration(),
-            Sentry.expressIntegration(),
-          ],
+          integrations: [Sentry.httpIntegration(), Sentry.expressIntegration()],
           beforeSend(event, hint) {
             // Filter out noise
             const error = hint.originalException as Error;
@@ -69,7 +77,13 @@ export class SentryModule {
   }
 }
 
-import { Injectable, Inject, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+} from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -77,7 +91,9 @@ import { catchError } from 'rxjs/operators';
 export class SentryService {
   private readonly logger = new Logger(SentryService.name);
 
-  constructor(@Inject('SENTRY') private readonly sentry: typeof Sentry | null) {}
+  constructor(
+    @Inject('SENTRY') private readonly sentry: typeof Sentry | null,
+  ) {}
 
   captureException(error: Error, context?: Record<string, any>): void {
     if (!this.sentry) {
@@ -93,7 +109,10 @@ export class SentryService {
     });
   }
 
-  captureMessage(message: string, level: 'info' | 'warning' | 'error' = 'info'): void {
+  captureMessage(
+    message: string,
+    level: 'info' | 'warning' | 'error' = 'info',
+  ): void {
     if (!this.sentry) {
       this.logger.log(`Message (Sentry disabled): ${message}`);
       return;

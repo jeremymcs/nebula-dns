@@ -1,7 +1,7 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
+ *
  * API Bootstrap Entry Point
  */
 
@@ -32,11 +32,11 @@ async function bootstrap() {
 
   // CORS configuration - Using non-standard ports
   const corsOrigins = process.env.CORS_ORIGINS?.split(',') || [
-    'http://localhost:4010',  // API (for self-reference)
-    'http://localhost:4011',  // UI (Docker)
-    'http://localhost:4012',  // UI (Local dev)
-    'http://localhost:3000',  // Fallback for local dev
-    'http://localhost:3001',  // Fallback for local dev
+    'http://localhost:4010', // API (for self-reference)
+    'http://localhost:4011', // UI (Docker)
+    'http://localhost:4012', // UI (Local dev)
+    'http://localhost:3000', // Fallback for local dev
+    'http://localhost:3001', // Fallback for local dev
   ];
 
   app.enableCors({

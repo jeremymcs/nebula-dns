@@ -107,13 +107,27 @@ export class AddMspBilling1704000000000 implements MigrationInterface {
     `);
 
     // Create indexes
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_msp_subscriptions_partner" ON "msp_subscriptions"("partner_id")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_msp_purchases_partner" ON "msp_purchases"("partner_id")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_msp_purchases_created" ON "msp_purchases"("created_at")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_msp_usage_partner_date" ON "msp_usage"("partner_id", "usage_date")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_msp_usage_tenant_date" ON "msp_usage"("tenant_id", "usage_date")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_msp_invoices_partner" ON "msp_invoices"("partner_id")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_msp_invoices_status" ON "msp_invoices"("status")`);
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_msp_subscriptions_partner" ON "msp_subscriptions"("partner_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_msp_purchases_partner" ON "msp_purchases"("partner_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_msp_purchases_created" ON "msp_purchases"("created_at")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_msp_usage_partner_date" ON "msp_usage"("partner_id", "usage_date")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_msp_usage_tenant_date" ON "msp_usage"("tenant_id", "usage_date")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_msp_invoices_partner" ON "msp_invoices"("partner_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_msp_invoices_status" ON "msp_invoices"("status")`,
+    );
 
     // Insert default bundles
     await queryRunner.query(`
@@ -136,4 +150,3 @@ export class AddMspBilling1704000000000 implements MigrationInterface {
     await queryRunner.query(`DROP TABLE IF EXISTS "query_bundles"`);
   }
 }
-

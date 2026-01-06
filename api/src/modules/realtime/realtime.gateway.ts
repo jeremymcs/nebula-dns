@@ -25,7 +25,9 @@ interface ConnectedClient {
   },
   namespace: '/realtime',
 })
-export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class RealtimeGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
@@ -43,8 +45,10 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   async handleConnection(client: Socket) {
     try {
-      const token = client.handshake.auth?.token || client.handshake.headers?.authorization?.replace('Bearer ', '');
-      
+      const token =
+        client.handshake.auth?.token ||
+        client.handshake.headers?.authorization?.replace('Bearer ', '');
+
       if (!token) {
         client.disconnect();
         return;
@@ -56,7 +60,7 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
 
       this.clients.set(client.id, { socket: client, tenantId, userId });
       client.join(`tenant:${tenantId}`);
-      
+
       this.logger.log(`Client connected: ${client.id} (tenant: ${tenantId})`);
 
       // Send initial stats
@@ -81,10 +85,13 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   @SubscribeMessage('subscribe:logs')
-  handleSubscribeLogs(@ConnectedSocket() client: Socket, @MessageBody() data: { locationId?: string }) {
+  handleSubscribeLogs(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { locationId?: string },
+  ) {
     const clientInfo = this.clients.get(client.id);
     if (clientInfo) {
-      const room = data.locationId 
+      const room = data.locationId
         ? `logs:${clientInfo.tenantId}:${data.locationId}`
         : `logs:${clientInfo.tenantId}`;
       client.join(room);
@@ -105,9 +112,16 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   private async sendStatsToClient(client: Socket, tenantId: string) {
     try {
-      const stats = await this.clickhouseService.getSummaryStats(tenantId, '1h');
-      const topDomains = await this.clickhouseService.getTopBlockedDomains(tenantId, '1h', 10);
-      
+      const stats = await this.clickhouseService.getSummaryStats(
+        tenantId,
+        '1h',
+      );
+      const topDomains = await this.clickhouseService.getTopBlockedDomains(
+        tenantId,
+        '1h',
+        10,
+      );
+
       client.emit('stats', {
         timestamp: new Date().toISOString(),
         summary: stats,
@@ -121,20 +135,24 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
   private startStatsBroadcast() {
     this.statsInterval = setInterval(async () => {
       const tenantIds = new Set<string>();
-      this.clients.forEach(client => tenantIds.add(client.tenantId));
+      this.clients.forEach((client) => tenantIds.add(client.tenantId));
 
       for (const tenantId of tenantIds) {
         try {
-          const stats = await this.clickhouseService.getSummaryStats(tenantId, '1h');
+          const stats = await this.clickhouseService.getSummaryStats(
+            tenantId,
+            '1h',
+          );
           this.server.to(`tenant:${tenantId}`).emit('stats:update', {
             timestamp: new Date().toISOString(),
             summary: stats,
           });
         } catch (error) {
-          this.logger.error(`Stats broadcast failed for ${tenantId}: ${error.message}`);
+          this.logger.error(
+            `Stats broadcast failed for ${tenantId}: ${error.message}`,
+          );
         }
       }
     }, 5000);
   }
 }
-

@@ -19,7 +19,9 @@ describe('Authentication E2E Tests', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
   });
 
@@ -32,7 +34,7 @@ describe('Authentication E2E Tests', () => {
       const response = await request(app.getHttpServer())
         .post('/auth/login')
         .send({ password: 'password123' });
-      
+
       expect(response.status).toBe(400);
     });
 
@@ -40,7 +42,7 @@ describe('Authentication E2E Tests', () => {
       const response = await request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'test@example.com' });
-      
+
       expect(response.status).toBe(400);
     });
 
@@ -48,7 +50,7 @@ describe('Authentication E2E Tests', () => {
       const response = await request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'not-an-email', password: 'password123' });
-      
+
       expect(response.status).toBe(400);
     });
 
@@ -56,7 +58,7 @@ describe('Authentication E2E Tests', () => {
       const response = await request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'nonexistent@example.com', password: 'password123' });
-      
+
       expect(response.status).toBe(401);
     });
 
@@ -64,7 +66,7 @@ describe('Authentication E2E Tests', () => {
       const response = await request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'admin@example.com', password: 'wrongpassword' });
-      
+
       expect(response.status).toBe(401);
     });
   });
@@ -74,7 +76,7 @@ describe('Authentication E2E Tests', () => {
       const response = await request(app.getHttpServer())
         .post('/auth/refresh')
         .send({});
-      
+
       expect(response.status).toBe(400);
     });
 
@@ -82,16 +84,15 @@ describe('Authentication E2E Tests', () => {
       const response = await request(app.getHttpServer())
         .post('/auth/refresh')
         .send({ refreshToken: 'invalid-token' });
-      
+
       expect(response.status).toBe(401);
     });
   });
 
   describe('Logout Flow', () => {
     it('should reject logout without auth token', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/auth/logout');
-      
+      const response = await request(app.getHttpServer()).post('/auth/logout');
+
       expect(response.status).toBe(401);
     });
   });
@@ -101,7 +102,7 @@ describe('Authentication E2E Tests', () => {
       const response = await request(app.getHttpServer())
         .post('/auth/forgot-password')
         .send({ email: 'test@example.com' });
-      
+
       // Should return 200 even for non-existent emails (security)
       expect([200, 201, 202]).toContain(response.status);
     });
@@ -110,7 +111,7 @@ describe('Authentication E2E Tests', () => {
       const response = await request(app.getHttpServer())
         .post('/auth/forgot-password')
         .send({});
-      
+
       expect(response.status).toBe(400);
     });
 
@@ -118,7 +119,7 @@ describe('Authentication E2E Tests', () => {
       const response = await request(app.getHttpServer())
         .post('/auth/reset-password')
         .send({ token: 'invalid-token', password: 'newpassword123' });
-      
+
       expect([400, 401]).toContain(response.status);
     });
   });
@@ -128,16 +129,16 @@ describe('Authentication E2E Tests', () => {
       const response = await request(app.getHttpServer())
         .post('/auth/mfa/verify')
         .send({ code: '123456' });
-      
+
       expect(response.status).toBe(401);
     });
 
     it('should reject MFA setup without auth', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/auth/mfa/setup');
-      
+      const response = await request(app.getHttpServer()).post(
+        '/auth/mfa/setup',
+      );
+
       expect(response.status).toBe(401);
     });
   });
 });
-

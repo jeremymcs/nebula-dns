@@ -1,7 +1,7 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
+ *
  * Application Configuration with Validation
  */
 
@@ -170,17 +170,23 @@ export function validate(config: Record<string, unknown>) {
       : 100,
     ENABLE_CORS: config.ENABLE_CORS === 'true' || config.ENABLE_CORS === true,
     FEATURE_MFA_ENABLED:
-      config.FEATURE_MFA_ENABLED === 'true' || config.FEATURE_MFA_ENABLED === true,
+      config.FEATURE_MFA_ENABLED === 'true' ||
+      config.FEATURE_MFA_ENABLED === true,
     FEATURE_SSO_ENABLED:
-      config.FEATURE_SSO_ENABLED === 'true' || config.FEATURE_SSO_ENABLED === true,
+      config.FEATURE_SSO_ENABLED === 'true' ||
+      config.FEATURE_SSO_ENABLED === true,
     FEATURE_WEBHOOKS_ENABLED:
       config.FEATURE_WEBHOOKS_ENABLED === 'true' ||
       config.FEATURE_WEBHOOKS_ENABLED === true,
   };
 
-  const validatedConfig = plainToInstance(EnvironmentVariables, transformedConfig, {
-    enableImplicitConversion: true,
-  });
+  const validatedConfig = plainToInstance(
+    EnvironmentVariables,
+    transformedConfig,
+    {
+      enableImplicitConversion: true,
+    },
+  );
 
   const errors = validateSync(validatedConfig, {
     skipMissingProperties: false,
@@ -188,11 +194,15 @@ export function validate(config: Record<string, unknown>) {
 
   if (errors.length > 0) {
     const errorMessages = errors.map((error) => {
-      const constraints = error.constraints ? Object.values(error.constraints) : [];
+      const constraints = error.constraints
+        ? Object.values(error.constraints)
+        : [];
       return `${error.property}: ${constraints.join(', ')}`;
     });
 
-    throw new Error(`Environment validation failed:\n${errorMessages.join('\n')}`);
+    throw new Error(
+      `Environment validation failed:\n${errorMessages.join('\n')}`,
+    );
   }
 
   return validatedConfig;

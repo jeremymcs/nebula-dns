@@ -21,12 +21,15 @@ export class GeoIPController {
     @Query('period') period: string = '24h',
   ) {
     // Get client IP stats from ClickHouse
-    const clientStats = await this.clickhouseService.getClientIPStats(tenantId, period);
-    
+    const clientStats = await this.clickhouseService.getClientIPStats(
+      tenantId,
+      period,
+    );
+
     // Enrich with GeoIP data
     const locations = await this.geoIPService.getQueryLocations(
       tenantId,
-      clientStats.map(s => ({ clientIp: s.clientIp, count: s.queryCount })),
+      clientStats.map((s) => ({ clientIp: s.clientIp, count: s.queryCount })),
     );
 
     return {
@@ -42,4 +45,3 @@ export class GeoIPController {
     return { data: location };
   }
 }
-

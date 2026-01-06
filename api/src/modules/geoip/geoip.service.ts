@@ -22,7 +22,9 @@ export class GeoIPService implements OnModuleInit {
   private readonly dbPath: string;
 
   constructor(private configService: ConfigService) {
-    this.dbPath = this.configService.get<string>('GEOIP_DB_PATH') || '/usr/share/GeoIP/GeoLite2-City.mmdb';
+    this.dbPath =
+      this.configService.get<string>('GEOIP_DB_PATH') ||
+      '/usr/share/GeoIP/GeoLite2-City.mmdb';
   }
 
   async onModuleInit() {
@@ -33,9 +35,11 @@ export class GeoIPService implements OnModuleInit {
     try {
       // Check if maxmind reader is available
       const maxmind = await import('maxmind').catch(() => null);
-      
+
       if (!maxmind) {
-        this.logger.warn('maxmind library not available, using mock GeoIP data');
+        this.logger.warn(
+          'maxmind library not available, using mock GeoIP data',
+        );
         return;
       }
 
@@ -43,7 +47,9 @@ export class GeoIPService implements OnModuleInit {
         this.reader = await maxmind.open(this.dbPath);
         this.logger.log(`GeoIP database loaded from ${this.dbPath}`);
       } else {
-        this.logger.warn(`GeoIP database not found at ${this.dbPath}, using mock data`);
+        this.logger.warn(
+          `GeoIP database not found at ${this.dbPath}, using mock data`,
+        );
       }
     } catch (error) {
       this.logger.error(`Failed to load GeoIP database: ${error.message}`);
@@ -87,13 +93,21 @@ export class GeoIPService implements OnModuleInit {
     return this.getMockLocation(ip);
   }
 
-  async getQueryLocations(tenantId: string, queries: Array<{ clientIp: string; count: number }>): Promise<Array<{
-    location: GeoLocation;
-    queryCount: number;
-    percentage: number;
-  }>> {
+  async getQueryLocations(
+    tenantId: string,
+    queries: Array<{ clientIp: string; count: number }>,
+  ): Promise<
+    Array<{
+      location: GeoLocation;
+      queryCount: number;
+      percentage: number;
+    }>
+  > {
     const totalQueries = queries.reduce((sum, q) => sum + q.count, 0);
-    const locationMap = new Map<string, { location: GeoLocation; count: number }>();
+    const locationMap = new Map<
+      string,
+      { location: GeoLocation; count: number }
+    >();
 
     for (const query of queries) {
       const geo = this.lookup(query.clientIp);
@@ -120,7 +134,7 @@ export class GeoIPService implements OnModuleInit {
   private isPrivateIP(ip: string): boolean {
     const parts = ip.split('.').map(Number);
     if (parts.length !== 4) return false;
-    
+
     return (
       parts[0] === 10 ||
       (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) ||
@@ -133,13 +147,43 @@ export class GeoIPService implements OnModuleInit {
     // Generate deterministic mock data based on IP
     const hash = ip.split('.').reduce((acc, part) => acc + parseInt(part), 0);
     const locations = [
-      { country: 'United States', countryCode: 'US', city: 'New York', lat: 40.7128, lng: -74.0060 },
-      { country: 'United Kingdom', countryCode: 'GB', city: 'London', lat: 51.5074, lng: -0.1278 },
-      { country: 'Germany', countryCode: 'DE', city: 'Berlin', lat: 52.5200, lng: 13.4050 },
-      { country: 'Japan', countryCode: 'JP', city: 'Tokyo', lat: 35.6762, lng: 139.6503 },
-      { country: 'Australia', countryCode: 'AU', city: 'Sydney', lat: -33.8688, lng: 151.2093 },
+      {
+        country: 'United States',
+        countryCode: 'US',
+        city: 'New York',
+        lat: 40.7128,
+        lng: -74.006,
+      },
+      {
+        country: 'United Kingdom',
+        countryCode: 'GB',
+        city: 'London',
+        lat: 51.5074,
+        lng: -0.1278,
+      },
+      {
+        country: 'Germany',
+        countryCode: 'DE',
+        city: 'Berlin',
+        lat: 52.52,
+        lng: 13.405,
+      },
+      {
+        country: 'Japan',
+        countryCode: 'JP',
+        city: 'Tokyo',
+        lat: 35.6762,
+        lng: 139.6503,
+      },
+      {
+        country: 'Australia',
+        countryCode: 'AU',
+        city: 'Sydney',
+        lat: -33.8688,
+        lng: 151.2093,
+      },
     ];
-    
+
     const loc = locations[hash % locations.length];
     return {
       country: loc.country,
@@ -152,4 +196,3 @@ export class GeoIPService implements OnModuleInit {
     };
   }
 }
-

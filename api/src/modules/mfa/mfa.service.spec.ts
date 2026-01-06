@@ -48,8 +48,14 @@ describe('MfaService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MfaService,
-        { provide: getRepositoryToken(UserMfa), useValue: mockUserMfaRepository },
-        { provide: getRepositoryToken(MfaBackupCode), useValue: mockBackupCodeRepository },
+        {
+          provide: getRepositoryToken(UserMfa),
+          useValue: mockUserMfaRepository,
+        },
+        {
+          provide: getRepositoryToken(MfaBackupCode),
+          useValue: mockBackupCodeRepository,
+        },
         { provide: getRepositoryToken(User), useValue: mockUserRepository },
         { provide: ConfigService, useValue: mockConfigService },
       ],
@@ -90,9 +96,14 @@ describe('MfaService', () => {
 
     it('should throw error if MFA is already enabled', async () => {
       const userId = 'user-123';
-      mockUserMfaRepository.findOne.mockResolvedValue({ userId, isEnabled: true } as any);
+      mockUserMfaRepository.findOne.mockResolvedValue({
+        userId,
+        isEnabled: true,
+      } as any);
 
-      await expect(service.setupMfa(userId)).rejects.toThrow('MFA is already enabled');
+      await expect(service.setupMfa(userId)).rejects.toThrow(
+        'MFA is already enabled',
+      );
     });
 
     it('should throw error if user not found', async () => {
@@ -107,7 +118,10 @@ describe('MfaService', () => {
   describe('isMfaEnabled', () => {
     it('should return true if MFA is enabled', async () => {
       const userId = 'user-123';
-      mockUserMfaRepository.findOne.mockResolvedValue({ userId, isEnabled: true } as any);
+      mockUserMfaRepository.findOne.mockResolvedValue({
+        userId,
+        isEnabled: true,
+      } as any);
 
       const result = await service.isMfaEnabled(userId);
 
@@ -116,7 +130,10 @@ describe('MfaService', () => {
 
     it('should return false if MFA is not enabled', async () => {
       const userId = 'user-123';
-      mockUserMfaRepository.findOne.mockResolvedValue({ userId, isEnabled: false } as any);
+      mockUserMfaRepository.findOne.mockResolvedValue({
+        userId,
+        isEnabled: false,
+      } as any);
 
       const result = await service.isMfaEnabled(userId);
 
@@ -149,4 +166,3 @@ describe('MfaService', () => {
     });
   });
 });
-

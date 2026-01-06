@@ -1,4 +1,13 @@
-import { IsOptional, IsEnum, IsString, IsInt, Min, Max, IsUUID, IsBoolean } from 'class-validator';
+import {
+  IsOptional,
+  IsEnum,
+  IsString,
+  IsInt,
+  Min,
+  Max,
+  IsUUID,
+  IsBoolean,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 
@@ -8,7 +17,9 @@ export class ReportQueryDto {
   @IsEnum(['24h', '7d', '30d', 'custom'])
   period?: '24h' | '7d' | '30d' | 'custom' = '7d';
 
-  @ApiPropertyOptional({ description: 'Start date for custom period (ISO 8601)' })
+  @ApiPropertyOptional({
+    description: 'Start date for custom period (ISO 8601)',
+  })
   @IsOptional()
   @IsString()
   startDate?: string;
@@ -71,7 +82,9 @@ export class QueryLogDto {
   @IsString()
   dateTo?: string;
 
-  @ApiPropertyOptional({ enum: ['A', 'AAAA', 'CNAME', 'MX', 'TXT', 'NS', 'SOA', 'PTR'] })
+  @ApiPropertyOptional({
+    enum: ['A', 'AAAA', 'CNAME', 'MX', 'TXT', 'NS', 'SOA', 'PTR'],
+  })
   @IsOptional()
   @IsString()
   queryType?: string;

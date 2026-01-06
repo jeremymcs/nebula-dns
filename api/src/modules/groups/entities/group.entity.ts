@@ -1,4 +1,11 @@
-import { Entity, Column, ManyToOne, JoinColumn, ManyToMany, JoinTable } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 import { BaseEntity } from '@/common/entities/base.entity';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 import { User } from '../../users/entities/user.entity';
@@ -37,4 +44,3 @@ export class UserGroup extends BaseEntity {
   @Column({ type: 'int', default: 0 })
   priority: number; // Higher priority groups take precedence
 }
-

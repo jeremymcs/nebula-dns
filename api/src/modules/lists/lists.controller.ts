@@ -11,7 +11,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { ListsService } from './lists.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard, Roles, Role } from '@/common/guards/roles.guard';
@@ -45,10 +50,7 @@ export class ListsController {
   @Roles(Role.OWNER, Role.ADMIN, Role.ANALYST, Role.READONLY)
   @ApiOperation({ summary: 'Get list by ID' })
   @ApiResponse({ status: 200, description: 'List retrieved' })
-  async findOne(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async findOne(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     return this.listsService.findOne(tenantId, id);
   }
 
@@ -80,10 +82,7 @@ export class ListsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete list' })
   @ApiResponse({ status: 204, description: 'List deleted' })
-  async remove(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async remove(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     await this.listsService.remove(tenantId, id);
   }
 

@@ -21,7 +21,12 @@ export class QueryBundle {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number; // Price in USD
 
-  @Column({ name: 'price_per_million', type: 'decimal', precision: 10, scale: 4 })
+  @Column({
+    name: 'price_per_million',
+    type: 'decimal',
+    precision: 10,
+    scale: 4,
+  })
   pricePerMillion: number; // Effective price per million queries
 
   @Column({ name: 'validity_days', type: 'int', default: 30 })
@@ -33,13 +38,25 @@ export class QueryBundle {
   @Column({ name: 'sort_order', type: 'int', default: 0 })
   sortOrder: number;
 
-  @Column({ name: 'stripe_price_id', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'stripe_price_id',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   stripePriceId: string;
 
-  @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    name: 'created_at',
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt: Date;
 
-  @Column({ name: 'updated_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    name: 'updated_at',
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   updatedAt: Date;
 }
-

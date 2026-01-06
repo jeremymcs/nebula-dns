@@ -1,4 +1,12 @@
-import { IsString, IsNotEmpty, IsOptional, IsEmail, IsArray, ArrayMinSize, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsEmail,
+  IsArray,
+  ArrayMinSize,
+  IsEnum,
+} from 'class-validator';
 
 export class CreateInvitationDto {
   @IsEmail()

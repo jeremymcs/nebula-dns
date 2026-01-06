@@ -1,7 +1,7 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
+ *
  * Stripe Payment Service
  */
 
@@ -33,13 +33,13 @@ export class PaymentsService {
   private readonly logger = new Logger(PaymentsService.name);
   private readonly stripe: Stripe | null;
   private readonly webhookSecret: string;
-  
+
   // Map plan codes to Stripe price IDs
   private readonly priceIds: Map<string, { monthly: string; yearly: string }>;
 
   constructor(private readonly configService: ConfigService) {
     const stripeSecretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
-    
+
     if (stripeSecretKey) {
       this.stripe = new Stripe(stripeSecretKey);
       this.logger.log('Stripe client initialized');
@@ -48,22 +48,34 @@ export class PaymentsService {
       this.logger.warn('Stripe not configured - payment features disabled');
     }
 
-    this.webhookSecret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET') || '';
+    this.webhookSecret =
+      this.configService.get<string>('STRIPE_WEBHOOK_SECRET') || '';
 
     // Initialize price IDs from environment
     this.priceIds = new Map([
-      ['starter', {
-        monthly: this.configService.get('STRIPE_PRICE_STARTER_MONTHLY') || '',
-        yearly: this.configService.get('STRIPE_PRICE_STARTER_YEARLY') || '',
-      }],
-      ['pro', {
-        monthly: this.configService.get('STRIPE_PRICE_PRO_MONTHLY') || '',
-        yearly: this.configService.get('STRIPE_PRICE_PRO_YEARLY') || '',
-      }],
-      ['enterprise', {
-        monthly: this.configService.get('STRIPE_PRICE_ENTERPRISE_MONTHLY') || '',
-        yearly: this.configService.get('STRIPE_PRICE_ENTERPRISE_YEARLY') || '',
-      }],
+      [
+        'starter',
+        {
+          monthly: this.configService.get('STRIPE_PRICE_STARTER_MONTHLY') || '',
+          yearly: this.configService.get('STRIPE_PRICE_STARTER_YEARLY') || '',
+        },
+      ],
+      [
+        'pro',
+        {
+          monthly: this.configService.get('STRIPE_PRICE_PRO_MONTHLY') || '',
+          yearly: this.configService.get('STRIPE_PRICE_PRO_YEARLY') || '',
+        },
+      ],
+      [
+        'enterprise',
+        {
+          monthly:
+            this.configService.get('STRIPE_PRICE_ENTERPRISE_MONTHLY') || '',
+          yearly:
+            this.configService.get('STRIPE_PRICE_ENTERPRISE_YEARLY') || '',
+        },
+      ],
     ]);
   }
 
@@ -74,12 +86,22 @@ export class PaymentsService {
   /**
    * Create a Stripe checkout session for subscription
    */
-  async createCheckoutSession(params: CreateCheckoutSessionParams): Promise<{ sessionId: string; url: string }> {
+  async createCheckoutSession(
+    params: CreateCheckoutSessionParams,
+  ): Promise<{ sessionId: string; url: string }> {
     if (!this.stripe) {
       throw new BadRequestException('Payment system not configured');
     }
 
-    const { planCode, billingCycle, email, tenantId, signupRequestId, successUrl, cancelUrl } = params;
+    const {
+      planCode,
+      billingCycle,
+      email,
+      tenantId,
+      signupRequestId,
+      successUrl,
+      cancelUrl,
+    } = params;
 
     // Get price ID for the plan
     const planPrices = this.priceIds.get(planCode);
@@ -87,9 +109,12 @@ export class PaymentsService {
       throw new BadRequestException(`Unknown plan: ${planCode}`);
     }
 
-    const priceId = billingCycle === 'yearly' ? planPrices.yearly : planPrices.monthly;
+    const priceId =
+      billingCycle === 'yearly' ? planPrices.yearly : planPrices.monthly;
     if (!priceId) {
-      throw new BadRequestException(`Price not configured for ${planCode} ${billingCycle}`);
+      throw new BadRequestException(
+        `Price not configured for ${planCode} ${billingCycle}`,
+      );
     }
 
     try {
@@ -139,7 +164,10 @@ export class PaymentsService {
   /**
    * Create a billing portal session for customers to manage their subscription
    */
-  async createPortalSession(customerId: string, returnUrl: string): Promise<string> {
+  async createPortalSession(
+    customerId: string,
+    returnUrl: string,
+  ): Promise<string> {
     if (!this.stripe) {
       throw new BadRequestException('Payment system not configured');
     }
@@ -160,13 +188,16 @@ export class PaymentsService {
   /**
    * Get subscription details
    */
-  async getSubscription(subscriptionId: string): Promise<SubscriptionInfo | null> {
+  async getSubscription(
+    subscriptionId: string,
+  ): Promise<SubscriptionInfo | null> {
     if (!this.stripe) {
       return null;
     }
 
     try {
-      const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+      const subscription =
+        await this.stripe.subscriptions.retrieve(subscriptionId);
       const subData = subscription as any;
 
       return {
@@ -195,9 +226,14 @@ export class PaymentsService {
       await this.stripe.subscriptions.update(subscriptionId, {
         cancel_at_period_end: true,
       });
-      this.logger.log(`Subscription ${subscriptionId} set to cancel at period end`);
+      this.logger.log(
+        `Subscription ${subscriptionId} set to cancel at period end`,
+      );
     } catch (error) {
-      this.logger.error(`Failed to cancel subscription ${subscriptionId}`, error);
+      this.logger.error(
+        `Failed to cancel subscription ${subscriptionId}`,
+        error,
+      );
       throw new BadRequestException('Failed to cancel subscription');
     }
   }
@@ -216,7 +252,10 @@ export class PaymentsService {
       });
       this.logger.log(`Subscription ${subscriptionId} resumed`);
     } catch (error) {
-      this.logger.error(`Failed to resume subscription ${subscriptionId}`, error);
+      this.logger.error(
+        `Failed to resume subscription ${subscriptionId}`,
+        error,
+      );
       throw new BadRequestException('Failed to resume subscription');
     }
   }
@@ -234,7 +273,11 @@ export class PaymentsService {
     }
 
     try {
-      return this.stripe.webhooks.constructEvent(payload, signature, this.webhookSecret);
+      return this.stripe.webhooks.constructEvent(
+        payload,
+        signature,
+        this.webhookSecret,
+      );
     } catch (error) {
       this.logger.error('Webhook signature verification failed', error);
       throw new BadRequestException('Invalid webhook signature');

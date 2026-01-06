@@ -1,11 +1,11 @@
-import { 
-  IsString, 
-  IsNotEmpty, 
-  IsIn, 
-  IsOptional, 
+import {
+  IsString,
+  IsNotEmpty,
+  IsIn,
+  IsOptional,
   IsBoolean,
   IsUrl,
-  ValidateNested
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 

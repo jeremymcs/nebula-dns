@@ -35,7 +35,17 @@ export class ThreatDetectionService {
   private readonly c2Indicators = {
     beaconIntervals: [60, 300, 600, 900, 1800, 3600], // Common C2 beacon intervals in seconds
     suspiciousPorts: ['8080', '8443', '4444', '5555', '9001'],
-    lowFrequencyTLDs: ['.tk', '.ml', '.ga', '.cf', '.gq', '.xyz', '.top', '.work', '.click'],
+    lowFrequencyTLDs: [
+      '.tk',
+      '.ml',
+      '.ga',
+      '.cf',
+      '.gq',
+      '.xyz',
+      '.top',
+      '.work',
+      '.click',
+    ],
   };
 
   // Data exfiltration thresholds
@@ -46,11 +56,12 @@ export class ThreatDetectionService {
   };
 
   // Per-client query tracking for rate analysis
-  private clientQueryHistory: Map<string, { timestamps: number[]; domains: Set<string> }> = new Map();
+  private clientQueryHistory: Map<
+    string,
+    { timestamps: number[]; domains: Set<string> }
+  > = new Map();
 
-  constructor(
-    private readonly realtimeGateway: RealtimeGateway,
-  ) {}
+  constructor(private readonly realtimeGateway: RealtimeGateway) {}
 
   async analyzeQuery(query: {
     tenantId: string;
@@ -102,7 +113,11 @@ export class ThreatDetectionService {
     }
 
     // Check for C2 communication
-    const c2Result = this.detectC2(query.domain, query.clientIp, query.timestamp);
+    const c2Result = this.detectC2(
+      query.domain,
+      query.clientIp,
+      query.timestamp,
+    );
     if (c2Result.isC2) {
       alerts.push({
         id: this.generateId(),
@@ -141,16 +156,24 @@ export class ThreatDetectionService {
 
     // Broadcast alerts
     for (const alert of alerts) {
-      this.logger.warn(`Threat detected: ${alert.type} - ${alert.domain} from ${alert.clientIp}`);
+      this.logger.warn(
+        `Threat detected: ${alert.type} - ${alert.domain} from ${alert.clientIp}`,
+      );
       this.realtimeGateway.broadcastThreat(alert.tenantId, alert);
     }
 
     return alerts.length > 0 ? alerts[0] : null;
   }
 
-  private detectDGA(domain: string): { isDGA: boolean; entropy: number; confidence: number; reason: string } {
+  private detectDGA(domain: string): {
+    isDGA: boolean;
+    entropy: number;
+    confidence: number;
+    reason: string;
+  } {
     const parts = domain.split('.');
-    const subdomain = parts.length > 2 ? parts.slice(0, -2).join('.') : parts[0];
+    const subdomain =
+      parts.length > 2 ? parts.slice(0, -2).join('.') : parts[0];
 
     // Calculate Shannon entropy
     const entropy = this.calculateEntropy(subdomain);
@@ -178,7 +201,8 @@ export class ThreatDetectionService {
     }
 
     // Check for numeric patterns (common in DGA)
-    const numericRatio = (subdomain.match(/\d/g) || []).length / subdomain.length;
+    const numericRatio =
+      (subdomain.match(/\d/g) || []).length / subdomain.length;
     if (numericRatio > 0.3) {
       confidence += 0.1;
       reasons.push(`High numeric ratio: ${numericRatio.toFixed(2)}`);
@@ -192,14 +216,18 @@ export class ThreatDetectionService {
     };
   }
 
-  private detectTunneling(domain: string, queryType: string): {
+  private detectTunneling(
+    domain: string,
+    queryType: string,
+  ): {
     isTunneling: boolean;
     indicators: string[];
-    subdomainLength: number
+    subdomainLength: number;
   } {
     const indicators: string[] = [];
     const parts = domain.split('.');
-    const subdomain = parts.length > 2 ? parts.slice(0, -2).join('.') : parts[0];
+    const subdomain =
+      parts.length > 2 ? parts.slice(0, -2).join('.') : parts[0];
 
     // Check subdomain length
     if (subdomain.length > this.tunnelingIndicators.maxSubdomainLength * 0.8) {
@@ -257,7 +285,11 @@ export class ThreatDetectionService {
     return `threat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  private detectC2(domain: string, clientIp: string, timestamp: Date): {
+  private detectC2(
+    domain: string,
+    clientIp: string,
+    timestamp: Date,
+  ): {
     isC2: boolean;
     indicators: string[];
     confidence: number;
@@ -270,7 +302,10 @@ export class ThreatDetectionService {
     const now = timestamp.getTime();
 
     if (!this.clientQueryHistory.has(clientKey)) {
-      this.clientQueryHistory.set(clientKey, { timestamps: [], domains: new Set() });
+      this.clientQueryHistory.set(clientKey, {
+        timestamps: [],
+        domains: new Set(),
+      });
     }
 
     const history = this.clientQueryHistory.get(clientKey)!;
@@ -279,10 +314,12 @@ export class ThreatDetectionService {
 
     // Clean up old entries (keep last hour)
     const oneHourAgo = now - 3600000;
-    history.timestamps = history.timestamps.filter(t => t > oneHourAgo);
+    history.timestamps = history.timestamps.filter((t) => t > oneHourAgo);
 
     // Check for suspicious TLD
-    const lowFreqTLD = this.c2Indicators.lowFrequencyTLDs.find(tld => domain.endsWith(tld));
+    const lowFreqTLD = this.c2Indicators.lowFrequencyTLDs.find((tld) =>
+      domain.endsWith(tld),
+    );
     if (lowFreqTLD) {
       indicators.push(`Suspicious TLD: ${lowFreqTLD}`);
       confidence += 0.3;
@@ -292,24 +329,32 @@ export class ThreatDetectionService {
     if (history.timestamps.length >= 5) {
       const intervals: number[] = [];
       for (let i = 1; i < history.timestamps.length; i++) {
-        intervals.push((history.timestamps[i] - history.timestamps[i - 1]) / 1000);
+        intervals.push(
+          (history.timestamps[i] - history.timestamps[i - 1]) / 1000,
+        );
       }
 
       // Check if intervals are consistent (potential beaconing)
-      const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-      const variance = intervals.reduce((sum, i) => sum + Math.pow(i - avgInterval, 2), 0) / intervals.length;
+      const avgInterval =
+        intervals.reduce((a, b) => a + b, 0) / intervals.length;
+      const variance =
+        intervals.reduce((sum, i) => sum + Math.pow(i - avgInterval, 2), 0) /
+        intervals.length;
       const stdDev = Math.sqrt(variance);
 
       // If standard deviation is low relative to average, it's regular
       if (stdDev < avgInterval * 0.2 && avgInterval > 30) {
-        indicators.push(`Regular beacon interval: ~${Math.round(avgInterval)}s`);
+        indicators.push(
+          `Regular beacon interval: ~${Math.round(avgInterval)}s`,
+        );
         confidence += 0.4;
       }
     }
 
     // Check for DGA-like domain with suspicious TLD combination
     const parts = domain.split('.');
-    const subdomain = parts.length > 2 ? parts.slice(0, -2).join('.') : parts[0];
+    const subdomain =
+      parts.length > 2 ? parts.slice(0, -2).join('.') : parts[0];
     const entropy = this.calculateEntropy(subdomain);
 
     if (entropy > 3.5 && lowFreqTLD) {
@@ -324,14 +369,18 @@ export class ThreatDetectionService {
     };
   }
 
-  private detectExfiltration(domain: string, queryType: string): {
+  private detectExfiltration(
+    domain: string,
+    queryType: string,
+  ): {
     isExfiltration: boolean;
     indicators: string[];
     estimatedDataSize: number;
   } {
     const indicators: string[] = [];
     const parts = domain.split('.');
-    const subdomain = parts.length > 2 ? parts.slice(0, -2).join('.') : parts[0];
+    const subdomain =
+      parts.length > 2 ? parts.slice(0, -2).join('.') : parts[0];
     const subdomainNoDelim = subdomain.replace(/[-_.]/g, '');
 
     let estimatedDataSize = 0;
@@ -343,13 +392,19 @@ export class ThreatDetectionService {
     }
 
     // Check for hex encoding (common for binary data)
-    if (this.exfiltrationIndicators.hexEncodingPattern.test(subdomainNoDelim) && subdomainNoDelim.length > 50) {
+    if (
+      this.exfiltrationIndicators.hexEncodingPattern.test(subdomainNoDelim) &&
+      subdomainNoDelim.length > 50
+    ) {
       indicators.push('Hex-encoded data detected');
       estimatedDataSize = Math.floor(subdomainNoDelim.length / 2); // Hex is 2 chars per byte
     }
 
     // Check for base64 encoding
-    if (/^[A-Za-z0-9+/]+=*$/.test(subdomainNoDelim) && subdomainNoDelim.length > 50) {
+    if (
+      /^[A-Za-z0-9+/]+=*$/.test(subdomainNoDelim) &&
+      subdomainNoDelim.length > 50
+    ) {
       indicators.push('Base64-encoded data detected');
       estimatedDataSize = Math.floor(subdomainNoDelim.length * 0.75); // Base64 ratio
     }
@@ -360,7 +415,7 @@ export class ThreatDetectionService {
     }
 
     // Multiple long subdomains (chunked data)
-    const longParts = parts.filter(p => p.length > 40);
+    const longParts = parts.filter((p) => p.length > 40);
     if (longParts.length >= 2) {
       indicators.push('Multiple long labels (chunked exfiltration)');
     }
@@ -378,7 +433,7 @@ export class ThreatDetectionService {
     const oneHourAgo = now - 3600000;
 
     for (const [key, history] of this.clientQueryHistory.entries()) {
-      history.timestamps = history.timestamps.filter(t => t > oneHourAgo);
+      history.timestamps = history.timestamps.filter((t) => t > oneHourAgo);
       if (history.timestamps.length === 0) {
         this.clientQueryHistory.delete(key);
       }

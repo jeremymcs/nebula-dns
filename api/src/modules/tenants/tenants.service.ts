@@ -31,7 +31,7 @@ export class TenantsService {
 
   async update(id: string, updateDto: UpdateTenantDto): Promise<Tenant> {
     const tenant = await this.findById(id);
-    
+
     Object.assign(tenant, updateDto);
     await this.tenantRepository.save(tenant);
 
@@ -49,7 +49,7 @@ export class TenantsService {
 
     await this.tenantRepository.save(tenant);
     this.logger.log(`Tenant ${tenant.id} created: ${name}`);
-    
+
     return tenant;
   }
 }

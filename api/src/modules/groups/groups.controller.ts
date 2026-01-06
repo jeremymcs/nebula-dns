@@ -1,5 +1,20 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
-import { GroupsService, CreateGroupDto, UpdateGroupDto } from './groups.service';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import {
+  GroupsService,
+  CreateGroupDto,
+  UpdateGroupDto,
+} from './groups.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -30,7 +45,11 @@ export class GroupsController {
   }
 
   @Patch(':id')
-  async update(@CurrentTenant() tenantId: string, @Param('id') id: string, @Body() dto: UpdateGroupDto) {
+  async update(
+    @CurrentTenant() tenantId: string,
+    @Param('id') id: string,
+    @Body() dto: UpdateGroupDto,
+  ) {
     const group = await this.groupsService.update(tenantId, id, dto);
     return { data: group };
   }
@@ -61,4 +80,3 @@ export class GroupsController {
     await this.groupsService.removeMember(tenantId, groupId, userId);
   }
 }
-

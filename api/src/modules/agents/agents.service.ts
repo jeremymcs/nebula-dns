@@ -1,10 +1,22 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
-import { AgentInstallation, AgentPlatform } from './entities/agent-installation.entity';
+import {
+  AgentInstallation,
+  AgentPlatform,
+} from './entities/agent-installation.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
-import { CreateDownloadLinkDto, RegisterAgentDto, AgentHeartbeatDto, UpdateAgentDto } from './dto/agent.dto';
+import {
+  CreateDownloadLinkDto,
+  RegisterAgentDto,
+  AgentHeartbeatDto,
+  UpdateAgentDto,
+} from './dto/agent.dto';
 
 export interface AgentVersion {
   version: string;
@@ -49,14 +61,18 @@ export class AgentsService {
     android: {
       version: '1.0.5',
       releaseDate: '2024-01-12',
-      downloadUrl: 'https://play.google.com/store/apps/details?id=io.nebuladns.agent',
+      downloadUrl:
+        'https://play.google.com/store/apps/details?id=io.nebuladns.agent',
       sha256: '',
       releaseNotes: 'Android 14 support, Private DNS configuration',
     },
   };
 
   // Installation tokens (short-lived, tenant-specific)
-  private installationTokens: Map<string, { tenantId: string; locationId?: string; expires: Date }> = new Map();
+  private installationTokens: Map<
+    string,
+    { tenantId: string; locationId?: string; expires: Date }
+  > = new Map();
 
   constructor(
     @InjectRepository(AgentInstallation)
@@ -72,23 +88,28 @@ export class AgentsService {
   async getLatestVersion(platform: AgentPlatform): Promise<AgentVersion> {
     const version = this.agentVersions[platform];
     if (!version) {
-      throw new NotFoundException(`No agent available for platform: ${platform}`);
+      throw new NotFoundException(
+        `No agent available for platform: ${platform}`,
+      );
     }
     return version;
   }
 
-  async createDownloadLink(tenantId: string, dto: CreateDownloadLinkDto): Promise<{ 
-    downloadUrl: string; 
+  async createDownloadLink(
+    tenantId: string,
+    dto: CreateDownloadLinkDto,
+  ): Promise<{
+    downloadUrl: string;
     installationToken: string;
     expiresAt: Date;
     version: AgentVersion;
   }> {
     const version = await this.getLatestVersion(dto.platform);
-    
+
     // Generate installation token (valid for 24 hours)
     const token = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    
+
     this.installationTokens.set(token, {
       tenantId,
       locationId: dto.locationId,
@@ -135,7 +156,8 @@ export class AgentsService {
         tenantId: tokenData.tenantId,
         locationId: tokenData.locationId,
         deviceId: dto.deviceId,
-        deviceName: dto.deviceName || `${dto.platform}-${dto.deviceId.substring(0, 8)}`,
+        deviceName:
+          dto.deviceName || `${dto.platform}-${dto.deviceId.substring(0, 8)}`,
         platform: dto.platform,
         osVersion: dto.osVersion,
         agentVersion: dto.agentVersion,
@@ -150,7 +172,10 @@ export class AgentsService {
     return this.agentRepository.save(agent);
   }
 
-  async handleHeartbeat(tenantId: string, dto: AgentHeartbeatDto): Promise<{ 
+  async handleHeartbeat(
+    tenantId: string,
+    dto: AgentHeartbeatDto,
+  ): Promise<{
     configUpdated: boolean;
     updateAvailable: boolean;
     latestVersion?: string;
@@ -174,7 +199,8 @@ export class AgentsService {
 
     // Check if update is available
     const latestVersion = this.agentVersions[agent.platform];
-    const updateAvailable = latestVersion && latestVersion.version !== dto.agentVersion;
+    const updateAvailable =
+      latestVersion && latestVersion.version !== dto.agentVersion;
 
     return {
       configUpdated: false, // Would check if policy changed
@@ -213,7 +239,9 @@ export class AgentsService {
 
     // Check if update is available
     const latestVersion = this.agentVersions[agent.platform];
-    const updateAvailable = latestVersion && this.isNewerVersion(latestVersion.version, dto.agentVersion);
+    const updateAvailable =
+      latestVersion &&
+      this.isNewerVersion(latestVersion.version, dto.agentVersion);
 
     return {
       configUpdated: false,
@@ -227,7 +255,11 @@ export class AgentsService {
     const latestParts = latest.split('.').map(Number);
     const currentParts = current.split('.').map(Number);
 
-    for (let i = 0; i < Math.max(latestParts.length, currentParts.length); i++) {
+    for (
+      let i = 0;
+      i < Math.max(latestParts.length, currentParts.length);
+      i++
+    ) {
       const l = latestParts[i] || 0;
       const c = currentParts[i] || 0;
       if (l > c) return true;
@@ -257,9 +289,13 @@ export class AgentsService {
     return agent;
   }
 
-  async updateAgent(tenantId: string, id: string, dto: UpdateAgentDto): Promise<AgentInstallation> {
+  async updateAgent(
+    tenantId: string,
+    id: string,
+    dto: UpdateAgentDto,
+  ): Promise<AgentInstallation> {
     const agent = await this.getAgent(tenantId, id);
-    
+
     if (dto.deviceName) agent.deviceName = dto.deviceName;
     if (dto.locationId) agent.locationId = dto.locationId;
 
@@ -278,10 +314,12 @@ export class AgentsService {
     byPlatform: Record<string, number>;
   }> {
     const agents = await this.agentRepository.find({ where: { tenantId } });
-    
+
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-    const active = agents.filter(a => a.lastSeenAt && a.lastSeenAt > oneHourAgo).length;
-    
+    const active = agents.filter(
+      (a) => a.lastSeenAt && a.lastSeenAt > oneHourAgo,
+    ).length;
+
     const byPlatform: Record<string, number> = {};
     for (const agent of agents) {
       byPlatform[agent.platform] = (byPlatform[agent.platform] || 0) + 1;

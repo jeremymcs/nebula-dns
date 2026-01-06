@@ -66,9 +66,15 @@ export class EmailService implements OnModuleInit {
   private isConfigured = false;
 
   constructor(private configService: ConfigService) {
-    this.fromEmail = this.configService.get('EMAIL_FROM_ADDRESS', 'noreply@nebuladns.com');
+    this.fromEmail = this.configService.get(
+      'EMAIL_FROM_ADDRESS',
+      'noreply@nebuladns.com',
+    );
     this.fromName = this.configService.get('EMAIL_FROM_NAME', 'Nebula DNS');
-    this.docsUrl = this.configService.get('DOCS_URL', 'https://docs.nebuladns.com');
+    this.docsUrl = this.configService.get(
+      'DOCS_URL',
+      'https://docs.nebuladns.com',
+    );
     this.sendgridApiKey = this.configService.get('SENDGRID_API_KEY', '');
   }
 
@@ -78,16 +84,25 @@ export class EmailService implements OnModuleInit {
       this.isConfigured = true;
       this.logger.log('SendGrid email service initialized');
     } else {
-      this.logger.warn('SendGrid API key not configured - emails will be logged only');
+      this.logger.warn(
+        'SendGrid API key not configured - emails will be logged only',
+      );
     }
   }
 
-  private async sendEmail(to: string, subject: string, htmlContent: string, textContent?: string): Promise<boolean> {
+  private async sendEmail(
+    to: string,
+    subject: string,
+    htmlContent: string,
+    textContent?: string,
+  ): Promise<boolean> {
     if (!this.isConfigured) {
       // Development mode - log the email
       this.logger.log(`[DEV] Email to: ${to}`);
       this.logger.log(`[DEV] Subject: ${subject}`);
-      this.logger.log(`[DEV] Content preview: ${(textContent || htmlContent).substring(0, 200)}...`);
+      this.logger.log(
+        `[DEV] Content preview: ${(textContent || htmlContent).substring(0, 200)}...`,
+      );
       return true;
     }
 
@@ -107,7 +122,10 @@ export class EmailService implements OnModuleInit {
       this.logger.log(`Email sent successfully to ${to}`);
       return true;
     } catch (error: any) {
-      this.logger.error(`Failed to send email to ${to}:`, error?.response?.body || error);
+      this.logger.error(
+        `Failed to send email to ${to}:`,
+        error?.response?.body || error,
+      );
       return false;
     }
   }
@@ -122,7 +140,7 @@ export class EmailService implements OnModuleInit {
 
   async sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean> {
     const subject = `Welcome to Nebula DNS, ${data.name}!`;
-    
+
     const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -202,7 +220,7 @@ If you didn't sign up for this account, please ignore this email.
 
   async sendPaymentFailedEmail(data: PaymentFailedEmailData): Promise<boolean> {
     const subject = `Action Required: Payment Failed for ${data.companyName}`;
-    
+
     const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -236,7 +254,7 @@ If you didn't sign up for this account, please ignore this email.
 
   async sendPasswordResetEmail(data: PasswordResetEmailData): Promise<boolean> {
     const subject = 'Reset Your Nebula DNS Password';
-    
+
     const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -270,7 +288,7 @@ If you didn't sign up for this account, please ignore this email.
 
   async sendEmailVerification(data: EmailVerificationData): Promise<boolean> {
     const subject = 'Verify Your Nebula DNS Email Address';
-    
+
     const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -304,7 +322,7 @@ If you didn't sign up for this account, please ignore this email.
 
   async sendInviteUserEmail(data: InviteUserEmailData): Promise<boolean> {
     const subject = `You've been invited to join ${data.tenantName} on Nebula DNS`;
-    
+
     const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -336,7 +354,9 @@ If you didn't sign up for this account, please ignore this email.
     return this.sendEmail(data.to, subject, htmlContent);
   }
 
-  async sendScheduledReportEmail(data: ScheduledReportEmailData): Promise<boolean> {
+  async sendScheduledReportEmail(
+    data: ScheduledReportEmailData,
+  ): Promise<boolean> {
     const subject = `${data.reportName} - ${data.reportPeriod}`;
 
     const topBlockedList = data.summary.topBlockedDomains
@@ -374,12 +394,16 @@ If you didn't sign up for this account, please ignore this email.
       </div>
     </div>
 
-    ${data.summary.topBlockedDomains.length > 0 ? `
+    ${
+      data.summary.topBlockedDomains.length > 0
+        ? `
     <h4 style="color: #374151;">Top Blocked Domains</h4>
     <ol style="padding-left: 20px; margin: 0;">
       ${topBlockedList}
     </ol>
-    ` : ''}
+    `
+        : ''
+    }
 
     <div style="text-align: center; margin: 30px 0;">
       <a href="${data.reportUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
@@ -421,7 +445,9 @@ If you didn't sign up for this account, please ignore this email.
     if (!this.isConfigured) {
       this.logger.log(`[DEV] Email with attachment to: ${to}`);
       this.logger.log(`[DEV] Subject: ${subject}`);
-      this.logger.log(`[DEV] Attachment: ${filename} (${attachmentBuffer.length} bytes)`);
+      this.logger.log(
+        `[DEV] Attachment: ${filename} (${attachmentBuffer.length} bytes)`,
+      );
       return true;
     }
 
@@ -449,7 +475,10 @@ If you didn't sign up for this account, please ignore this email.
       this.logger.log(`Email with attachment sent successfully to ${to}`);
       return true;
     } catch (error: any) {
-      this.logger.error(`Failed to send email with attachment to ${to}:`, error?.response?.body || error);
+      this.logger.error(
+        `Failed to send email with attachment to ${to}:`,
+        error?.response?.body || error,
+      );
       return false;
     }
   }

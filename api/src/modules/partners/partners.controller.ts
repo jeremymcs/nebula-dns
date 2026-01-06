@@ -10,10 +10,10 @@ import {
   Request,
 } from '@nestjs/common';
 import { PartnersService } from './partners.service';
-import { 
-  CreatePartnerDto, 
-  UpdatePartnerDto, 
-  CreatePartnerUserDto, 
+import {
+  CreatePartnerDto,
+  UpdatePartnerDto,
+  CreatePartnerUserDto,
   UpdatePartnerUserDto,
   ImpersonateOrganizationDto,
 } from './dto/partner.dto';
@@ -111,4 +111,3 @@ export class PartnersController {
     return { success: true };
   }
 }
-

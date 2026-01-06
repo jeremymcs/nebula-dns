@@ -89,12 +89,18 @@ class ScheduleConfigDto {
 }
 
 class PolicyConfigDto {
-  @ApiProperty({ type: [String], description: 'Categories to block completely' })
+  @ApiProperty({
+    type: [String],
+    description: 'Categories to block completely',
+  })
   @IsArray()
   @IsString({ each: true })
   blockCategories: string[];
 
-  @ApiPropertyOptional({ type: [String], description: 'Categories to warn users about but allow access' })
+  @ApiPropertyOptional({
+    type: [String],
+    description: 'Categories to warn users about but allow access',
+  })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
@@ -123,7 +129,9 @@ export class CreatePolicyDto {
   @IsString()
   name: string;
 
-  @ApiPropertyOptional({ example: 'Enhanced protection for sensitive networks' })
+  @ApiPropertyOptional({
+    example: 'Enhanced protection for sensitive networks',
+  })
   @IsOptional()
   @IsString()
   description?: string;

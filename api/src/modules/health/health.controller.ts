@@ -23,7 +23,10 @@ export class HealthController {
 
   @Get('ready')
   @ApiOperation({ summary: 'Readiness check for K8s probes' })
-  @ApiResponse({ status: 200, description: 'Service is ready to accept traffic' })
+  @ApiResponse({
+    status: 200,
+    description: 'Service is ready to accept traffic',
+  })
   @ApiResponse({ status: 503, description: 'Service is not ready' })
   async ready() {
     return this.healthService.checkReady();

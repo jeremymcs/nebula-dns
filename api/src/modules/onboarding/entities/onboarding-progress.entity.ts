@@ -34,7 +34,12 @@ export class OnboardingProgress {
   @Column('jsonb', { name: 'steps_completed', default: '[]' })
   stepsCompleted: OnboardingStep[];
 
-  @Column({ name: 'current_step', type: 'varchar', length: 50, default: 'welcome' })
+  @Column({
+    name: 'current_step',
+    type: 'varchar',
+    length: 50,
+    default: 'welcome',
+  })
   currentStep: string;
 
   @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
@@ -49,4 +54,3 @@ export class OnboardingProgress {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
-

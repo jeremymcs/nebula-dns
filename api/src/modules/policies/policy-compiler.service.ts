@@ -98,7 +98,9 @@ export class PolicyCompilerService {
     });
 
     if (!version) {
-      this.logger.warn(`Version ${policy.currentVersion} not found for policy ${policyId}`);
+      this.logger.warn(
+        `Version ${policy.currentVersion} not found for policy ${policyId}`,
+      );
       return null;
     }
 
@@ -201,14 +203,19 @@ export class PolicyCompilerService {
     // Store in Redis
     await this.storeCompiledPolicy(locationId, compiled);
 
-    this.logger.log(`Compiled policy for location ${locationId} (version ${policy.currentVersion})`);
+    this.logger.log(
+      `Compiled policy for location ${locationId} (version ${policy.currentVersion})`,
+    );
     return compiled;
   }
 
   /**
    * Store compiled policy in Redis
    */
-  private async storeCompiledPolicy(locationId: string, policy: CompiledPolicy): Promise<void> {
+  private async storeCompiledPolicy(
+    locationId: string,
+    policy: CompiledPolicy,
+  ): Promise<void> {
     const key = `policy:${locationId}`;
     await this.redisService.set(key, JSON.stringify(policy), 3600); // 1 hour TTL
   }
@@ -227,7 +234,9 @@ export class PolicyCompilerService {
       }
     }
 
-    this.logger.log(`Compiled policies for ${locations.length} locations in tenant ${tenantId}`);
+    this.logger.log(
+      `Compiled policies for ${locations.length} locations in tenant ${tenantId}`,
+    );
   }
 
   /**
@@ -237,20 +246,32 @@ export class PolicyCompilerService {
    */
   private getSafeSearchRulesForService(
     service: string,
-    level: 'moderate' | 'strict' = 'strict'
+    level: 'moderate' | 'strict' = 'strict',
   ): Record<string, SafeSearchRule> {
     // Google SafeSearch rules - same CNAME for both levels (Google only has on/off)
     const googleRules: Record<string, SafeSearchRule> = {
       'www.google.com': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
-      'www.google.co.uk': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
+      'www.google.co.uk': {
+        cname: 'forcesafesearch.google.com',
+        type: 'CNAME',
+      },
       'www.google.ca': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
       'www.google.de': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
       'www.google.fr': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
       'www.google.es': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
       'www.google.it': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
-      'www.google.com.au': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
-      'www.google.com.br': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
-      'www.google.co.jp': { cname: 'forcesafesearch.google.com', type: 'CNAME' },
+      'www.google.com.au': {
+        cname: 'forcesafesearch.google.com',
+        type: 'CNAME',
+      },
+      'www.google.com.br': {
+        cname: 'forcesafesearch.google.com',
+        type: 'CNAME',
+      },
+      'www.google.co.jp': {
+        cname: 'forcesafesearch.google.com',
+        type: 'CNAME',
+      },
     };
 
     // Bing SafeSearch rules - strict.bing.com for both levels
@@ -259,9 +280,10 @@ export class PolicyCompilerService {
     };
 
     // YouTube Restricted Mode - different CNAMEs for moderate vs strict
-    const youtubeTarget = level === 'strict'
-      ? 'restrict.youtube.com'
-      : 'restrictmoderate.youtube.com';
+    const youtubeTarget =
+      level === 'strict'
+        ? 'restrict.youtube.com'
+        : 'restrictmoderate.youtube.com';
     const youtubeRules: Record<string, SafeSearchRule> = {
       'www.youtube.com': { cname: youtubeTarget, type: 'CNAME' },
       'm.youtube.com': { cname: youtubeTarget, type: 'CNAME' },
@@ -292,15 +314,21 @@ export class PolicyCompilerService {
    */
   private parseDays(days: string[]): number[] {
     const dayMap: Record<string, number> = {
-      sunday: 0, sun: 0,
-      monday: 1, mon: 1,
-      tuesday: 2, tue: 2,
-      wednesday: 3, wed: 3,
-      thursday: 4, thu: 4,
-      friday: 5, fri: 5,
-      saturday: 6, sat: 6,
+      sunday: 0,
+      sun: 0,
+      monday: 1,
+      mon: 1,
+      tuesday: 2,
+      tue: 2,
+      wednesday: 3,
+      wed: 3,
+      thursday: 4,
+      thu: 4,
+      friday: 5,
+      fri: 5,
+      saturday: 6,
+      sat: 6,
     };
     return days.map((d) => dayMap[d.toLowerCase()] ?? 0);
   }
 }
-

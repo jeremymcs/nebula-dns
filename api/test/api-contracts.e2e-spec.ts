@@ -17,7 +17,9 @@ describe('API Contract Tests', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
   });
 
@@ -28,7 +30,7 @@ describe('API Contract Tests', () => {
   describe('Health Endpoint Contracts', () => {
     it('GET /health should return correct schema', async () => {
       const response = await request(app.getHttpServer()).get('/health');
-      
+
       expect(response.status).toBe(200);
       expect(response.body).toMatchObject({
         status: expect.stringMatching(/^(healthy|degraded|unhealthy)$/),
@@ -38,8 +40,10 @@ describe('API Contract Tests', () => {
     });
 
     it('GET /health/detailed should return correct schema', async () => {
-      const response = await request(app.getHttpServer()).get('/health/detailed');
-      
+      const response = await request(app.getHttpServer()).get(
+        '/health/detailed',
+      );
+
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('status');
       expect(response.body).toHaveProperty('timestamp');
@@ -52,16 +56,15 @@ describe('API Contract Tests', () => {
       const response = await request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'invalid', password: 'short' });
-      
+
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('message');
       expect(response.body).toHaveProperty('statusCode', 400);
     });
 
     it('401 error should return correct schema', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/users');
-      
+      const response = await request(app.getHttpServer()).get('/users');
+
       expect(response.status).toBe(401);
       expect(response.body).toHaveProperty('message');
       expect(response.body).toHaveProperty('statusCode', 401);
@@ -71,18 +74,20 @@ describe('API Contract Tests', () => {
   describe('Pagination Contracts', () => {
     it('Paginated endpoints should accept standard pagination params', async () => {
       // Without auth, should return 401, but validates route exists
-      const response = await request(app.getHttpServer())
-        .get('/users?page=1&limit=10');
-      
+      const response = await request(app.getHttpServer()).get(
+        '/users?page=1&limit=10',
+      );
+
       expect([401, 403]).toContain(response.status);
     });
   });
 
   describe('Error Response Contracts', () => {
     it('404 should return standard error format', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/nonexistent-endpoint-12345');
-      
+      const response = await request(app.getHttpServer()).get(
+        '/nonexistent-endpoint-12345',
+      );
+
       expect(response.status).toBe(404);
       expect(response.body).toHaveProperty('statusCode', 404);
     });
@@ -91,7 +96,7 @@ describe('API Contract Tests', () => {
       const response = await request(app.getHttpServer())
         .post('/auth/login')
         .send({});
-      
+
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('message');
     });
@@ -100,7 +105,7 @@ describe('API Contract Tests', () => {
   describe('Content-Type Contracts', () => {
     it('JSON endpoints should return application/json', async () => {
       const response = await request(app.getHttpServer()).get('/health');
-      
+
       expect(response.headers['content-type']).toMatch(/application\/json/);
     });
   });
@@ -111,10 +116,9 @@ describe('API Contract Tests', () => {
         .options('/health')
         .set('Origin', 'https://example.com')
         .set('Access-Control-Request-Method', 'GET');
-      
+
       // Response may vary based on CORS config
       expect([200, 204]).toContain(response.status);
     });
   });
 });
-

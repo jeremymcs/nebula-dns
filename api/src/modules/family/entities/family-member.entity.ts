@@ -84,4 +84,3 @@ export class FamilyMember {
   @UpdateDateColumn()
   updatedAt: Date;
 }
-

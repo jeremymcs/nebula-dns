@@ -1,6 +1,6 @@
 /**
  * TypeORM Data Source Configuration for Migrations
- * 
+ *
  * Used by TypeORM CLI for running migrations
  */
 
@@ -12,7 +12,9 @@ config({ path: ['.env.local', '.env'] });
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  url: process.env.DATABASE_URL || 'postgresql://nebula:nebula@localhost:4432/nebula',
+  url:
+    process.env.DATABASE_URL ||
+    'postgresql://nebula:nebula@localhost:4432/nebula',
   entities: ['src/**/*.entity.ts'],
   migrations: ['src/database/migrations/*.ts'],
   migrationsTableName: 'migrations',

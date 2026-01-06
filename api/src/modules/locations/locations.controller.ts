@@ -11,7 +11,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { LocationsService } from './locations.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard, Roles, Role } from '@/common/guards/roles.guard';
@@ -57,10 +62,7 @@ export class LocationsController {
   @ApiOperation({ summary: 'Get location by ID' })
   @ApiResponse({ status: 200, description: 'Location retrieved' })
   @ApiResponse({ status: 404, description: 'Location not found' })
-  async findOne(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async findOne(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     return this.locationsService.findOne(tenantId, id);
   }
 
@@ -98,10 +100,7 @@ export class LocationsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete location' })
   @ApiResponse({ status: 204, description: 'Location deleted' })
-  async remove(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async remove(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     await this.locationsService.remove(tenantId, id);
   }
 
@@ -113,10 +112,7 @@ export class LocationsController {
   @Roles(Role.OWNER, Role.ADMIN)
   @ApiOperation({ summary: 'List location tokens' })
   @ApiResponse({ status: 200, description: 'Tokens retrieved' })
-  async getTokens(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async getTokens(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     return this.locationsService.getTokens(tenantId, id);
   }
 

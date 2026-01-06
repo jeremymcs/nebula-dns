@@ -2,20 +2,21 @@
  * Onboarding Controller
  */
 
+import { Controller, Get, Patch, Post, Body, UseGuards } from '@nestjs/common';
 import {
-  Controller,
-  Get,
-  Patch,
-  Post,
-  Body,
-  UseGuards,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { OnboardingService } from './onboarding.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard, Roles, Role } from '@/common/guards/roles.guard';
 import { CurrentTenant } from '@/common/decorators/tenant.decorator';
-import { UpdateOnboardingDto, CompleteOnboardingDto } from './dto/onboarding.dto';
+import {
+  UpdateOnboardingDto,
+  CompleteOnboardingDto,
+} from './dto/onboarding.dto';
 
 @ApiTags('onboarding')
 @ApiBearerAuth()
@@ -57,7 +58,10 @@ export class OnboardingController {
     @CurrentTenant() tenantId: string,
     @Body() dto: CompleteOnboardingDto,
   ) {
-    const progress = await this.onboardingService.completeOnboarding(tenantId, dto.skipped);
+    const progress = await this.onboardingService.completeOnboarding(
+      tenantId,
+      dto.skipped,
+    );
     return { data: progress };
   }
 
@@ -70,4 +74,3 @@ export class OnboardingController {
     return { data: progress };
   }
 }
-

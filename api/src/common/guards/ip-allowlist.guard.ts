@@ -1,16 +1,22 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * IP Allowlist Guard
- * 
+ *
  * Restricts admin access to specific IP addresses or CIDR ranges
  */
 
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 
 export const REQUIRE_IP_ALLOWLIST_KEY = 'requireIpAllowlist';
-export const RequireIpAllowlist = () => Reflect.metadata(REQUIRE_IP_ALLOWLIST_KEY, true);
+export const RequireIpAllowlist = () =>
+  Reflect.metadata(REQUIRE_IP_ALLOWLIST_KEY, true);
 
 interface IpAllowlistConfig {
   enabled: boolean;
@@ -25,8 +31,12 @@ export class IpAllowlistGuard implements CanActivate {
   constructor(private reflector: Reflector) {
     this.config = {
       enabled: process.env.IP_ALLOWLIST_ENABLED === 'true',
-      allowedIps: (process.env.ADMIN_ALLOWED_IPS || '').split(',').filter(Boolean),
-      allowedCidrs: (process.env.ADMIN_ALLOWED_CIDRS || '').split(',').filter(Boolean),
+      allowedIps: (process.env.ADMIN_ALLOWED_IPS || '')
+        .split(',')
+        .filter(Boolean),
+      allowedCidrs: (process.env.ADMIN_ALLOWED_CIDRS || '')
+        .split(',')
+        .filter(Boolean),
     };
   }
 
@@ -59,9 +69,11 @@ export class IpAllowlistGuard implements CanActivate {
     // Check for proxy headers
     const forwardedFor = request.headers['x-forwarded-for'];
     if (forwardedFor) {
-      const ips = (typeof forwardedFor === 'string' ? forwardedFor : forwardedFor[0])
+      const ips = (
+        typeof forwardedFor === 'string' ? forwardedFor : forwardedFor[0]
+      )
         .split(',')
-        .map(ip => ip.trim());
+        .map((ip) => ip.trim());
       return ips[0];
     }
 
@@ -118,13 +130,15 @@ export class IpAllowlistGuard implements CanActivate {
       throw new Error('Invalid IPv4 address');
     }
 
-    return parts.reduce((acc, part, i) => {
-      const num = parseInt(part, 10);
-      if (isNaN(num) || num < 0 || num > 255) {
-        throw new Error('Invalid IPv4 address');
-      }
-      return acc + (num << (24 - i * 8));
-    }, 0) >>> 0;
+    return (
+      parts.reduce((acc, part, i) => {
+        const num = parseInt(part, 10);
+        if (isNaN(num) || num < 0 || num > 255) {
+          throw new Error('Invalid IPv4 address');
+        }
+        return acc + (num << (24 - i * 8));
+      }, 0) >>> 0
+    );
   }
 }
 
@@ -138,4 +152,3 @@ export const PRIVATE_CIDRS = [
 
 // Localhost addresses
 export const LOCALHOST_IPS = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
-

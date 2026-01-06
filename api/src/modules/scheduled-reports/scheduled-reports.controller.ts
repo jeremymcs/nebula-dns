@@ -9,7 +9,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ScheduledReportsService } from './scheduled-reports.service';
-import { CreateScheduledReportDto, UpdateScheduledReportDto } from './dto/scheduled-report.dto';
+import {
+  CreateScheduledReportDto,
+  UpdateScheduledReportDto,
+} from './dto/scheduled-report.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -72,7 +75,7 @@ export class ScheduledReportsController {
   @Roles('admin', 'owner')
   async runNow(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     const result = await this.reportsService.runReportNow(tenantId, id);
-    return { 
+    return {
       message: 'Report generation started',
       data: result,
     };

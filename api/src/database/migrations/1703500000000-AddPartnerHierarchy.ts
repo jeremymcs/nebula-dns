@@ -75,23 +75,37 @@ export class AddPartnerHierarchy1703500000000 implements MigrationInterface {
     `);
 
     // Create indexes for better query performance
-    await queryRunner.query(`CREATE INDEX "IDX_partners_status" ON "partners" ("status")`);
-    await queryRunner.query(`CREATE INDEX "IDX_partners_plan" ON "partners" ("plan")`);
-    await queryRunner.query(`CREATE INDEX "IDX_partner_users_partner_id" ON "partner_users" ("partner_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_partner_users_status" ON "partner_users" ("status")`);
-    await queryRunner.query(`CREATE INDEX "IDX_tenants_partner_id" ON "tenants" ("partner_id")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_partners_status" ON "partners" ("status")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_partners_plan" ON "partners" ("plan")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_partner_users_partner_id" ON "partner_users" ("partner_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_partner_users_status" ON "partner_users" ("status")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_tenants_partner_id" ON "tenants" ("partner_id")`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop indexes
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_tenants_partner_id"`);
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_partner_users_status"`);
-    await queryRunner.query(`DROP INDEX IF EXISTS "IDX_partner_users_partner_id"`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS "IDX_partner_users_partner_id"`,
+    );
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_partners_plan"`);
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_partners_status"`);
 
     // Remove foreign key and columns from tenants
-    await queryRunner.query(`ALTER TABLE "tenants" DROP CONSTRAINT IF EXISTS "FK_tenants_partner"`);
+    await queryRunner.query(
+      `ALTER TABLE "tenants" DROP CONSTRAINT IF EXISTS "FK_tenants_partner"`,
+    );
     await queryRunner.query(`
       ALTER TABLE "tenants" 
       DROP COLUMN IF EXISTS "partner_id",
@@ -109,4 +123,3 @@ export class AddPartnerHierarchy1703500000000 implements MigrationInterface {
     await queryRunner.query(`DROP TABLE IF EXISTS "partners"`);
   }
 }
-

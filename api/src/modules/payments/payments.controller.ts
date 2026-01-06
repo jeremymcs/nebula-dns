@@ -1,7 +1,7 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
+ *
  * Stripe Payments Controller
  */
 
@@ -37,7 +37,8 @@ export class PaymentsController {
     private readonly emailService: EmailService,
     private readonly configService: ConfigService,
   ) {
-    this.frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:4001';
+    this.frontendUrl =
+      this.configService.get('FRONTEND_URL') || 'http://localhost:4001';
   }
 
   @Post('checkout')
@@ -71,8 +72,10 @@ export class PaymentsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create Stripe billing portal session' })
   async createPortalSession(@CurrentUser() user: any) {
-    const subscription = await this.subscriptionsService.getSubscription(user.tenantId);
-    
+    const subscription = await this.subscriptionsService.getSubscription(
+      user.tenantId,
+    );
+
     if (!subscription?.stripeCustomerId) {
       throw new BadRequestException('No billing information found');
     }
@@ -95,7 +98,10 @@ export class PaymentsController {
       throw new BadRequestException('Missing raw body');
     }
 
-    const event = this.paymentsService.constructWebhookEvent(req.rawBody, signature);
+    const event = this.paymentsService.constructWebhookEvent(
+      req.rawBody,
+      signature,
+    );
 
     this.logger.log(`Webhook received: ${event.type}`);
 
@@ -163,7 +169,7 @@ export class PaymentsController {
 
   private async handleSubscriptionUpdated(subscription: any) {
     const { tenantId } = subscription.metadata || {};
-    
+
     if (tenantId) {
       await this.subscriptionsService.updateSubscription(tenantId, {
         status: this.mapStripeStatus(subscription.status),
@@ -175,7 +181,7 @@ export class PaymentsController {
 
   private async handleSubscriptionDeleted(subscription: any) {
     const { tenantId } = subscription.metadata || {};
-    
+
     if (tenantId) {
       await this.subscriptionsService.updateSubscription(tenantId, {
         status: 'cancelled',

@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, Length, IsOptional, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  Length,
+  IsOptional,
+  IsBoolean,
+} from 'class-validator';
 
 export class SetupMfaResponseDto {
   secret: string;

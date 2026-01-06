@@ -1,4 +1,10 @@
-import { Injectable, BadRequestException, NotFoundException, UnauthorizedException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  UnauthorizedException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
@@ -26,7 +32,10 @@ export class SsoService {
     private configService: ConfigService,
     private jwtService: JwtService,
   ) {
-    const key = this.configService.get('SSO_ENCRYPTION_KEY', 'default-sso-key-change-me!');
+    const key = this.configService.get(
+      'SSO_ENCRYPTION_KEY',
+      'default-sso-key-change-me!',
+    );
     this.encryptionKey = crypto.scryptSync(key, 'salt', 32);
   }
 
@@ -41,7 +50,11 @@ export class SsoService {
   private decrypt(encryptedText: string): string {
     const [ivHex, encrypted] = encryptedText.split(':');
     const iv = Buffer.from(ivHex, 'hex');
-    const decipher = crypto.createDecipheriv('aes-256-cbc', this.encryptionKey, iv);
+    const decipher = crypto.createDecipheriv(
+      'aes-256-cbc',
+      this.encryptionKey,
+      iv,
+    );
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;
@@ -49,7 +62,10 @@ export class SsoService {
 
   private createSamlInstance(config: SsoConfiguration): SAML {
     const callbackUrl = `${this.configService.get('API_URL')}/sso/saml/callback`;
-    const entityId = this.configService.get('SAML_SP_ENTITY_ID', 'nebuladns-sp');
+    const entityId = this.configService.get(
+      'SAML_SP_ENTITY_ID',
+      'nebuladns-sp',
+    );
 
     const samlConfig: SamlConfig = {
       callbackUrl,
@@ -59,13 +75,17 @@ export class SsoService {
       wantAssertionsSigned: true,
       wantAuthnResponseSigned: false,
       signatureAlgorithm: 'sha256',
-      identifierFormat: 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+      identifierFormat:
+        'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
     };
 
     return new SAML(samlConfig);
   }
 
-  private generateSsoTokens(user: User): { accessToken: string; refreshToken: string } {
+  private generateSsoTokens(user: User): {
+    accessToken: string;
+    refreshToken: string;
+  } {
     const payload = {
       sub: user.id,
       email: user.email,
@@ -77,7 +97,10 @@ export class SsoService {
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(
       { sub: user.id, type: 'refresh', jti: uuidv4(), ssoAuthenticated: true },
-      { expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d' },
+      {
+        expiresIn:
+          this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d',
+      },
     );
 
     return { accessToken, refreshToken };
@@ -87,8 +110,13 @@ export class SsoService {
     return this.ssoConfigRepository.findOne({ where: { tenantId } });
   }
 
-  async configureSaml(tenantId: string, dto: ConfigureSamlDto): Promise<SsoConfiguration> {
-    let config = await this.ssoConfigRepository.findOne({ where: { tenantId } });
+  async configureSaml(
+    tenantId: string,
+    dto: ConfigureSamlDto,
+  ): Promise<SsoConfiguration> {
+    let config = await this.ssoConfigRepository.findOne({
+      where: { tenantId },
+    });
 
     if (!config) {
       config = this.ssoConfigRepository.create({ tenantId });
@@ -102,13 +130,21 @@ export class SsoService {
     config.autoProvisionUsers = dto.autoProvisionUsers ?? true;
     config.defaultRole = dto.defaultRole || 'readonly';
     config.domainRestriction = dto.domainRestriction || null;
-    config.attributeMapping = (dto.attributeMapping as Record<string, string>) || { email: 'email', name: 'name' };
+    config.attributeMapping = (dto.attributeMapping as Record<
+      string,
+      string
+    >) || { email: 'email', name: 'name' };
 
     return this.ssoConfigRepository.save(config);
   }
 
-  async configureOidc(tenantId: string, dto: ConfigureOidcDto): Promise<SsoConfiguration> {
-    let config = await this.ssoConfigRepository.findOne({ where: { tenantId } });
+  async configureOidc(
+    tenantId: string,
+    dto: ConfigureOidcDto,
+  ): Promise<SsoConfiguration> {
+    let config = await this.ssoConfigRepository.findOne({
+      where: { tenantId },
+    });
 
     if (!config) {
       config = this.ssoConfigRepository.create({ tenantId });
@@ -125,7 +161,10 @@ export class SsoService {
     config.autoProvisionUsers = dto.autoProvisionUsers ?? true;
     config.defaultRole = dto.defaultRole || 'readonly';
     config.domainRestriction = dto.domainRestriction || null;
-    config.attributeMapping = (dto.attributeMapping as Record<string, string>) || { email: 'email', name: 'name' };
+    config.attributeMapping = (dto.attributeMapping as Record<
+      string,
+      string
+    >) || { email: 'email', name: 'name' };
 
     return this.ssoConfigRepository.save(config);
   }
@@ -138,18 +177,26 @@ export class SsoService {
 
     // Validate configuration is complete
     if (config.providerType === 'saml') {
-      if (!config.samlEntityId || !config.samlSsoUrl || !config.samlCertificate) {
+      if (
+        !config.samlEntityId ||
+        !config.samlSsoUrl ||
+        !config.samlCertificate
+      ) {
         throw new BadRequestException('SAML configuration incomplete');
       }
     } else if (config.providerType === 'oidc') {
-      if (!config.oidcIssuer || !config.oidcClientId || !config.oidcClientSecretEncrypted) {
+      if (
+        !config.oidcIssuer ||
+        !config.oidcClientId ||
+        !config.oidcClientSecretEncrypted
+      ) {
         throw new BadRequestException('OIDC configuration incomplete');
       }
     }
 
     config.isEnabled = true;
     await this.tenantRepository.update(tenantId, { ssoEnabled: true } as any);
-    
+
     return this.ssoConfigRepository.save(config);
   }
 
@@ -161,7 +208,7 @@ export class SsoService {
 
     config.isEnabled = false;
     await this.tenantRepository.update(tenantId, { ssoEnabled: false } as any);
-    
+
     return this.ssoConfigRepository.save(config);
   }
 
@@ -178,11 +225,18 @@ export class SsoService {
 
   async deleteSsoConfig(tenantId: string): Promise<void> {
     await this.ssoConfigRepository.delete({ tenantId });
-    await this.tenantRepository.update(tenantId, { ssoEnabled: false, ssoEnforced: false } as any);
+    await this.tenantRepository.update(tenantId, {
+      ssoEnabled: false,
+      ssoEnforced: false,
+    } as any);
   }
 
-  async initiateSamlLogin(tenantSlug: string): Promise<{ redirectUrl: string }> {
-    const tenant = await this.tenantRepository.findOne({ where: { slug: tenantSlug } });
+  async initiateSamlLogin(
+    tenantSlug: string,
+  ): Promise<{ redirectUrl: string }> {
+    const tenant = await this.tenantRepository.findOne({
+      where: { slug: tenantSlug },
+    });
     if (!tenant) {
       throw new NotFoundException('Tenant not found');
     }
@@ -194,7 +248,11 @@ export class SsoService {
 
     try {
       const saml = this.createSamlInstance(config);
-      const redirectUrl = await saml.getAuthorizeUrlAsync(tenant.slug, undefined, {});
+      const redirectUrl = await saml.getAuthorizeUrlAsync(
+        tenant.slug,
+        undefined,
+        {},
+      );
       this.logger.log(`SAML login initiated for tenant: ${tenantSlug}`);
       return { redirectUrl };
     } catch (error) {
@@ -203,9 +261,14 @@ export class SsoService {
     }
   }
 
-  async handleSamlCallback(samlResponse: string, relayState: string): Promise<{ user: User; token: string; refreshToken: string }> {
+  async handleSamlCallback(
+    samlResponse: string,
+    relayState: string,
+  ): Promise<{ user: User; token: string; refreshToken: string }> {
     // Extract tenant from RelayState
-    const tenant = await this.tenantRepository.findOne({ where: { slug: relayState } });
+    const tenant = await this.tenantRepository.findOne({
+      where: { slug: relayState },
+    });
     if (!tenant) {
       throw new NotFoundException('Tenant not found');
     }
@@ -219,7 +282,9 @@ export class SsoService {
       const saml = this.createSamlInstance(config);
 
       // Validate and parse SAML response using @node-saml/node-saml
-      const profile = await saml.validatePostResponseAsync({ SAMLResponse: samlResponse });
+      const profile = await saml.validatePostResponseAsync({
+        SAMLResponse: samlResponse,
+      });
 
       if (!profile || !profile.profile) {
         throw new UnauthorizedException('Invalid SAML response');
@@ -232,34 +297,56 @@ export class SsoService {
       const nameAttr = config.attributeMapping?.name || 'name';
 
       // Try multiple common email attributes
-      const email = samlProfile[emailAttr] ||
-                    samlProfile.email ||
-                    samlProfile.nameID ||
-                    (samlProfile as any)['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'];
+      const email =
+        samlProfile[emailAttr] ||
+        samlProfile.email ||
+        samlProfile.nameID ||
+        (samlProfile as any)[
+          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
+        ];
 
-      const name = samlProfile[nameAttr] ||
-                   samlProfile.displayName ||
-                   (samlProfile as any)['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ||
-                   (samlProfile as any)['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'];
+      const name =
+        samlProfile[nameAttr] ||
+        samlProfile.displayName ||
+        (samlProfile as any)[
+          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'
+        ] ||
+        (samlProfile as any)[
+          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'
+        ];
 
       if (!email) {
-        this.logger.error('Email not found in SAML response. Available attributes:', Object.keys(samlProfile));
+        this.logger.error(
+          'Email not found in SAML response. Available attributes:',
+          Object.keys(samlProfile),
+        );
         throw new BadRequestException('Email not found in SAML response');
       }
 
-      this.logger.log(`SAML callback: extracted email ${email} for tenant ${tenant.slug}`);
+      this.logger.log(
+        `SAML callback: extracted email ${email} for tenant ${tenant.slug}`,
+      );
 
       // Check domain restriction
-      if (config.domainRestriction && !email.endsWith(config.domainRestriction)) {
-        throw new UnauthorizedException(`Email domain not allowed. Must end with ${config.domainRestriction}`);
+      if (
+        config.domainRestriction &&
+        !email.endsWith(config.domainRestriction)
+      ) {
+        throw new UnauthorizedException(
+          `Email domain not allowed. Must end with ${config.domainRestriction}`,
+        );
       }
 
       // Find or create user
-      let user = await this.userRepository.findOne({ where: { tenantId: tenant.id, email } });
+      let user = await this.userRepository.findOne({
+        where: { tenantId: tenant.id, email },
+      });
 
       if (!user) {
         if (!config.autoProvisionUsers) {
-          throw new UnauthorizedException('User not found and auto-provisioning is disabled');
+          throw new UnauthorizedException(
+            'User not found and auto-provisioning is disabled',
+          );
         }
 
         user = this.userRepository.create({
@@ -283,15 +370,22 @@ export class SsoService {
       return { user, token: accessToken, refreshToken };
     } catch (error) {
       this.logger.error(`SAML callback failed: ${error.message}`);
-      if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       throw new UnauthorizedException('SAML authentication failed');
     }
   }
 
-  async initiateOidcLogin(tenantSlug: string): Promise<{ redirectUrl: string }> {
-    const tenant = await this.tenantRepository.findOne({ where: { slug: tenantSlug } });
+  async initiateOidcLogin(
+    tenantSlug: string,
+  ): Promise<{ redirectUrl: string }> {
+    const tenant = await this.tenantRepository.findOne({
+      where: { slug: tenantSlug },
+    });
     if (!tenant) {
       throw new NotFoundException('Tenant not found');
     }
@@ -315,7 +409,7 @@ export class SsoService {
     if (!config.oidcClientId) {
       throw new BadRequestException('OIDC client ID not configured');
     }
-    
+
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: config.oidcClientId,
@@ -328,10 +422,15 @@ export class SsoService {
     return { redirectUrl: `${authUrl}?${params.toString()}` };
   }
 
-  async handleOidcCallback(code: string, state: string): Promise<{ user: User; token: string; refreshToken: string }> {
+  async handleOidcCallback(
+    code: string,
+    state: string,
+  ): Promise<{ user: User; token: string; refreshToken: string }> {
     const [tenantSlug] = state.split(':');
 
-    const tenant = await this.tenantRepository.findOne({ where: { slug: tenantSlug } });
+    const tenant = await this.tenantRepository.findOne({
+      where: { slug: tenantSlug },
+    });
     if (!tenant) {
       throw new NotFoundException('Tenant not found');
     }
@@ -347,7 +446,9 @@ export class SsoService {
       if (!tokenUrl) {
         // Try to discover from well-known endpoint
         try {
-          const discoveryResponse = await fetch(`${config.oidcIssuer}/.well-known/openid-configuration`);
+          const discoveryResponse = await fetch(
+            `${config.oidcIssuer}/.well-known/openid-configuration`,
+          );
           if (discoveryResponse.ok) {
             const discovery = await discoveryResponse.json();
             tokenUrl = discovery.token_endpoint;
@@ -404,33 +505,47 @@ export class SsoService {
       const userinfo = await userinfoResponse.json();
 
       // Extract email with fallbacks for common OIDC providers
-      const email = userinfo[config.attributeMapping?.email || 'email'] ||
-                    userinfo.email ||
-                    userinfo.preferred_username;
+      const email =
+        userinfo[config.attributeMapping?.email || 'email'] ||
+        userinfo.email ||
+        userinfo.preferred_username;
 
-      const name = userinfo[config.attributeMapping?.name || 'name'] ||
-                   userinfo.name ||
-                   `${userinfo.given_name || ''} ${userinfo.family_name || ''}`.trim() ||
-                   email?.split('@')[0];
+      const name =
+        userinfo[config.attributeMapping?.name || 'name'] ||
+        userinfo.name ||
+        `${userinfo.given_name || ''} ${userinfo.family_name || ''}`.trim() ||
+        email?.split('@')[0];
 
       if (!email) {
-        this.logger.error('Email not found in OIDC userinfo. Available claims:', Object.keys(userinfo));
+        this.logger.error(
+          'Email not found in OIDC userinfo. Available claims:',
+          Object.keys(userinfo),
+        );
         throw new BadRequestException('Email not found in user info');
       }
 
-      this.logger.log(`OIDC callback: extracted email ${email} for tenant ${tenant.slug}`);
+      this.logger.log(
+        `OIDC callback: extracted email ${email} for tenant ${tenant.slug}`,
+      );
 
       // Check domain restriction
-      if (config.domainRestriction && !email.endsWith(config.domainRestriction)) {
+      if (
+        config.domainRestriction &&
+        !email.endsWith(config.domainRestriction)
+      ) {
         throw new UnauthorizedException(`Email domain not allowed`);
       }
 
       // Find or create user
-      let user = await this.userRepository.findOne({ where: { tenantId: tenant.id, email } });
+      let user = await this.userRepository.findOne({
+        where: { tenantId: tenant.id, email },
+      });
 
       if (!user) {
         if (!config.autoProvisionUsers) {
-          throw new UnauthorizedException('User not found and auto-provisioning is disabled');
+          throw new UnauthorizedException(
+            'User not found and auto-provisioning is disabled',
+          );
         }
 
         user = this.userRepository.create({
@@ -454,7 +569,10 @@ export class SsoService {
       return { user, token: accessToken, refreshToken };
     } catch (error) {
       this.logger.error(`OIDC callback failed: ${error.message}`);
-      if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       throw new UnauthorizedException('OIDC authentication failed');
@@ -462,7 +580,10 @@ export class SsoService {
   }
 
   async getSpMetadata(): Promise<string> {
-    const entityId = this.configService.get('SAML_SP_ENTITY_ID', 'nebuladns-sp');
+    const entityId = this.configService.get(
+      'SAML_SP_ENTITY_ID',
+      'nebuladns-sp',
+    );
     const acsUrl = `${this.configService.get('API_URL')}/sso/saml/callback`;
     const sloUrl = `${this.configService.get('API_URL')}/sso/saml/logout`;
 
@@ -476,7 +597,10 @@ export class SsoService {
 </md:EntityDescriptor>`;
   }
 
-  async importIdpMetadata(tenantId: string, metadataUrl: string): Promise<{ entityId: string; ssoUrl: string; certificate: string }> {
+  async importIdpMetadata(
+    tenantId: string,
+    metadataUrl: string,
+  ): Promise<{ entityId: string; ssoUrl: string; certificate: string }> {
     this.logger.log(`Importing IdP metadata from: ${metadataUrl}`);
 
     try {
@@ -496,26 +620,36 @@ export class SsoService {
       const entityId = entityIdMatch[1];
 
       // Extract SSO URL (HTTP-Redirect or HTTP-POST binding)
-      const ssoUrlMatch = metadataXml.match(
-        /<(?:md:)?SingleSignOnService[^>]*Binding="urn:oasis:names:tc:SAML:2\.0:bindings:HTTP-(?:Redirect|POST)"[^>]*Location="([^"]+)"/
-      ) || metadataXml.match(
-        /<(?:md:)?SingleSignOnService[^>]*Location="([^"]+)"[^>]*Binding="urn:oasis:names:tc:SAML:2\.0:bindings:HTTP-(?:Redirect|POST)"/
-      );
+      const ssoUrlMatch =
+        metadataXml.match(
+          /<(?:md:)?SingleSignOnService[^>]*Binding="urn:oasis:names:tc:SAML:2\.0:bindings:HTTP-(?:Redirect|POST)"[^>]*Location="([^"]+)"/,
+        ) ||
+        metadataXml.match(
+          /<(?:md:)?SingleSignOnService[^>]*Location="([^"]+)"[^>]*Binding="urn:oasis:names:tc:SAML:2\.0:bindings:HTTP-(?:Redirect|POST)"/,
+        );
 
       if (!ssoUrlMatch) {
-        throw new BadRequestException('Could not find SingleSignOnService URL in metadata');
+        throw new BadRequestException(
+          'Could not find SingleSignOnService URL in metadata',
+        );
       }
       const ssoUrl = ssoUrlMatch[1];
 
       // Extract X.509 certificate
-      const certMatch = metadataXml.match(/<(?:ds:)?X509Certificate>([^<]+)<\/(?:ds:)?X509Certificate>/);
+      const certMatch = metadataXml.match(
+        /<(?:ds:)?X509Certificate>([^<]+)<\/(?:ds:)?X509Certificate>/,
+      );
       if (!certMatch) {
-        throw new BadRequestException('Could not find X509 certificate in metadata');
+        throw new BadRequestException(
+          'Could not find X509 certificate in metadata',
+        );
       }
       // Clean up the certificate (remove whitespace)
       const certificate = certMatch[1].replace(/\s/g, '');
 
-      this.logger.log(`Successfully parsed IdP metadata: entityId=${entityId}, ssoUrl=${ssoUrl}`);
+      this.logger.log(
+        `Successfully parsed IdP metadata: entityId=${entityId}, ssoUrl=${ssoUrl}`,
+      );
 
       return { entityId, ssoUrl, certificate };
     } catch (error) {
@@ -527,7 +661,15 @@ export class SsoService {
     }
   }
 
-  async configureFromMetadataUrl(tenantId: string, metadataUrl: string, options?: { autoProvisionUsers?: boolean; defaultRole?: 'owner' | 'admin' | 'analyst' | 'readonly'; domainRestriction?: string }): Promise<SsoConfiguration> {
+  async configureFromMetadataUrl(
+    tenantId: string,
+    metadataUrl: string,
+    options?: {
+      autoProvisionUsers?: boolean;
+      defaultRole?: 'owner' | 'admin' | 'analyst' | 'readonly';
+      domainRestriction?: string;
+    },
+  ): Promise<SsoConfiguration> {
     const metadata = await this.importIdpMetadata(tenantId, metadataUrl);
 
     const dto: ConfigureSamlDto = {
@@ -542,7 +684,11 @@ export class SsoService {
     return this.configureSaml(tenantId, dto);
   }
 
-  async discoverOidcConfiguration(issuerUrl: string): Promise<{ authorizationUrl: string; tokenUrl: string; userinfoUrl: string }> {
+  async discoverOidcConfiguration(issuerUrl: string): Promise<{
+    authorizationUrl: string;
+    tokenUrl: string;
+    userinfoUrl: string;
+  }> {
     this.logger.log(`Discovering OIDC configuration from: ${issuerUrl}`);
 
     try {
@@ -552,7 +698,9 @@ export class SsoService {
 
       const response = await fetch(wellKnownUrl);
       if (!response.ok) {
-        throw new BadRequestException('Failed to fetch OIDC discovery document');
+        throw new BadRequestException(
+          'Failed to fetch OIDC discovery document',
+        );
       }
 
       const discovery = await response.json();
@@ -567,7 +715,9 @@ export class SsoService {
         userinfoUrl: discovery.userinfo_endpoint || `${issuerUrl}/userinfo`,
       };
     } catch (error) {
-      this.logger.error(`Failed to discover OIDC configuration: ${error.message}`);
+      this.logger.error(
+        `Failed to discover OIDC configuration: ${error.message}`,
+      );
       if (error instanceof BadRequestException) {
         throw error;
       }

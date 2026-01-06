@@ -1,5 +1,18 @@
-import { Controller, Get, Param, Query, UseGuards, NotFoundException } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  UseGuards,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { PolicyTemplatesService } from './policy-templates.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard, Roles, Role } from '@/common/guards/roles.guard';
@@ -14,8 +27,16 @@ export class PolicyTemplatesController {
   @Get()
   @Roles(Role.OWNER, Role.ADMIN, Role.ANALYST, Role.READONLY)
   @ApiOperation({ summary: 'Get all policy templates' })
-  @ApiQuery({ name: 'category', required: false, description: 'Filter by category' })
-  @ApiQuery({ name: 'compliance', required: false, description: 'Filter by compliance standard (HIPAA, CIPA, PCI-DSS, GDPR)' })
+  @ApiQuery({
+    name: 'category',
+    required: false,
+    description: 'Filter by category',
+  })
+  @ApiQuery({
+    name: 'compliance',
+    required: false,
+    description: 'Filter by compliance standard (HIPAA, CIPA, PCI-DSS, GDPR)',
+  })
   @ApiQuery({ name: 'tag', required: false, description: 'Filter by tag' })
   @ApiResponse({ status: 200, description: 'Templates retrieved' })
   findAll(
@@ -71,4 +92,3 @@ export class PolicyTemplatesController {
     return { data: template };
   }
 }
-

@@ -10,7 +10,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { PlaybooksService } from './playbooks.service';
 import { CreatePlaybookDto, UpdatePlaybookDto } from './dto/playbook.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -46,7 +51,10 @@ export class PlaybooksController {
   @Roles(Role.OWNER, Role.ADMIN)
   @ApiOperation({ summary: 'Create a new playbook' })
   @ApiResponse({ status: 201, description: 'Playbook created' })
-  async create(@CurrentTenant() tenantId: string, @Body() dto: CreatePlaybookDto) {
+  async create(
+    @CurrentTenant() tenantId: string,
+    @Body() dto: CreatePlaybookDto,
+  ) {
     const playbook = await this.playbooksService.create(tenantId, dto);
     return { data: playbook, message: 'Playbook created successfully' };
   }
@@ -82,4 +90,3 @@ export class PlaybooksController {
     return result;
   }
 }
-

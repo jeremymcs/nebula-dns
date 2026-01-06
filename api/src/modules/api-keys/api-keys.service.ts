@@ -1,11 +1,22 @@
-import { Injectable, NotFoundException, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { ApiKey, ApiKeyScope } from './entities/api-key.entity';
 import { ApiKeyUsage } from './entities/api-key-usage.entity';
-import { CreateApiKeyDto, UpdateApiKeyDto, ApiKeyResponseDto, NewApiKeyResponseDto, ApiKeyUsageStatsDto } from './dto/api-key.dto';
+import {
+  CreateApiKeyDto,
+  UpdateApiKeyDto,
+  ApiKeyResponseDto,
+  NewApiKeyResponseDto,
+  ApiKeyUsageStatsDto,
+} from './dto/api-key.dto';
 
 @Injectable()
 export class ApiKeysService {
@@ -27,7 +38,11 @@ export class ApiKeysService {
     return { key, prefix, hash };
   }
 
-  async create(tenantId: string, userId: string, dto: CreateApiKeyDto): Promise<NewApiKeyResponseDto> {
+  async create(
+    tenantId: string,
+    userId: string,
+    dto: CreateApiKeyDto,
+  ): Promise<NewApiKeyResponseDto> {
     const { key, prefix, hash } = this.generateApiKey();
 
     const apiKey = this.apiKeyRepository.create({
@@ -41,7 +56,7 @@ export class ApiKeysService {
       expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
     });
 
-    const saved = await this.apiKeyRepository.save(apiKey) as ApiKey;
+    const saved = (await this.apiKeyRepository.save(apiKey)) as ApiKey;
 
     return {
       id: saved.id,
@@ -63,7 +78,7 @@ export class ApiKeysService {
       order: { createdAt: 'DESC' },
     });
 
-    return keys.map(k => this.toResponseDto(k));
+    return keys.map((k) => this.toResponseDto(k));
   }
 
   async findOne(tenantId: string, id: string): Promise<ApiKey> {
@@ -79,7 +94,11 @@ export class ApiKeysService {
     return apiKey;
   }
 
-  async update(tenantId: string, id: string, dto: UpdateApiKeyDto): Promise<ApiKeyResponseDto> {
+  async update(
+    tenantId: string,
+    id: string,
+    dto: UpdateApiKeyDto,
+  ): Promise<ApiKeyResponseDto> {
     const apiKey = await this.findOne(tenantId, id);
 
     Object.assign(apiKey, {
@@ -109,7 +128,11 @@ export class ApiKeysService {
    * @param id - API key ID to rotate
    * @param gracePeriodHours - Hours to keep old key active (default: 24)
    */
-  async rotate(tenantId: string, id: string, gracePeriodHours: number = 24): Promise<NewApiKeyResponseDto> {
+  async rotate(
+    tenantId: string,
+    id: string,
+    gracePeriodHours: number = 24,
+  ): Promise<NewApiKeyResponseDto> {
     const oldKey = await this.findOne(tenantId, id);
 
     // Generate new key
@@ -127,10 +150,12 @@ export class ApiKeysService {
       expiresAt: oldKey.expiresAt,
     });
 
-    const saved = await this.apiKeyRepository.save(newApiKey) as ApiKey;
+    const saved = (await this.apiKeyRepository.save(newApiKey)) as ApiKey;
 
     // Set old key to expire after grace period
-    const gracePeriodEnd = new Date(Date.now() + gracePeriodHours * 60 * 60 * 1000);
+    const gracePeriodEnd = new Date(
+      Date.now() + gracePeriodHours * 60 * 60 * 1000,
+    );
     oldKey.expiresAt = gracePeriodEnd;
     oldKey.name = `${oldKey.name} (deprecated - expires ${gracePeriodEnd.toISOString()})`;
     await this.apiKeyRepository.save(oldKey);
@@ -151,7 +176,9 @@ export class ApiKeysService {
   }
 
   // Validate an API key (called from auth middleware)
-  async validateApiKey(key: string): Promise<{ apiKey: ApiKey; tenantId: string } | null> {
+  async validateApiKey(
+    key: string,
+  ): Promise<{ apiKey: ApiKey; tenantId: string } | null> {
     const prefix = key.substring(0, 12);
 
     // Find by prefix first for efficiency
@@ -214,9 +241,12 @@ export class ApiKeysService {
   }
 
   // Check rate limit
-  async checkRateLimit(apiKeyId: string, limit: number): Promise<{ allowed: boolean; remaining: number; resetAt: Date }> {
+  async checkRateLimit(
+    apiKeyId: string,
+    limit: number,
+  ): Promise<{ allowed: boolean; remaining: number; resetAt: Date }> {
     const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
-    
+
     const count = await this.usageRepository.count({
       where: {
         apiKeyId,
@@ -235,11 +265,18 @@ export class ApiKeysService {
   }
 
   // Get usage statistics
-  async getUsageStats(tenantId: string, id: string): Promise<ApiKeyUsageStatsDto> {
+  async getUsageStats(
+    tenantId: string,
+    id: string,
+  ): Promise<ApiKeyUsageStatsDto> {
     const apiKey = await this.findOne(tenantId, id);
 
     const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
     const weekStart = new Date(todayStart.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     // Total requests
@@ -286,7 +323,10 @@ export class ApiKeysService {
       requestsToday,
       requestsThisWeek,
       averageResponseTime: parseFloat(avgResult?.avg || '0'),
-      topEndpoints: topEndpoints.map(e => ({ endpoint: e.endpoint, count: parseInt(e.count) })),
+      topEndpoints: topEndpoints.map((e) => ({
+        endpoint: e.endpoint,
+        count: parseInt(e.count),
+      })),
       errorRate: totalRequests > 0 ? (errorCount / totalRequests) * 100 : 0,
     };
   }
@@ -294,8 +334,10 @@ export class ApiKeysService {
   // Check if key has required scope
   hasScope(apiKey: ApiKey, requiredScope: ApiKeyScope): boolean {
     if (apiKey.scopes.includes('admin')) return true;
-    if (requiredScope === 'write' && apiKey.scopes.includes('write')) return true;
-    if (requiredScope === 'read') return apiKey.scopes.includes('read') || apiKey.scopes.includes('write');
+    if (requiredScope === 'write' && apiKey.scopes.includes('write'))
+      return true;
+    if (requiredScope === 'read')
+      return apiKey.scopes.includes('read') || apiKey.scopes.includes('write');
     return apiKey.scopes.includes(requiredScope);
   }
 

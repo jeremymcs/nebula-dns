@@ -16,7 +16,10 @@ import { LocationToken } from './entities/location-token.entity';
 import { CreateLocationDto } from './dto/create-location.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import { CreateTokenDto } from './dto/create-token.dto';
-import { PaginationQueryDto, PaginatedResponse } from '@/common/dto/pagination.dto';
+import {
+  PaginationQueryDto,
+  PaginatedResponse,
+} from '@/common/dto/pagination.dto';
 import { RedisService } from '../redis/redis.service';
 import { PolicyCompilerService } from '../policies/policy-compiler.service';
 
@@ -96,10 +99,15 @@ export class LocationsService {
     return location;
   }
 
-  async create(tenantId: string, createDto: CreateLocationDto): Promise<Location> {
+  async create(
+    tenantId: string,
+    createDto: CreateLocationDto,
+  ): Promise<Location> {
     // Validate that either ipRange or dyndns is provided
     if (!createDto.ipRange && !createDto.dyndns) {
-      throw new BadRequestException('Either ipRange or dyndns must be provided');
+      throw new BadRequestException(
+        'Either ipRange or dyndns must be provided',
+      );
     }
 
     // Check uniqueness of ipRange
@@ -108,7 +116,9 @@ export class LocationsService {
         where: { ipRange: createDto.ipRange },
       });
       if (existingByIp) {
-        throw new ConflictException(`IP range ${createDto.ipRange} is already in use by another location`);
+        throw new ConflictException(
+          `IP range ${createDto.ipRange} is already in use by another location`,
+        );
       }
     }
 
@@ -118,7 +128,9 @@ export class LocationsService {
         where: { dyndns: createDto.dyndns },
       });
       if (existingByDyndns) {
-        throw new ConflictException(`DynDNS hostname ${createDto.dyndns} is already in use by another location`);
+        throw new ConflictException(
+          `DynDNS hostname ${createDto.dyndns} is already in use by another location`,
+        );
       }
     }
 
@@ -144,10 +156,18 @@ export class LocationsService {
     // Auto-compile policy for the new location if it has one assigned
     if (location.policyId) {
       try {
-        await this.policyCompilerService.compile(tenantId, location.policyId, location.id);
-        this.logger.log(`Auto-compiled policy ${location.policyId} for new location ${location.id}`);
+        await this.policyCompilerService.compile(
+          tenantId,
+          location.policyId,
+          location.id,
+        );
+        this.logger.log(
+          `Auto-compiled policy ${location.policyId} for new location ${location.id}`,
+        );
       } catch (error) {
-        this.logger.warn(`Failed to auto-compile policy for new location: ${error.message}`);
+        this.logger.warn(
+          `Failed to auto-compile policy for new location: ${error.message}`,
+        );
       }
     }
 
@@ -167,7 +187,9 @@ export class LocationsService {
         where: { ipRange: updateDto.ipRange },
       });
       if (existingByIp && existingByIp.id !== id) {
-        throw new ConflictException(`IP range ${updateDto.ipRange} is already in use by another location`);
+        throw new ConflictException(
+          `IP range ${updateDto.ipRange} is already in use by another location`,
+        );
       }
     }
 
@@ -177,14 +199,17 @@ export class LocationsService {
         where: { dyndns: updateDto.dyndns },
       });
       if (existingByDyndns && existingByDyndns.id !== id) {
-        throw new ConflictException(`DynDNS hostname ${updateDto.dyndns} is already in use by another location`);
+        throw new ConflictException(
+          `DynDNS hostname ${updateDto.dyndns} is already in use by another location`,
+        );
       }
     }
 
     // Track if policyId is being changed
     const oldPolicyId = location.policyId;
     const newPolicyId = updateDto.policyId;
-    const policyChanged = newPolicyId !== undefined && newPolicyId !== oldPolicyId;
+    const policyChanged =
+      newPolicyId !== undefined && newPolicyId !== oldPolicyId;
 
     Object.assign(location, updateDto);
     await this.locationRepository.save(location);
@@ -205,11 +230,19 @@ export class LocationsService {
     // Auto-compile policy if policyId was changed
     if (policyChanged && location.policyId) {
       try {
-        await this.policyCompilerService.compile(tenantId, location.policyId, id);
+        await this.policyCompilerService.compile(
+          tenantId,
+          location.policyId,
+          id,
+        );
         await this.redisService.invalidatePolicy(id);
-        this.logger.log(`Auto-compiled policy ${location.policyId} for location ${id}`);
+        this.logger.log(
+          `Auto-compiled policy ${location.policyId} for location ${id}`,
+        );
       } catch (error) {
-        this.logger.warn(`Failed to auto-compile policy for location: ${error.message}`);
+        this.logger.warn(
+          `Failed to auto-compile policy for location: ${error.message}`,
+        );
       }
     }
 
@@ -231,7 +264,10 @@ export class LocationsService {
     this.logger.log(`Location ${id} deleted from tenant ${tenantId}`);
   }
 
-  async getTokens(tenantId: string, locationId: string): Promise<LocationToken[]> {
+  async getTokens(
+    tenantId: string,
+    locationId: string,
+  ): Promise<LocationToken[]> {
     // Verify location belongs to tenant
     await this.findOne(tenantId, locationId);
 
@@ -255,7 +291,9 @@ export class LocationsService {
     const tokenPrefix = tokenValue.substring(0, 8);
 
     const expiresAt = createTokenDto.expiresInDays
-      ? new Date(Date.now() + createTokenDto.expiresInDays * 24 * 60 * 60 * 1000)
+      ? new Date(
+          Date.now() + createTokenDto.expiresInDays * 24 * 60 * 60 * 1000,
+        )
       : null;
 
     const token = this.tokenRepository.create({
@@ -281,10 +319,16 @@ export class LocationsService {
 
     // Compile policy for this location if it has one
     if (location.policyId) {
-      await this.policyCompilerService.compile(tenantId, location.policyId, locationId);
+      await this.policyCompilerService.compile(
+        tenantId,
+        location.policyId,
+        locationId,
+      );
     }
 
-    this.logger.log(`Token created for location ${locationId} in tenant ${tenantId}`);
+    this.logger.log(
+      `Token created for location ${locationId} in tenant ${tenantId}`,
+    );
 
     // Return the raw token - this is the only time it's visible
     return {
@@ -350,7 +394,8 @@ export class LocationsService {
   }
 
   private generateSecureToken(locationId: string): string {
-    const hmacSecret = this.configService.get<string>('HMAC_SECRET') || 'dev-secret';
+    const hmacSecret =
+      this.configService.get<string>('HMAC_SECRET') || 'dev-secret';
     const timestamp = Date.now().toString(36);
     const randomPart = crypto.randomBytes(16).toString('base64url');
     const locationIdEncoded = Buffer.from(locationId).toString('base64url');

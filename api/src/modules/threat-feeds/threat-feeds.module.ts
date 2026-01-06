@@ -8,4 +8,3 @@ import { ThreatFeedsController } from './threat-feeds.controller';
   exports: [ThreatFeedsService],
 })
 export class ThreatFeedsModule {}
-

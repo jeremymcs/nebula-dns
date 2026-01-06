@@ -10,7 +10,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { WebhooksService } from './webhooks.service';
-import { CreateWebhookDto, UpdateWebhookDto, TestWebhookDto } from './dto/webhook.dto';
+import {
+  CreateWebhookDto,
+  UpdateWebhookDto,
+  TestWebhookDto,
+} from './dto/webhook.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -44,10 +48,7 @@ export class WebhooksController {
   }
 
   @Get(':id')
-  async findOne(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async findOne(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     const webhook = await this.webhooksService.findOne(tenantId, id);
     return { data: webhook };
   }
@@ -79,30 +80,21 @@ export class WebhooksController {
 
   @Delete(':id')
   @Roles('admin', 'owner')
-  async delete(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async delete(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     await this.webhooksService.delete(tenantId, id);
     return { success: true };
   }
 
   @Post(':id/enable')
   @Roles('admin', 'owner')
-  async enable(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async enable(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     const webhook = await this.webhooksService.enable(tenantId, id);
     return { data: webhook, message: 'Webhook enabled' };
   }
 
   @Post(':id/disable')
   @Roles('admin', 'owner')
-  async disable(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async disable(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     const webhook = await this.webhooksService.disable(tenantId, id);
     return { data: webhook, message: 'Webhook disabled' };
   }

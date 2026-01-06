@@ -22,7 +22,9 @@ import { Policy } from '../policies/entities/policy.entity';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: configService.get('JWT_EXPIRES_IN') || '15m' },
+        signOptions: {
+          expiresIn: configService.get('JWT_EXPIRES_IN') || '15m',
+        },
       }),
       inject: [ConfigService],
     }),
@@ -32,4 +34,3 @@ import { Policy } from '../policies/entities/policy.entity';
   exports: [MspService],
 })
 export class MspModule {}
-

@@ -88,8 +88,9 @@ describe('FamilyService', () => {
     it('should throw NotFoundException when member not found', async () => {
       repository.findOne.mockResolvedValue(null);
 
-      await expect(service.findOne('tenant-1', 'invalid-id'))
-        .rejects.toThrow(NotFoundException);
+      await expect(service.findOne('tenant-1', 'invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -134,4 +135,3 @@ describe('FamilyService', () => {
     });
   });
 });
-

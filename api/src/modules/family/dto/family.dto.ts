@@ -2,7 +2,16 @@
  * Family Module DTOs
  */
 
-import { IsString, IsOptional, IsArray, IsBoolean, IsNumber, IsEnum, ValidateNested, IsObject } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsArray,
+  IsBoolean,
+  IsNumber,
+  IsEnum,
+  ValidateNested,
+  IsObject,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -114,4 +123,3 @@ export class AssignDeviceDto {
   @IsEnum(DeviceType)
   type: DeviceType;
 }
-

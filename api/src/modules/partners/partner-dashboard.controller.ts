@@ -36,7 +36,10 @@ export class PartnerDashboardController {
 
   // Update partner settings (owner/admin only)
   @Patch('partner')
-  async updatePartner(@CurrentPartner() partnerId: string, @Body() dto: UpdatePartnerDto) {
+  async updatePartner(
+    @CurrentPartner() partnerId: string,
+    @Body() dto: UpdatePartnerDto,
+  ) {
     const partner = await this.partnersService.update(partnerId, dto);
     return { data: partner };
   }
@@ -51,7 +54,8 @@ export class PartnerDashboardController {
   // Get organizations summary with stats
   @Get('organizations/summary')
   async getOrganizationsSummary(@CurrentPartner() partnerId: string) {
-    const summary = await this.partnersService.getPartnerOrganizationsSummary(partnerId);
+    const summary =
+      await this.partnersService.getPartnerOrganizationsSummary(partnerId);
     return { data: summary };
   }
 
@@ -64,7 +68,10 @@ export class PartnerDashboardController {
 
   // Get specific organization
   @Get('organizations/:orgId')
-  async getOrganization(@CurrentPartner() partnerId: string, @Param('orgId') orgId: string) {
+  async getOrganization(
+    @CurrentPartner() partnerId: string,
+    @Param('orgId') orgId: string,
+  ) {
     const org = await this.partnersService.getOrganization(partnerId, orgId);
     return { data: org };
   }
@@ -75,13 +82,19 @@ export class PartnerDashboardController {
     @CurrentPartner() partnerId: string,
     @Param('orgId') orgId: string,
   ) {
-    const locations = await this.partnersService.getOrganizationLocations(partnerId, orgId);
+    const locations = await this.partnersService.getOrganizationLocations(
+      partnerId,
+      orgId,
+    );
     return { data: locations };
   }
 
   // Create a new organization
   @Post('organizations')
-  async createOrganization(@CurrentPartner() partnerId: string, @Body() dto: CreateOrganizationDto) {
+  async createOrganization(
+    @CurrentPartner() partnerId: string,
+    @Body() dto: CreateOrganizationDto,
+  ) {
     const org = await this.partnersService.createOrganization(partnerId, dto);
     return { data: org };
   }
@@ -93,13 +106,20 @@ export class PartnerDashboardController {
     @Param('orgId') orgId: string,
     @Body() dto: UpdateOrganizationDto,
   ) {
-    const org = await this.partnersService.updateOrganization(partnerId, orgId, dto);
+    const org = await this.partnersService.updateOrganization(
+      partnerId,
+      orgId,
+      dto,
+    );
     return { data: org };
   }
 
   // Delete an organization
   @Delete('organizations/:orgId')
-  async deleteOrganization(@CurrentPartner() partnerId: string, @Param('orgId') orgId: string) {
+  async deleteOrganization(
+    @CurrentPartner() partnerId: string,
+    @Param('orgId') orgId: string,
+  ) {
     await this.partnersService.deleteOrganization(partnerId, orgId);
     return { success: true };
   }
@@ -118,7 +138,11 @@ export class PartnerDashboardController {
     @CurrentPartnerUser() user: PartnerUser,
     @Body() dto: UpdatePartnerUserDto,
   ) {
-    const updated = await this.partnersService.updateUser(partnerId, user.id, dto);
+    const updated = await this.partnersService.updateUser(
+      partnerId,
+      user.id,
+      dto,
+    );
     return { data: updated };
   }
 
@@ -129,8 +153,12 @@ export class PartnerDashboardController {
     @CurrentPartnerUser() user: PartnerUser,
     @Body() dto: ImpersonateOrganizationDto,
   ) {
-    const org = await this.partnersService.startImpersonation(partnerId, user.id, dto.organizationId);
-    return { 
+    const org = await this.partnersService.startImpersonation(
+      partnerId,
+      user.id,
+      dto.organizationId,
+    );
+    return {
       message: `Now viewing as ${org.name}`,
       data: org,
     };
@@ -150,4 +178,3 @@ export class PartnerDashboardController {
     return { data: org };
   }
 }
-

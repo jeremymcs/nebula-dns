@@ -59,7 +59,9 @@ export class DoHController {
       // Extract tenant/location from auth
       const auth = this.dohService.extractAuth(authHeader, locationId);
       if (!auth.tenantId || !auth.locationId) {
-        return res.status(HttpStatus.UNAUTHORIZED).send('Invalid authentication');
+        return res
+          .status(HttpStatus.UNAUTHORIZED)
+          .send('Invalid authentication');
       }
 
       // Process DNS query
@@ -75,7 +77,9 @@ export class DoHController {
       return res.send(response);
     } catch (error) {
       this.logger.error('DoH POST error', error);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('DNS resolution failed');
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .send('DNS resolution failed');
     }
   }
 
@@ -106,7 +110,9 @@ export class DoHController {
       // Extract tenant/location from auth
       const auth = this.dohService.extractAuth(authHeader, locationId);
       if (!auth.tenantId || !auth.locationId) {
-        return res.status(HttpStatus.UNAUTHORIZED).send('Invalid authentication');
+        return res
+          .status(HttpStatus.UNAUTHORIZED)
+          .send('Invalid authentication');
       }
 
       // Process DNS query
@@ -122,8 +128,9 @@ export class DoHController {
       return res.send(response);
     } catch (error) {
       this.logger.error('DoH GET error', error);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('DNS resolution failed');
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .send('DNS resolution failed');
     }
   }
 }
-
