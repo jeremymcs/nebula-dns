@@ -11,6 +11,7 @@ import { PartnerAuthController } from './partner-auth.controller';
 import { PartnerAuthGuard } from './guards/partner-auth.guard';
 import { TenantsModule } from '../tenants/tenants.module';
 import { Tenant } from '../tenants/entities/tenant.entity';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { Tenant } from '../tenants/entities/tenant.entity';
       inject: [ConfigService],
     }),
     ConfigModule,
+    EmailModule,
     forwardRef(() => TenantsModule),
   ],
   controllers: [PartnersController, PartnerDashboardController, PartnerAuthController],

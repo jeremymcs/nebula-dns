@@ -13,6 +13,7 @@ import clsx from 'clsx'
 import {
   NoSymbolIcon,
   PauseIcon,
+  PlayIcon,
   ExclamationTriangleIcon,
   PlusIcon,
   ArrowPathIcon,
@@ -24,7 +25,7 @@ interface QuickAction {
   name: string
   description: string
   icon: React.ComponentType<{ className?: string }>
-  variant: 'default' | 'warning' | 'danger'
+  variant: 'default' | 'warning' | 'danger' | 'success'
   action: () => void
 }
 
@@ -33,6 +34,7 @@ interface QuickActionsProps {
   onPauseProtection?: () => void
   onEmergencyLockdown?: () => void
   onCreatePolicy?: () => void
+  isProtectionPaused?: boolean
   className?: string
 }
 
@@ -41,6 +43,7 @@ export function QuickActions({
   onPauseProtection,
   onEmergencyLockdown,
   onCreatePolicy,
+  isProtectionPaused = false,
   className,
 }: QuickActionsProps) {
   const [activeAction, setActiveAction] = useState<string | null>(null)
@@ -56,10 +59,10 @@ export function QuickActions({
     },
     {
       id: 'pause-protection',
-      name: 'Pause Protection',
-      description: 'Temporarily disable',
-      icon: PauseIcon,
-      variant: 'warning',
+      name: isProtectionPaused ? 'Resume Protection' : 'Pause Protection',
+      description: isProtectionPaused ? 'Re-enable filtering' : 'Temporarily disable',
+      icon: isProtectionPaused ? PlayIcon : PauseIcon,
+      variant: isProtectionPaused ? 'success' : 'warning',
       action: () => onPauseProtection?.(),
     },
     {
@@ -82,7 +85,7 @@ export function QuickActions({
 
   const getVariantStyles = (variant: QuickAction['variant'], isActive: boolean) => {
     const base = 'border transition-all duration-200'
-    
+
     switch (variant) {
       case 'danger':
         return clsx(
@@ -97,6 +100,13 @@ export function QuickActions({
           isActive
             ? 'bg-amber-500 border-amber-400 text-white shadow-lg shadow-amber-500/25'
             : 'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20'
+        )
+      case 'success':
+        return clsx(
+          base,
+          isActive
+            ? 'bg-success-500 border-green-400 text-white shadow-lg shadow-green-500/25'
+            : 'bg-success-500/10 border-green-500/20 text-success-600 dark:text-success-400 hover:bg-success-500/20'
         )
       default:
         return clsx(

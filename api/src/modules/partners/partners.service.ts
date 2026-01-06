@@ -1,7 +1,9 @@
 import { Injectable, NotFoundException, BadRequestException, UnauthorizedException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { Partner } from './entities/partner.entity';
 import { PartnerUser } from './entities/partner-user.entity';
 import { Tenant } from '../../tenants/entities/tenant.entity';
@@ -17,6 +19,7 @@ import {
 @Injectable()
 export class PartnersService {
   private readonly logger = new Logger(PartnersService.name);
+  private readonly encryptionKey: Buffer;
 
   constructor(
     @InjectRepository(Partner)
@@ -25,7 +28,167 @@ export class PartnersService {
     private partnerUsersRepository: Repository<PartnerUser>,
     @InjectRepository(Tenant)
     private tenantsRepository: Repository<Tenant>,
-  ) {}
+    private configService: ConfigService,
+  ) {
+    // Use a 32-byte key for AES-256 (same as MfaService)
+    const key = this.configService.get('MFA_ENCRYPTION_KEY', 'default-key-change-in-production!');
+    this.encryptionKey = crypto.scryptSync(key, 'salt', 32);
+  }
+
+  // ==================== MFA HELPERS ====================
+
+  // Decrypt the MFA secret
+  private decrypt(encryptedText: string): string {
+    const [ivHex, encrypted] = encryptedText.split(':');
+    const iv = Buffer.from(ivHex, 'hex');
+    const decipher = crypto.createDecipheriv('aes-256-cbc', this.encryptionKey, iv);
+    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+  }
+
+  // Generate TOTP code for a given secret and time
+  private generateTOTP(secret: string, time?: number): string {
+    const counter = Math.floor((time || Date.now()) / 30000);
+    const counterBuffer = Buffer.alloc(8);
+    counterBuffer.writeBigInt64BE(BigInt(counter));
+
+    // Decode base32 secret
+    const base32Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    const secretBytes: number[] = [];
+    let bits = 0;
+    let value = 0;
+
+    for (const char of secret.toUpperCase()) {
+      const index = base32Chars.indexOf(char);
+      if (index === -1) continue;
+      value = (value << 5) | index;
+      bits += 5;
+      if (bits >= 8) {
+        secretBytes.push((value >> (bits - 8)) & 0xff);
+        bits -= 8;
+      }
+    }
+
+    const keyBuffer = Buffer.from(secretBytes);
+    const hmac = crypto.createHmac('sha1', keyBuffer);
+    hmac.update(counterBuffer);
+    const hash = hmac.digest();
+
+    const offset = hash[hash.length - 1] & 0xf;
+    const binary =
+      ((hash[offset] & 0x7f) << 24) |
+      ((hash[offset + 1] & 0xff) << 16) |
+      ((hash[offset + 2] & 0xff) << 8) |
+      (hash[offset + 3] & 0xff);
+
+    const otp = binary % 1000000;
+    return otp.toString().padStart(6, '0');
+  }
+
+  // Verify TOTP code (with window for clock drift)
+  private verifyTOTP(secret: string, code: string): boolean {
+    const now = Date.now();
+    // Check current time and ±1 interval for clock drift
+    for (let i = -1; i <= 1; i++) {
+      const time = now + i * 30000;
+      if (this.generateTOTP(secret, time) === code) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Verify MFA code for a partner user
+  async verifyPartnerMfaCode(userId: string, code: string): Promise<boolean> {
+    const user = await this.partnerUsersRepository.findOne({ where: { id: userId } });
+
+    if (!user || !user.mfaEnabled || !user.mfaSecret) {
+      throw new BadRequestException('MFA is not enabled for this user');
+    }
+
+    try {
+      const secret = this.decrypt(user.mfaSecret);
+      return this.verifyTOTP(secret, code);
+    } catch (error) {
+      this.logger.error(`Failed to verify MFA code for user ${userId}`, error);
+      return false;
+    }
+  }
+
+  // ==================== PASSWORD RESET ====================
+
+  // In-memory store for password reset tokens (in production, use Redis or DB)
+  private passwordResetTokens = new Map<string, { userId: string; expiresAt: Date }>();
+
+  // Generate a password reset token
+  async generatePasswordResetToken(email: string): Promise<{ token: string; user: PartnerUser } | null> {
+    const user = await this.findUserByEmail(email);
+    if (!user) {
+      return null; // Don't reveal if user exists
+    }
+
+    // Generate a secure random token
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    // Store the token
+    this.passwordResetTokens.set(token, { userId: user.id, expiresAt });
+
+    // Clean up expired tokens periodically
+    this.cleanupExpiredResetTokens();
+
+    return { token, user };
+  }
+
+  // Validate a password reset token
+  async validatePasswordResetToken(token: string): Promise<PartnerUser | null> {
+    const tokenData = this.passwordResetTokens.get(token);
+    if (!tokenData) {
+      return null;
+    }
+
+    if (tokenData.expiresAt < new Date()) {
+      this.passwordResetTokens.delete(token);
+      return null;
+    }
+
+    const user = await this.partnerUsersRepository.findOne({ where: { id: tokenData.userId } });
+    return user;
+  }
+
+  // Reset password using token
+  async resetPassword(token: string, newPassword: string): Promise<boolean> {
+    const user = await this.validatePasswordResetToken(token);
+    if (!user) {
+      throw new BadRequestException('Invalid or expired password reset token');
+    }
+
+    // Hash the new password
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+
+    // Update the user
+    user.passwordHash = passwordHash;
+    user.failedLoginAttempts = 0;
+    user.lockedUntil = null;
+    await this.partnerUsersRepository.save(user);
+
+    // Invalidate the token
+    this.passwordResetTokens.delete(token);
+
+    this.logger.log(`Password reset successful for user ${user.id}`);
+    return true;
+  }
+
+  // Clean up expired tokens
+  private cleanupExpiredResetTokens(): void {
+    const now = new Date();
+    for (const [token, data] of this.passwordResetTokens.entries()) {
+      if (data.expiresAt < now) {
+        this.passwordResetTokens.delete(token);
+      }
+    }
+  }
 
   // ==================== PARTNER CRUD ====================
 

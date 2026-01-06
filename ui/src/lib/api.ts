@@ -128,7 +128,13 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-  
+
+  updateLocation: (id: string, data: { name?: string; description?: string; policyId?: string; status?: 'active' | 'inactive'; settings?: Record<string, any> }) =>
+    request<any>(`/locations/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
   createLocationToken: (locationId: string, data: any) =>
     request<{ token: string; tokenId: string; expiresAt: string | null }>(
       `/locations/${locationId}/tokens`,
@@ -635,6 +641,37 @@ export const api = {
 
   getClientQueryLogs: (clientId: string, params?: { limit?: number; offset?: number }) =>
     request<{ logs: any[] }>(`/msp/clients/${clientId}/logs${params ? `?limit=${params.limit || 50}` : ''}`),
+
+  // Family
+  getFamilyMembers: () =>
+    request<{ data: any[] }>('/family/members'),
+
+  getFamilyMember: (id: string) =>
+    request<{ data: any }>(`/family/members/${id}`),
+
+  createFamilyMember: (data: { name: string; avatar: string; role: 'parent' | 'teen' | 'child'; restrictions?: any }) =>
+    request<{ data: any }>('/family/members', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateFamilyMember: (id: string, data: { name?: string; avatar?: string; role?: string; restrictions?: any }) =>
+    request<{ data: any }>(`/family/members/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deleteFamilyMember: (id: string) =>
+    request<{ message: string }>(`/family/members/${id}`, { method: 'DELETE' }),
+
+  assignDeviceToMember: (memberId: string, data: { deviceId?: string; name: string; type: string }) =>
+    request<{ data: any }>(`/family/members/${memberId}/devices`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  removeDeviceFromMember: (memberId: string, deviceId: string) =>
+    request<{ data: any }>(`/family/members/${memberId}/devices/${deviceId}`, { method: 'DELETE' }),
 }
 
 export { ApiError }

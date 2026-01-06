@@ -128,17 +128,71 @@ func (m *Metrics) RecordEvaluation(decision, reason string, duration time.Durati
 	atomic.AddUint64(&m.evaluationCount, 1)
 
 	switch decision {
-	case "block":
+	case "block", "BLOCK":
 		atomic.AddUint64(&m.blockCount, 1)
-	case "allow":
+	case "allow", "ALLOW":
 		atomic.AddUint64(&m.allowCount, 1)
-	case "rewrite":
+	case "rewrite", "REWRITE":
 		atomic.AddUint64(&m.rewriteCount, 1)
+	}
+}
+
+// RecordCacheHit records a cache hit
+func (m *Metrics) RecordCacheHit() {
+	m.CacheHits.Inc()
+}
+
+// RecordCacheMiss records a cache miss
+func (m *Metrics) RecordCacheMiss() {
+	m.CacheMisses.Inc()
+}
+
+// RecordRequest records an HTTP request
+func (m *Metrics) RecordRequest(method, path, status string, duration time.Duration) {
+	m.RequestsTotal.WithLabelValues(method, path, status).Inc()
+	m.RequestDuration.WithLabelValues(method, path).Observe(duration.Seconds())
+}
+
+// SetPolicyCacheSize sets the current policy cache size
+func (m *Metrics) SetPolicyCacheSize(size int) {
+	m.PolicyCacheSize.Set(float64(size))
+}
+
+// SetClickHouseQueueSize sets the current ClickHouse queue size
+func (m *Metrics) SetClickHouseQueueSize(size int) {
+	m.ClickHouseQueueSize.Set(float64(size))
+}
+
+// IncrementConnections increments active connections
+func (m *Metrics) IncrementConnections() {
+	m.ActiveConnections.Inc()
+}
+
+// DecrementConnections decrements active connections
+func (m *Metrics) DecrementConnections() {
+	m.ActiveConnections.Dec()
+}
+
+// GetStats returns internal counters for non-Prometheus consumers
+func (m *Metrics) GetStats() map[string]uint64 {
+	return map[string]uint64{
+		"evaluations": atomic.LoadUint64(&m.evaluationCount),
+		"blocks":      atomic.LoadUint64(&m.blockCount),
+		"allows":      atomic.LoadUint64(&m.allowCount),
+		"rewrites":    atomic.LoadUint64(&m.rewriteCount),
 	}
 }
 
 // Handler returns the Prometheus metrics HTTP handler
 func Handler() http.Handler {
 	return promhttp.Handler()
+}
+
+// Get returns the singleton metrics instance
+func Get() *Metrics {
+	if instance == nil {
+		return NewMetrics()
+	}
+	return instance
 }
 

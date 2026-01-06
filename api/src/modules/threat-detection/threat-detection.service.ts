@@ -31,6 +31,23 @@ export class ThreatDetectionService {
     highQueryRate: 100, // queries per minute per client
   };
 
+  // C2 communication indicators
+  private readonly c2Indicators = {
+    beaconIntervals: [60, 300, 600, 900, 1800, 3600], // Common C2 beacon intervals in seconds
+    suspiciousPorts: ['8080', '8443', '4444', '5555', '9001'],
+    lowFrequencyTLDs: ['.tk', '.ml', '.ga', '.cf', '.gq', '.xyz', '.top', '.work', '.click'],
+  };
+
+  // Data exfiltration thresholds
+  private readonly exfiltrationIndicators = {
+    minDataLength: 100, // Minimum subdomain data length to consider
+    suspiciousQueryTypes: ['TXT', 'MX', 'CNAME'],
+    hexEncodingPattern: /^[0-9a-f]+$/i,
+  };
+
+  // Per-client query tracking for rate analysis
+  private clientQueryHistory: Map<string, { timestamps: number[]; domains: Set<string> }> = new Map();
+
   constructor(
     private readonly realtimeGateway: RealtimeGateway,
   ) {}
@@ -79,6 +96,44 @@ export class ThreatDetectionService {
         details: {
           indicators: tunnelingResult.indicators,
           subdomainLength: tunnelingResult.subdomainLength,
+        },
+        timestamp: query.timestamp,
+      });
+    }
+
+    // Check for C2 communication
+    const c2Result = this.detectC2(query.domain, query.clientIp, query.timestamp);
+    if (c2Result.isC2) {
+      alerts.push({
+        id: this.generateId(),
+        tenantId: query.tenantId,
+        type: 'c2',
+        severity: c2Result.confidence > 0.7 ? 'critical' : 'high',
+        domain: query.domain,
+        clientIp: query.clientIp,
+        locationId: query.locationId,
+        details: {
+          indicators: c2Result.indicators,
+          confidence: c2Result.confidence,
+        },
+        timestamp: query.timestamp,
+      });
+    }
+
+    // Check for data exfiltration
+    const exfilResult = this.detectExfiltration(query.domain, query.queryType);
+    if (exfilResult.isExfiltration) {
+      alerts.push({
+        id: this.generateId(),
+        tenantId: query.tenantId,
+        type: 'exfiltration',
+        severity: 'critical',
+        domain: query.domain,
+        clientIp: query.clientIp,
+        locationId: query.locationId,
+        details: {
+          indicators: exfilResult.indicators,
+          dataSize: exfilResult.estimatedDataSize,
         },
         timestamp: query.timestamp,
       });
@@ -200,5 +255,133 @@ export class ThreatDetectionService {
 
   private generateId(): string {
     return `threat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  private detectC2(domain: string, clientIp: string, timestamp: Date): {
+    isC2: boolean;
+    indicators: string[];
+    confidence: number;
+  } {
+    const indicators: string[] = [];
+    let confidence = 0;
+
+    // Track query history for this client
+    const clientKey = clientIp;
+    const now = timestamp.getTime();
+
+    if (!this.clientQueryHistory.has(clientKey)) {
+      this.clientQueryHistory.set(clientKey, { timestamps: [], domains: new Set() });
+    }
+
+    const history = this.clientQueryHistory.get(clientKey)!;
+    history.timestamps.push(now);
+    history.domains.add(domain);
+
+    // Clean up old entries (keep last hour)
+    const oneHourAgo = now - 3600000;
+    history.timestamps = history.timestamps.filter(t => t > oneHourAgo);
+
+    // Check for suspicious TLD
+    const lowFreqTLD = this.c2Indicators.lowFrequencyTLDs.find(tld => domain.endsWith(tld));
+    if (lowFreqTLD) {
+      indicators.push(`Suspicious TLD: ${lowFreqTLD}`);
+      confidence += 0.3;
+    }
+
+    // Check for beaconing behavior (regular intervals)
+    if (history.timestamps.length >= 5) {
+      const intervals: number[] = [];
+      for (let i = 1; i < history.timestamps.length; i++) {
+        intervals.push((history.timestamps[i] - history.timestamps[i - 1]) / 1000);
+      }
+
+      // Check if intervals are consistent (potential beaconing)
+      const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+      const variance = intervals.reduce((sum, i) => sum + Math.pow(i - avgInterval, 2), 0) / intervals.length;
+      const stdDev = Math.sqrt(variance);
+
+      // If standard deviation is low relative to average, it's regular
+      if (stdDev < avgInterval * 0.2 && avgInterval > 30) {
+        indicators.push(`Regular beacon interval: ~${Math.round(avgInterval)}s`);
+        confidence += 0.4;
+      }
+    }
+
+    // Check for DGA-like domain with suspicious TLD combination
+    const parts = domain.split('.');
+    const subdomain = parts.length > 2 ? parts.slice(0, -2).join('.') : parts[0];
+    const entropy = this.calculateEntropy(subdomain);
+
+    if (entropy > 3.5 && lowFreqTLD) {
+      indicators.push('High entropy domain with suspicious TLD');
+      confidence += 0.3;
+    }
+
+    return {
+      isC2: confidence >= 0.5,
+      indicators,
+      confidence,
+    };
+  }
+
+  private detectExfiltration(domain: string, queryType: string): {
+    isExfiltration: boolean;
+    indicators: string[];
+    estimatedDataSize: number;
+  } {
+    const indicators: string[] = [];
+    const parts = domain.split('.');
+    const subdomain = parts.length > 2 ? parts.slice(0, -2).join('.') : parts[0];
+    const subdomainNoDelim = subdomain.replace(/[-_.]/g, '');
+
+    let estimatedDataSize = 0;
+
+    // Check for large data in subdomain
+    if (subdomainNoDelim.length > this.exfiltrationIndicators.minDataLength) {
+      indicators.push(`Large subdomain data: ${subdomainNoDelim.length} chars`);
+      estimatedDataSize = subdomainNoDelim.length;
+    }
+
+    // Check for hex encoding (common for binary data)
+    if (this.exfiltrationIndicators.hexEncodingPattern.test(subdomainNoDelim) && subdomainNoDelim.length > 50) {
+      indicators.push('Hex-encoded data detected');
+      estimatedDataSize = Math.floor(subdomainNoDelim.length / 2); // Hex is 2 chars per byte
+    }
+
+    // Check for base64 encoding
+    if (/^[A-Za-z0-9+/]+=*$/.test(subdomainNoDelim) && subdomainNoDelim.length > 50) {
+      indicators.push('Base64-encoded data detected');
+      estimatedDataSize = Math.floor(subdomainNoDelim.length * 0.75); // Base64 ratio
+    }
+
+    // Check for suspicious query type for data transfer
+    if (this.exfiltrationIndicators.suspiciousQueryTypes.includes(queryType)) {
+      indicators.push(`Suspicious query type for exfiltration: ${queryType}`);
+    }
+
+    // Multiple long subdomains (chunked data)
+    const longParts = parts.filter(p => p.length > 40);
+    if (longParts.length >= 2) {
+      indicators.push('Multiple long labels (chunked exfiltration)');
+    }
+
+    return {
+      isExfiltration: indicators.length >= 2,
+      indicators,
+      estimatedDataSize,
+    };
+  }
+
+  // Clean up old client history periodically
+  cleanupHistory() {
+    const now = Date.now();
+    const oneHourAgo = now - 3600000;
+
+    for (const [key, history] of this.clientQueryHistory.entries()) {
+      history.timestamps = history.timestamps.filter(t => t > oneHourAgo);
+      if (history.timestamps.length === 0) {
+        this.clientQueryHistory.delete(key);
+      }
+    }
   }
 }

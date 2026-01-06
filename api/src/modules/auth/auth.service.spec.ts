@@ -13,6 +13,8 @@ import { UnauthorizedException, BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { User } from '../users/entities/user.entity';
+import { Tenant } from '../tenants/entities/tenant.entity';
+import { PartnerUser } from '../partners/entities/partner-user.entity';
 import { MfaService } from '../mfa/mfa.service';
 import { LoginResponseDto, MfaRequiredResponseDto } from './dto/login.dto';
 
@@ -37,6 +39,14 @@ describe('AuthService', () => {
   const mockUserRepository = {
     findOne: jest.fn(),
     update: jest.fn(),
+  };
+
+  const mockTenantRepository = {
+    findOne: jest.fn(),
+  };
+
+  const mockPartnerUserRepository = {
+    findOne: jest.fn(),
   };
 
   const mockJwtService = {
@@ -66,6 +76,14 @@ describe('AuthService', () => {
         {
           provide: getRepositoryToken(User),
           useValue: mockUserRepository,
+        },
+        {
+          provide: getRepositoryToken(Tenant),
+          useValue: mockTenantRepository,
+        },
+        {
+          provide: getRepositoryToken(PartnerUser),
+          useValue: mockPartnerUserRepository,
         },
         {
           provide: JwtService,

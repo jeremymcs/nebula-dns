@@ -16,6 +16,7 @@ import (
 
 	"github.com/nebuladns/policy-svc/internal/cache"
 	"github.com/nebuladns/policy-svc/internal/clickhouse"
+	"github.com/nebuladns/policy-svc/internal/metrics"
 	"github.com/nebuladns/policy-svc/internal/models"
 	"github.com/nebuladns/policy-svc/internal/policy"
 )
@@ -25,15 +26,17 @@ type Handlers struct {
 	policySvc  *policy.Service
 	cache      *cache.PolicyCache
 	clickhouse *clickhouse.Client
+	metrics    *metrics.Metrics
 	logger     *zap.Logger
 }
 
 // NewHandlers creates a new handlers instance
-func NewHandlers(policySvc *policy.Service, policyCache *cache.PolicyCache, ch *clickhouse.Client, logger *zap.Logger) *Handlers {
+func NewHandlers(policySvc *policy.Service, policyCache *cache.PolicyCache, ch *clickhouse.Client, m *metrics.Metrics, logger *zap.Logger) *Handlers {
 	return &Handlers{
 		policySvc:  policySvc,
 		cache:      policyCache,
 		clickhouse: ch,
+		metrics:    m,
 		logger:     logger,
 	}
 }
@@ -187,25 +190,16 @@ func hashToken(token string) string {
 
 // Metrics handles Prometheus metrics requests
 func (h *Handlers) Metrics(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
-
-	// Basic metrics in Prometheus format
-	lines := []string{
-		"# HELP policy_svc_up Whether the policy service is up",
-		"# TYPE policy_svc_up gauge",
-		"policy_svc_up 1",
-		"",
-		"# HELP policy_svc_evaluations_total Total policy evaluations",
-		"# TYPE policy_svc_evaluations_total counter",
-		"policy_svc_evaluations_total 0",
-		"",
-		"# HELP policy_svc_cache_hits_total Total cache hits",
-		"# TYPE policy_svc_cache_hits_total counter",
-		"policy_svc_cache_hits_total 0",
-		"",
+	// Update gauge metrics before serving
+	if h.metrics != nil {
+		if h.cache != nil {
+			h.metrics.SetPolicyCacheSize(h.cache.GetPolicyCacheSize())
+		}
+		if h.clickhouse != nil {
+			h.metrics.SetClickHouseQueueSize(h.clickhouse.GetQueueSize())
+		}
 	}
 
-	for _, line := range lines {
-		w.Write([]byte(line + "\n"))
-	}
+	// Use the actual Prometheus handler
+	metrics.Handler().ServeHTTP(w, r)
 }

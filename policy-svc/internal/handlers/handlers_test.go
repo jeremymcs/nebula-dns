@@ -20,7 +20,7 @@ import (
 
 func TestHandlers_Health(t *testing.T) {
 	logger := zap.NewNop()
-	handlers := NewHandlers(nil, nil, logger)
+	handlers := NewHandlers(nil, nil, nil, nil, logger)
 
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	w := httptest.NewRecorder()
@@ -49,7 +49,7 @@ func TestHandlers_Health(t *testing.T) {
 
 func TestHandlers_Evaluate_InvalidJSON(t *testing.T) {
 	logger := zap.NewNop()
-	handlers := NewHandlers(nil, nil, logger)
+	handlers := NewHandlers(nil, nil, nil, nil, logger)
 
 	req := httptest.NewRequest(http.MethodPost, "/evaluate", bytes.NewReader([]byte("invalid json")))
 	req.Header.Set("Content-Type", "application/json")
@@ -64,7 +64,7 @@ func TestHandlers_Evaluate_InvalidJSON(t *testing.T) {
 
 func TestHandlers_Evaluate_MissingFields(t *testing.T) {
 	logger := zap.NewNop()
-	handlers := NewHandlers(nil, nil, logger)
+	handlers := NewHandlers(nil, nil, nil, nil, logger)
 
 	testCases := []struct {
 		name    string
@@ -114,7 +114,7 @@ func TestHandlers_Evaluate_MissingFields(t *testing.T) {
 
 func TestHandlers_ValidateToken_EmptyToken(t *testing.T) {
 	logger := zap.NewNop()
-	handlers := NewHandlers(nil, nil, logger)
+	handlers := NewHandlers(nil, nil, nil, nil, logger)
 
 	reqBody := models.ValidateTokenRequest{
 		Token: "",
@@ -134,7 +134,7 @@ func TestHandlers_ValidateToken_EmptyToken(t *testing.T) {
 
 func TestHandlers_LogQuery_AcceptsEntry(t *testing.T) {
 	logger := zap.NewNop()
-	handlers := NewHandlers(nil, nil, logger)
+	handlers := NewHandlers(nil, nil, nil, nil, logger)
 
 	entry := models.QueryLogEntry{
 		TenantID:   "tenant-123",
@@ -160,7 +160,7 @@ func TestHandlers_LogQuery_AcceptsEntry(t *testing.T) {
 
 func TestHandlers_LogQuery_InvalidJSON(t *testing.T) {
 	logger := zap.NewNop()
-	handlers := NewHandlers(nil, nil, logger)
+	handlers := NewHandlers(nil, nil, nil, nil, logger)
 
 	req := httptest.NewRequest(http.MethodPost, "/log", bytes.NewReader([]byte("invalid")))
 	req.Header.Set("Content-Type", "application/json")

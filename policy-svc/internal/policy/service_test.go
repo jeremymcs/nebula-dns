@@ -20,7 +20,7 @@ import (
 
 func TestFailSafeResponse_Open(t *testing.T) {
 	logger := zap.NewNop()
-	svc := NewService(nil, logger, false) // failClosed = false
+	svc := NewService(nil, logger, nil, false) // failClosed = false
 
 	result := svc.failSafeResponse()
 
@@ -34,7 +34,7 @@ func TestFailSafeResponse_Open(t *testing.T) {
 
 func TestFailSafeResponse_Closed(t *testing.T) {
 	logger := zap.NewNop()
-	svc := NewService(nil, logger, true) // failClosed = true
+	svc := NewService(nil, logger, nil, true) // failClosed = true
 
 	result := svc.failSafeResponse()
 
@@ -51,7 +51,7 @@ func TestFailSafeResponse_Closed(t *testing.T) {
 
 func TestIsThreatFeedEnabled(t *testing.T) {
 	logger := zap.NewNop()
-	svc := NewService(nil, logger, false)
+	svc := NewService(nil, logger, nil, false)
 
 	tests := []struct {
 		name       string
@@ -80,7 +80,7 @@ func TestIsThreatFeedEnabled(t *testing.T) {
 
 func TestIsScheduleActive_ValidSchedule(t *testing.T) {
 	logger := zap.NewNop()
-	svc := NewService(nil, logger, false)
+	svc := NewService(nil, logger, nil, false)
 
 	// Create a schedule that is always active today
 	now := time.Now().UTC()
@@ -102,7 +102,7 @@ func TestIsScheduleActive_ValidSchedule(t *testing.T) {
 
 func TestIsScheduleActive_DifferentDay(t *testing.T) {
 	logger := zap.NewNop()
-	svc := NewService(nil, logger, false)
+	svc := NewService(nil, logger, nil, false)
 
 	// Create a schedule for a different day
 	now := time.Now().UTC()
@@ -126,7 +126,7 @@ func TestIsScheduleActive_DifferentDay(t *testing.T) {
 
 func TestIsScheduleActive_OutsideTimeRange(t *testing.T) {
 	logger := zap.NewNop()
-	svc := NewService(nil, logger, false)
+	svc := NewService(nil, logger, nil, false)
 
 	now := time.Now().UTC()
 	dayShort := strings.ToLower(now.Weekday().String()[:3])
@@ -152,7 +152,7 @@ func TestIsScheduleActive_OutsideTimeRange(t *testing.T) {
 
 func TestIsScheduleActive_InvalidTimezone(t *testing.T) {
 	logger := zap.NewNop()
-	svc := NewService(nil, logger, false)
+	svc := NewService(nil, logger, nil, false)
 
 	now := time.Now().UTC()
 	dayShort := strings.ToLower(now.Weekday().String()[:3])
@@ -173,7 +173,7 @@ func TestIsScheduleActive_InvalidTimezone(t *testing.T) {
 
 func TestGetActiveBlockedCategories_BaseOnly(t *testing.T) {
 	logger := zap.NewNop()
-	svc := NewService(nil, logger, false)
+	svc := NewService(nil, logger, nil, false)
 
 	policy := &models.CompiledPolicy{
 		BlockedCategories: map[string]bool{
@@ -202,7 +202,7 @@ func TestGetActiveBlockedCategories_BaseOnly(t *testing.T) {
 
 func TestGetActiveBlockedCategories_WithSchedule(t *testing.T) {
 	logger := zap.NewNop()
-	svc := NewService(nil, logger, false)
+	svc := NewService(nil, logger, nil, false)
 
 	now := time.Now().UTC()
 	dayShort := strings.ToLower(now.Weekday().String()[:3])

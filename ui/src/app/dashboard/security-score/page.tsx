@@ -7,6 +7,7 @@
 
 'use client'
 
+import { useRouter } from 'next/navigation'
 import {
   SecurityScore,
   Achievements,
@@ -15,11 +16,29 @@ import {
 import { useSecurityScore } from '@/hooks/useApi'
 import { ShieldCheckIcon, ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
+// Map factor IDs to navigation routes and actions
+const FACTOR_ACTIONS: Record<string, { route: string; tab?: string }> = {
+  'mfa': { route: '/dashboard/settings/security', tab: 'mfa' },
+  'threat-blocking': { route: '/dashboard/policies', tab: 'threats' },
+  'policy-coverage': { route: '/dashboard/locations' },
+  'nrd-blocking': { route: '/dashboard/policies', tab: 'nrd' },
+  'backup-zones': { route: '/dashboard/locations' },
+  'logging': { route: '/dashboard/settings/security', tab: 'logging' },
+  'alerts': { route: '/dashboard/settings/integrations', tab: 'webhooks' },
+  'safesearch': { route: '/dashboard/policies', tab: 'safesearch' },
+  'api-security': { route: '/dashboard/settings/api-keys' },
+}
+
 export default function SecurityScorePage() {
+  const router = useRouter()
   const { data: securityScoreData, error, isLoading, mutate } = useSecurityScore()
 
-  const handleActionClick = (_actionId: string) => {
-    // TODO: Implement security action handlers
+  const handleActionClick = (factorId: string) => {
+    const action = FACTOR_ACTIONS[factorId]
+    if (action) {
+      const url = action.tab ? `${action.route}?tab=${action.tab}` : action.route
+      router.push(url)
+    }
   }
 
   // Loading state

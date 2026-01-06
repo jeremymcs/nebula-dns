@@ -141,6 +141,16 @@ export class LocationsService {
       });
     }
 
+    // Auto-compile policy for the new location if it has one assigned
+    if (location.policyId) {
+      try {
+        await this.policyCompilerService.compile(tenantId, location.policyId, location.id);
+        this.logger.log(`Auto-compiled policy ${location.policyId} for new location ${location.id}`);
+      } catch (error) {
+        this.logger.warn(`Failed to auto-compile policy for new location: ${error.message}`);
+      }
+    }
+
     return location;
   }
 
@@ -171,6 +181,11 @@ export class LocationsService {
       }
     }
 
+    // Track if policyId is being changed
+    const oldPolicyId = location.policyId;
+    const newPolicyId = updateDto.policyId;
+    const policyChanged = newPolicyId !== undefined && newPolicyId !== oldPolicyId;
+
     Object.assign(location, updateDto);
     await this.locationRepository.save(location);
 
@@ -185,6 +200,17 @@ export class LocationsService {
     } else {
       // Remove IP range mapping if ipRange was cleared
       await this.redisService.deleteIPRange(location.id);
+    }
+
+    // Auto-compile policy if policyId was changed
+    if (policyChanged && location.policyId) {
+      try {
+        await this.policyCompilerService.compile(tenantId, location.policyId, id);
+        await this.redisService.invalidatePolicy(id);
+        this.logger.log(`Auto-compiled policy ${location.policyId} for location ${id}`);
+      } catch (error) {
+        this.logger.warn(`Failed to auto-compile policy for location: ${error.message}`);
+      }
     }
 
     this.logger.log(`Location ${id} updated in tenant ${tenantId}`);
