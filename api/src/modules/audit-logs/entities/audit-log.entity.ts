@@ -1,6 +1,6 @@
 import { Entity, Column, ManyToOne, JoinColumn, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
-import { Tenant } from '../../modules/tenants/entities/tenant.entity';
-import { User } from '../../modules/users/entities/user.entity';
+import { Tenant } from '../../tenants/entities/tenant.entity';
+import { User } from '../../users/entities/user.entity';
 
 export type AuditAction =
   | 'create' | 'update' | 'delete'

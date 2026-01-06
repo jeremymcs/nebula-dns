@@ -12,6 +12,7 @@ import {
 import { Partner } from '../partners/entities/partner.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
 import { ClickHouseModule } from '../clickhouse/clickhouse.module';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ClickHouseModule } from '../clickhouse/clickhouse.module';
       Tenant,
     ]),
     ClickHouseModule,
+    EmailModule,
   ],
   controllers: [MspBillingController],
   providers: [MspBillingService],

@@ -61,12 +61,14 @@ export class EmailService implements OnModuleInit {
   private readonly logger = new Logger(EmailService.name);
   private readonly fromEmail: string;
   private readonly fromName: string;
+  private readonly docsUrl: string;
   private readonly sendgridApiKey: string;
   private isConfigured = false;
 
   constructor(private configService: ConfigService) {
-    this.fromEmail = this.configService.get('EMAIL_FROM_ADDRESS', 'noreply@nebuladns.example.com');
+    this.fromEmail = this.configService.get('EMAIL_FROM_ADDRESS', 'noreply@nebuladns.com');
     this.fromName = this.configService.get('EMAIL_FROM_NAME', 'Nebula DNS');
+    this.docsUrl = this.configService.get('DOCS_URL', 'https://docs.nebuladns.com');
     this.sendgridApiKey = this.configService.get('SENDGRID_API_KEY', '');
   }
 
@@ -160,7 +162,7 @@ export class EmailService implements OnModuleInit {
     
     <div style="background: #eff6ff; border-radius: 8px; padding: 15px; margin: 20px 0;">
       <p style="margin: 0; font-size: 14px; color: #1e40af;">
-        <strong>Need help?</strong> Our documentation is available at docs.nebuladns.example.com 
+        <strong>Need help?</strong> Our documentation is available at <a href="${this.docsUrl}" style="color: #1e40af;">${this.docsUrl}</a>
         or contact our support team for assistance.
       </p>
     </div>
@@ -189,7 +191,7 @@ Getting Started:
 
 Access your dashboard: ${data.loginUrl}
 
-Need help? Our documentation is available at docs.nebuladns.example.com
+Need help? Our documentation is available at ${this.docsUrl}
 
 This email was sent by Nebula DNS.
 If you didn't sign up for this account, please ignore this email.

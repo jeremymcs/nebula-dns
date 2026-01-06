@@ -2,10 +2,10 @@ import { Controller, Get, Post, Query, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { AuditLogsService } from './audit-logs.service';
 import { QueryAuditLogsDto, ExportAuditLogsDto } from './dto/audit-log.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { CurrentTenant } from '../common/decorators/current-tenant.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '@/common/guards/roles.guard';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { CurrentTenant } from '@/common/decorators/tenant.decorator';
 
 @Controller('audit-logs')
 @UseGuards(JwtAuthGuard, RolesGuard)

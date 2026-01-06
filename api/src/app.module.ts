@@ -40,7 +40,7 @@ import { MspModule } from './modules/msp/msp.module';
 import { MspBillingModule } from './modules/msp-billing/msp-billing.module';
 
 // Audit Logging
-import { AuditLogsModule } from './audit-logs/audit-logs.module';
+import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 
 // Security Automation
 import { PlaybooksModule } from './modules/playbooks/playbooks.module';

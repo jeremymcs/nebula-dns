@@ -6,7 +6,7 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { Partner } from './entities/partner.entity';
 import { PartnerUser } from './entities/partner-user.entity';
-import { Tenant } from '../../tenants/entities/tenant.entity';
+import { Tenant } from '../tenants/entities/tenant.entity';
 import {
   CreatePartnerDto,
   UpdatePartnerDto,
