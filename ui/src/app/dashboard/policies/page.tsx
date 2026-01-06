@@ -7,7 +7,8 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { usePolicies } from '@/hooks/useApi'
 import { api } from '@/lib/api'
 import { useToast } from '@/components/Toast'
@@ -265,6 +266,7 @@ const THREAT_FEEDS = [
 ]
 
 export default function PoliciesPage() {
+  const searchParams = useSearchParams()
   const { data, isLoading, error, mutate } = usePolicies()
   const { showToast } = useToast()
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -315,6 +317,38 @@ export default function PoliciesPage() {
       isDefault: false,
     })
   }
+
+  // Check for template data from URL params
+  useEffect(() => {
+    const action = searchParams.get('action')
+    const fromTemplate = searchParams.get('fromTemplate')
+
+    if (action === 'new') {
+      // Check if coming from template selection
+      if (fromTemplate === 'true') {
+        try {
+          const templateData = sessionStorage.getItem('policyTemplate')
+          if (templateData) {
+            const template = JSON.parse(templateData)
+            setForm(prev => ({
+              ...prev,
+              name: template.name || '',
+              description: template.description || '',
+              blockCategories: template.config?.blockCategories || [],
+              warnCategories: template.config?.warnCategories || [],
+              threatBlocking: template.config?.threatBlocking || { enabled: true, feeds: ['malware', 'phishing', 'c2'] },
+              safesearch: template.config?.safesearch || { enabled: false, services: [], settings: { ...DEFAULT_SAFESEARCH_SETTINGS } },
+            }))
+            sessionStorage.removeItem('policyTemplate')
+            showToast('success', 'Template loaded! Customize and save your policy.')
+          }
+        } catch (e) {
+          console.error('Failed to parse template data:', e)
+        }
+      }
+      setShowCreateModal(true)
+    }
+  }, [searchParams, showToast])
 
   const applyPreset = (presetName: string) => {
     const preset = POLICY_PRESETS[presetName as keyof typeof POLICY_PRESETS]

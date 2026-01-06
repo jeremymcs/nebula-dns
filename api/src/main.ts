@@ -9,6 +9,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -25,6 +26,9 @@ async function bootstrap() {
       },
     }),
   );
+
+  // Global exception filter for standardized error responses
+  app.useGlobalFilters(new GlobalExceptionFilter());
 
   // CORS configuration - Using non-standard ports
   const corsOrigins = process.env.CORS_ORIGINS?.split(',') || [

@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/nebuladns/policy-svc/internal/cache"
+	"github.com/nebuladns/policy-svc/internal/metrics"
 	"github.com/nebuladns/policy-svc/internal/models"
 )
 
@@ -27,14 +28,16 @@ const (
 type Service struct {
 	cache      *cache.PolicyCache
 	logger     *zap.Logger
+	metrics    *metrics.Metrics
 	failClosed bool
 }
 
 // NewService creates a new policy service
-func NewService(cache *cache.PolicyCache, logger *zap.Logger, failClosed bool) *Service {
+func NewService(cache *cache.PolicyCache, logger *zap.Logger, m *metrics.Metrics, failClosed bool) *Service {
 	return &Service{
 		cache:      cache,
 		logger:     logger,
+		metrics:    m,
 		failClosed: failClosed,
 	}
 }
@@ -61,11 +64,18 @@ func (s *Service) Evaluate(ctx context.Context, req *models.EvaluateRequest) *mo
 	// Evaluate the domain against the policy
 	result := s.evaluateDomain(ctx, policy, domain, req.QType)
 
+	duration := time.Since(start)
+
+	// Record metrics
+	if s.metrics != nil {
+		s.metrics.RecordEvaluation(result.Decision, result.Reason, duration)
+	}
+
 	s.logger.Debug("Policy evaluation complete",
 		zap.String("domain", domain),
 		zap.String("decision", result.Decision),
 		zap.String("reason", result.Reason),
-		zap.Duration("latency", time.Since(start)),
+		zap.Duration("latency", duration),
 	)
 
 	return result

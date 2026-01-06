@@ -62,11 +62,12 @@ const QUICK_ACTIONS: QuickAction[] = [
 
 interface QuickActionsProps {
   className?: string
+  onAction?: (actionId: string) => void
 }
 
-export function QuickActions({ className }: QuickActionsProps) {
-  const handleAction = (_actionId: string) => {
-    // TODO: Implement quick action handlers
+export function QuickActions({ className, onAction }: QuickActionsProps) {
+  const handleAction = (actionId: string) => {
+    onAction?.(actionId)
   }
 
   return (

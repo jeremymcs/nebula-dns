@@ -258,6 +258,15 @@ npm run test:e2e      # E2E tests
 npm run test:cov      # Coverage report
 ```
 
+### UI Tests
+
+```bash
+cd ui
+npm run test:e2e           # Run Playwright E2E tests
+npm run test:e2e:ui        # Run with interactive UI
+npm run test:e2e:headed    # Run in headed browser mode
+```
+
 ### Policy Service Tests
 
 ```bash

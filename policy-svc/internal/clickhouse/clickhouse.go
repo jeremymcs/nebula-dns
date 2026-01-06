@@ -327,3 +327,10 @@ func (c *Client) Close() {
 	c.flushTimer.Stop()
 	close(c.done)
 }
+
+// GetQueueSize returns the current number of entries in the buffer
+func (c *Client) GetQueueSize() int {
+	c.bufferMu.Lock()
+	defer c.bufferMu.Unlock()
+	return len(c.buffer)
+}

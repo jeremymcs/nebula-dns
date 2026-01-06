@@ -8,6 +8,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   TemplateBrowser,
   TemplateDetail,
@@ -17,6 +18,7 @@ import { usePolicyTemplates } from '@/hooks/useApi'
 import { RectangleStackIcon, ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
 export default function TemplatesPage() {
+  const router = useRouter()
   const { data: templatesData, error, isLoading, mutate } = usePolicyTemplates()
   const templates: PolicyTemplate[] = templatesData?.data || []
   const [selectedTemplate, setSelectedTemplate] = useState<PolicyTemplate | null>(null)
@@ -25,9 +27,17 @@ export default function TemplatesPage() {
     setSelectedTemplate(template)
   }
 
-  const handleUseTemplate = (_template: PolicyTemplate) => {
-    // TODO: Navigate to policy creation with template pre-filled
+  const handleUseTemplate = (template: PolicyTemplate) => {
+    // Store template in sessionStorage for the policies page to read
+    sessionStorage.setItem('policyTemplate', JSON.stringify({
+      name: `${template.name} Policy`,
+      description: template.description,
+      config: template.config,
+      templateId: template.id,
+    }))
     setSelectedTemplate(null)
+    // Navigate to policy creation with template flag
+    router.push('/dashboard/policies?action=new&fromTemplate=true')
   }
 
   // Loading state

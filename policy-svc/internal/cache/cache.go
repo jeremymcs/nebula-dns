@@ -15,13 +15,15 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 
+	"github.com/nebuladns/policy-svc/internal/metrics"
 	"github.com/nebuladns/policy-svc/internal/models"
 )
 
 // PolicyCache manages in-memory and Redis-backed policy caching
 type PolicyCache struct {
-	redis  *redis.Client
-	logger *zap.Logger
+	redis   *redis.Client
+	logger  *zap.Logger
+	metrics *metrics.Metrics
 
 	// In-memory caches
 	policies   map[string]*models.CompiledPolicy // key: locationId
@@ -57,10 +59,11 @@ type IPRangeEntry struct {
 }
 
 // NewPolicyCache creates a new policy cache
-func NewPolicyCache(redisClient *redis.Client, logger *zap.Logger) *PolicyCache {
+func NewPolicyCache(redisClient *redis.Client, logger *zap.Logger, m *metrics.Metrics) *PolicyCache {
 	return &PolicyCache{
 		redis:         redisClient,
 		logger:        logger,
+		metrics:       m,
 		policies:      make(map[string]*models.CompiledPolicy),
 		tokens:        make(map[string]*TokenInfo),
 		ipRanges:      make([]IPRangeEntry, 0),
@@ -77,10 +80,17 @@ func (c *PolicyCache) GetPolicy(ctx context.Context, locationID string) (*models
 	c.policiesMu.RUnlock()
 
 	if exists && time.Since(policy.UpdatedAt) < 60*time.Second {
+		if c.metrics != nil {
+			c.metrics.RecordCacheHit()
+		}
 		return policy, nil
 	}
 
-	// Fallback to Redis
+	// Cache miss - fallback to Redis
+	if c.metrics != nil {
+		c.metrics.RecordCacheMiss()
+	}
+
 	key := "policy:" + locationID
 	data, err := c.redis.Get(ctx, key).Bytes()
 	if err != nil {
@@ -326,6 +336,13 @@ func (c *PolicyCache) LookupByIP(clientIP string) (*models.LookupIPResponse, err
 	}
 
 	return &models.LookupIPResponse{Found: false}, nil
+}
+
+// GetPolicyCacheSize returns the number of cached policies
+func (c *PolicyCache) GetPolicyCacheSize() int {
+	c.policiesMu.RLock()
+	defer c.policiesMu.RUnlock()
+	return len(c.policies)
 }
 
 // LoadIPRanges loads all IP range mappings from Redis

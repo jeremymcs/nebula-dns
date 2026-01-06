@@ -14,6 +14,17 @@ import { PoliciesService } from '../policies/policies.service';
 import { ThreatDetectionService } from '../threat-detection/threat-detection.service';
 import { ClickHouseService } from '../clickhouse/clickhouse.service';
 
+// Policy evaluation response from policy-svc
+interface PolicyEvaluateResponse {
+  decision: 'ALLOW' | 'BLOCK' | 'REWRITE';
+  reason: string;
+  category?: string;
+  block_type?: string;
+  rewrite_type?: string;
+  rewrite_target?: string;
+  ttl: number;
+}
+
 const resolve4 = promisify(dns.resolve4);
 const resolve6 = promisify(dns.resolve6);
 const resolveMx = promisify(dns.resolveMx);
@@ -45,6 +56,7 @@ interface DnsQuestion {
 export class DoHService {
   private readonly logger = new Logger(DoHService.name);
   private readonly upstreamDns: string[];
+  private readonly policySvcUrl: string;
 
   // DNS record types
   private static readonly TYPE_A = 1;
@@ -68,6 +80,7 @@ export class DoHService {
     private clickhouse: ClickHouseService,
   ) {
     this.upstreamDns = this.configService.get('UPSTREAM_DNS', '1.1.1.1,8.8.8.8').split(',');
+    this.policySvcUrl = this.configService.get('POLICY_SVC_URL', 'http://localhost:4080');
   }
 
   /**
@@ -116,12 +129,14 @@ export class DoHService {
     let action = 'allow';
     let reason = 'default';
     let category: string | null = null;
+    let rewriteTarget: string | undefined;
 
     if (auth.tenantId && auth.locationId) {
-      const policy = await this.evaluatePolicy(auth.tenantId, auth.locationId, domain);
+      const policy = await this.evaluatePolicy(auth.tenantId, auth.locationId, domain, qtype);
       action = policy.action;
       reason = policy.reason;
       category = policy.category;
+      rewriteTarget = policy.rewriteTarget;
     }
 
     // Log to ClickHouse
@@ -130,6 +145,18 @@ export class DoHService {
     // Handle blocked domains
     if (action === 'block') {
       return this.buildNxdomainResponse(dnsWire, header.id);
+    }
+
+    // Handle rewrite (SafeSearch, etc.)
+    if (action === 'rewrite' && rewriteTarget) {
+      // Resolve the rewrite target instead of the original domain
+      try {
+        const response = await this.resolveDomain(rewriteTarget, qtype, header.id, dnsWire);
+        return response;
+      } catch (error) {
+        this.logger.error(`Resolution failed for rewrite target ${rewriteTarget}:`, error);
+        return this.buildNxdomainResponse(dnsWire, header.id);
+      }
     }
 
     // Resolve the domain
@@ -146,10 +173,42 @@ export class DoHService {
     tenantId: string,
     locationId: string,
     domain: string,
-  ): Promise<{ action: string; reason: string; category: string | null }> {
-    // TODO: Integrate with compiled policy from Redis
-    // For now, return allow
-    return { action: 'allow', reason: 'default', category: null };
+    qtype: number = 1,
+  ): Promise<{ action: string; reason: string; category: string | null; rewriteTarget?: string }> {
+    try {
+      const response = await fetch(`${this.policySvcUrl}/evaluate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tenant_id: tenantId,
+          location_id: locationId,
+          qname: domain,
+          qtype: qtype,
+        }),
+      });
+
+      if (!response.ok) {
+        this.logger.warn(`Policy-svc returned ${response.status} for ${domain}`);
+        return { action: 'allow', reason: 'policy_error', category: null };
+      }
+
+      const result: PolicyEvaluateResponse = await response.json();
+
+      // Map policy-svc decision to action
+      const action = result.decision === 'BLOCK' ? 'block' :
+                     result.decision === 'REWRITE' ? 'rewrite' : 'allow';
+
+      return {
+        action,
+        reason: result.reason,
+        category: result.category || null,
+        rewriteTarget: result.rewrite_target,
+      };
+    } catch (error) {
+      this.logger.error(`Failed to evaluate policy for ${domain}:`, error);
+      // Fail open - allow on error
+      return { action: 'allow', reason: 'policy_error', category: null };
+    }
   }
 
   private async logQuery(

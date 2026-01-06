@@ -537,7 +537,7 @@ export default function OnboardingPage() {
                     </div>
                   </div>
                   <Badge
-                    variant={item.status === 'success' ? 'success' : item.status === 'error' ? 'warning' : 'default'}
+                    variant={item.status === 'success' ? 'success' : item.status === 'error' ? 'warning' : 'neutral'}
                     size="sm"
                   >
                     {item.status === 'pending' ? 'Checking...' : item.status === 'success' ? item.successLabel : 'Check Failed'}

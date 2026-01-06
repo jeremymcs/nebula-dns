@@ -21,6 +21,7 @@ import (
 	"github.com/nebuladns/policy-svc/internal/cache"
 	"github.com/nebuladns/policy-svc/internal/clickhouse"
 	"github.com/nebuladns/policy-svc/internal/handlers"
+	"github.com/nebuladns/policy-svc/internal/metrics"
 	"github.com/nebuladns/policy-svc/internal/policy"
 )
 
@@ -76,8 +77,12 @@ func main() {
 		sugar.Info("Connected to Redis")
 	}
 
+	// Initialize Prometheus metrics
+	m := metrics.NewMetrics()
+	sugar.Info("Prometheus metrics initialized")
+
 	// Initialize cache
-	policyCache := cache.NewPolicyCache(redisClient, logger)
+	policyCache := cache.NewPolicyCache(redisClient, logger, m)
 
 	// Initialize ClickHouse client
 	chClient := clickhouse.NewClient(clickhouseURL, clickhouseDB, clickhouseUser, clickhousePassword, logger)
@@ -85,10 +90,10 @@ func main() {
 	sugar.Infow("ClickHouse client initialized", "url", clickhouseURL, "database", clickhouseDB)
 
 	// Initialize policy service
-	policySvc := policy.NewService(policyCache, logger, failMode == "closed")
+	policySvc := policy.NewService(policyCache, logger, m, failMode == "closed")
 
 	// Initialize handlers
-	h := handlers.NewHandlers(policySvc, policyCache, chClient, logger)
+	h := handlers.NewHandlers(policySvc, policyCache, chClient, m, logger)
 
 	// Setup router
 	r := chi.NewRouter()

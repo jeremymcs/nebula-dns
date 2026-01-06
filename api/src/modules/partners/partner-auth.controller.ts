@@ -5,17 +5,26 @@ import {
   UnauthorizedException,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { PartnersService } from './partners.service';
 import { PartnerLoginDto } from './dto/partner.dto';
+import { EmailService } from '../email/email.service';
 
 @Controller('partner-auth')
 export class PartnerAuthController {
+  private readonly partnerPortalUrl: string;
+
   constructor(
     private readonly partnersService: PartnersService,
     private readonly jwtService: JwtService,
-  ) {}
+    private readonly emailService: EmailService,
+    private readonly configService: ConfigService,
+  ) {
+    this.partnerPortalUrl = this.configService.get('PARTNER_PORTAL_URL', 'http://localhost:3001');
+  }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -31,8 +40,11 @@ export class PartnerAuthController {
           message: 'MFA code required',
         };
       }
-      // TODO: Validate MFA code
-      // For now, we'll skip MFA validation
+      // Validate MFA code
+      const isValidMfa = await this.partnersService.verifyPartnerMfaCode(user.id, dto.mfaCode);
+      if (!isValidMfa) {
+        throw new UnauthorizedException('Invalid MFA code');
+      }
     }
 
     // Get partner info
@@ -110,10 +122,59 @@ export class PartnerAuthController {
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   async forgotPassword(@Body() body: { email: string }) {
-    // TODO: Implement password reset flow
-    // For now, just return success to avoid email enumeration
+    if (!body.email) {
+      throw new BadRequestException('Email is required');
+    }
+
+    // Generate password reset token
+    const result = await this.partnersService.generatePasswordResetToken(body.email);
+
+    // If user exists, send reset email
+    if (result) {
+      const resetUrl = `${this.partnerPortalUrl}/reset-password?token=${result.token}`;
+      await this.emailService.sendPasswordResetEmail({
+        to: result.user.email,
+        name: result.user.name,
+        resetUrl,
+      });
+    }
+
+    // Always return success to avoid email enumeration
     return {
       message: 'If an account with that email exists, a password reset link has been sent.',
+    };
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() body: { token: string; password: string }) {
+    if (!body.token || !body.password) {
+      throw new BadRequestException('Token and password are required');
+    }
+
+    if (body.password.length < 8) {
+      throw new BadRequestException('Password must be at least 8 characters');
+    }
+
+    await this.partnersService.resetPassword(body.token, body.password);
+
+    return {
+      message: 'Password has been reset successfully. You can now log in with your new password.',
+    };
+  }
+
+  @Post('validate-reset-token')
+  @HttpCode(HttpStatus.OK)
+  async validateResetToken(@Body() body: { token: string }) {
+    if (!body.token) {
+      throw new BadRequestException('Token is required');
+    }
+
+    const user = await this.partnersService.validatePasswordResetToken(body.token);
+
+    return {
+      valid: !!user,
+      email: user?.email ? user.email.replace(/(.{2})(.*)(@.*)/, '$1***$3') : null, // Partially mask email
     };
   }
 }

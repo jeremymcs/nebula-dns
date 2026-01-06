@@ -7,6 +7,8 @@
 
 'use client'
 
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ThreatRadar } from './ThreatRadar'
 import { NetworkStatus } from './NetworkStatus'
@@ -15,12 +17,27 @@ import { QueryStream } from './QueryStream'
 import { MissionControlHeader } from './MissionControlHeader'
 import { QuickActions } from './QuickActions'
 import { ThreatHeatmap } from './ThreatHeatmap'
-import { useThreatData, useSecurityScore } from '@/hooks/useApi'
+import { BlockDomainModal } from './BlockDomainModal'
+import { ConfirmDialog } from '@/components/ui/Modal'
+import { useThreatData, useSecurityScore, useLocations } from '@/hooks/useApi'
+import { api } from '@/lib/api'
 import { ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
 export function MissionControlDashboard() {
+  const router = useRouter()
   const { data: threatData, error: threatError, isLoading: threatLoading, mutate: mutateThreat } = useThreatData('24h')
   const { data: securityScoreData, error: scoreError, isLoading: scoreLoading, mutate: mutateScore } = useSecurityScore()
+  const { data: locationsData, mutate: mutateLocations } = useLocations()
+
+  // Modal states
+  const [isBlockDomainModalOpen, setIsBlockDomainModalOpen] = useState(false)
+  const [isPauseDialogOpen, setIsPauseDialogOpen] = useState(false)
+  const [isLockdownDialogOpen, setIsLockdownDialogOpen] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false)
+
+  // Determine if protection is currently paused (all locations inactive)
+  const locations = locationsData?.data || []
+  const isProtectionPaused = locations.length > 0 && locations.every((loc: any) => loc.status === 'inactive')
 
   const isLoading = threatLoading || scoreLoading
   const hasError = threatError || scoreError
@@ -66,19 +83,64 @@ export function MissionControlDashboard() {
   const securityScore = securityScoreData?.score || 0
 
   const handleBlockDomain = () => {
-    // TODO: Implement domain blocking modal
+    setIsBlockDomainModalOpen(true)
   }
 
   const handlePauseProtection = () => {
-    // TODO: Implement pause protection toggle
+    setIsPauseDialogOpen(true)
+  }
+
+  const handleToggleProtection = async () => {
+    if (locations.length === 0) return
+
+    setIsProcessing(true)
+    try {
+      const newStatus = isProtectionPaused ? 'active' : 'inactive'
+      // Update all locations
+      await Promise.all(
+        locations.map((loc: any) =>
+          api.updateLocation(loc.id, { status: newStatus })
+        )
+      )
+      await mutateLocations()
+      setIsPauseDialogOpen(false)
+    } catch (error) {
+      console.error('Failed to toggle protection:', error)
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   const handleEmergencyLockdown = () => {
-    // TODO: Implement emergency lockdown mode
+    setIsLockdownDialogOpen(true)
+  }
+
+  const handleConfirmLockdown = async () => {
+    if (locations.length === 0) return
+
+    setIsProcessing(true)
+    try {
+      // For emergency lockdown, we set all locations to inactive
+      // In a full implementation, this would assign a special "lockdown" policy
+      await Promise.all(
+        locations.map((loc: any) =>
+          api.updateLocation(loc.id, {
+            status: 'inactive',
+            settings: { ...loc.settings, lockdownMode: true }
+          })
+        )
+      )
+      await mutateLocations()
+      setIsLockdownDialogOpen(false)
+    } catch (error) {
+      console.error('Failed to activate lockdown:', error)
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   const handleCreatePolicy = () => {
-    // TODO: Navigate to policy creation
+    router.push('/dashboard/policies?action=new')
   }
 
   return (
@@ -117,6 +179,7 @@ export function MissionControlDashboard() {
               onPauseProtection={handlePauseProtection}
               onEmergencyLockdown={handleEmergencyLockdown}
               onCreatePolicy={handleCreatePolicy}
+              isProtectionPaused={isProtectionPaused}
             />
           </motion.div>
 
@@ -180,6 +243,43 @@ export function MissionControlDashboard() {
           ))}
         </motion.div>
       </div>
+
+      {/* Block Domain Modal */}
+      <BlockDomainModal
+        isOpen={isBlockDomainModalOpen}
+        onClose={() => setIsBlockDomainModalOpen(false)}
+        onSuccess={() => {
+          mutateThreat()
+        }}
+      />
+
+      {/* Pause Protection Dialog */}
+      <ConfirmDialog
+        isOpen={isPauseDialogOpen}
+        onClose={() => setIsPauseDialogOpen(false)}
+        onConfirm={handleToggleProtection}
+        title={isProtectionPaused ? 'Resume Protection' : 'Pause Protection'}
+        message={
+          isProtectionPaused
+            ? 'This will re-enable DNS filtering for all your locations. DNS queries will be filtered according to your policies.'
+            : 'This will temporarily disable DNS filtering for all your locations. DNS queries will pass through without filtering. Are you sure?'
+        }
+        confirmText={isProtectionPaused ? 'Resume Protection' : 'Pause Protection'}
+        variant={isProtectionPaused ? 'success' : 'warning'}
+        isLoading={isProcessing}
+      />
+
+      {/* Emergency Lockdown Dialog */}
+      <ConfirmDialog
+        isOpen={isLockdownDialogOpen}
+        onClose={() => setIsLockdownDialogOpen(false)}
+        onConfirm={handleConfirmLockdown}
+        title="Activate Emergency Lockdown"
+        message="Emergency lockdown will block all DNS queries across all locations. Only essential services will be allowed. This is a drastic measure - use only in case of active security incidents."
+        confirmText="Activate Lockdown"
+        variant="danger"
+        isLoading={isProcessing}
+      />
     </div>
   )
 }

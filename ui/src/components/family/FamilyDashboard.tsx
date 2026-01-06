@@ -14,7 +14,9 @@ import { FamilyMember, generateDemoFamilyMembers } from './types'
 import { FamilyMemberCard } from './FamilyMemberCard'
 import { QuickActions } from './QuickActions'
 import { ActivitySummary } from './ActivitySummary'
-import { useFamilyMembers } from '@/hooks/useApi'
+import { AddFamilyMemberModal } from './AddFamilyMemberModal'
+import { useFamilyMembers, useSummaryStats } from '@/hooks/useApi'
+import { api } from '@/lib/api'
 import {
   ShieldCheckIcon,
   PlusIcon,
@@ -26,15 +28,91 @@ interface FamilyDashboardProps {
 }
 
 export function FamilyDashboard({ className }: FamilyDashboardProps) {
-  const { data: familyData, isLoading } = useFamilyMembers()
+  const { data: familyData, isLoading, mutate: mutateFamilyMembers } = useFamilyMembers()
+  const { data: summaryStats } = useSummaryStats('24h')
   const [selectedMember, setSelectedMember] = useState<string | null>(null)
+  const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false)
 
   // Use API data if available, otherwise fall back to demo data
   const demoMembers = generateDemoFamilyMembers()
   const members: FamilyMember[] = (familyData?.data?.length ?? 0) > 0 ? familyData!.data : demoMembers
 
   const onlineCount = members.filter((m) => m.isOnline).length
-  const totalThreatsBlocked = 47 // TODO: Fetch from API
+  const totalThreatsBlocked = summaryStats?.threatsBlocked ?? 0
+
+  // Quick action handlers
+  const handleQuickAction = async (actionId: string) => {
+    const nonParentMembers = members.filter((m) => m.role !== 'parent')
+    if (nonParentMembers.length === 0) return
+
+    try {
+      switch (actionId) {
+        case 'pause-gaming':
+          // Add 'gaming' to blocked categories for all non-parent members
+          await Promise.all(
+            nonParentMembers.map((member) =>
+              api.updateFamilyMember(member.id, {
+                restrictions: {
+                  ...member.restrictions,
+                  blockedCategories: [...new Set([...member.restrictions.blockedCategories, 'gaming'])],
+                },
+              })
+            )
+          )
+          break
+
+        case 'homework':
+          // Block gaming, social media, streaming for homework mode
+          await Promise.all(
+            nonParentMembers.map((member) =>
+              api.updateFamilyMember(member.id, {
+                restrictions: {
+                  ...member.restrictions,
+                  blockedCategories: [...new Set([...member.restrictions.blockedCategories, 'gaming', 'social-media', 'streaming'])],
+                },
+              })
+            )
+          )
+          break
+
+        case 'bedtime':
+          // Apply bedtime restrictions immediately
+          await Promise.all(
+            nonParentMembers.map((member) =>
+              api.updateFamilyMember(member.id, {
+                restrictions: {
+                  ...member.restrictions,
+                  bedtime: { start: new Date().toTimeString().slice(0, 5), end: '07:00' },
+                },
+              })
+            )
+          )
+          break
+
+        case 'pause-all':
+          // Block all internet (add all categories to blocklist)
+          await Promise.all(
+            nonParentMembers.map((member) =>
+              api.updateFamilyMember(member.id, {
+                restrictions: {
+                  ...member.restrictions,
+                  blockedCategories: ['adult', 'gambling', 'gaming', 'social-media', 'streaming', 'shopping', 'news'],
+                },
+              })
+            )
+          )
+          break
+      }
+      mutateFamilyMembers()
+    } catch (error) {
+      console.error('Failed to apply quick action:', error)
+    }
+  }
+
+  const handleAddMember = async (data: { name: string; avatar: string; role: 'parent' | 'teen' | 'child' }) => {
+    await api.createFamilyMember(data)
+    mutateFamilyMembers()
+  }
 
   return (
     <div className={clsx('min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-space-900 dark:to-space-800', className)}>
@@ -60,13 +138,16 @@ export function FamilyDashboard({ className }: FamilyDashboardProps) {
 
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         {/* Quick Actions */}
-        <QuickActions />
+        <QuickActions onAction={handleQuickAction} />
 
         {/* Family Members */}
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-space-900 dark:text-white">Family Members</h2>
-            <button className="flex items-center gap-2 px-3 py-1.5 text-sm text-nebula-500 hover:bg-nebula-50 dark:hover:bg-nebula-900/20 rounded-lg">
+            <button
+              onClick={() => setIsAddMemberModalOpen(true)}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm text-nebula-500 hover:bg-nebula-50 dark:hover:bg-nebula-900/20 rounded-lg"
+            >
               <PlusIcon className="h-4 w-4" />
               Add Member
             </button>
@@ -86,6 +167,7 @@ export function FamilyDashboard({ className }: FamilyDashboardProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: members.length * 0.1 }}
+              onClick={() => setIsAddMemberModalOpen(true)}
               className="min-h-[200px] border-2 border-dashed border-space-300 dark:border-space-600 rounded-2xl flex flex-col items-center justify-center gap-2 text-space-400 hover:border-nebula-500 hover:text-nebula-500 transition-colors"
             >
               <PlusIcon className="h-8 w-8" />
@@ -97,6 +179,13 @@ export function FamilyDashboard({ className }: FamilyDashboardProps) {
         {/* Activity Summary */}
         <ActivitySummary members={members} />
       </main>
+
+      {/* Add Family Member Modal */}
+      <AddFamilyMemberModal
+        isOpen={isAddMemberModalOpen}
+        onClose={() => setIsAddMemberModalOpen(false)}
+        onSave={handleAddMember}
+      />
     </div>
   )
 }
