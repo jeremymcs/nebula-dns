@@ -37,19 +37,15 @@ function AcceptInviteContent() {
       }
 
       try {
-        // In production: const res = await fetch(`/api/invitations/info?token=${token}`);
-        // Mock data for demo
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setInviteInfo({
-          tenantName: 'Acme Corporation',
-          email: 'invited@example.com',
-          role: 'analyst',
-          invitedByName: 'John Admin',
-          message: "Welcome to the team! We're excited to have you on board.",
-          isExpired: false,
-        });
-      } catch (err) {
-        setError('Failed to load invitation details');
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/invitations/info?token=${token}`);
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.message || 'Invalid invitation');
+        }
+        const data = await res.json();
+        setInviteInfo(data.data);
+      } catch (err: any) {
+        setError(err.message || 'Failed to load invitation details');
       } finally {
         setLoading(false);
       }
@@ -75,11 +71,22 @@ function AcceptInviteContent() {
     setError(null);
 
     try {
-      // In production: POST to /api/invitations/accept
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/invitations/accept`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token,
+          name: form.name,
+          password: form.password,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to accept invitation');
+      }
       setSuccess(true);
-    } catch (err) {
-      setError('Failed to accept invitation');
+    } catch (err: any) {
+      setError(err.message || 'Failed to accept invitation');
     } finally {
       setSubmitting(false);
     }

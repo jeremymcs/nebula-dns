@@ -161,9 +161,11 @@ export function Sidebar() {
               <p className="text-sm font-medium text-space-700 dark:text-space-200 truncate">
                 {user?.name || 'User'}
               </p>
-              <p className="text-xs text-space-500 dark:text-space-400 truncate">
-                {user?.email || 'user@example.com'}
-              </p>
+              {user?.email && (
+                <p className="text-xs text-space-500 dark:text-space-400 truncate">
+                  {user.email}
+                </p>
+              )}
             </div>
           </div>
           <ChevronUpDownIcon className="h-5 w-5 text-space-400 flex-shrink-0" />

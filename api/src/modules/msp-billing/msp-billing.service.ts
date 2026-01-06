@@ -14,6 +14,7 @@ import {
 import { Partner } from '../partners/entities/partner.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
 import { ClickHouseService } from '../clickhouse/clickhouse.service';
+import { EmailService } from '../email/email.service';
 import {
   CreateQueryBundleDto,
   UpdateQueryBundleDto,
@@ -44,6 +45,7 @@ export class MspBillingService {
     private readonly tenantRepository: Repository<Tenant>,
     private readonly clickHouseService: ClickHouseService,
     private readonly configService: ConfigService,
+    private readonly emailService: EmailService,
   ) {
     const stripeKey = this.configService.get<string>('STRIPE_SECRET_KEY');
     this.stripe = stripeKey ? new Stripe(stripeKey) : null;
@@ -557,13 +559,38 @@ export class MspBillingService {
   private async sendLowBalanceAlert(partnerId: string): Promise<void> {
     this.logger.log(`Sending low balance alert to partner ${partnerId}`);
 
+    // Get partner info
+    const partner = await this.partnerRepository.findOne({
+      where: { id: partnerId },
+    });
+
+    if (!partner) {
+      this.logger.warn(`Partner ${partnerId} not found for low balance alert`);
+      return;
+    }
+
+    // Get subscription info
+    const subscription = await this.subscriptionRepository.findOne({
+      where: { partnerId },
+    });
+
     // Update last alert time
     await this.subscriptionRepository.update(
       { partnerId },
       { lastAlertAt: new Date() },
     );
 
-    // TODO: Send email notification
+    // Send email notification
+    try {
+      await this.emailService.sendPaymentFailedEmail({
+        to: partner.billingEmail || partner.contactEmail,
+        companyName: partner.name,
+        updatePaymentUrl: `${this.configService.get('FRONTEND_URL')}/partner/billing`,
+      });
+      this.logger.log(`Low balance alert sent to ${partner.billingEmail || partner.contactEmail}`);
+    } catch (error) {
+      this.logger.error(`Failed to send low balance alert: ${error.message}`);
+    }
   }
 }
 

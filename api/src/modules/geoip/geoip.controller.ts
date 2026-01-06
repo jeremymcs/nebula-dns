@@ -1,9 +1,9 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { GeoIPService } from './geoip.service';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../auth/guards/roles.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
-import { CurrentTenant } from '../../common/decorators/current-tenant.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '@/common/guards/roles.guard';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { CurrentTenant } from '@/common/decorators/tenant.decorator';
 import { ClickHouseService } from '../clickhouse/clickhouse.service';
 
 @Controller('geoip')

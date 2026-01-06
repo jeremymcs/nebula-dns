@@ -38,6 +38,39 @@ export default function PartnerLoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [mfaRequired, setMfaRequired] = useState(false)
+  const [mfaCode, setMfaCode] = useState('')
+  const [tempToken, setTempToken] = useState('')
+
+  const handleMfaVerify = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partner-auth/verify-mfa`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tempToken, code: mfaCode }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Invalid MFA code')
+      }
+
+      localStorage.setItem('partnerToken', data.access_token)
+      localStorage.setItem('partnerUser', JSON.stringify(data.user))
+      localStorage.setItem('partner', JSON.stringify(data.partner))
+
+      router.push('/partner/dashboard')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'MFA verification failed')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -57,9 +90,9 @@ export default function PartnerLoginPage() {
         throw new Error(data.message || 'Login failed')
       }
 
-      if (data.requireMfa) {
-        // TODO: Handle MFA
-        setError('MFA is required but not yet implemented for partner portal')
+      if (data.requireMfa || data.mfaRequired) {
+        setMfaRequired(true)
+        setTempToken(data.tempToken)
         return
       }
 
@@ -150,53 +183,102 @@ export default function PartnerLoginPage() {
             </div>
           )}
 
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="email" className="label">Email address</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="input"
-                placeholder="partner@company.com"
-              />
-            </div>
+          {mfaRequired ? (
+            <form className="space-y-5" onSubmit={handleMfaVerify}>
+              <div>
+                <label htmlFor="mfaCode" className="label">Authentication Code</label>
+                <input
+                  id="mfaCode"
+                  name="mfaCode"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="one-time-code"
+                  required
+                  value={mfaCode}
+                  onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  className="input text-center text-2xl tracking-widest"
+                  placeholder="000000"
+                  maxLength={6}
+                />
+                <p className="mt-2 text-sm text-space-500 dark:text-space-400">
+                  Enter the 6-digit code from your authenticator app
+                </p>
+              </div>
 
-            <div>
-              <label htmlFor="password" className="label">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="input"
-                placeholder="••••••••"
-              />
-            </div>
+              <button
+                type="submit"
+                disabled={loading || mfaCode.length !== 6}
+                className="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/25 disabled:opacity-50"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Verifying...
+                  </span>
+                ) : 'Verify Code'}
+              </button>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/25 disabled:opacity-50"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  Signing in...
-                </span>
-              ) : 'Sign in to Partner Portal'}
-            </button>
-          </form>
+              <button
+                type="button"
+                onClick={() => { setMfaRequired(false); setMfaCode(''); setTempToken(''); }}
+                className="w-full py-2 text-sm text-space-500 dark:text-space-400 hover:text-space-700 dark:hover:text-space-300"
+              >
+                Back to login
+              </button>
+            </form>
+          ) : (
+            <form className="space-y-5" onSubmit={handleSubmit}>
+              <div>
+                <label htmlFor="email" className="label">Email address</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="input"
+                  placeholder="partner@company.com"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="password" className="label">Password</label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="input"
+                  placeholder="••••••••"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/25 disabled:opacity-50"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Signing in...
+                  </span>
+                ) : 'Sign in to Partner Portal'}
+              </button>
+            </form>
+          )}
 
           <div className="mt-8 pt-6 border-t border-space-200 dark:border-space-700">
             <p className="text-sm text-center text-space-500 dark:text-space-400">
