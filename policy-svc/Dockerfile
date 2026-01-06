@@ -2,7 +2,7 @@
 # Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 # Build stage
-FROM golang:1.21-alpine AS builder
+FROM golang:1.23-alpine AS builder
 
 WORKDIR /app
 
