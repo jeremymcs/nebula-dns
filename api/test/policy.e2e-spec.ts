@@ -17,7 +17,9 @@ describe('Policy Evaluation E2E Tests', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
   });
 
@@ -27,9 +29,8 @@ describe('Policy Evaluation E2E Tests', () => {
 
   describe('Policy CRUD Operations', () => {
     it('should require authentication for policy list', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/policies');
-      
+      const response = await request(app.getHttpServer()).get('/policies');
+
       expect(response.status).toBe(401);
     });
 
@@ -41,7 +42,7 @@ describe('Policy Evaluation E2E Tests', () => {
           description: 'Test description',
           enabled: true,
         });
-      
+
       expect(response.status).toBe(401);
     });
 
@@ -49,48 +50,49 @@ describe('Policy Evaluation E2E Tests', () => {
       const response = await request(app.getHttpServer())
         .patch('/policies/test-id')
         .send({ name: 'Updated Policy' });
-      
+
       expect(response.status).toBe(401);
     });
 
     it('should require authentication for policy deletion', async () => {
-      const response = await request(app.getHttpServer())
-        .delete('/policies/test-id');
-      
+      const response = await request(app.getHttpServer()).delete(
+        '/policies/test-id',
+      );
+
       expect(response.status).toBe(401);
     });
   });
 
   describe('Category Management', () => {
     it('should require authentication for category list', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/policies/categories');
-      
+      const response = await request(app.getHttpServer()).get(
+        '/policies/categories',
+      );
+
       expect([401, 404]).toContain(response.status);
     });
   });
 
   describe('List Management', () => {
     it('should require authentication for blocklist access', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/lists');
-      
+      const response = await request(app.getHttpServer()).get('/lists');
+
       expect(response.status).toBe(401);
     });
 
     it('should require authentication for allowlist access', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/lists?type=allow');
-      
+      const response = await request(app.getHttpServer()).get(
+        '/lists?type=allow',
+      );
+
       expect(response.status).toBe(401);
     });
   });
 
   describe('Location-based Policies', () => {
     it('should require authentication for location list', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/locations');
-      
+      const response = await request(app.getHttpServer()).get('/locations');
+
       expect(response.status).toBe(401);
     });
 
@@ -102,34 +104,34 @@ describe('Policy Evaluation E2E Tests', () => {
           type: 'network',
           networks: ['192.168.1.0/24'],
         });
-      
+
       expect(response.status).toBe(401);
     });
   });
 
   describe('Query Logging', () => {
     it('should require authentication for query logs', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/reports/queries');
-      
+      const response = await request(app.getHttpServer()).get(
+        '/reports/queries',
+      );
+
       expect(response.status).toBe(401);
     });
 
     it('should require authentication for blocked queries', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/reports/blocked');
-      
+      const response = await request(app.getHttpServer()).get(
+        '/reports/blocked',
+      );
+
       expect(response.status).toBe(401);
     });
   });
 
   describe('Block Page Configuration', () => {
     it('should require authentication for block page settings', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/block-pages');
-      
+      const response = await request(app.getHttpServer()).get('/block-pages');
+
       expect(response.status).toBe(401);
     });
   });
 });
-

@@ -1,7 +1,7 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
+ *
  * Security Headers Middleware
  * Implements various security headers for HTTP responses
  */
@@ -24,7 +24,7 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
     if (this.isProduction) {
       res.setHeader(
         'Strict-Transport-Security',
-        'max-age=31536000; includeSubDomains; preload'
+        'max-age=31536000; includeSubDomains; preload',
       );
     }
 
@@ -88,7 +88,10 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
     // Cache-Control for API responses
     // Prevents caching of sensitive data
     if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader(
+        'Cache-Control',
+        'no-store, no-cache, must-revalidate, proxy-revalidate',
+      );
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
       res.setHeader('Surrogate-Control', 'no-store');

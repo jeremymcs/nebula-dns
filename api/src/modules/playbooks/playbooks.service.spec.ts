@@ -2,7 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PlaybooksService } from './playbooks.service';
-import { Playbook, PlaybookTrigger, PlaybookAction } from './entities/playbook.entity';
+import {
+  Playbook,
+  PlaybookTrigger,
+  PlaybookAction,
+} from './entities/playbook.entity';
 import { NotFoundException } from '@nestjs/common';
 
 describe('PlaybooksService', () => {
@@ -17,7 +21,9 @@ describe('PlaybooksService', () => {
     description: 'A test playbook',
     trigger: PlaybookTrigger.THREAT_DETECTED,
     triggerConditions: { threat_types: ['malware'] },
-    actions: [{ type: PlaybookAction.BLOCK_DOMAIN, config: { duration: 3600 } }],
+    actions: [
+      { type: PlaybookAction.BLOCK_DOMAIN, config: { duration: 3600 } },
+    ],
     isEnabled: true,
     runCount: 5,
     lastRunAt: new Date(),
@@ -82,8 +88,9 @@ describe('PlaybooksService', () => {
     it('should throw NotFoundException when playbook not found', async () => {
       repository.findOne.mockResolvedValue(null);
 
-      await expect(service.findOne('tenant-1', 'invalid-id'))
-        .rejects.toThrow(NotFoundException);
+      await expect(service.findOne('tenant-1', 'invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -122,7 +129,11 @@ describe('PlaybooksService', () => {
   describe('run', () => {
     it('should increment run count and update lastRunAt', async () => {
       repository.findOne.mockResolvedValue({ ...mockPlaybook, runCount: 5 });
-      repository.save.mockResolvedValue({ ...mockPlaybook, runCount: 6, lastRunAt: new Date() });
+      repository.save.mockResolvedValue({
+        ...mockPlaybook,
+        runCount: 6,
+        lastRunAt: new Date(),
+      });
 
       const result = await service.run('tenant-1', 'playbook-1');
 
@@ -143,4 +154,3 @@ describe('PlaybooksService', () => {
     });
   });
 });
-

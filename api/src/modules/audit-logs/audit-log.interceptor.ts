@@ -23,7 +23,8 @@ export interface AuditLogMetadata {
 }
 
 // Decorator to mark controllers/methods for audit logging
-export const AuditLog = (metadata: AuditLogMetadata) => SetMetadata(AUDIT_LOG_KEY, metadata);
+export const AuditLog = (metadata: AuditLogMetadata) =>
+  SetMetadata(AUDIT_LOG_KEY, metadata);
 
 @Injectable()
 export class AuditLogInterceptor implements NestInterceptor {
@@ -33,7 +34,10 @@ export class AuditLogInterceptor implements NestInterceptor {
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const metadata = this.reflector.get<AuditLogMetadata>(AUDIT_LOG_KEY, context.getHandler());
+    const metadata = this.reflector.get<AuditLogMetadata>(
+      AUDIT_LOG_KEY,
+      context.getHandler(),
+    );
 
     if (!metadata) {
       return next.handle();
@@ -46,7 +50,9 @@ export class AuditLogInterceptor implements NestInterceptor {
     const userAgent = request.headers['user-agent'];
 
     // Capture old value before the action (for updates/deletes)
-    const oldValue = metadata.getOldValue ? metadata.getOldValue(request) : null;
+    const oldValue = metadata.getOldValue
+      ? metadata.getOldValue(request)
+      : null;
 
     return next.handle().pipe(
       tap(async (result) => {
@@ -85,4 +91,3 @@ export class AuditLogInterceptor implements NestInterceptor {
     );
   }
 }
-

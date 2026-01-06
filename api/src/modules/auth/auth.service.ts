@@ -17,7 +17,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { User } from '../users/entities/user.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
 import { PartnerUser } from '../partners/entities/partner-user.entity';
-import { LoginDto, LoginResponseDto, MfaRequiredResponseDto, MfaVerifyLoginDto } from './dto/login.dto';
+import {
+  LoginDto,
+  LoginResponseDto,
+  MfaRequiredResponseDto,
+  MfaVerifyLoginDto,
+} from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { MfaService } from '../mfa/mfa.service';
 
@@ -40,7 +45,9 @@ export class AuthService {
     private readonly mfaService: MfaService,
   ) {}
 
-  async login(loginDto: LoginDto): Promise<LoginResponseDto | MfaRequiredResponseDto> {
+  async login(
+    loginDto: LoginDto,
+  ): Promise<LoginResponseDto | MfaRequiredResponseDto> {
     const { email, password } = loginDto;
 
     const user = await this.userRepository.findOne({
@@ -214,11 +221,19 @@ export class AuthService {
    * Get managed organizations for an MSP user
    * Checks if the user's tenant belongs to a partner and returns all partner's orgs
    */
-  async getManagedOrganizations(userId: string, tenantId: string): Promise<{
+  async getManagedOrganizations(
+    userId: string,
+    tenantId: string,
+  ): Promise<{
     isMsp: boolean;
     partnerId: string | null;
     currentOrg: { id: string; name: string; slug: string } | null;
-    organizations: Array<{ id: string; name: string; slug: string; status: string }>;
+    organizations: Array<{
+      id: string;
+      name: string;
+      slug: string;
+      status: string;
+    }>;
   }> {
     // First get the current tenant to check if it belongs to a partner
     const currentTenant = await this.tenantRepository.findOne({
@@ -227,7 +242,12 @@ export class AuthService {
     });
 
     if (!currentTenant) {
-      return { isMsp: false, partnerId: null, currentOrg: null, organizations: [] };
+      return {
+        isMsp: false,
+        partnerId: null,
+        currentOrg: null,
+        organizations: [],
+      };
     }
 
     // Check if this tenant belongs to a partner (MSP)
@@ -238,8 +258,12 @@ export class AuthService {
         return {
           isMsp: false,
           partnerId: null,
-          currentOrg: { id: currentTenant.id, name: currentTenant.name, slug: currentTenant.slug },
-          organizations: []
+          currentOrg: {
+            id: currentTenant.id,
+            name: currentTenant.name,
+            slug: currentTenant.slug,
+          },
+          organizations: [],
         };
       }
 
@@ -258,8 +282,12 @@ export class AuthService {
         return {
           isMsp: true,
           partnerId: partnerUser.partnerId,
-          currentOrg: { id: currentTenant.id, name: currentTenant.name, slug: currentTenant.slug },
-          organizations: partnerOrgs.map(org => ({
+          currentOrg: {
+            id: currentTenant.id,
+            name: currentTenant.name,
+            slug: currentTenant.slug,
+          },
+          organizations: partnerOrgs.map((org) => ({
             id: org.id,
             name: org.name,
             slug: org.slug,
@@ -271,8 +299,12 @@ export class AuthService {
       return {
         isMsp: false,
         partnerId: null,
-        currentOrg: { id: currentTenant.id, name: currentTenant.name, slug: currentTenant.slug },
-        organizations: []
+        currentOrg: {
+          id: currentTenant.id,
+          name: currentTenant.name,
+          slug: currentTenant.slug,
+        },
+        organizations: [],
       };
     }
 
@@ -285,8 +317,12 @@ export class AuthService {
     return {
       isMsp: true,
       partnerId: currentTenant.partnerId,
-      currentOrg: { id: currentTenant.id, name: currentTenant.name, slug: currentTenant.slug },
-      organizations: partnerOrgs.map(org => ({
+      currentOrg: {
+        id: currentTenant.id,
+        name: currentTenant.name,
+        slug: currentTenant.slug,
+      },
+      organizations: partnerOrgs.map((org) => ({
         id: org.id,
         name: org.name,
         slug: org.slug,
@@ -298,18 +334,28 @@ export class AuthService {
   /**
    * Switch to a different tenant/organization for MSP users
    */
-  async switchTenant(userId: string, currentTenantId: string, targetTenantId: string): Promise<LoginResponseDto> {
+  async switchTenant(
+    userId: string,
+    currentTenantId: string,
+    targetTenantId: string,
+  ): Promise<LoginResponseDto> {
     // First verify the user can switch to this tenant
     const mspInfo = await this.getManagedOrganizations(userId, currentTenantId);
 
     if (!mspInfo.isMsp) {
-      throw new ForbiddenException('Only MSP users can switch between organizations');
+      throw new ForbiddenException(
+        'Only MSP users can switch between organizations',
+      );
     }
 
     // Check if target tenant is in the list of managed orgs
-    const targetOrg = mspInfo.organizations.find(org => org.id === targetTenantId);
+    const targetOrg = mspInfo.organizations.find(
+      (org) => org.id === targetTenantId,
+    );
     if (!targetOrg) {
-      throw new ForbiddenException('You do not have access to this organization');
+      throw new ForbiddenException(
+        'You do not have access to this organization',
+      );
     }
 
     // Get the user to generate new tokens
@@ -333,13 +379,22 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(
-      { sub: user.id, type: 'refresh', jti: uuidv4(), mfaVerified: true, tenantId: targetTenantId },
       {
-        expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d',
+        sub: user.id,
+        type: 'refresh',
+        jti: uuidv4(),
+        mfaVerified: true,
+        tenantId: targetTenantId,
+      },
+      {
+        expiresIn:
+          this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d',
       },
     );
 
-    this.logger.log(`User ${userId} switched from tenant ${currentTenantId} to ${targetTenantId}`);
+    this.logger.log(
+      `User ${userId} switched from tenant ${currentTenantId} to ${targetTenantId}`,
+    );
 
     return {
       accessToken,

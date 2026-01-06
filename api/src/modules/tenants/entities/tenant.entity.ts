@@ -47,10 +47,20 @@ export class Tenant extends BaseEntity {
   settings: TenantSettings;
 
   // Contact information
-  @Column({ name: 'contact_email', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'contact_email',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   contactEmail: string | null;
 
-  @Column({ name: 'contact_phone', type: 'varchar', length: 50, nullable: true })
+  @Column({
+    name: 'contact_phone',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
   contactPhone: string | null;
 
   @Column({ type: 'text', nullable: true })

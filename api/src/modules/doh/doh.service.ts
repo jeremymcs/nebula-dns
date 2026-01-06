@@ -79,8 +79,13 @@ export class DoHService {
     private threatDetection: ThreatDetectionService,
     private clickhouse: ClickHouseService,
   ) {
-    this.upstreamDns = this.configService.get('UPSTREAM_DNS', '1.1.1.1,8.8.8.8').split(',');
-    this.policySvcUrl = this.configService.get('POLICY_SVC_URL', 'http://localhost:4080');
+    this.upstreamDns = this.configService
+      .get('UPSTREAM_DNS', '1.1.1.1,8.8.8.8')
+      .split(',');
+    this.policySvcUrl = this.configService.get(
+      'POLICY_SVC_URL',
+      'http://localhost:4080',
+    );
   }
 
   /**
@@ -123,7 +128,9 @@ export class DoHService {
     const domain = question.name;
     const qtype = question.type;
 
-    this.logger.debug(`Query: ${domain} (type ${qtype}) from ${auth.locationId}`);
+    this.logger.debug(
+      `Query: ${domain} (type ${qtype}) from ${auth.locationId}`,
+    );
 
     // Check policy
     let action = 'allow';
@@ -132,7 +139,12 @@ export class DoHService {
     let rewriteTarget: string | undefined;
 
     if (auth.tenantId && auth.locationId) {
-      const policy = await this.evaluatePolicy(auth.tenantId, auth.locationId, domain, qtype);
+      const policy = await this.evaluatePolicy(
+        auth.tenantId,
+        auth.locationId,
+        domain,
+        qtype,
+      );
       action = policy.action;
       reason = policy.reason;
       category = policy.category;
@@ -140,7 +152,15 @@ export class DoHService {
     }
 
     // Log to ClickHouse
-    this.logQuery(auth, domain, qtype, action, reason, category, Date.now() - startTime);
+    this.logQuery(
+      auth,
+      domain,
+      qtype,
+      action,
+      reason,
+      category,
+      Date.now() - startTime,
+    );
 
     // Handle blocked domains
     if (action === 'block') {
@@ -151,17 +171,30 @@ export class DoHService {
     if (action === 'rewrite' && rewriteTarget) {
       // Resolve the rewrite target instead of the original domain
       try {
-        const response = await this.resolveDomain(rewriteTarget, qtype, header.id, dnsWire);
+        const response = await this.resolveDomain(
+          rewriteTarget,
+          qtype,
+          header.id,
+          dnsWire,
+        );
         return response;
       } catch (error) {
-        this.logger.error(`Resolution failed for rewrite target ${rewriteTarget}:`, error);
+        this.logger.error(
+          `Resolution failed for rewrite target ${rewriteTarget}:`,
+          error,
+        );
         return this.buildNxdomainResponse(dnsWire, header.id);
       }
     }
 
     // Resolve the domain
     try {
-      const response = await this.resolveDomain(domain, qtype, header.id, dnsWire);
+      const response = await this.resolveDomain(
+        domain,
+        qtype,
+        header.id,
+        dnsWire,
+      );
       return response;
     } catch (error) {
       this.logger.error(`Resolution failed for ${domain}:`, error);
@@ -174,7 +207,12 @@ export class DoHService {
     locationId: string,
     domain: string,
     qtype: number = 1,
-  ): Promise<{ action: string; reason: string; category: string | null; rewriteTarget?: string }> {
+  ): Promise<{
+    action: string;
+    reason: string;
+    category: string | null;
+    rewriteTarget?: string;
+  }> {
     try {
       const response = await fetch(`${this.policySvcUrl}/evaluate`, {
         method: 'POST',
@@ -188,15 +226,21 @@ export class DoHService {
       });
 
       if (!response.ok) {
-        this.logger.warn(`Policy-svc returned ${response.status} for ${domain}`);
+        this.logger.warn(
+          `Policy-svc returned ${response.status} for ${domain}`,
+        );
         return { action: 'allow', reason: 'policy_error', category: null };
       }
 
       const result: PolicyEvaluateResponse = await response.json();
 
       // Map policy-svc decision to action
-      const action = result.decision === 'BLOCK' ? 'block' :
-                     result.decision === 'REWRITE' ? 'rewrite' : 'allow';
+      const action =
+        result.decision === 'BLOCK'
+          ? 'block'
+          : result.decision === 'REWRITE'
+            ? 'rewrite'
+            : 'allow';
 
       return {
         action,
@@ -278,7 +322,10 @@ export class DoHService {
     }
   }
 
-  private parseName(buf: Buffer, offset: number): { name: string; newOffset: number } {
+  private parseName(
+    buf: Buffer,
+    offset: number,
+  ): { name: string; newOffset: number } {
     const labels: string[] = [];
     let pos = offset;
 
@@ -305,7 +352,12 @@ export class DoHService {
     return { name: labels.join('.'), newOffset: pos };
   }
 
-  private async resolveDomain(domain: string, qtype: number, id: number, originalQuery: Buffer): Promise<Buffer> {
+  private async resolveDomain(
+    domain: string,
+    qtype: number,
+    id: number,
+    originalQuery: Buffer,
+  ): Promise<Buffer> {
     // Use node's DNS resolver
     try {
       switch (qtype) {
@@ -327,18 +379,29 @@ export class DoHService {
     }
   }
 
-  private buildAResponse(query: Buffer, id: number, domain: string, ips: string[]): Buffer {
+  private buildAResponse(
+    query: Buffer,
+    id: number,
+    domain: string,
+    ips: string[],
+  ): Buffer {
     // Build DNS response with A records
     const response = Buffer.alloc(512);
     let offset = 0;
 
     // Header
-    response.writeUInt16BE(id, offset); offset += 2;
-    response.writeUInt16BE(0x8180, offset); offset += 2; // QR=1, RD=1, RA=1
-    response.writeUInt16BE(1, offset); offset += 2; // QDCOUNT
-    response.writeUInt16BE(ips.length, offset); offset += 2; // ANCOUNT
-    response.writeUInt16BE(0, offset); offset += 2; // NSCOUNT
-    response.writeUInt16BE(0, offset); offset += 2; // ARCOUNT
+    response.writeUInt16BE(id, offset);
+    offset += 2;
+    response.writeUInt16BE(0x8180, offset);
+    offset += 2; // QR=1, RD=1, RA=1
+    response.writeUInt16BE(1, offset);
+    offset += 2; // QDCOUNT
+    response.writeUInt16BE(ips.length, offset);
+    offset += 2; // ANCOUNT
+    response.writeUInt16BE(0, offset);
+    offset += 2; // NSCOUNT
+    response.writeUInt16BE(0, offset);
+    offset += 2; // ARCOUNT
 
     // Copy question from original query
     const qEnd = this.findQuestionEnd(query);
@@ -348,33 +411,50 @@ export class DoHService {
     // Answers
     for (const ip of ips) {
       // Name (pointer to question)
-      response.writeUInt16BE(0xc00c, offset); offset += 2;
-      response.writeUInt16BE(1, offset); offset += 2; // TYPE A
-      response.writeUInt16BE(1, offset); offset += 2; // CLASS IN
-      response.writeUInt32BE(300, offset); offset += 4; // TTL
-      response.writeUInt16BE(4, offset); offset += 2; // RDLENGTH
+      response.writeUInt16BE(0xc00c, offset);
+      offset += 2;
+      response.writeUInt16BE(1, offset);
+      offset += 2; // TYPE A
+      response.writeUInt16BE(1, offset);
+      offset += 2; // CLASS IN
+      response.writeUInt32BE(300, offset);
+      offset += 4; // TTL
+      response.writeUInt16BE(4, offset);
+      offset += 2; // RDLENGTH
 
       // IP address
       const parts = ip.split('.').map(Number);
       for (const part of parts) {
-        response.writeUInt8(part, offset); offset++;
+        response.writeUInt8(part, offset);
+        offset++;
       }
     }
 
     return response.subarray(0, offset);
   }
 
-  private buildAAAAResponse(query: Buffer, id: number, domain: string, ips: string[]): Buffer {
+  private buildAAAAResponse(
+    query: Buffer,
+    id: number,
+    domain: string,
+    ips: string[],
+  ): Buffer {
     // Similar to buildAResponse but for IPv6
     const response = Buffer.alloc(512);
     let offset = 0;
 
-    response.writeUInt16BE(id, offset); offset += 2;
-    response.writeUInt16BE(0x8180, offset); offset += 2;
-    response.writeUInt16BE(1, offset); offset += 2;
-    response.writeUInt16BE(ips.length, offset); offset += 2;
-    response.writeUInt16BE(0, offset); offset += 2;
-    response.writeUInt16BE(0, offset); offset += 2;
+    response.writeUInt16BE(id, offset);
+    offset += 2;
+    response.writeUInt16BE(0x8180, offset);
+    offset += 2;
+    response.writeUInt16BE(1, offset);
+    offset += 2;
+    response.writeUInt16BE(ips.length, offset);
+    offset += 2;
+    response.writeUInt16BE(0, offset);
+    offset += 2;
+    response.writeUInt16BE(0, offset);
+    offset += 2;
 
     const qEnd = this.findQuestionEnd(query);
     query.copy(response, offset, 12, qEnd);
@@ -420,4 +500,3 @@ export class DoHService {
     return this.buildNxdomainResponse(query, id);
   }
 }
-

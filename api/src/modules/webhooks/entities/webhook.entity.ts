@@ -3,12 +3,20 @@ import { BaseEntity } from '@/common/entities/base.entity';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 
 export type WebhookEvent =
-  | 'policy.created' | 'policy.updated' | 'policy.deleted'
-  | 'location.created' | 'location.updated' | 'location.deleted'
-  | 'user.created' | 'user.invited' | 'user.deleted'
+  | 'policy.created'
+  | 'policy.updated'
+  | 'policy.deleted'
+  | 'location.created'
+  | 'location.updated'
+  | 'location.deleted'
+  | 'user.created'
+  | 'user.invited'
+  | 'user.deleted'
   | 'threat.detected'
   | 'report.generated'
-  | 'subscription.created' | 'subscription.updated' | 'subscription.cancelled';
+  | 'subscription.created'
+  | 'subscription.updated'
+  | 'subscription.cancelled';
 
 @Entity('webhooks')
 export class Webhook extends BaseEntity {

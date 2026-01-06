@@ -15,4 +15,3 @@ import { FamilyMember } from './entities/family-member.entity';
   exports: [FamilyService],
 })
 export class FamilyModule {}
-

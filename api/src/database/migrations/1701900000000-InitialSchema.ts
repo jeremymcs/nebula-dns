@@ -470,21 +470,51 @@ export class InitialSchema1701900000000 implements MigrationInterface {
     `);
 
     // Create indexes
-    await queryRunner.query(`CREATE INDEX "IDX_users_tenant_id" ON "users" ("tenant_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_users_email" ON "users" ("email")`);
-    await queryRunner.query(`CREATE INDEX "IDX_policies_tenant_id" ON "policies" ("tenant_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_locations_tenant_id" ON "locations" ("tenant_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_locations_policy_id" ON "locations" ("policy_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_custom_lists_tenant_id" ON "custom_lists" ("tenant_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_custom_list_entries_list_id" ON "custom_list_entries" ("list_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_custom_list_entries_domain" ON "custom_list_entries" ("domain")`);
-    await queryRunner.query(`CREATE INDEX "IDX_api_keys_tenant_id" ON "api_keys" ("tenant_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_api_keys_key_prefix" ON "api_keys" ("key_prefix")`);
-    await queryRunner.query(`CREATE INDEX "IDX_invitations_tenant_id" ON "invitations" ("tenant_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_invitations_email" ON "invitations" ("email")`);
-    await queryRunner.query(`CREATE INDEX "IDX_agent_installations_tenant_id" ON "agent_installations" ("tenant_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_webhooks_tenant_id" ON "webhooks" ("tenant_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_scheduled_reports_tenant_id" ON "scheduled_reports" ("tenant_id")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_users_tenant_id" ON "users" ("tenant_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_users_email" ON "users" ("email")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_policies_tenant_id" ON "policies" ("tenant_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_locations_tenant_id" ON "locations" ("tenant_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_locations_policy_id" ON "locations" ("policy_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_custom_lists_tenant_id" ON "custom_lists" ("tenant_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_custom_list_entries_list_id" ON "custom_list_entries" ("list_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_custom_list_entries_domain" ON "custom_list_entries" ("domain")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_api_keys_tenant_id" ON "api_keys" ("tenant_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_api_keys_key_prefix" ON "api_keys" ("key_prefix")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_invitations_tenant_id" ON "invitations" ("tenant_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_invitations_email" ON "invitations" ("email")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_agent_installations_tenant_id" ON "agent_installations" ("tenant_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_webhooks_tenant_id" ON "webhooks" ("tenant_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_scheduled_reports_tenant_id" ON "scheduled_reports" ("tenant_id")`,
+    );
 
     // Insert default subscription plans
     await queryRunner.query(`

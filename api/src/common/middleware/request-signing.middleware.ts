@@ -23,10 +23,7 @@ export interface SignedRequest {
 /**
  * Generate HMAC signature for a request
  */
-export function signRequest(
-  request: SignedRequest,
-  secretKey: string,
-): string {
+export function signRequest(request: SignedRequest, secretKey: string): string {
   const payload = [
     request.method.toUpperCase(),
     request.path,
@@ -35,10 +32,7 @@ export function signRequest(
     request.body || '',
   ].join('\n');
 
-  return crypto
-    .createHmac('sha256', secretKey)
-    .update(payload)
-    .digest('hex');
+  return crypto.createHmac('sha256', secretKey).update(payload).digest('hex');
 }
 
 /**
@@ -56,15 +50,15 @@ export function verifySignature(
   }
 
   const expectedSignature = signRequest(request, secretKey);
-  
+
   // Constant-time comparison
   if (signature.length !== expectedSignature.length) {
     return false;
   }
-  
+
   return crypto.timingSafeEqual(
     Buffer.from(signature),
-    Buffer.from(expectedSignature)
+    Buffer.from(expectedSignature),
   );
 }
 
@@ -79,7 +73,7 @@ export function createSignedHeaders(
   secretKey: string,
 ): Record<string, string> {
   const timestamp = Date.now();
-  
+
   const signature = signRequest(
     { method, path, body, timestamp, service: serviceName },
     secretKey,
@@ -135,4 +129,3 @@ export const INTERNAL_SERVICES = {
   DNSDIST: 'nebuladns-dnsdist',
   WORKERS: 'nebuladns-workers',
 } as const;
-

@@ -1,7 +1,11 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Playbook, PlaybookTrigger, PlaybookAction } from './entities/playbook.entity';
+import {
+  Playbook,
+  PlaybookTrigger,
+  PlaybookAction,
+} from './entities/playbook.entity';
 import { CreatePlaybookDto, UpdatePlaybookDto } from './dto/playbook.dto';
 
 @Injectable()
@@ -34,10 +38,13 @@ export class PlaybooksService {
         id: 'demo-1',
         tenantId: 'demo',
         name: 'Block Malicious Domains',
-        description: 'Automatically block domains flagged as malicious by threat intelligence feeds',
+        description:
+          'Automatically block domains flagged as malicious by threat intelligence feeds',
         trigger: PlaybookTrigger.THREAT_DETECTED,
         triggerConditions: { threat_types: ['malware', 'phishing', 'c2'] },
-        actions: [{ type: PlaybookAction.BLOCK_DOMAIN, config: { duration: 86400 } }],
+        actions: [
+          { type: PlaybookAction.BLOCK_DOMAIN, config: { duration: 86400 } },
+        ],
         isEnabled: true,
         runCount: 47,
         lastRunAt: new Date(now.getTime() - 3600000),
@@ -51,7 +58,9 @@ export class PlaybooksService {
         description: 'Send alert when newly registered domains are accessed',
         trigger: PlaybookTrigger.NEW_DOMAIN,
         triggerConditions: { domain_age_days_lt: 30 },
-        actions: [{ type: PlaybookAction.SEND_ALERT, config: { severity: 'warning' } }],
+        actions: [
+          { type: PlaybookAction.SEND_ALERT, config: { severity: 'warning' } },
+        ],
         isEnabled: true,
         runCount: 12,
         lastRunAt: new Date(now.getTime() - 7200000),
@@ -99,7 +108,11 @@ export class PlaybooksService {
     return this.playbookRepository.save(playbook);
   }
 
-  async update(tenantId: string, id: string, dto: UpdatePlaybookDto): Promise<Playbook> {
+  async update(
+    tenantId: string,
+    id: string,
+    dto: UpdatePlaybookDto,
+  ): Promise<Playbook> {
     const playbook = await this.findOne(tenantId, id);
 
     Object.assign(playbook, dto);
@@ -112,7 +125,10 @@ export class PlaybooksService {
     await this.playbookRepository.remove(playbook);
   }
 
-  async run(tenantId: string, id: string): Promise<{ success: boolean; message: string }> {
+  async run(
+    tenantId: string,
+    id: string,
+  ): Promise<{ success: boolean; message: string }> {
     const playbook = await this.findOne(tenantId, id);
 
     this.logger.log(`Running playbook ${playbook.name} for tenant ${tenantId}`);
@@ -130,4 +146,3 @@ export class PlaybooksService {
     };
   }
 }
-

@@ -35,7 +35,10 @@ export class SiemController {
     @Body() dto: CreateSplunkIntegrationDto,
   ) {
     const integration = await this.siemService.createSplunk(tenantId, dto);
-    return { data: integration, message: 'Splunk integration created successfully' };
+    return {
+      data: integration,
+      message: 'Splunk integration created successfully',
+    };
   }
 
   @Post('elastic')
@@ -44,7 +47,10 @@ export class SiemController {
     @Body() dto: CreateElasticIntegrationDto,
   ) {
     const integration = await this.siemService.createElastic(tenantId, dto);
-    return { data: integration, message: 'Elasticsearch integration created successfully' };
+    return {
+      data: integration,
+      message: 'Elasticsearch integration created successfully',
+    };
   }
 
   @Post('sentinel')
@@ -53,7 +59,10 @@ export class SiemController {
     @Body() dto: CreateSentinelIntegrationDto,
   ) {
     const integration = await this.siemService.createSentinel(tenantId, dto);
-    return { data: integration, message: 'Microsoft Sentinel integration created successfully' };
+    return {
+      data: integration,
+      message: 'Microsoft Sentinel integration created successfully',
+    };
   }
 
   @Post('syslog')
@@ -62,7 +71,10 @@ export class SiemController {
     @Body() dto: CreateSyslogIntegrationDto,
   ) {
     const integration = await this.siemService.createSyslog(tenantId, dto);
-    return { data: integration, message: 'Syslog integration created successfully' };
+    return {
+      data: integration,
+      message: 'Syslog integration created successfully',
+    };
   }
 
   // ==================== COMMON OPERATIONS ====================
@@ -74,10 +86,7 @@ export class SiemController {
   }
 
   @Get(':id')
-  async findOne(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async findOne(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     const integration = await this.siemService.findOne(tenantId, id);
     return { data: integration };
   }
@@ -93,37 +102,25 @@ export class SiemController {
   }
 
   @Delete(':id')
-  async delete(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async delete(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     await this.siemService.delete(tenantId, id);
     return { success: true };
   }
 
   @Post(':id/enable')
-  async enable(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async enable(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     const integration = await this.siemService.enable(tenantId, id);
     return { data: integration, message: 'Integration enabled' };
   }
 
   @Post(':id/disable')
-  async disable(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async disable(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     const integration = await this.siemService.disable(tenantId, id);
     return { data: integration, message: 'Integration disabled' };
   }
 
   @Post(':id/test')
-  async test(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async test(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     const result = await this.siemService.test(tenantId, id);
     return { data: result };
   }

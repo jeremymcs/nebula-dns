@@ -58,7 +58,10 @@ describe('SsoService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SsoService,
-        { provide: getRepositoryToken(SsoConfiguration), useValue: mockSsoConfigRepository },
+        {
+          provide: getRepositoryToken(SsoConfiguration),
+          useValue: mockSsoConfigRepository,
+        },
         { provide: getRepositoryToken(Tenant), useValue: mockTenantRepository },
         { provide: getRepositoryToken(User), useValue: mockUserRepository },
         { provide: ConfigService, useValue: mockConfigService },
@@ -149,7 +152,10 @@ describe('SsoService', () => {
       };
 
       mockSsoConfigRepository.findOne.mockResolvedValue(mockConfig as any);
-      mockSsoConfigRepository.save.mockResolvedValue({ ...mockConfig, isEnabled: false } as any);
+      mockSsoConfigRepository.save.mockResolvedValue({
+        ...mockConfig,
+        isEnabled: false,
+      } as any);
 
       await service.disable(tenantId);
 
@@ -157,4 +163,3 @@ describe('SsoService', () => {
     });
   });
 });
-

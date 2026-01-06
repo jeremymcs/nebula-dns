@@ -11,12 +11,20 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { PoliciesService } from './policies.service';
 import { PolicyCompilerService } from './policy-compiler.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard, Roles, Role } from '@/common/guards/roles.guard';
-import { CurrentTenant, CurrentUser } from '@/common/decorators/tenant.decorator';
+import {
+  CurrentTenant,
+  CurrentUser,
+} from '@/common/decorators/tenant.decorator';
 import { CreatePolicyDto } from './dto/create-policy.dto';
 import { UpdatePolicyDto } from './dto/update-policy.dto';
 import { PaginationQueryDto } from '@/common/dto/pagination.dto';
@@ -47,10 +55,7 @@ export class PoliciesController {
   @ApiOperation({ summary: 'Get policy by ID' })
   @ApiResponse({ status: 200, description: 'Policy retrieved' })
   @ApiResponse({ status: 404, description: 'Policy not found' })
-  async findOne(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async findOne(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     return this.policiesService.findOne(tenantId, id);
   }
 
@@ -69,7 +74,10 @@ export class PoliciesController {
   @Patch(':id')
   @Roles(Role.OWNER, Role.ADMIN)
   @ApiOperation({ summary: 'Update policy (creates new version)' })
-  @ApiResponse({ status: 200, description: 'Policy updated, new version created' })
+  @ApiResponse({
+    status: 200,
+    description: 'Policy updated, new version created',
+  })
   async update(
     @CurrentTenant() tenantId: string,
     @CurrentUser() user: any,
@@ -84,10 +92,7 @@ export class PoliciesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete policy' })
   @ApiResponse({ status: 204, description: 'Policy deleted' })
-  async remove(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async remove(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     await this.policiesService.remove(tenantId, id);
   }
 
@@ -130,7 +135,10 @@ export class PoliciesController {
   @Post('compile')
   @Roles(Role.OWNER, Role.ADMIN)
   @ApiOperation({ summary: 'Compile all policies for tenant' })
-  @ApiResponse({ status: 200, description: 'Policies compiled and pushed to Redis' })
+  @ApiResponse({
+    status: 200,
+    description: 'Policies compiled and pushed to Redis',
+  })
   async compileAll(@CurrentTenant() tenantId: string) {
     await this.policyCompilerService.compileAllForTenant(tenantId);
     return { message: 'Policies compiled successfully' };
@@ -139,13 +147,20 @@ export class PoliciesController {
   @Post(':id/compile/:locationId')
   @Roles(Role.OWNER, Role.ADMIN)
   @ApiOperation({ summary: 'Compile policy for specific location' })
-  @ApiResponse({ status: 200, description: 'Policy compiled and pushed to Redis' })
+  @ApiResponse({
+    status: 200,
+    description: 'Policy compiled and pushed to Redis',
+  })
   async compileForLocation(
     @CurrentTenant() tenantId: string,
     @Param('id') policyId: string,
     @Param('locationId') locationId: string,
   ) {
-    const compiled = await this.policyCompilerService.compile(tenantId, policyId, locationId);
+    const compiled = await this.policyCompilerService.compile(
+      tenantId,
+      policyId,
+      locationId,
+    );
     return { message: 'Policy compiled successfully', compiled };
   }
 }

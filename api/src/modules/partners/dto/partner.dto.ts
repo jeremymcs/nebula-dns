@@ -1,6 +1,22 @@
-import { IsString, IsOptional, IsEmail, IsEnum, IsObject, MinLength, MaxLength } from 'class-validator';
-import { PartnerStatus, PartnerPlan, PartnerBranding, PartnerSettings } from '../entities/partner.entity';
-import { PartnerUserRole, PartnerUserStatus } from '../entities/partner-user.entity';
+import {
+  IsString,
+  IsOptional,
+  IsEmail,
+  IsEnum,
+  IsObject,
+  MinLength,
+  MaxLength,
+} from 'class-validator';
+import {
+  PartnerStatus,
+  PartnerPlan,
+  PartnerBranding,
+  PartnerSettings,
+} from '../entities/partner.entity';
+import {
+  PartnerUserRole,
+  PartnerUserStatus,
+} from '../entities/partner-user.entity';
 
 // Partner DTOs
 export class CreatePartnerDto {
@@ -101,7 +117,12 @@ export class CreatePartnerUserDto {
   @MinLength(8)
   password: string;
 
-  @IsEnum(['partner_owner', 'partner_admin', 'partner_support', 'partner_billing'])
+  @IsEnum([
+    'partner_owner',
+    'partner_admin',
+    'partner_support',
+    'partner_billing',
+  ])
   role: PartnerUserRole;
 }
 
@@ -113,7 +134,12 @@ export class UpdatePartnerUserDto {
   name?: string;
 
   @IsOptional()
-  @IsEnum(['partner_owner', 'partner_admin', 'partner_support', 'partner_billing'])
+  @IsEnum([
+    'partner_owner',
+    'partner_admin',
+    'partner_support',
+    'partner_billing',
+  ])
   role?: PartnerUserRole;
 
   @IsOptional()
@@ -209,4 +235,3 @@ export class UpdateOrganizationDto {
   @IsObject()
   settings?: Record<string, any>;
 }
-

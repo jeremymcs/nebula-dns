@@ -1,4 +1,11 @@
-import { IsString, IsOptional, IsEnum, IsBoolean, IsArray, ValidateNested } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsBoolean,
+  IsArray,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { PlaybookTrigger, PlaybookAction } from '../entities/playbook.entity';
 
@@ -60,4 +67,3 @@ export class UpdatePlaybookDto {
   @IsBoolean()
   isEnabled?: boolean;
 }
-

@@ -1,7 +1,7 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
+ *
  * Metrics Middleware - Records HTTP request metrics
  */
 
@@ -20,7 +20,7 @@ export class MetricsMiddleware implements NestMiddleware {
     res.on('finish', () => {
       const duration = Date.now() - startTime;
       const path = this.normalizePath(req.path);
-      
+
       this.metricsService.recordRequest(
         req.method,
         path,
@@ -36,7 +36,10 @@ export class MetricsMiddleware implements NestMiddleware {
     // Normalize paths to reduce cardinality
     // Replace UUIDs and numeric IDs with placeholders
     return path
-      .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, ':id')
+      .replace(
+        /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+        ':id',
+      )
       .replace(/\/\d+/g, '/:num');
   }
 }

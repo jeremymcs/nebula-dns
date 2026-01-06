@@ -1,10 +1,4 @@
-import {
-  IsEmail,
-  IsString,
-  IsEnum,
-  MinLength,
-  Matches,
-} from 'class-validator';
+import { IsEmail, IsString, IsEnum, MinLength, Matches } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { UserRole } from '../entities/user.entity';
 
@@ -24,13 +18,10 @@ export class CreateUserDto {
   })
   @IsString()
   @MinLength(12)
-  @Matches(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-    {
-      message:
-        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
-    },
-  )
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, {
+    message:
+      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+  })
   password: string;
 
   @ApiProperty({ enum: ['owner', 'admin', 'analyst', 'readonly'] })

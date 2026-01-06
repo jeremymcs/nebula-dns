@@ -35,15 +35,28 @@ export class PolicyTemplatesService {
     {
       id: 'family-safe',
       name: 'Family Safe',
-      description: 'Block adult content, gambling, and other inappropriate content for families',
+      description:
+        'Block adult content, gambling, and other inappropriate content for families',
       category: 'Home',
       icon: 'Shield',
       tags: ['family', 'parental-controls', 'safe-browsing'],
       config: {
-        blockedCategories: ['adult', 'gambling', 'drugs', 'weapons', 'violence', 'hate-speech'],
+        blockedCategories: [
+          'adult',
+          'gambling',
+          'drugs',
+          'weapons',
+          'violence',
+          'hate-speech',
+        ],
         allowedCategories: [],
         safeSearch: true,
-        safeSearchSettings: { google: 'strict', bing: 'strict', youtube: 'strict', duckduckgo: 'strict' },
+        safeSearchSettings: {
+          google: 'strict',
+          bing: 'strict',
+          youtube: 'strict',
+          duckduckgo: 'strict',
+        },
         blockMalware: true,
         blockPhishing: true,
         blockAds: true,
@@ -52,15 +65,32 @@ export class PolicyTemplatesService {
     {
       id: 'kids-safe',
       name: 'Kids Safe',
-      description: 'Maximum protection for children with strict content filtering',
+      description:
+        'Maximum protection for children with strict content filtering',
       category: 'Home',
       icon: 'Heart',
       tags: ['kids', 'children', 'parental-controls'],
       config: {
-        blockedCategories: ['adult', 'gambling', 'drugs', 'weapons', 'violence', 'hate-speech', 'dating', 'social-media', 'gaming', 'streaming'],
+        blockedCategories: [
+          'adult',
+          'gambling',
+          'drugs',
+          'weapons',
+          'violence',
+          'hate-speech',
+          'dating',
+          'social-media',
+          'gaming',
+          'streaming',
+        ],
         allowedCategories: ['education', 'kids'],
         safeSearch: true,
-        safeSearchSettings: { google: 'strict', bing: 'strict', youtube: 'strict', duckduckgo: 'strict' },
+        safeSearchSettings: {
+          google: 'strict',
+          bing: 'strict',
+          youtube: 'strict',
+          duckduckgo: 'strict',
+        },
         blockMalware: true,
         blockPhishing: true,
         blockAds: true,
@@ -72,12 +102,19 @@ export class PolicyTemplatesService {
     {
       id: 'work-productivity',
       name: 'Work Productivity',
-      description: 'Block social media, streaming, and other distracting content during work hours',
+      description:
+        'Block social media, streaming, and other distracting content during work hours',
       category: 'Business',
       icon: 'Briefcase',
       tags: ['productivity', 'office', 'work'],
       config: {
-        blockedCategories: ['social-media', 'streaming', 'gaming', 'gambling', 'adult'],
+        blockedCategories: [
+          'social-media',
+          'streaming',
+          'gaming',
+          'gambling',
+          'adult',
+        ],
         allowedCategories: [],
         safeSearch: false,
         blockMalware: true,
@@ -88,12 +125,21 @@ export class PolicyTemplatesService {
     {
       id: 'corporate-security',
       name: 'Corporate Security',
-      description: 'Enterprise-grade security for corporate networks with strict threat protection',
+      description:
+        'Enterprise-grade security for corporate networks with strict threat protection',
       category: 'Business',
       icon: 'Building',
       tags: ['enterprise', 'corporate', 'security'],
       config: {
-        blockedCategories: ['malware', 'phishing', 'c2', 'cryptomining', 'newly-registered', 'proxy-vpn', 'file-sharing'],
+        blockedCategories: [
+          'malware',
+          'phishing',
+          'c2',
+          'cryptomining',
+          'newly-registered',
+          'proxy-vpn',
+          'file-sharing',
+        ],
         allowedCategories: [],
         warnCategories: ['uncategorized'],
         safeSearch: false,
@@ -108,15 +154,28 @@ export class PolicyTemplatesService {
     {
       id: 'guest-network',
       name: 'Guest Network',
-      description: 'Balanced policy for guest Wi-Fi with basic security and content filtering',
+      description:
+        'Balanced policy for guest Wi-Fi with basic security and content filtering',
       category: 'Business',
       icon: 'Wifi',
       tags: ['guest', 'wifi', 'public'],
       config: {
-        blockedCategories: ['adult', 'malware', 'phishing', 'gambling', 'drugs', 'weapons'],
+        blockedCategories: [
+          'adult',
+          'malware',
+          'phishing',
+          'gambling',
+          'drugs',
+          'weapons',
+        ],
         allowedCategories: [],
         safeSearch: true,
-        safeSearchSettings: { google: 'moderate', bing: 'moderate', youtube: 'moderate', duckduckgo: 'moderate' },
+        safeSearchSettings: {
+          google: 'moderate',
+          bing: 'moderate',
+          youtube: 'moderate',
+          duckduckgo: 'moderate',
+        },
         blockMalware: true,
         blockPhishing: true,
         blockAds: false,
@@ -127,12 +186,20 @@ export class PolicyTemplatesService {
     {
       id: 'security-focused',
       name: 'Security Focused',
-      description: 'Maximum security with malware, phishing, and threat blocking',
+      description:
+        'Maximum security with malware, phishing, and threat blocking',
       category: 'Security',
       icon: 'Lock',
       tags: ['security', 'protection', 'threats'],
       config: {
-        blockedCategories: ['malware', 'phishing', 'c2', 'cryptomining', 'newly-registered', 'proxy-vpn'],
+        blockedCategories: [
+          'malware',
+          'phishing',
+          'c2',
+          'cryptomining',
+          'newly-registered',
+          'proxy-vpn',
+        ],
         allowedCategories: [],
         safeSearch: false,
         blockMalware: true,
@@ -140,13 +207,21 @@ export class PolicyTemplatesService {
         blockAds: true,
         blockNewlyRegistered: true,
         blockCryptomining: true,
-        threatFeeds: ['malware', 'phishing', 'c2', 'ransomware', 'botnet', 'dga'],
+        threatFeeds: [
+          'malware',
+          'phishing',
+          'c2',
+          'ransomware',
+          'botnet',
+          'dga',
+        ],
       },
     },
     {
       id: 'zero-trust',
       name: 'Zero Trust',
-      description: 'Block everything by default, only allow explicitly approved domains',
+      description:
+        'Block everything by default, only allow explicitly approved domains',
       category: 'Security',
       icon: 'ShieldX',
       tags: ['zero-trust', 'whitelist', 'strict'],
@@ -166,16 +241,32 @@ export class PolicyTemplatesService {
     {
       id: 'k12-education',
       name: 'K-12 Education',
-      description: 'CIPA-compliant filtering for K-12 schools with age-appropriate content controls',
+      description:
+        'CIPA-compliant filtering for K-12 schools with age-appropriate content controls',
       category: 'Education',
       icon: 'GraduationCap',
       tags: ['school', 'k12', 'cipa', 'children'],
       compliance: ['CIPA'],
       config: {
-        blockedCategories: ['adult', 'gambling', 'drugs', 'weapons', 'violence', 'hate-speech', 'dating', 'social-media', 'gaming'],
+        blockedCategories: [
+          'adult',
+          'gambling',
+          'drugs',
+          'weapons',
+          'violence',
+          'hate-speech',
+          'dating',
+          'social-media',
+          'gaming',
+        ],
         allowedCategories: ['education', 'reference', 'news', 'government'],
         safeSearch: true,
-        safeSearchSettings: { google: 'strict', bing: 'strict', youtube: 'strict', duckduckgo: 'strict' },
+        safeSearchSettings: {
+          google: 'strict',
+          bing: 'strict',
+          youtube: 'strict',
+          duckduckgo: 'strict',
+        },
         blockMalware: true,
         blockPhishing: true,
         blockAds: true,
@@ -185,7 +276,8 @@ export class PolicyTemplatesService {
     {
       id: 'higher-education',
       name: 'Higher Education',
-      description: 'Balanced policy for colleges and universities with academic freedom',
+      description:
+        'Balanced policy for colleges and universities with academic freedom',
       category: 'Education',
       icon: 'BookOpen',
       tags: ['college', 'university', 'academic'],
@@ -202,7 +294,8 @@ export class PolicyTemplatesService {
     {
       id: 'library',
       name: 'Public Library',
-      description: 'Balanced filtering for public library networks with CIPA compliance',
+      description:
+        'Balanced filtering for public library networks with CIPA compliance',
       category: 'Education',
       icon: 'Library',
       tags: ['library', 'public', 'cipa'],
@@ -222,13 +315,22 @@ export class PolicyTemplatesService {
     {
       id: 'hipaa',
       name: 'HIPAA Compliant',
-      description: 'Healthcare-focused policy with strict security for HIPAA compliance',
+      description:
+        'Healthcare-focused policy with strict security for HIPAA compliance',
       category: 'Compliance',
       icon: 'Hospital',
       tags: ['healthcare', 'hipaa', 'medical'],
       compliance: ['HIPAA'],
       config: {
-        blockedCategories: ['malware', 'phishing', 'c2', 'file-sharing', 'proxy-vpn', 'newly-registered', 'personal-storage'],
+        blockedCategories: [
+          'malware',
+          'phishing',
+          'c2',
+          'file-sharing',
+          'proxy-vpn',
+          'newly-registered',
+          'personal-storage',
+        ],
         allowedCategories: ['healthcare', 'medical', 'government'],
         safeSearch: false,
         blockMalware: true,
@@ -242,13 +344,21 @@ export class PolicyTemplatesService {
     {
       id: 'pci-dss',
       name: 'PCI-DSS Compliant',
-      description: 'Payment card industry security policy for networks handling card data',
+      description:
+        'Payment card industry security policy for networks handling card data',
       category: 'Compliance',
       icon: 'CreditCard',
       tags: ['pci', 'payment', 'financial'],
       compliance: ['PCI-DSS'],
       config: {
-        blockedCategories: ['malware', 'phishing', 'c2', 'proxy-vpn', 'newly-registered', 'uncategorized'],
+        blockedCategories: [
+          'malware',
+          'phishing',
+          'c2',
+          'proxy-vpn',
+          'newly-registered',
+          'uncategorized',
+        ],
         allowedCategories: [],
         safeSearch: false,
         blockMalware: true,
@@ -262,13 +372,20 @@ export class PolicyTemplatesService {
     {
       id: 'gdpr',
       name: 'GDPR Privacy Focus',
-      description: 'Privacy-focused policy blocking trackers and data collection services',
+      description:
+        'Privacy-focused policy blocking trackers and data collection services',
       category: 'Compliance',
       icon: 'Eye',
       tags: ['privacy', 'gdpr', 'tracking'],
       compliance: ['GDPR'],
       config: {
-        blockedCategories: ['tracking', 'advertising', 'analytics', 'malware', 'phishing'],
+        blockedCategories: [
+          'tracking',
+          'advertising',
+          'analytics',
+          'malware',
+          'phishing',
+        ],
         allowedCategories: [],
         safeSearch: false,
         blockMalware: true,
@@ -281,7 +398,8 @@ export class PolicyTemplatesService {
     {
       id: 'minimal',
       name: 'Minimal Protection',
-      description: 'Basic security with minimal content filtering - malware and phishing only',
+      description:
+        'Basic security with minimal content filtering - malware and phishing only',
       category: 'Basic',
       icon: 'Zap',
       tags: ['minimal', 'basic', 'light'],
@@ -321,7 +439,9 @@ export class PolicyTemplatesService {
   }
 
   findByCategory(category: string): PolicyTemplate[] {
-    return this.templates.filter((t) => t.category.toLowerCase() === category.toLowerCase());
+    return this.templates.filter(
+      (t) => t.category.toLowerCase() === category.toLowerCase(),
+    );
   }
 
   findByCompliance(compliance: string): PolicyTemplate[] {
@@ -341,4 +461,3 @@ export class PolicyTemplatesService {
     return [...new Set(standards)];
   }
 }
-

@@ -3,7 +3,11 @@ import { Exclude } from 'class-transformer';
 import { BaseEntity } from '@/common/entities/base.entity';
 import { Partner } from './partner.entity';
 
-export type PartnerUserRole = 'partner_owner' | 'partner_admin' | 'partner_support' | 'partner_billing';
+export type PartnerUserRole =
+  | 'partner_owner'
+  | 'partner_admin'
+  | 'partner_support'
+  | 'partner_billing';
 export type PartnerUserStatus = 'active' | 'suspended' | 'pending';
 
 @Entity('partner_users')
@@ -53,4 +57,3 @@ export class PartnerUser extends BaseEntity {
   @Column({ name: 'impersonating_org_id', type: 'uuid', nullable: true })
   impersonatingOrgId: string | null;
 }
-

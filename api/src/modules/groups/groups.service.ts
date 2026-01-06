@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserGroup } from './entities/group.entity';
@@ -61,7 +66,11 @@ export class GroupsService {
     return saved;
   }
 
-  async update(tenantId: string, id: string, dto: UpdateGroupDto): Promise<UserGroup> {
+  async update(
+    tenantId: string,
+    id: string,
+    dto: UpdateGroupDto,
+  ): Promise<UserGroup> {
     const group = await this.findOne(tenantId, id);
 
     if (dto.name) group.name = dto.name;
@@ -78,11 +87,15 @@ export class GroupsService {
     this.logger.log(`Deleted group ${id} from tenant ${tenantId}`);
   }
 
-  async addMember(tenantId: string, groupId: string, userId: string): Promise<UserGroup> {
+  async addMember(
+    tenantId: string,
+    groupId: string,
+    userId: string,
+  ): Promise<UserGroup> {
     const group = await this.findOne(tenantId, groupId);
-    
+
     // Check if user is already a member
-    const isMember = group.members.some(m => m.id === userId);
+    const isMember = group.members.some((m) => m.id === userId);
     if (isMember) {
       throw new BadRequestException('User is already a member of this group');
     }
@@ -97,7 +110,11 @@ export class GroupsService {
     return this.findOne(tenantId, groupId);
   }
 
-  async removeMember(tenantId: string, groupId: string, userId: string): Promise<UserGroup> {
+  async removeMember(
+    tenantId: string,
+    groupId: string,
+    userId: string,
+  ): Promise<UserGroup> {
     await this.findOne(tenantId, groupId);
 
     await this.groupRepository
@@ -120,10 +137,13 @@ export class GroupsService {
       .getMany();
   }
 
-  async getUserPolicy(tenantId: string, userId: string): Promise<string | null> {
+  async getUserPolicy(
+    tenantId: string,
+    userId: string,
+  ): Promise<string | null> {
     // Get user's groups ordered by priority
     const groups = await this.getUserGroups(tenantId, userId);
-    
+
     // Return policy from highest priority group with a policy assigned
     for (const group of groups) {
       if (group.policyId) {
@@ -134,4 +154,3 @@ export class GroupsService {
     return null;
   }
 }
-

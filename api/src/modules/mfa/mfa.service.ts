@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
@@ -23,7 +27,10 @@ export class MfaService {
     private configService: ConfigService,
   ) {
     // Use a 32-byte key for AES-256
-    const key = this.configService.get('MFA_ENCRYPTION_KEY', 'default-key-change-in-production!');
+    const key = this.configService.get(
+      'MFA_ENCRYPTION_KEY',
+      'default-key-change-in-production!',
+    );
     this.encryptionKey = crypto.scryptSync(key, 'salt', 32);
   }
 
@@ -52,7 +59,11 @@ export class MfaService {
   private decrypt(encryptedText: string): string {
     const [ivHex, encrypted] = encryptedText.split(':');
     const iv = Buffer.from(ivHex, 'hex');
-    const decipher = crypto.createDecipheriv('aes-256-cbc', this.encryptionKey, iv);
+    const decipher = crypto.createDecipheriv(
+      'aes-256-cbc',
+      this.encryptionKey,
+      iv,
+    );
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;
@@ -122,14 +133,14 @@ export class MfaService {
   async setupMfa(userId: string): Promise<SetupMfaResponseDto> {
     // Check if MFA is already enabled
     let userMfa = await this.userMfaRepository.findOne({ where: { userId } });
-    
+
     if (userMfa?.isEnabled) {
       throw new BadRequestException('MFA is already enabled');
     }
 
     const secret = this.generateSecret();
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    
+
     if (!user) {
       throw new BadRequestException('User not found');
     }
@@ -150,10 +161,10 @@ export class MfaService {
 
     // Generate backup codes
     const backupCodes = this.generateBackupCodes();
-    
+
     // Clear existing backup codes
     await this.backupCodeRepository.delete({ userId });
-    
+
     // Save hashed backup codes
     for (const code of backupCodes) {
       const backupCode = this.backupCodeRepository.create({
@@ -176,9 +187,11 @@ export class MfaService {
 
   async verifyAndEnableMfa(userId: string, code: string): Promise<boolean> {
     const userMfa = await this.userMfaRepository.findOne({ where: { userId } });
-    
+
     if (!userMfa) {
-      throw new BadRequestException('MFA setup not found. Please start setup first.');
+      throw new BadRequestException(
+        'MFA setup not found. Please start setup first.',
+      );
     }
 
     if (userMfa.isEnabled) {
@@ -186,7 +199,7 @@ export class MfaService {
     }
 
     const secret = this.decrypt(userMfa.secretEncrypted);
-    
+
     if (!this.verifyTOTP(secret, code)) {
       throw new BadRequestException('Invalid verification code');
     }
@@ -204,13 +217,13 @@ export class MfaService {
 
   async verifyMfaCode(userId: string, code: string): Promise<boolean> {
     const userMfa = await this.userMfaRepository.findOne({ where: { userId } });
-    
+
     if (!userMfa?.isEnabled) {
       throw new BadRequestException('MFA is not enabled');
     }
 
     const secret = this.decrypt(userMfa.secretEncrypted);
-    
+
     // Try TOTP first
     if (this.verifyTOTP(secret, code)) {
       userMfa.lastUsedAt = new Date();
@@ -234,9 +247,13 @@ export class MfaService {
     return false;
   }
 
-  async disableMfa(userId: string, password: string, code: string): Promise<boolean> {
+  async disableMfa(
+    userId: string,
+    password: string,
+    code: string,
+  ): Promise<boolean> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    
+
     if (!user) {
       throw new BadRequestException('User not found');
     }
@@ -275,10 +292,10 @@ export class MfaService {
 
     // Generate new backup codes
     const backupCodes = this.generateBackupCodes();
-    
+
     // Clear existing backup codes
     await this.backupCodeRepository.delete({ userId });
-    
+
     // Save new hashed backup codes
     for (const newCode of backupCodes) {
       const backupCode = this.backupCodeRepository.create({
@@ -291,9 +308,13 @@ export class MfaService {
     return backupCodes;
   }
 
-  async getBackupCodesCount(userId: string): Promise<{ total: number; remaining: number }> {
-    const allCodes = await this.backupCodeRepository.count({ where: { userId } });
-    const usedCodes = await this.backupCodeRepository.count({ 
+  async getBackupCodesCount(
+    userId: string,
+  ): Promise<{ total: number; remaining: number }> {
+    const allCodes = await this.backupCodeRepository.count({
+      where: { userId },
+    });
+    const usedCodes = await this.backupCodeRepository.count({
       where: { userId },
       // Find codes where usedAt is not null - TypeORM workaround
     });

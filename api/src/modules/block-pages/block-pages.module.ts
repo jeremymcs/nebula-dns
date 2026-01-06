@@ -6,9 +6,7 @@ import { BlockPage } from './entities/block-page.entity';
 import { AccessRequest } from './entities/access-request.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([BlockPage, AccessRequest]),
-  ],
+  imports: [TypeOrmModule.forFeature([BlockPage, AccessRequest])],
   controllers: [BlockPagesController],
   providers: [BlockPagesService],
   exports: [BlockPagesService],

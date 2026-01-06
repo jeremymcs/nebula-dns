@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException, UnauthorizedException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  UnauthorizedException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
@@ -31,7 +37,10 @@ export class PartnersService {
     private configService: ConfigService,
   ) {
     // Use a 32-byte key for AES-256 (same as MfaService)
-    const key = this.configService.get('MFA_ENCRYPTION_KEY', 'default-key-change-in-production!');
+    const key = this.configService.get(
+      'MFA_ENCRYPTION_KEY',
+      'default-key-change-in-production!',
+    );
     this.encryptionKey = crypto.scryptSync(key, 'salt', 32);
   }
 
@@ -41,7 +50,11 @@ export class PartnersService {
   private decrypt(encryptedText: string): string {
     const [ivHex, encrypted] = encryptedText.split(':');
     const iv = Buffer.from(ivHex, 'hex');
-    const decipher = crypto.createDecipheriv('aes-256-cbc', this.encryptionKey, iv);
+    const decipher = crypto.createDecipheriv(
+      'aes-256-cbc',
+      this.encryptionKey,
+      iv,
+    );
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;
@@ -101,7 +114,9 @@ export class PartnersService {
 
   // Verify MFA code for a partner user
   async verifyPartnerMfaCode(userId: string, code: string): Promise<boolean> {
-    const user = await this.partnerUsersRepository.findOne({ where: { id: userId } });
+    const user = await this.partnerUsersRepository.findOne({
+      where: { id: userId },
+    });
 
     if (!user || !user.mfaEnabled || !user.mfaSecret) {
       throw new BadRequestException('MFA is not enabled for this user');
@@ -119,10 +134,15 @@ export class PartnersService {
   // ==================== PASSWORD RESET ====================
 
   // In-memory store for password reset tokens (in production, use Redis or DB)
-  private passwordResetTokens = new Map<string, { userId: string; expiresAt: Date }>();
+  private passwordResetTokens = new Map<
+    string,
+    { userId: string; expiresAt: Date }
+  >();
 
   // Generate a password reset token
-  async generatePasswordResetToken(email: string): Promise<{ token: string; user: PartnerUser } | null> {
+  async generatePasswordResetToken(
+    email: string,
+  ): Promise<{ token: string; user: PartnerUser } | null> {
     const user = await this.findUserByEmail(email);
     if (!user) {
       return null; // Don't reveal if user exists
@@ -153,7 +173,9 @@ export class PartnersService {
       return null;
     }
 
-    const user = await this.partnerUsersRepository.findOne({ where: { id: tokenData.userId } });
+    const user = await this.partnerUsersRepository.findOne({
+      where: { id: tokenData.userId },
+    });
     return user;
   }
 
@@ -214,7 +236,9 @@ export class PartnersService {
     // Check slug uniqueness
     const existing = await this.findBySlug(dto.slug);
     if (existing) {
-      throw new BadRequestException(`Partner with slug "${dto.slug}" already exists`);
+      throw new BadRequestException(
+        `Partner with slug "${dto.slug}" already exists`,
+      );
     }
 
     const partner = this.partnersRepository.create(dto);
@@ -263,11 +287,16 @@ export class PartnersService {
     });
   }
 
-  async createUser(partnerId: string, dto: CreatePartnerUserDto): Promise<PartnerUser> {
+  async createUser(
+    partnerId: string,
+    dto: CreatePartnerUserDto,
+  ): Promise<PartnerUser> {
     // Check email uniqueness
     const existing = await this.findUserByEmail(dto.email);
     if (existing) {
-      throw new BadRequestException(`User with email "${dto.email}" already exists`);
+      throw new BadRequestException(
+        `User with email "${dto.email}" already exists`,
+      );
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 12);
@@ -281,11 +310,17 @@ export class PartnersService {
     });
 
     const saved = await this.partnerUsersRepository.save(user);
-    this.logger.log(`Created partner user ${saved.id} for partner ${partnerId}`);
+    this.logger.log(
+      `Created partner user ${saved.id} for partner ${partnerId}`,
+    );
     return saved;
   }
 
-  async updateUser(partnerId: string, userId: string, dto: UpdatePartnerUserDto): Promise<PartnerUser> {
+  async updateUser(
+    partnerId: string,
+    userId: string,
+    dto: UpdatePartnerUserDto,
+  ): Promise<PartnerUser> {
     const user = await this.findUserById(partnerId, userId);
     Object.assign(user, dto);
     const saved = await this.partnerUsersRepository.save(user);
@@ -318,34 +353,49 @@ export class PartnersService {
       relations: ['locations'],
     });
     if (!org) {
-      throw new NotFoundException(`Organization ${orgId} not found or not accessible`);
+      throw new NotFoundException(
+        `Organization ${orgId} not found or not accessible`,
+      );
     }
     return org;
   }
 
-  async getOrganizationLocations(partnerId: string, orgId: string): Promise<any[]> {
+  async getOrganizationLocations(
+    partnerId: string,
+    orgId: string,
+  ): Promise<any[]> {
     const org = await this.tenantsRepository.findOne({
       where: { id: orgId, partnerId },
       relations: ['locations'],
     });
     if (!org) {
-      throw new NotFoundException(`Organization ${orgId} not found or not accessible`);
+      throw new NotFoundException(
+        `Organization ${orgId} not found or not accessible`,
+      );
     }
     return org.locations || [];
   }
 
-  async createOrganization(partnerId: string, dto: CreateOrganizationDto): Promise<Tenant> {
+  async createOrganization(
+    partnerId: string,
+    dto: CreateOrganizationDto,
+  ): Promise<Tenant> {
     // Check partner limits
     const partner = await this.findOne(partnerId);
     const currentCount = await this.getOrganizationCount(partnerId);
     const maxOrgs = partner.settings?.maxOrganizations || 100;
 
     if (currentCount >= maxOrgs) {
-      throw new BadRequestException(`Organization limit (${maxOrgs}) reached for this partner`);
+      throw new BadRequestException(
+        `Organization limit (${maxOrgs}) reached for this partner`,
+      );
     }
 
     // Generate unique slug
-    const baseSlug = dto.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const baseSlug = dto.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
     let slug = baseSlug;
     let counter = 1;
 
@@ -372,11 +422,17 @@ export class PartnersService {
     });
 
     const saved = await this.tenantsRepository.save(org);
-    this.logger.log(`Created organization ${saved.id} for partner ${partnerId}`);
+    this.logger.log(
+      `Created organization ${saved.id} for partner ${partnerId}`,
+    );
     return saved;
   }
 
-  async updateOrganization(partnerId: string, orgId: string, dto: UpdateOrganizationDto): Promise<Tenant> {
+  async updateOrganization(
+    partnerId: string,
+    orgId: string,
+    dto: UpdateOrganizationDto,
+  ): Promise<Tenant> {
     const org = await this.getOrganization(partnerId, orgId);
     Object.assign(org, dto);
     const saved = await this.tenantsRepository.save(org);
@@ -392,7 +448,10 @@ export class PartnersService {
 
   // ==================== AUTHENTICATION ====================
 
-  async validatePartnerUser(email: string, password: string): Promise<PartnerUser> {
+  async validatePartnerUser(
+    email: string,
+    password: string,
+  ): Promise<PartnerUser> {
     const user = await this.findUserByEmail(email);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -428,28 +487,42 @@ export class PartnersService {
 
   // ==================== IMPERSONATION ====================
 
-  async startImpersonation(partnerId: string, userId: string, orgId: string): Promise<Tenant> {
+  async startImpersonation(
+    partnerId: string,
+    userId: string,
+    orgId: string,
+  ): Promise<Tenant> {
     // Verify the organization belongs to this partner
     const org = await this.getOrganization(partnerId, orgId);
 
     // Update the partner user's impersonating org
-    await this.partnerUsersRepository.update(userId, { impersonatingOrgId: orgId });
+    await this.partnerUsersRepository.update(userId, {
+      impersonatingOrgId: orgId,
+    });
 
-    this.logger.log(`Partner user ${userId} started impersonating org ${orgId}`);
+    this.logger.log(
+      `Partner user ${userId} started impersonating org ${orgId}`,
+    );
     return org;
   }
 
   async stopImpersonation(userId: string): Promise<void> {
-    await this.partnerUsersRepository.update(userId, { impersonatingOrgId: null });
+    await this.partnerUsersRepository.update(userId, {
+      impersonatingOrgId: null,
+    });
     this.logger.log(`Partner user ${userId} stopped impersonating`);
   }
 
   async getCurrentImpersonation(userId: string): Promise<Tenant | null> {
-    const user = await this.partnerUsersRepository.findOne({ where: { id: userId } });
+    const user = await this.partnerUsersRepository.findOne({
+      where: { id: userId },
+    });
     if (!user?.impersonatingOrgId) {
       return null;
     }
-    return this.tenantsRepository.findOne({ where: { id: user.impersonatingOrgId } });
+    return this.tenantsRepository.findOne({
+      where: { id: user.impersonatingOrgId },
+    });
   }
 
   // ==================== AGGREGATE STATS ====================
@@ -469,38 +542,48 @@ export class PartnersService {
     });
 
     const planBreakdown: Record<string, number> = {};
-    orgs.forEach(org => {
+    orgs.forEach((org) => {
       planBreakdown[org.plan] = (planBreakdown[org.plan] || 0) + 1;
     });
 
     return {
       totalOrganizations: orgs.length,
-      activeOrganizations: orgs.filter(o => o.status === 'active').length,
-      suspendedOrganizations: orgs.filter(o => o.status === 'suspended').length,
-      totalLocations: orgs.reduce((sum, o) => sum + (o.locations?.length || 0), 0),
-      activeLocations: orgs.reduce((sum, o) => sum + (o.locations?.filter(l => l.status === 'active').length || 0), 0),
+      activeOrganizations: orgs.filter((o) => o.status === 'active').length,
+      suspendedOrganizations: orgs.filter((o) => o.status === 'suspended')
+        .length,
+      totalLocations: orgs.reduce(
+        (sum, o) => sum + (o.locations?.length || 0),
+        0,
+      ),
+      activeLocations: orgs.reduce(
+        (sum, o) =>
+          sum + (o.locations?.filter((l) => l.status === 'active').length || 0),
+        0,
+      ),
       totalUsers: orgs.reduce((sum, o) => sum + (o.users?.length || 0), 0),
       planBreakdown,
     };
   }
 
-  async getPartnerOrganizationsSummary(partnerId: string): Promise<Array<{
-    id: string;
-    name: string;
-    slug: string;
-    status: string;
-    plan: string;
-    locationCount: number;
-    userCount: number;
-    createdAt: Date;
-  }>> {
+  async getPartnerOrganizationsSummary(partnerId: string): Promise<
+    Array<{
+      id: string;
+      name: string;
+      slug: string;
+      status: string;
+      plan: string;
+      locationCount: number;
+      userCount: number;
+      createdAt: Date;
+    }>
+  > {
     const orgs = await this.tenantsRepository.find({
       where: { partnerId },
       relations: ['locations', 'users'],
       order: { createdAt: 'DESC' },
     });
 
-    return orgs.map(org => ({
+    return orgs.map((org) => ({
       id: org.id,
       name: org.name,
       slug: org.slug,
@@ -512,4 +595,3 @@ export class PartnersService {
     }));
   }
 }
-

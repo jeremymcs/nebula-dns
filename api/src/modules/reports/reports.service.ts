@@ -7,7 +7,11 @@
 
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ReportQueryDto, QueryLogDto, QueryLogEntry } from './dto/report-query.dto';
+import {
+  ReportQueryDto,
+  QueryLogDto,
+  QueryLogEntry,
+} from './dto/report-query.dto';
 import { ClickHouseService } from '../clickhouse/clickhouse.service';
 import { UsersService } from '../users/users.service';
 import { PoliciesService } from '../policies/policies.service';
@@ -98,7 +102,10 @@ export class ReportsService {
       `Getting summary for tenant ${tenantId} from ${startDate} to ${endDate}`,
     );
 
-    const stats = await this.clickhouseService.getSummaryStats(tenantId, period);
+    const stats = await this.clickhouseService.getSummaryStats(
+      tenantId,
+      period,
+    );
 
     return {
       totalQueries: stats.totalQueries,
@@ -126,7 +133,11 @@ export class ReportsService {
       `Getting top blocked for tenant ${tenantId}, limit ${limit}`,
     );
 
-    const data = await this.clickhouseService.getTopBlocked(tenantId, period, limit);
+    const data = await this.clickhouseService.getTopBlocked(
+      tenantId,
+      period,
+      limit,
+    );
 
     return data.map((item: any) => ({
       domain: item.domain,
@@ -147,16 +158,17 @@ export class ReportsService {
     return await this.clickhouseService.getBlocksByCategory(tenantId, period);
   }
 
-  async getThreatTrends(
-    tenantId: string,
-    query: ReportQueryDto,
-  ): Promise<any> {
+  async getThreatTrends(tenantId: string, query: ReportQueryDto): Promise<any> {
     const period = query.period || '7d';
 
     this.logger.debug(`Getting threat trends for tenant ${tenantId}`);
 
     const data = await this.clickhouseService.getThreatTrends(tenantId, period);
-    const topBlocked = await this.clickhouseService.getTopBlocked(tenantId, period, 10);
+    const topBlocked = await this.clickhouseService.getTopBlocked(
+      tenantId,
+      period,
+      10,
+    );
 
     // Generate threat list for Mission Control radar
     const threats = topBlocked.map((item: any, index: number) => ({
@@ -170,8 +182,12 @@ export class ReportsService {
     }));
 
     // Generate heatmap data from real ClickHouse data
-    const heatmapData = await this.clickhouseService.getHeatmapData(tenantId, period);
-    const heatmap = heatmapData.length > 0 ? heatmapData : this.generateMockHeatmap();
+    const heatmapData = await this.clickhouseService.getHeatmapData(
+      tenantId,
+      period,
+    );
+    const heatmap =
+      heatmapData.length > 0 ? heatmapData : this.generateMockHeatmap();
 
     // Transform data or return mock if empty
     let trends: ThreatTrend[] = [];
@@ -253,39 +269,65 @@ export class ReportsService {
   ): Promise<QueryTrend[]> {
     const period = query.period || '7d';
 
-    this.logger.debug(`Getting query trends for tenant ${tenantId}, period ${period}`);
+    this.logger.debug(
+      `Getting query trends for tenant ${tenantId}, period ${period}`,
+    );
 
     return await this.clickhouseService.getQueryTrends(tenantId, period);
   }
 
   async getInsights(tenantId: string, query: ReportQueryDto): Promise<any> {
     const period = query.period || '7d';
-    this.logger.debug(`Getting insights for tenant ${tenantId}, period ${period}`);
+    this.logger.debug(
+      `Getting insights for tenant ${tenantId}, period ${period}`,
+    );
 
     // Get current and previous period stats
-    const stats = await this.clickhouseService.getSummaryStats(tenantId, period);
-    const prevStats = await this.clickhouseService.getSummaryStats(tenantId, period === '7d' ? '14d' : '30d');
-    const topBlocked = await this.clickhouseService.getTopBlocked(tenantId, period, 5);
+    const stats = await this.clickhouseService.getSummaryStats(
+      tenantId,
+      period,
+    );
+    const prevStats = await this.clickhouseService.getSummaryStats(
+      tenantId,
+      period === '7d' ? '14d' : '30d',
+    );
+    const topBlocked = await this.clickhouseService.getTopBlocked(
+      tenantId,
+      period,
+      5,
+    );
 
     const now = new Date();
     const periodDays = period === '7d' ? 7 : period === '30d' ? 30 : 1;
-    const weekStart = new Date(now.getTime() - periodDays * 24 * 60 * 60 * 1000);
+    const weekStart = new Date(
+      now.getTime() - periodDays * 24 * 60 * 60 * 1000,
+    );
 
     // Generate highlights based on data
     const highlights = [];
-    const blockedChange = prevStats.blockedQueries > 0
-      ? Math.round(((stats.blockedQueries - prevStats.blockedQueries) / prevStats.blockedQueries) * 100)
-      : 0;
+    const blockedChange =
+      prevStats.blockedQueries > 0
+        ? Math.round(
+            ((stats.blockedQueries - prevStats.blockedQueries) /
+              prevStats.blockedQueries) *
+              100,
+          )
+        : 0;
 
     if (stats.threatsBlocked > 0) {
       highlights.push({
         id: 'threat-activity',
         type: blockedChange < 0 ? 'positive' : 'warning',
         title: blockedChange < 0 ? 'Threat Reduction' : 'Threat Activity',
-        description: blockedChange < 0
-          ? `Blocked threats decreased by ${Math.abs(blockedChange)}% this period`
-          : `${stats.threatsBlocked.toLocaleString()} threats blocked in the last ${period}`,
-        metric: { value: stats.threatsBlocked, change: blockedChange, unit: 'threats' },
+        description:
+          blockedChange < 0
+            ? `Blocked threats decreased by ${Math.abs(blockedChange)}% this period`
+            : `${stats.threatsBlocked.toLocaleString()} threats blocked in the last ${period}`,
+        metric: {
+          value: stats.threatsBlocked,
+          change: blockedChange,
+          unit: 'threats',
+        },
       });
     }
 
@@ -295,7 +337,11 @@ export class ReportsService {
         type: 'info',
         title: 'Most Blocked Domain',
         description: `${topBlocked[0].domain} was blocked ${topBlocked[0].count} times`,
-        metric: { value: parseInt(topBlocked[0].count), change: 0, unit: 'blocks' },
+        metric: {
+          value: parseInt(topBlocked[0].count),
+          change: 0,
+          unit: 'blocks',
+        },
       });
     }
 
@@ -328,7 +374,8 @@ export class ReportsService {
       id: 'enable-nrd',
       priority: 'medium',
       title: 'Enable NRD Blocking',
-      description: 'Newly Registered Domain blocking adds an extra layer of protection against emerging threats.',
+      description:
+        'Newly Registered Domain blocking adds an extra layer of protection against emerging threats.',
       action: { label: 'Configure', href: '/dashboard/settings/security' },
       impact: 'Enhanced protection',
     });
@@ -337,18 +384,31 @@ export class ReportsService {
       id: 'schedule-reports',
       priority: 'low',
       title: 'Schedule Weekly Reports',
-      description: 'Set up automated weekly reports to stay informed about your network security.',
+      description:
+        'Set up automated weekly reports to stay informed about your network security.',
       action: { label: 'Configure', href: '/dashboard/reports/scheduled' },
       impact: 'Better visibility',
     });
 
     // Generate trend data
-    const queryChange = prevStats.totalQueries > 0
-      ? Math.round(((stats.totalQueries - prevStats.totalQueries) / prevStats.totalQueries) * 100 * 10) / 10
-      : 0;
-    const threatChange = prevStats.threatsBlocked > 0
-      ? Math.round(((stats.threatsBlocked - prevStats.threatsBlocked) / prevStats.threatsBlocked) * 100 * 10) / 10
-      : 0;
+    const queryChange =
+      prevStats.totalQueries > 0
+        ? Math.round(
+            ((stats.totalQueries - prevStats.totalQueries) /
+              prevStats.totalQueries) *
+              100 *
+              10,
+          ) / 10
+        : 0;
+    const threatChange =
+      prevStats.threatsBlocked > 0
+        ? Math.round(
+            ((stats.threatsBlocked - prevStats.threatsBlocked) /
+              prevStats.threatsBlocked) *
+              100 *
+              10,
+          ) / 10
+        : 0;
 
     const trends = [
       {
@@ -356,35 +416,43 @@ export class ReportsService {
         current: stats.totalQueries,
         previous: prevStats.totalQueries,
         change: queryChange,
-        trend: queryChange > 0 ? 'up' : queryChange < 0 ? 'down' : 'stable'
+        trend: queryChange > 0 ? 'up' : queryChange < 0 ? 'down' : 'stable',
       },
       {
         label: 'Block Rate',
         current: parseFloat(stats.blockRate) || 0,
         previous: parseFloat(prevStats.blockRate) || 0,
-        change: Math.round((parseFloat(stats.blockRate) - parseFloat(prevStats.blockRate)) * 10) / 10,
-        trend: parseFloat(stats.blockRate) > parseFloat(prevStats.blockRate) ? 'up' : 'down'
+        change:
+          Math.round(
+            (parseFloat(stats.blockRate) - parseFloat(prevStats.blockRate)) *
+              10,
+          ) / 10,
+        trend:
+          parseFloat(stats.blockRate) > parseFloat(prevStats.blockRate)
+            ? 'up'
+            : 'down',
       },
       {
         label: 'Threats',
         current: stats.threatsBlocked,
         previous: prevStats.threatsBlocked,
         change: threatChange,
-        trend: threatChange > 0 ? 'up' : threatChange < 0 ? 'down' : 'stable'
+        trend: threatChange > 0 ? 'up' : threatChange < 0 ? 'down' : 'stable',
       },
       {
         label: 'Avg Response',
         current: stats.avgResponseTime || 12,
         previous: prevStats.avgResponseTime || 14,
         change: 0,
-        trend: 'stable'
+        trend: 'stable',
       },
     ];
 
     // Build summary
-    const summary = stats.threatsBlocked > 0
-      ? `This period saw ${stats.totalQueries.toLocaleString()} DNS queries with ${stats.blockedQueries.toLocaleString()} blocked (${stats.blockRate}%). ${stats.threatsBlocked.toLocaleString()} security threats were prevented.`
-      : `This period processed ${stats.totalQueries.toLocaleString()} DNS queries with ${stats.blockedQueries.toLocaleString()} blocked based on your policies.`;
+    const summary =
+      stats.threatsBlocked > 0
+        ? `This period saw ${stats.totalQueries.toLocaleString()} DNS queries with ${stats.blockedQueries.toLocaleString()} blocked (${stats.blockRate}%). ${stats.threatsBlocked.toLocaleString()} security threats were prevented.`
+        : `This period processed ${stats.totalQueries.toLocaleString()} DNS queries with ${stats.blockedQueries.toLocaleString()} blocked based on your policies.`;
 
     return {
       id: `insight-${tenantId}-${period}`,
@@ -411,12 +479,19 @@ export class ReportsService {
 
     // Gather data from multiple sources
     const defaultPagination = { limit: 100 };
-    const [stats, usersResult, policiesResult, locationsResult] = await Promise.all([
-      this.clickhouseService.getSummaryStats(tenantId, '30d'),
-      this.usersService.findAll(tenantId, defaultPagination).catch(() => ({ data: [], total: 0 })),
-      this.policiesService.findAll(tenantId, defaultPagination).catch(() => ({ data: [], total: 0 })),
-      this.locationsService.findAll(tenantId, defaultPagination).catch(() => ({ data: [], total: 0 })),
-    ]);
+    const [stats, usersResult, policiesResult, locationsResult] =
+      await Promise.all([
+        this.clickhouseService.getSummaryStats(tenantId, '30d'),
+        this.usersService
+          .findAll(tenantId, defaultPagination)
+          .catch(() => ({ data: [], total: 0 })),
+        this.policiesService
+          .findAll(tenantId, defaultPagination)
+          .catch(() => ({ data: [], total: 0 })),
+        this.locationsService
+          .findAll(tenantId, defaultPagination)
+          .catch(() => ({ data: [], total: 0 })),
+      ]);
     const users = usersResult.data || [];
     const policies = policiesResult.data || [];
     const locations = locationsResult.data || [];
@@ -432,49 +507,208 @@ export class ReportsService {
 
     if (mfaPercentage === 100) {
       score += 15;
-      factors.push({ id: 'mfa', name: 'Multi-Factor Auth', value: mfaPercentage, maxValue: 100, score: 15, maxScore: 15, impact: 15, status: 'good', category: 'authentication', description: 'All users have MFA enabled - excellent security!' });
+      factors.push({
+        id: 'mfa',
+        name: 'Multi-Factor Auth',
+        value: mfaPercentage,
+        maxValue: 100,
+        score: 15,
+        maxScore: 15,
+        impact: 15,
+        status: 'good',
+        category: 'authentication',
+        description: 'All users have MFA enabled - excellent security!',
+      });
     } else if (mfaPercentage >= 50) {
       score += 8;
-      factors.push({ id: 'mfa', name: 'Multi-Factor Auth', value: mfaPercentage, maxValue: 100, score: 8, maxScore: 15, impact: 8, status: 'info', category: 'authentication', description: `${mfaPercentage}% of users have MFA enabled`, recommendation: 'Enable MFA for remaining users' });
-      recommendations.push({ id: 'mfa', title: 'Enable MFA for all users', description: `${totalUsers - usersWithMfa} users still need MFA enabled`, priority: 'high', impact: '+7 points', action: { label: 'Configure MFA', href: '/dashboard/settings/security' } });
+      factors.push({
+        id: 'mfa',
+        name: 'Multi-Factor Auth',
+        value: mfaPercentage,
+        maxValue: 100,
+        score: 8,
+        maxScore: 15,
+        impact: 8,
+        status: 'info',
+        category: 'authentication',
+        description: `${mfaPercentage}% of users have MFA enabled`,
+        recommendation: 'Enable MFA for remaining users',
+      });
+      recommendations.push({
+        id: 'mfa',
+        title: 'Enable MFA for all users',
+        description: `${totalUsers - usersWithMfa} users still need MFA enabled`,
+        priority: 'high',
+        impact: '+7 points',
+        action: {
+          label: 'Configure MFA',
+          href: '/dashboard/settings/security',
+        },
+      });
     } else {
-      factors.push({ id: 'mfa', name: 'Multi-Factor Auth', value: mfaPercentage, maxValue: 100, score: 0, maxScore: 15, impact: 0, status: 'warning', category: 'authentication', description: 'Most users lack MFA protection', recommendation: 'Enable MFA for all users' });
-      recommendations.push({ id: 'mfa', title: 'Enable MFA for all users', description: 'Add an extra layer of security to prevent unauthorized access', priority: 'high', impact: '+15 points', action: { label: 'Configure MFA', href: '/dashboard/settings/security' } });
+      factors.push({
+        id: 'mfa',
+        name: 'Multi-Factor Auth',
+        value: mfaPercentage,
+        maxValue: 100,
+        score: 0,
+        maxScore: 15,
+        impact: 0,
+        status: 'warning',
+        category: 'authentication',
+        description: 'Most users lack MFA protection',
+        recommendation: 'Enable MFA for all users',
+      });
+      recommendations.push({
+        id: 'mfa',
+        title: 'Enable MFA for all users',
+        description:
+          'Add an extra layer of security to prevent unauthorized access',
+        priority: 'high',
+        impact: '+15 points',
+        action: {
+          label: 'Configure MFA',
+          href: '/dashboard/settings/security',
+        },
+      });
     }
 
     // Factor 2: Policy Configuration (max +15 points)
     const activePolicies = policies.filter((p: any) => p.isActive).length;
-    const policiesWithThreatBlocking = policies.filter((p: any) =>
-      p.threatCategories?.length > 0 || p.blockMalware || p.blockPhishing
+    const policiesWithThreatBlocking = policies.filter(
+      (p: any) =>
+        p.threatCategories?.length > 0 || p.blockMalware || p.blockPhishing,
     ).length;
 
     if (activePolicies > 0 && policiesWithThreatBlocking > 0) {
       score += 15;
-      factors.push({ id: 'policies', name: 'Security Policies', value: activePolicies, maxValue: activePolicies, score: 15, maxScore: 15, impact: 15, status: 'good', category: 'configuration', description: `${activePolicies} active policies with threat protection` });
+      factors.push({
+        id: 'policies',
+        name: 'Security Policies',
+        value: activePolicies,
+        maxValue: activePolicies,
+        score: 15,
+        maxScore: 15,
+        impact: 15,
+        status: 'good',
+        category: 'configuration',
+        description: `${activePolicies} active policies with threat protection`,
+      });
     } else if (activePolicies > 0) {
       score += 8;
-      factors.push({ id: 'policies', name: 'Security Policies', value: activePolicies, maxValue: activePolicies, score: 8, maxScore: 15, impact: 8, status: 'info', category: 'configuration', description: 'Policies configured but threat blocking not enabled', recommendation: 'Enable threat category blocking' });
-      recommendations.push({ id: 'policies', title: 'Enable threat blocking', description: 'Add malware and phishing protection to your policies', priority: 'high', impact: '+7 points', action: { label: 'Edit Policies', href: '/dashboard/policies' } });
+      factors.push({
+        id: 'policies',
+        name: 'Security Policies',
+        value: activePolicies,
+        maxValue: activePolicies,
+        score: 8,
+        maxScore: 15,
+        impact: 8,
+        status: 'info',
+        category: 'configuration',
+        description: 'Policies configured but threat blocking not enabled',
+        recommendation: 'Enable threat category blocking',
+      });
+      recommendations.push({
+        id: 'policies',
+        title: 'Enable threat blocking',
+        description: 'Add malware and phishing protection to your policies',
+        priority: 'high',
+        impact: '+7 points',
+        action: { label: 'Edit Policies', href: '/dashboard/policies' },
+      });
     } else {
-      factors.push({ id: 'policies', name: 'Security Policies', value: 0, maxValue: 1, score: 0, maxScore: 15, impact: 0, status: 'warning', category: 'configuration', description: 'No active security policies', recommendation: 'Create and activate security policies' });
-      recommendations.push({ id: 'policies', title: 'Create security policies', description: 'Define what content and threats to block', priority: 'high', impact: '+15 points', action: { label: 'Create Policy', href: '/dashboard/policies' } });
+      factors.push({
+        id: 'policies',
+        name: 'Security Policies',
+        value: 0,
+        maxValue: 1,
+        score: 0,
+        maxScore: 15,
+        impact: 0,
+        status: 'warning',
+        category: 'configuration',
+        description: 'No active security policies',
+        recommendation: 'Create and activate security policies',
+      });
+      recommendations.push({
+        id: 'policies',
+        title: 'Create security policies',
+        description: 'Define what content and threats to block',
+        priority: 'high',
+        impact: '+15 points',
+        action: { label: 'Create Policy', href: '/dashboard/policies' },
+      });
     }
 
     // Factor 3: Location Coverage (max +10 points)
     const activeLocations = locations.filter((l: any) => l.isActive).length;
-    const locationsWithPolicies = locations.filter((l: any) => l.policyId).length;
+    const locationsWithPolicies = locations.filter(
+      (l: any) => l.policyId,
+    ).length;
 
     if (activeLocations > 0 && locationsWithPolicies === activeLocations) {
       score += 10;
-      factors.push({ id: 'locations', name: 'Network Coverage', value: activeLocations, maxValue: activeLocations, score: 10, maxScore: 10, impact: 10, status: 'good', category: 'configuration', description: `${activeLocations} locations protected with policies` });
+      factors.push({
+        id: 'locations',
+        name: 'Network Coverage',
+        value: activeLocations,
+        maxValue: activeLocations,
+        score: 10,
+        maxScore: 10,
+        impact: 10,
+        status: 'good',
+        category: 'configuration',
+        description: `${activeLocations} locations protected with policies`,
+      });
     } else if (activeLocations > 0) {
-      const covered = Math.round((locationsWithPolicies / activeLocations) * 10);
+      const covered = Math.round(
+        (locationsWithPolicies / activeLocations) * 10,
+      );
       score += covered;
-      factors.push({ id: 'locations', name: 'Network Coverage', value: locationsWithPolicies, maxValue: activeLocations, score: covered, maxScore: 10, impact: covered, status: 'info', category: 'configuration', description: `${locationsWithPolicies}/${activeLocations} locations have policies assigned`, recommendation: 'Assign policies to all locations' });
-      recommendations.push({ id: 'locations', title: 'Assign policies to all locations', description: `${activeLocations - locationsWithPolicies} locations need policy assignment`, priority: 'medium', impact: `+${10 - covered} points`, action: { label: 'Manage Locations', href: '/dashboard/locations' } });
+      factors.push({
+        id: 'locations',
+        name: 'Network Coverage',
+        value: locationsWithPolicies,
+        maxValue: activeLocations,
+        score: covered,
+        maxScore: 10,
+        impact: covered,
+        status: 'info',
+        category: 'configuration',
+        description: `${locationsWithPolicies}/${activeLocations} locations have policies assigned`,
+        recommendation: 'Assign policies to all locations',
+      });
+      recommendations.push({
+        id: 'locations',
+        title: 'Assign policies to all locations',
+        description: `${activeLocations - locationsWithPolicies} locations need policy assignment`,
+        priority: 'medium',
+        impact: `+${10 - covered} points`,
+        action: { label: 'Manage Locations', href: '/dashboard/locations' },
+      });
     } else {
-      factors.push({ id: 'locations', name: 'Network Coverage', value: 0, maxValue: 1, score: 0, maxScore: 10, impact: 0, status: 'warning', category: 'configuration', description: 'No active locations configured', recommendation: 'Set up network locations' });
-      recommendations.push({ id: 'locations', title: 'Configure network locations', description: 'Add your network locations to start DNS protection', priority: 'high', impact: '+10 points', action: { label: 'Add Location', href: '/dashboard/locations' } });
+      factors.push({
+        id: 'locations',
+        name: 'Network Coverage',
+        value: 0,
+        maxValue: 1,
+        score: 0,
+        maxScore: 10,
+        impact: 0,
+        status: 'warning',
+        category: 'configuration',
+        description: 'No active locations configured',
+        recommendation: 'Set up network locations',
+      });
+      recommendations.push({
+        id: 'locations',
+        title: 'Configure network locations',
+        description: 'Add your network locations to start DNS protection',
+        priority: 'high',
+        impact: '+10 points',
+        action: { label: 'Add Location', href: '/dashboard/locations' },
+      });
     }
 
     // Factor 4: Threat Blocking Effectiveness (max +10 points)
@@ -483,45 +717,187 @@ export class ReportsService {
 
     if (totalQueries > 0 && threatsBlocked > 0) {
       score += 10;
-      factors.push({ id: 'threats', name: 'Threat Protection', value: threatsBlocked, maxValue: threatsBlocked, score: 10, maxScore: 10, impact: 10, status: 'good', category: 'protection', description: `${threatsBlocked.toLocaleString()} threats blocked - protection is active` });
+      factors.push({
+        id: 'threats',
+        name: 'Threat Protection',
+        value: threatsBlocked,
+        maxValue: threatsBlocked,
+        score: 10,
+        maxScore: 10,
+        impact: 10,
+        status: 'good',
+        category: 'protection',
+        description: `${threatsBlocked.toLocaleString()} threats blocked - protection is active`,
+      });
     } else if (totalQueries > 0) {
       score += 5;
-      factors.push({ id: 'threats', name: 'Threat Protection', value: 0, maxValue: 100, score: 5, maxScore: 10, impact: 5, status: 'info', category: 'protection', description: 'DNS filtering active, no threats detected yet' });
+      factors.push({
+        id: 'threats',
+        name: 'Threat Protection',
+        value: 0,
+        maxValue: 100,
+        score: 5,
+        maxScore: 10,
+        impact: 5,
+        status: 'info',
+        category: 'protection',
+        description: 'DNS filtering active, no threats detected yet',
+      });
     } else {
-      factors.push({ id: 'threats', name: 'Threat Protection', value: 0, maxValue: 100, score: 0, maxScore: 10, impact: 0, status: 'warning', category: 'protection', description: 'No DNS queries detected - verify configuration' });
-      recommendations.push({ id: 'dns-config', title: 'Verify DNS configuration', description: 'Ensure your devices are using Nebula DNS servers', priority: 'high', impact: '+10 points', action: { label: 'Setup Guide', href: '/dashboard/onboarding' } });
+      factors.push({
+        id: 'threats',
+        name: 'Threat Protection',
+        value: 0,
+        maxValue: 100,
+        score: 0,
+        maxScore: 10,
+        impact: 0,
+        status: 'warning',
+        category: 'protection',
+        description: 'No DNS queries detected - verify configuration',
+      });
+      recommendations.push({
+        id: 'dns-config',
+        title: 'Verify DNS configuration',
+        description: 'Ensure your devices are using Nebula DNS servers',
+        priority: 'high',
+        impact: '+10 points',
+        action: { label: 'Setup Guide', href: '/dashboard/onboarding' },
+      });
     }
 
     // Factor 5: Cache Performance (max +5 points)
     const cacheHitRate = parseFloat(stats.cacheHitRate) || 0;
     if (cacheHitRate >= 80) {
       score += 5;
-      factors.push({ id: 'cache', name: 'Cache Performance', value: cacheHitRate, maxValue: 100, score: 5, maxScore: 5, impact: 5, status: 'good', category: 'performance', description: `${cacheHitRate.toFixed(1)}% cache hit rate - excellent performance` });
+      factors.push({
+        id: 'cache',
+        name: 'Cache Performance',
+        value: cacheHitRate,
+        maxValue: 100,
+        score: 5,
+        maxScore: 5,
+        impact: 5,
+        status: 'good',
+        category: 'performance',
+        description: `${cacheHitRate.toFixed(1)}% cache hit rate - excellent performance`,
+      });
     } else if (cacheHitRate >= 50) {
       score += 3;
-      factors.push({ id: 'cache', name: 'Cache Performance', value: cacheHitRate, maxValue: 100, score: 3, maxScore: 5, impact: 3, status: 'info', category: 'performance', description: `${cacheHitRate.toFixed(1)}% cache hit rate - acceptable` });
+      factors.push({
+        id: 'cache',
+        name: 'Cache Performance',
+        value: cacheHitRate,
+        maxValue: 100,
+        score: 3,
+        maxScore: 5,
+        impact: 3,
+        status: 'info',
+        category: 'performance',
+        description: `${cacheHitRate.toFixed(1)}% cache hit rate - acceptable`,
+      });
     } else {
-      factors.push({ id: 'cache', name: 'Cache Performance', value: cacheHitRate, maxValue: 100, score: 0, maxScore: 5, impact: 0, status: 'warning', category: 'performance', description: 'Low cache hit rate', recommendation: 'Cache will improve over time with usage' });
+      factors.push({
+        id: 'cache',
+        name: 'Cache Performance',
+        value: cacheHitRate,
+        maxValue: 100,
+        score: 0,
+        maxScore: 5,
+        impact: 0,
+        status: 'warning',
+        category: 'performance',
+        description: 'Low cache hit rate',
+        recommendation: 'Cache will improve over time with usage',
+      });
     }
 
     // Calculate final score (cap at 0-100)
     const totalScore = Math.max(0, Math.min(100, score));
-    const grade = totalScore >= 90 ? 'A' : totalScore >= 80 ? 'B' : totalScore >= 70 ? 'C' : totalScore >= 60 ? 'D' : 'F';
+    const grade =
+      totalScore >= 90
+        ? 'A'
+        : totalScore >= 80
+          ? 'B'
+          : totalScore >= 70
+            ? 'C'
+            : totalScore >= 60
+              ? 'D'
+              : 'F';
 
     // Generate achievements based on activity
     const achievements = [
-      { id: 'first-block', name: 'First Block', description: 'Blocked your first threat', icon: '🛡️', unlocked: threatsBlocked > 0, unlockedAt: threatsBlocked > 0 ? new Date().toISOString() : null },
-      { id: 'threat-hunter', name: 'Threat Hunter', description: 'Blocked 100 threats', icon: '🎯', unlocked: threatsBlocked >= 100, unlockedAt: threatsBlocked >= 100 ? new Date().toISOString() : null },
-      { id: 'guardian', name: 'Guardian', description: 'Blocked 1000 threats', icon: '⚔️', unlocked: threatsBlocked >= 1000, unlockedAt: threatsBlocked >= 1000 ? new Date().toISOString() : null },
-      { id: 'speed-demon', name: 'Speed Demon', description: 'Achieved 80% cache hit rate', icon: '⚡', unlocked: cacheHitRate >= 80, unlockedAt: cacheHitRate >= 80 ? new Date().toISOString() : null },
-      { id: 'fortress', name: 'Fortress', description: 'Achieved A grade security', icon: '🏰', unlocked: totalScore >= 90, unlockedAt: totalScore >= 90 ? new Date().toISOString() : null },
-      { id: 'mfa-champion', name: 'MFA Champion', description: '100% MFA adoption', icon: '🔐', unlocked: mfaPercentage === 100, unlockedAt: mfaPercentage === 100 ? new Date().toISOString() : null },
-      { id: 'policy-master', name: 'Policy Master', description: 'All locations have policies', icon: '📋', unlocked: activeLocations > 0 && locationsWithPolicies === activeLocations, unlockedAt: activeLocations > 0 && locationsWithPolicies === activeLocations ? new Date().toISOString() : null },
+      {
+        id: 'first-block',
+        name: 'First Block',
+        description: 'Blocked your first threat',
+        icon: '🛡️',
+        unlocked: threatsBlocked > 0,
+        unlockedAt: threatsBlocked > 0 ? new Date().toISOString() : null,
+      },
+      {
+        id: 'threat-hunter',
+        name: 'Threat Hunter',
+        description: 'Blocked 100 threats',
+        icon: '🎯',
+        unlocked: threatsBlocked >= 100,
+        unlockedAt: threatsBlocked >= 100 ? new Date().toISOString() : null,
+      },
+      {
+        id: 'guardian',
+        name: 'Guardian',
+        description: 'Blocked 1000 threats',
+        icon: '⚔️',
+        unlocked: threatsBlocked >= 1000,
+        unlockedAt: threatsBlocked >= 1000 ? new Date().toISOString() : null,
+      },
+      {
+        id: 'speed-demon',
+        name: 'Speed Demon',
+        description: 'Achieved 80% cache hit rate',
+        icon: '⚡',
+        unlocked: cacheHitRate >= 80,
+        unlockedAt: cacheHitRate >= 80 ? new Date().toISOString() : null,
+      },
+      {
+        id: 'fortress',
+        name: 'Fortress',
+        description: 'Achieved A grade security',
+        icon: '🏰',
+        unlocked: totalScore >= 90,
+        unlockedAt: totalScore >= 90 ? new Date().toISOString() : null,
+      },
+      {
+        id: 'mfa-champion',
+        name: 'MFA Champion',
+        description: '100% MFA adoption',
+        icon: '🔐',
+        unlocked: mfaPercentage === 100,
+        unlockedAt: mfaPercentage === 100 ? new Date().toISOString() : null,
+      },
+      {
+        id: 'policy-master',
+        name: 'Policy Master',
+        description: 'All locations have policies',
+        icon: '📋',
+        unlocked:
+          activeLocations > 0 && locationsWithPolicies === activeLocations,
+        unlockedAt:
+          activeLocations > 0 && locationsWithPolicies === activeLocations
+            ? new Date().toISOString()
+            : null,
+      },
     ];
 
     // Sort recommendations by priority
-    const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 };
-    recommendations.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+    const priorityOrder: Record<string, number> = {
+      high: 0,
+      medium: 1,
+      low: 2,
+    };
+    recommendations.sort(
+      (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority],
+    );
 
     return {
       score: totalScore,
@@ -558,7 +934,10 @@ export class ReportsService {
     return {
       domain,
       queryCount: logs.total,
-      firstSeen: logs.data.length > 0 ? logs.data[logs.data.length - 1]?.timestamp : null,
+      firstSeen:
+        logs.data.length > 0
+          ? logs.data[logs.data.length - 1]?.timestamp
+          : null,
       lastSeen: logs.data.length > 0 ? logs.data[0]?.timestamp : null,
       actions: logs.data.reduce((acc: any, log: any) => {
         acc[log.action] = (acc[log.action] || 0) + 1;
@@ -567,12 +946,18 @@ export class ReportsService {
       recentQueries: logs.data.slice(0, 10),
       riskAssessment: {
         level: 'unknown',
-        reasons: ['Domain analysis requires external threat intelligence integration'],
+        reasons: [
+          'Domain analysis requires external threat intelligence integration',
+        ],
       },
     };
   }
 
-  private generateMockHeatmap(): Array<{ hour: number; day: number; value: number }> {
+  private generateMockHeatmap(): Array<{
+    hour: number;
+    day: number;
+    value: number;
+  }> {
     const heatmap: Array<{ hour: number; day: number; value: number }> = [];
     for (let day = 0; day < 7; day++) {
       for (let hour = 0; hour < 24; hour++) {
@@ -590,7 +975,10 @@ export class ReportsService {
     return heatmap;
   }
 
-  private getDateRange(query: ReportQueryDto): { startDate: string; endDate: string } {
+  private getDateRange(query: ReportQueryDto): {
+    startDate: string;
+    endDate: string;
+  } {
     const now = new Date();
     let startDate: Date;
 
@@ -605,7 +993,9 @@ export class ReportsService {
         startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         break;
       case 'custom':
-        startDate = query.startDate ? new Date(query.startDate) : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        startDate = query.startDate
+          ? new Date(query.startDate)
+          : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         break;
       default:
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);

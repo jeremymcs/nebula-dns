@@ -20,7 +20,7 @@ export class MfaController {
   @Get('status')
   async getMfaStatus(@CurrentUser() user: any) {
     const isEnabled = await this.mfaService.isMfaEnabled(user.id);
-    const backupCodes = isEnabled 
+    const backupCodes = isEnabled
       ? await this.mfaService.getBackupCodesCount(user.id)
       : null;
 
@@ -60,8 +60,14 @@ export class MfaController {
   }
 
   @Post('backup-codes/regenerate')
-  async regenerateBackupCodes(@CurrentUser() user: any, @Body() dto: VerifyMfaDto) {
-    const codes = await this.mfaService.regenerateBackupCodes(user.id, dto.code);
+  async regenerateBackupCodes(
+    @CurrentUser() user: any,
+    @Body() dto: VerifyMfaDto,
+  ) {
+    const codes = await this.mfaService.regenerateBackupCodes(
+      user.id,
+      dto.code,
+    );
     return {
       message: 'New backup codes generated. Store them securely.',
       backupCodes: codes,

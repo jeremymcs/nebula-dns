@@ -2,7 +2,12 @@ import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '@/common/entities/base.entity';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 
-export type SiemIntegrationType = 'splunk' | 'elastic' | 'sentinel' | 'syslog' | 'webhook';
+export type SiemIntegrationType =
+  | 'splunk'
+  | 'elastic'
+  | 'sentinel'
+  | 'syslog'
+  | 'webhook';
 
 @Entity('siem_integrations')
 export class SiemIntegration extends BaseEntity {

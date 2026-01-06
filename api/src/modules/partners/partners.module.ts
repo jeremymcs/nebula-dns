@@ -28,9 +28,12 @@ import { EmailModule } from '../email/email.module';
     EmailModule,
     forwardRef(() => TenantsModule),
   ],
-  controllers: [PartnersController, PartnerDashboardController, PartnerAuthController],
+  controllers: [
+    PartnersController,
+    PartnerDashboardController,
+    PartnerAuthController,
+  ],
   providers: [PartnersService, PartnerAuthGuard],
   exports: [PartnersService, PartnerAuthGuard],
 })
 export class PartnersModule {}
-

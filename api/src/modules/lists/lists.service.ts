@@ -11,7 +11,10 @@ import { CustomListEntry } from './entities/custom-list-entry.entity';
 import { CreateListDto } from './dto/create-list.dto';
 import { UpdateListDto } from './dto/update-list.dto';
 import { AddEntriesDto } from './dto/add-entries.dto';
-import { PaginationQueryDto, PaginatedResponse } from '@/common/dto/pagination.dto';
+import {
+  PaginationQueryDto,
+  PaginatedResponse,
+} from '@/common/dto/pagination.dto';
 
 @Injectable()
 export class ListsService {
@@ -82,7 +85,10 @@ export class ListsService {
     return list;
   }
 
-  async create(tenantId: string, createDto: CreateListDto): Promise<CustomList> {
+  async create(
+    tenantId: string,
+    createDto: CreateListDto,
+  ): Promise<CustomList> {
     const list = this.listRepository.create({
       ...createDto,
       tenantId,
@@ -183,7 +189,7 @@ export class ListsService {
 
     for (const entry of addEntriesDto.entries) {
       const normalizedDomain = this.normalizeDomain(entry.domain);
-      
+
       if (!this.isValidDomain(normalizedDomain)) {
         skipped++;
         continue;
@@ -200,7 +206,7 @@ export class ListsService {
         type: entry.type || 'exact',
         comment: entry.comment,
       });
-      
+
       existingSet.add(normalizedDomain);
     }
 

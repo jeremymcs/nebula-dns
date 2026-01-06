@@ -12,7 +12,12 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { SsoService } from './sso.service';
-import { ConfigureSamlDto, ConfigureOidcDto, SamlCallbackDto, OidcCallbackDto } from './dto/sso.dto';
+import {
+  ConfigureSamlDto,
+  ConfigureOidcDto,
+  SamlCallbackDto,
+  OidcCallbackDto,
+} from './dto/sso.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -51,7 +56,9 @@ export class SsoController {
 
     // Redirect to frontend with tokens
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4001';
-    res.redirect(`${frontendUrl}/sso/callback?token=${encodeURIComponent(token)}&refreshToken=${encodeURIComponent(refreshToken)}`);
+    res.redirect(
+      `${frontendUrl}/sso/callback?token=${encodeURIComponent(token)}&refreshToken=${encodeURIComponent(refreshToken)}`,
+    );
   }
 
   @Get('oidc/login/:tenantSlug')
@@ -74,7 +81,9 @@ export class SsoController {
     );
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4001';
-    res.redirect(`${frontendUrl}/sso/callback?token=${encodeURIComponent(token)}&refreshToken=${encodeURIComponent(refreshToken)}`);
+    res.redirect(
+      `${frontendUrl}/sso/callback?token=${encodeURIComponent(token)}&refreshToken=${encodeURIComponent(refreshToken)}`,
+    );
   }
 
   // ==================== ADMIN ENDPOINTS ====================
@@ -117,8 +126,8 @@ export class SsoController {
     @Body() dto: ConfigureSamlDto,
   ) {
     const config = await this.ssoService.configureSaml(tenantId, dto);
-    return { 
-      success: true, 
+    return {
+      success: true,
       message: 'SAML configuration saved',
       data: { id: config.id },
     };
@@ -132,8 +141,8 @@ export class SsoController {
     @Body() dto: ConfigureOidcDto,
   ) {
     const config = await this.ssoService.configureOidc(tenantId, dto);
-    return { 
-      success: true, 
+    return {
+      success: true,
       message: 'OIDC configuration saved',
       data: { id: config.id },
     };
@@ -168,7 +177,13 @@ export class SsoController {
   @Roles('owner')
   async importIdpMetadata(
     @CurrentTenant() tenantId: string,
-    @Body() body: { metadataUrl: string; autoProvisionUsers?: boolean; defaultRole?: 'owner' | 'admin' | 'analyst' | 'readonly'; domainRestriction?: string },
+    @Body()
+    body: {
+      metadataUrl: string;
+      autoProvisionUsers?: boolean;
+      defaultRole?: 'owner' | 'admin' | 'analyst' | 'readonly';
+      domainRestriction?: string;
+    },
   ) {
     const config = await this.ssoService.configureFromMetadataUrl(
       tenantId,
@@ -177,7 +192,7 @@ export class SsoController {
         autoProvisionUsers: body.autoProvisionUsers,
         defaultRole: body.defaultRole,
         domainRestriction: body.domainRestriction,
-      }
+      },
     );
     return {
       success: true,
@@ -193,10 +208,10 @@ export class SsoController {
   @Post('oidc/discover')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('owner')
-  async discoverOidcConfig(
-    @Body() body: { issuerUrl: string },
-  ) {
-    const discovery = await this.ssoService.discoverOidcConfiguration(body.issuerUrl);
+  async discoverOidcConfig(@Body() body: { issuerUrl: string }) {
+    const discovery = await this.ssoService.discoverOidcConfiguration(
+      body.issuerUrl,
+    );
     return {
       success: true,
       message: 'OIDC configuration discovered',

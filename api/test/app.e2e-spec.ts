@@ -1,7 +1,7 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
+ *
  * Application E2E Tests
  */
 
@@ -19,7 +19,9 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
   });
 
@@ -71,21 +73,15 @@ describe('AppController (e2e)', () => {
 
   describe('Protected Routes', () => {
     it('/policies (GET) - should require authentication', () => {
-      return request(app.getHttpServer())
-        .get('/policies')
-        .expect(401);
+      return request(app.getHttpServer()).get('/policies').expect(401);
     });
 
     it('/users (GET) - should require authentication', () => {
-      return request(app.getHttpServer())
-        .get('/users')
-        .expect(401);
+      return request(app.getHttpServer()).get('/users').expect(401);
     });
 
     it('/locations (GET) - should require authentication', () => {
-      return request(app.getHttpServer())
-        .get('/locations')
-        .expect(401);
+      return request(app.getHttpServer()).get('/locations').expect(401);
     });
   });
 
@@ -93,9 +89,7 @@ describe('AppController (e2e)', () => {
     // Swagger is configured in main.ts bootstrap, not in the test module
     // This test would require a full application bootstrap
     it.skip('/api/docs (GET) - should return Swagger docs', () => {
-      return request(app.getHttpServer())
-        .get('/api/docs')
-        .expect(200);
+      return request(app.getHttpServer()).get('/api/docs').expect(200);
     });
   });
 });

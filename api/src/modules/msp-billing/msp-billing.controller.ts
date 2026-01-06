@@ -89,7 +89,11 @@ export class MspBillingController {
     @Query('offset') offset?: number,
   ) {
     const partnerId = this.getPartnerId(user);
-    return this.billingService.getPurchaseHistory(partnerId, limit || 20, offset || 0);
+    return this.billingService.getPurchaseHistory(
+      partnerId,
+      limit || 20,
+      offset || 0,
+    );
   }
 
   // ============================================
@@ -103,7 +107,7 @@ export class MspBillingController {
     @Query() query: UsageQueryDto,
   ) {
     const partnerId = this.getPartnerId(user);
-    
+
     const startDate = query.startDate
       ? new Date(query.startDate)
       : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -170,7 +174,9 @@ export class MspBillingController {
   // ============================================
 
   @Post('admin/aggregate-usage')
-  @ApiOperation({ summary: 'Manually trigger daily usage aggregation (admin only)' })
+  @ApiOperation({
+    summary: 'Manually trigger daily usage aggregation (admin only)',
+  })
   async triggerAggregation(@CurrentUser() user: AuthUser) {
     // In production, add admin role check
     await this.billingService.aggregateDailyUsage();
@@ -183,4 +189,3 @@ export class MspBillingController {
     return user.partnerId || '550e8400-e29b-41d4-a716-446655440010';
   }
 }
-

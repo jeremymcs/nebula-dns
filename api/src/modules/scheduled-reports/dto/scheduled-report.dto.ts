@@ -1,16 +1,16 @@
-import { 
-  IsString, 
-  IsNotEmpty, 
-  IsIn, 
-  IsOptional, 
-  IsArray, 
-  IsEmail, 
+import {
+  IsString,
+  IsNotEmpty,
+  IsIn,
+  IsOptional,
+  IsArray,
+  IsEmail,
   IsBoolean,
   IsNumber,
   Min,
   Max,
   ValidateNested,
-  ArrayMinSize
+  ArrayMinSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 

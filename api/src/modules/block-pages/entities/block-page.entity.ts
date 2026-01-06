@@ -21,20 +21,39 @@ export class BlockPage extends BaseEntity {
   @Column({ name: 'logo_url', type: 'text', nullable: true })
   logoUrl: string;
 
-  @Column({ name: 'background_color', type: 'varchar', length: 7, default: '#f3f4f6' })
+  @Column({
+    name: 'background_color',
+    type: 'varchar',
+    length: 7,
+    default: '#f3f4f6',
+  })
   backgroundColor: string;
 
-  @Column({ name: 'primary_color', type: 'varchar', length: 7, default: '#4f46e5' })
+  @Column({
+    name: 'primary_color',
+    type: 'varchar',
+    length: 7,
+    default: '#4f46e5',
+  })
   primaryColor: string;
 
-  @Column({ name: 'text_color', type: 'varchar', length: 7, default: '#1f2937' })
+  @Column({
+    name: 'text_color',
+    type: 'varchar',
+    length: 7,
+    default: '#1f2937',
+  })
   textColor: string;
 
   // Content
   @Column({ type: 'varchar', length: 255, default: 'Access Blocked' })
   title: string;
 
-  @Column({ type: 'text', default: "This website has been blocked by your organization's security policy." })
+  @Column({
+    type: 'text',
+    default:
+      "This website has been blocked by your organization's security policy.",
+  })
   message: string;
 
   @Column({ name: 'show_category', type: 'boolean', default: true })
@@ -59,7 +78,12 @@ export class BlockPage extends BaseEntity {
   @Column({ name: 'footer_text', type: 'varchar', length: 255, nullable: true })
   footerText: string;
 
-  @Column({ name: 'support_email', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'support_email',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   supportEmail: string;
 
   @Column({ name: 'support_url', type: 'text', nullable: true })

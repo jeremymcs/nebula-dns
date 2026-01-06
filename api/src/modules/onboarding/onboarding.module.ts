@@ -15,4 +15,3 @@ import { OnboardingProgress } from './entities/onboarding-progress.entity';
   exports: [OnboardingService],
 })
 export class OnboardingModule {}
-

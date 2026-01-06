@@ -45,7 +45,9 @@ export class SecretsManager {
   static async initialize(config?: SecretsConfig): Promise<SecretsManager> {
     if (!SecretsManager.instance) {
       const defaultConfig: SecretsConfig = {
-        provider: (process.env.SECRETS_PROVIDER as SecretsProvider) || SecretsProvider.ENV,
+        provider:
+          (process.env.SECRETS_PROVIDER as SecretsProvider) ||
+          SecretsProvider.ENV,
         vault: {
           address: process.env.VAULT_ADDR || 'http://localhost:8200',
           token: process.env.VAULT_TOKEN,
@@ -61,14 +63,18 @@ export class SecretsManager {
       };
 
       SecretsManager.instance = new SecretsManager(config || defaultConfig);
-      logger.log(`Secrets provider: ${SecretsManager.instance.config.provider}`);
+      logger.log(
+        `Secrets provider: ${SecretsManager.instance.config.provider}`,
+      );
     }
     return SecretsManager.instance;
   }
 
   static getInstance(): SecretsManager {
     if (!SecretsManager.instance) {
-      throw new Error('SecretsManager not initialized. Call initialize() first.');
+      throw new Error(
+        'SecretsManager not initialized. Call initialize() first.',
+      );
     }
     return SecretsManager.instance;
   }
@@ -109,7 +115,7 @@ export class SecretsManager {
     try {
       const vault = this.config.vault!;
       const url = `${vault.address}/v1/${vault.secretPath}`;
-      
+
       const response = await fetch(url, {
         headers: {
           'X-Vault-Token': vault.token || '',
@@ -157,4 +163,3 @@ export const REQUIRED_SECRETS = [
   'SIEM_ENCRYPTION_KEY',
   'INTERNAL_SERVICE_KEY',
 ] as const;
-

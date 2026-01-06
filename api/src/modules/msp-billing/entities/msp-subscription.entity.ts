@@ -1,7 +1,18 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
+} from 'typeorm';
 import { Partner } from '../../partners/entities/partner.entity';
 
-export type MspSubscriptionStatus = 'active' | 'past_due' | 'cancelled' | 'suspended';
+export type MspSubscriptionStatus =
+  | 'active'
+  | 'past_due'
+  | 'cancelled'
+  | 'suspended';
 
 /**
  * MspSubscription - MSP-level subscription with query quotas
@@ -36,7 +47,13 @@ export class MspSubscription {
   totalUsed: number;
 
   // Overage rate per 1000 queries (when balance is exhausted)
-  @Column({ name: 'overage_rate', type: 'decimal', precision: 10, scale: 4, default: 0.50 })
+  @Column({
+    name: 'overage_rate',
+    type: 'decimal',
+    precision: 10,
+    scale: 4,
+    default: 0.5,
+  })
   overageRate: number;
 
   // Current overage count (billed at end of period)
@@ -67,10 +84,17 @@ export class MspSubscription {
   @Column({ name: 'billing_period_end', type: 'timestamp', nullable: true })
   billingPeriodEnd: Date | null;
 
-  @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    name: 'created_at',
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt: Date;
 
-  @Column({ name: 'updated_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    name: 'updated_at',
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   updatedAt: Date;
 }
-

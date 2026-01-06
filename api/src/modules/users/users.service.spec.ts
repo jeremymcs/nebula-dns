@@ -1,13 +1,17 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
+ *
  * Users Service Unit Tests
  */
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
@@ -80,7 +84,9 @@ describe('UsersService', () => {
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
         take: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([mockUser, { ...mockUser, id: 'user-456' }]),
+        getMany: jest
+          .fn()
+          .mockResolvedValue([mockUser, { ...mockUser, id: 'user-456' }]),
       };
       mockUserRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
 
@@ -125,7 +131,9 @@ describe('UsersService', () => {
         name: createDto.name,
         role: createDto.role,
       });
-      mockUserRepository.save.mockImplementation((user) => Promise.resolve(user));
+      mockUserRepository.save.mockImplementation((user) =>
+        Promise.resolve(user),
+      );
 
       const result = await service.create(mockTenantId, createDto, 'owner');
 
@@ -137,12 +145,16 @@ describe('UsersService', () => {
       mockUserRepository.findOne.mockResolvedValue(mockUser);
 
       await expect(
-        service.create(mockTenantId, {
-          email: mockUser.email,
-          name: 'New User',
-          password: 'SecureP@ss123',
-          role: 'analyst',
-        }, 'owner'),
+        service.create(
+          mockTenantId,
+          {
+            email: mockUser.email,
+            name: 'New User',
+            password: 'SecureP@ss123',
+            role: 'analyst',
+          },
+          'owner',
+        ),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -150,12 +162,16 @@ describe('UsersService', () => {
       mockUserRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.create(mockTenantId, {
-          email: 'owner@example.com',
-          name: 'New Owner',
-          password: 'SecureP@ss123',
-          role: 'owner',
-        }, 'admin'),
+        service.create(
+          mockTenantId,
+          {
+            email: 'owner@example.com',
+            name: 'New Owner',
+            password: 'SecureP@ss123',
+            role: 'owner',
+          },
+          'admin',
+        ),
       ).rejects.toThrow(ForbiddenException);
     });
   });
@@ -163,26 +179,26 @@ describe('UsersService', () => {
   describe('update', () => {
     it('should update user fields', async () => {
       mockUserRepository.findOne.mockResolvedValue(mockUser);
-      mockUserRepository.save.mockImplementation((user) => Promise.resolve(user));
-
-      const result = await service.update(
-        mockTenantId,
-        mockUser.id,
-        { name: 'Updated Name' },
+      mockUserRepository.save.mockImplementation((user) =>
+        Promise.resolve(user),
       );
+
+      const result = await service.update(mockTenantId, mockUser.id, {
+        name: 'Updated Name',
+      });
 
       expect(result.name).toBe('Updated Name');
     });
 
     it('should hash password when updating', async () => {
       mockUserRepository.findOne.mockResolvedValue(mockUser);
-      mockUserRepository.save.mockImplementation((user) => Promise.resolve(user));
-
-      await service.update(
-        mockTenantId,
-        mockUser.id,
-        { password: 'NewP@ssw0rd!' },
+      mockUserRepository.save.mockImplementation((user) =>
+        Promise.resolve(user),
       );
+
+      await service.update(mockTenantId, mockUser.id, {
+        password: 'NewP@ssw0rd!',
+      });
 
       expect(mockUserRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -208,7 +224,10 @@ describe('UsersService', () => {
 
     it('should prevent deleting the last owner', async () => {
       const currentUser = { id: 'other-user', role: 'owner' };
-      mockUserRepository.findOne.mockResolvedValue({ ...mockUser, role: 'owner' });
+      mockUserRepository.findOne.mockResolvedValue({
+        ...mockUser,
+        role: 'owner',
+      });
       mockUserRepository.count.mockResolvedValue(1);
 
       await expect(

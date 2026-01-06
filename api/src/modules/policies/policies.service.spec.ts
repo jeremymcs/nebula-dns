@@ -1,7 +1,7 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
+ *
  * Policies Service Unit Tests
  */
 
@@ -137,7 +137,7 @@ describe('PoliciesService', () => {
         { ...mockPolicy, id: 'policy-1', createdAt: new Date('2024-01-02') },
         { ...mockPolicy, id: 'policy-2', createdAt: new Date('2024-01-01') },
       ];
-      
+
       const mockQueryBuilder = {
         where: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
@@ -188,7 +188,9 @@ describe('PoliciesService', () => {
         name: createDto.name,
         description: createDto.description,
       });
-      mockPolicyRepository.save.mockImplementation((policy) => Promise.resolve(policy));
+      mockPolicyRepository.save.mockImplementation((policy) =>
+        Promise.resolve(policy),
+      );
       mockVersionRepository.create.mockReturnValue(mockPolicyVersion);
       mockVersionRepository.save.mockResolvedValue(mockPolicyVersion);
 
@@ -210,7 +212,9 @@ describe('PoliciesService', () => {
         name: createDto.name,
         isDefault: true,
       });
-      mockPolicyRepository.save.mockImplementation((policy) => Promise.resolve(policy));
+      mockPolicyRepository.save.mockImplementation((policy) =>
+        Promise.resolve(policy),
+      );
       mockVersionRepository.create.mockReturnValue(mockPolicyVersion);
       mockVersionRepository.save.mockResolvedValue(mockPolicyVersion);
 
@@ -224,7 +228,9 @@ describe('PoliciesService', () => {
     it('should update policy metadata without creating new version', async () => {
       mockPolicyRepository.findOne.mockResolvedValue(mockPolicy);
       mockVersionRepository.findOne.mockResolvedValue(mockPolicyVersion);
-      mockPolicyRepository.save.mockImplementation((policy) => Promise.resolve(policy));
+      mockPolicyRepository.save.mockImplementation((policy) =>
+        Promise.resolve(policy),
+      );
 
       const result = await service.update(
         mockTenantId,
@@ -245,7 +251,9 @@ describe('PoliciesService', () => {
         version: 2,
       });
       mockVersionRepository.save.mockResolvedValue({});
-      mockPolicyRepository.save.mockImplementation((policy) => Promise.resolve(policy));
+      mockPolicyRepository.save.mockImplementation((policy) =>
+        Promise.resolve(policy),
+      );
 
       const newConfig = {
         ...mockPolicyVersion.config,
@@ -288,9 +296,9 @@ describe('PoliciesService', () => {
       });
       mockVersionRepository.findOne.mockResolvedValue(mockPolicyVersion);
 
-      await expect(
-        service.remove(mockTenantId, mockPolicy.id),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.remove(mockTenantId, mockPolicy.id)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -314,9 +322,16 @@ describe('PoliciesService', () => {
 
   describe('rollback', () => {
     it('should create new version with old config', async () => {
-      const oldVersion = { ...mockPolicyVersion, id: 'old-version', version: 1 };
-      
-      mockPolicyRepository.findOne.mockResolvedValue({ ...mockPolicy, currentVersion: 2 });
+      const oldVersion = {
+        ...mockPolicyVersion,
+        id: 'old-version',
+        version: 1,
+      };
+
+      mockPolicyRepository.findOne.mockResolvedValue({
+        ...mockPolicy,
+        currentVersion: 2,
+      });
       mockVersionRepository.findOne
         .mockResolvedValueOnce({ ...mockPolicyVersion, version: 2 }) // Current config
         .mockResolvedValueOnce(oldVersion); // Target version
@@ -326,7 +341,9 @@ describe('PoliciesService', () => {
         changelog: 'Rollback to version 1',
       });
       mockVersionRepository.save.mockResolvedValue({});
-      mockPolicyRepository.save.mockImplementation((policy) => Promise.resolve(policy));
+      mockPolicyRepository.save.mockImplementation((policy) =>
+        Promise.resolve(policy),
+      );
 
       const result = await service.rollback(
         mockTenantId,

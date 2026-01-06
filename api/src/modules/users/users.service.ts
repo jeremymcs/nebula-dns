@@ -11,7 +11,10 @@ import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PaginationQueryDto, PaginatedResponse } from '@/common/dto/pagination.dto';
+import {
+  PaginationQueryDto,
+  PaginatedResponse,
+} from '@/common/dto/pagination.dto';
 
 @Injectable()
 export class UsersService {
@@ -49,9 +52,9 @@ export class UsersService {
 
     const nextCursor =
       hasMore && users.length > 0
-        ? Buffer.from(
-            users[users.length - 1].createdAt.toISOString(),
-          ).toString('base64')
+        ? Buffer.from(users[users.length - 1].createdAt.toISOString()).toString(
+            'base64',
+          )
         : null;
 
     return {

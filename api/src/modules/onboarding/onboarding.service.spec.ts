@@ -100,7 +100,11 @@ describe('OnboardingService', () => {
       };
       repository.save.mockResolvedValue(updated);
 
-      const result = await service.updateProgress('tenant-1', undefined, 'location');
+      const result = await service.updateProgress(
+        'tenant-1',
+        undefined,
+        'location',
+      );
 
       expect(repository.save).toHaveBeenCalled();
     });
@@ -152,4 +156,3 @@ describe('OnboardingService', () => {
     });
   });
 });
-

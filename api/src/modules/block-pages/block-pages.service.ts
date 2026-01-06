@@ -1,9 +1,18 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BlockPage } from './entities/block-page.entity';
 import { AccessRequest } from './entities/access-request.entity';
-import { CreateBlockPageDto, UpdateBlockPageDto, CreateAccessRequestDto, ReviewAccessRequestDto } from './dto/block-page.dto';
+import {
+  CreateBlockPageDto,
+  UpdateBlockPageDto,
+  CreateAccessRequestDto,
+  ReviewAccessRequestDto,
+} from './dto/block-page.dto';
 
 @Injectable()
 export class BlockPagesService {
@@ -21,7 +30,7 @@ export class BlockPagesService {
     if (dto.isDefault) {
       await this.blockPageRepository.update(
         { tenantId, isDefault: true },
-        { isDefault: false }
+        { isDefault: false },
       );
     }
 
@@ -58,14 +67,18 @@ export class BlockPagesService {
     });
   }
 
-  async update(tenantId: string, id: string, dto: UpdateBlockPageDto): Promise<BlockPage> {
+  async update(
+    tenantId: string,
+    id: string,
+    dto: UpdateBlockPageDto,
+  ): Promise<BlockPage> {
     const blockPage = await this.findOne(tenantId, id);
 
     // If setting as default, unset other defaults
     if (dto.isDefault && !blockPage.isDefault) {
       await this.blockPageRepository.update(
         { tenantId, isDefault: true },
-        { isDefault: false }
+        { isDefault: false },
       );
     }
 
@@ -75,7 +88,7 @@ export class BlockPagesService {
 
   async delete(tenantId: string, id: string): Promise<void> {
     const blockPage = await this.findOne(tenantId, id);
-    
+
     if (blockPage.isDefault) {
       throw new BadRequestException('Cannot delete the default block page');
     }
@@ -89,7 +102,7 @@ export class BlockPagesService {
     // Unset other defaults
     await this.blockPageRepository.update(
       { tenantId, isDefault: true },
-      { isDefault: false }
+      { isDefault: false },
     );
 
     blockPage.isDefault = true;
@@ -97,27 +110,38 @@ export class BlockPagesService {
   }
 
   // Generate HTML for block page with optional partner branding
-  generateBlockPageHtml(blockPage: BlockPage, context: {
-    domain: string;
-    category?: string;
-    timestamp?: string;
-    requestId?: string;
-    partnerBranding?: {
-      logoUrl?: string;
-      primaryColor?: string;
-      companyName?: string;
-      supportEmail?: string;
-      supportUrl?: string;
-    };
-  }): string {
+  generateBlockPageHtml(
+    blockPage: BlockPage,
+    context: {
+      domain: string;
+      category?: string;
+      timestamp?: string;
+      requestId?: string;
+      partnerBranding?: {
+        logoUrl?: string;
+        primaryColor?: string;
+        companyName?: string;
+        supportEmail?: string;
+        supportUrl?: string;
+      };
+    },
+  ): string {
     const { domain, category, timestamp, requestId, partnerBranding } = context;
 
     // Apply partner branding overrides if available and block page doesn't have custom values
-    const effectiveLogoUrl = blockPage.logoUrl || partnerBranding?.logoUrl || '';
-    const effectivePrimaryColor = blockPage.primaryColor || partnerBranding?.primaryColor || '#4f46e5';
-    const effectiveSupportEmail = blockPage.supportEmail || partnerBranding?.supportEmail || '';
-    const effectiveSupportUrl = blockPage.supportUrl || partnerBranding?.supportUrl || '';
-    const effectiveFooterText = blockPage.footerText || (partnerBranding?.companyName ? `Protected by ${partnerBranding.companyName}` : 'Protected by Nebula DNS');
+    const effectiveLogoUrl =
+      blockPage.logoUrl || partnerBranding?.logoUrl || '';
+    const effectivePrimaryColor =
+      blockPage.primaryColor || partnerBranding?.primaryColor || '#4f46e5';
+    const effectiveSupportEmail =
+      blockPage.supportEmail || partnerBranding?.supportEmail || '';
+    const effectiveSupportUrl =
+      blockPage.supportUrl || partnerBranding?.supportUrl || '';
+    const effectiveFooterText =
+      blockPage.footerText ||
+      (partnerBranding?.companyName
+        ? `Protected by ${partnerBranding.companyName}`
+        : 'Protected by Nebula DNS');
 
     // If custom HTML is provided, use it with variable substitution
     if (blockPage.customHtml) {
@@ -237,23 +261,37 @@ export class BlockPagesService {
     <div class="content">
       <p class="message">${blockPage.message}</p>
       <div class="details">
-        ${blockPage.showDomain ? `
+        ${
+          blockPage.showDomain
+            ? `
         <div class="detail-row">
           <span class="detail-label">Blocked Domain</span>
           <span class="detail-value">${domain}</span>
-        </div>` : ''}
-        ${blockPage.showCategory && category ? `
+        </div>`
+            : ''
+        }
+        ${
+          blockPage.showCategory && category
+            ? `
         <div class="detail-row">
           <span class="detail-label">Category</span>
           <span class="detail-value">${category}</span>
-        </div>` : ''}
-        ${blockPage.showTimestamp ? `
+        </div>`
+            : ''
+        }
+        ${
+          blockPage.showTimestamp
+            ? `
         <div class="detail-row">
           <span class="detail-label">Time</span>
           <span class="detail-value">${timestamp || new Date().toLocaleString()}</span>
-        </div>` : ''}
+        </div>`
+            : ''
+        }
       </div>
-      ${blockPage.showRequestAccess ? `
+      ${
+        blockPage.showRequestAccess
+          ? `
       <div class="request-form">
         <form action="/api/access-requests" method="POST">
           <input type="hidden" name="domain" value="${domain}">
@@ -262,7 +300,9 @@ export class BlockPagesService {
           <textarea name="reason" placeholder="Why do you need access to this site?"></textarea>
           <button type="submit">Request Access</button>
         </form>
-      </div>` : ''}
+      </div>`
+          : ''
+      }
     </div>
     <div class="footer">
       ${effectiveFooterText}
@@ -276,7 +316,11 @@ export class BlockPagesService {
 
   // ==================== ACCESS REQUESTS ====================
 
-  async createAccessRequest(tenantId: string, dto: CreateAccessRequestDto, ip?: string): Promise<AccessRequest> {
+  async createAccessRequest(
+    tenantId: string,
+    dto: CreateAccessRequestDto,
+    ip?: string,
+  ): Promise<AccessRequest> {
     const request = this.accessRequestRepository.create({
       tenantId,
       domain: dto.domain,
@@ -290,7 +334,10 @@ export class BlockPagesService {
     return this.accessRequestRepository.save(request);
   }
 
-  async getAccessRequests(tenantId: string, status?: string): Promise<AccessRequest[]> {
+  async getAccessRequests(
+    tenantId: string,
+    status?: string,
+  ): Promise<AccessRequest[]> {
     const where: any = { tenantId };
     if (status) where.status = status;
 
@@ -325,7 +372,9 @@ export class BlockPagesService {
     request.reviewNote = dto.reviewNote || null;
 
     if (dto.status === 'approved' && dto.expiresInHours) {
-      request.expiresAt = new Date(Date.now() + dto.expiresInHours * 60 * 60 * 1000);
+      request.expiresAt = new Date(
+        Date.now() + dto.expiresInHours * 60 * 60 * 1000,
+      );
     }
 
     return this.accessRequestRepository.save(request);

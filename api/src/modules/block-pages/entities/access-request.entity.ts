@@ -34,7 +34,12 @@ export class AccessRequest extends BaseEntity {
   @Column({ name: 'requester_ip', type: 'inet', nullable: true })
   requesterIp: string;
 
-  @Column({ name: 'requester_email', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'requester_email',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   requesterEmail: string;
 
   @Column({ type: 'varchar', length: 20, default: 'pending' })

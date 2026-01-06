@@ -6,9 +6,7 @@ import { Webhook } from './entities/webhook.entity';
 import { WebhookDelivery } from './entities/webhook-delivery.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Webhook, WebhookDelivery]),
-  ],
+  imports: [TypeOrmModule.forFeature([Webhook, WebhookDelivery])],
   controllers: [WebhooksController],
   providers: [WebhooksService],
   exports: [WebhooksService],

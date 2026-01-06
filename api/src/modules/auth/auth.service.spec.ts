@@ -1,7 +1,7 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
+ *
  * Auth Service Unit Tests
  */
 
@@ -27,7 +27,8 @@ describe('AuthService', () => {
     id: 'user-123',
     email: 'test@example.com',
     name: 'Test User',
-    passwordHash: '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.V1O5E7y5p5oq5q',
+    passwordHash:
+      '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.V1O5E7y5p5oq5q',
     role: 'admin',
     tenantId: 'tenant-123',
     status: 'active',
@@ -112,7 +113,7 @@ describe('AuthService', () => {
     it('should return tokens for valid credentials', async () => {
       const password = 'ValidP@ssw0rd!';
       const hashedPassword = await bcrypt.hash(password, 12);
-      
+
       mockUserRepository.findOne.mockResolvedValue({
         ...mockUser,
         passwordHash: hashedPassword,
@@ -277,9 +278,9 @@ describe('AuthService', () => {
         type: 'access', // Wrong type
       });
 
-      await expect(
-        service.refreshToken('invalid-type-token'),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.refreshToken('invalid-type-token')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw UnauthorizedException for inactive user', async () => {
@@ -292,9 +293,9 @@ describe('AuthService', () => {
         status: 'inactive',
       });
 
-      await expect(
-        service.refreshToken('valid-token'),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.refreshToken('valid-token')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw UnauthorizedException for invalid token', async () => {
@@ -302,9 +303,9 @@ describe('AuthService', () => {
         throw new Error('Invalid token');
       });
 
-      await expect(
-        service.refreshToken('invalid-token'),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.refreshToken('invalid-token')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 
@@ -370,7 +371,11 @@ describe('AuthService', () => {
 
       expect(result).toEqual(mockUser);
       expect(mockUserRepository.findOne).toHaveBeenCalledWith({
-        where: { id: mockUser.id, tenantId: mockUser.tenantId, status: 'active' },
+        where: {
+          id: mockUser.id,
+          tenantId: mockUser.tenantId,
+          status: 'active',
+        },
       });
     });
 

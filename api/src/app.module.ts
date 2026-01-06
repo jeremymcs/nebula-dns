@@ -20,7 +20,10 @@ import { AgentsModule } from './modules/agents/agents.module';
 import { ClickHouseModule } from './modules/clickhouse/clickhouse.module';
 import { MetricsModule } from './modules/metrics/metrics.module';
 import { MetricsMiddleware } from './modules/metrics/metrics.middleware';
-import { SecurityHeadersMiddleware, RateLimitMiddleware } from './common/middleware';
+import {
+  SecurityHeadersMiddleware,
+  RateLimitMiddleware,
+} from './common/middleware';
 import { SentryModule, SentryInterceptor } from './common/sentry/sentry.module';
 import { LoggerModule } from './common/logger/logger.module';
 import { RedisModule } from './modules/redis/redis.module';
@@ -52,13 +55,16 @@ import { FamilyModule } from './modules/family/family.module';
 // Onboarding
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
 
+// Configuration
+import configuration from './config/configuration';
+
 @Module({
   imports: [
     // Configuration with validation
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
-      load: [require('./config/configuration').default],
+      load: [configuration],
       validate: (config) => {
         // Only validate in production for required vars
         if (process.env.NODE_ENV === 'production') {
@@ -88,7 +94,10 @@ import { OnboardingModule } from './modules/onboarding/onboarding.module';
         synchronize: false,
         migrationsRun: configService.get<string>('NODE_ENV') === 'production',
         migrations: ['dist/database/migrations/*.js'],
-        logging: configService.get<string>('NODE_ENV') === 'development' ? true : ['error'],
+        logging:
+          configService.get<string>('NODE_ENV') === 'development'
+            ? true
+            : ['error'],
         ssl:
           configService.get<string>('NODE_ENV') === 'production'
             ? { rejectUnauthorized: false }
@@ -113,7 +122,7 @@ import { OnboardingModule } from './modules/onboarding/onboarding.module';
     HealthModule,
     SubscriptionsModule,
     EmailModule,
-    
+
     // P1 Features
     MfaModule,
     ScheduledReportsModule,

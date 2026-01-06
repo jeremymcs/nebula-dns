@@ -51,13 +51,28 @@ export class Partner extends BaseEntity {
   @Column({ type: 'varchar', length: 20, default: 'starter' })
   plan: PartnerPlan;
 
-  @Column({ name: 'contact_email', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'contact_email',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   contactEmail: string;
 
-  @Column({ name: 'contact_phone', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'contact_phone',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   contactPhone: string;
 
-  @Column({ name: 'billing_email', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'billing_email',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   billingEmail: string;
 
   @Column({ type: 'text', nullable: true })
@@ -70,7 +85,12 @@ export class Partner extends BaseEntity {
   settings: PartnerSettings;
 
   // Stripe customer ID for billing
-  @Column({ name: 'stripe_customer_id', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'stripe_customer_id',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   stripeCustomerId: string;
 
   // Relations
@@ -79,4 +99,3 @@ export class Partner extends BaseEntity {
 
   // Note: organizations relation is defined in Tenant entity to avoid circular imports
 }
-

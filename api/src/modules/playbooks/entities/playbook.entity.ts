@@ -71,4 +71,3 @@ export class Playbook {
   @UpdateDateColumn()
   updatedAt: Date;
 }
-

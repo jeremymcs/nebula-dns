@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan } from 'typeorm';
 import * as crypto from 'crypto';
@@ -6,7 +11,12 @@ import * as bcrypt from 'bcrypt';
 import { Invitation, InvitationStatus } from './entities/invitation.entity';
 import { User } from '../users/entities/user.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
-import { CreateInvitationDto, AcceptInvitationDto, InvitationResponseDto, InvitationInfoDto } from './dto/invitation.dto';
+import {
+  CreateInvitationDto,
+  AcceptInvitationDto,
+  InvitationResponseDto,
+  InvitationInfoDto,
+} from './dto/invitation.dto';
 import { EmailService } from '../email/email.service';
 
 @Injectable()
@@ -28,14 +38,20 @@ export class InvitationsService {
     return { token, hash };
   }
 
-  async create(tenantId: string, invitedById: string, dto: CreateInvitationDto): Promise<{ invitation: Invitation; sent: boolean }> {
+  async create(
+    tenantId: string,
+    invitedById: string,
+    dto: CreateInvitationDto,
+  ): Promise<{ invitation: Invitation; sent: boolean }> {
     // Check if user already exists in this tenant
     const existingUser = await this.userRepository.findOne({
       where: { email: dto.email, tenantId },
     });
 
     if (existingUser) {
-      throw new ConflictException('A user with this email already exists in your organization');
+      throw new ConflictException(
+        'A user with this email already exists in your organization',
+      );
     }
 
     // Check for existing pending invitation
@@ -44,7 +60,9 @@ export class InvitationsService {
     });
 
     if (existingInvitation) {
-      throw new ConflictException('An invitation has already been sent to this email');
+      throw new ConflictException(
+        'An invitation has already been sent to this email',
+      );
     }
 
     const { token, hash } = this.generateToken();
@@ -87,7 +105,11 @@ export class InvitationsService {
     return { invitation: saved, sent };
   }
 
-  async bulkInvite(tenantId: string, invitedById: string, invitations: CreateInvitationDto[]): Promise<{
+  async bulkInvite(
+    tenantId: string,
+    invitedById: string,
+    invitations: CreateInvitationDto[],
+  ): Promise<{
     successful: string[];
     failed: { email: string; reason: string }[];
   }> {
@@ -116,7 +138,7 @@ export class InvitationsService {
       order: { createdAt: 'DESC' },
     });
 
-    return invitations.map(inv => this.toResponseDto(inv));
+    return invitations.map((inv) => this.toResponseDto(inv));
   }
 
   async findPending(tenantId: string): Promise<InvitationResponseDto[]> {
@@ -126,7 +148,7 @@ export class InvitationsService {
       order: { createdAt: 'DESC' },
     });
 
-    return invitations.map(inv => this.toResponseDto(inv));
+    return invitations.map((inv) => this.toResponseDto(inv));
   }
 
   async findByToken(token: string): Promise<InvitationInfoDto> {
@@ -141,7 +163,8 @@ export class InvitationsService {
       throw new NotFoundException('Invitation not found');
     }
 
-    const isExpired = invitation.status !== 'pending' || new Date() > invitation.expiresAt;
+    const isExpired =
+      invitation.status !== 'pending' || new Date() > invitation.expiresAt;
 
     return {
       tenantName: invitation.tenant?.name || 'Unknown',
@@ -155,7 +178,9 @@ export class InvitationsService {
     };
   }
 
-  async accept(dto: AcceptInvitationDto): Promise<{ user: User; tenant: Tenant }> {
+  async accept(
+    dto: AcceptInvitationDto,
+  ): Promise<{ user: User; tenant: Tenant }> {
     const hash = crypto.createHash('sha256').update(dto.token).digest('hex');
 
     const invitation = await this.invitationRepository.findOne({
@@ -168,7 +193,9 @@ export class InvitationsService {
     }
 
     if (invitation.status !== 'pending') {
-      throw new BadRequestException('This invitation has already been used or revoked');
+      throw new BadRequestException(
+        'This invitation has already been used or revoked',
+      );
     }
 
     if (new Date() > invitation.expiresAt) {
@@ -185,7 +212,9 @@ export class InvitationsService {
     if (existingUser) {
       // User exists - just add them to this tenant
       // Note: In a real app, you might handle this differently
-      throw new ConflictException('An account with this email already exists. Please log in to join this organization.');
+      throw new ConflictException(
+        'An account with this email already exists. Please log in to join this organization.',
+      );
     }
 
     // Create new user
@@ -225,7 +254,11 @@ export class InvitationsService {
     await this.invitationRepository.save(invitation);
   }
 
-  async resend(tenantId: string, id: string, userId: string): Promise<{ sent: boolean }> {
+  async resend(
+    tenantId: string,
+    id: string,
+    userId: string,
+  ): Promise<{ sent: boolean }> {
     const invitation = await this.invitationRepository.findOne({
       where: { id, tenantId },
       relations: ['tenant', 'invitedBy'],
@@ -248,14 +281,17 @@ export class InvitationsService {
     await this.invitationRepository.save(invitation);
 
     // Get current user info
-    const currentUser = await this.userRepository.findOne({ where: { id: userId } });
+    const currentUser = await this.userRepository.findOne({
+      where: { id: userId },
+    });
 
     // Resend email
     const inviteUrl = `${process.env.APP_URL || 'http://localhost:4001'}/invite/accept?token=${token}`;
     const sent = await this.emailService.sendInviteUserEmail({
       to: invitation.email,
       tenantName: invitation.tenant?.name || 'Nebula DNS',
-      inviterName: currentUser?.name || invitation.invitedBy?.name || 'A team member',
+      inviterName:
+        currentUser?.name || invitation.invitedBy?.name || 'A team member',
       inviterEmail: currentUser?.email || invitation.invitedBy?.email || '',
       role: invitation.role,
       message: invitation.message,
@@ -270,7 +306,7 @@ export class InvitationsService {
   async cleanupExpired(): Promise<number> {
     const result = await this.invitationRepository.update(
       { status: 'pending', expiresAt: LessThan(new Date()) },
-      { status: 'expired' }
+      { status: 'expired' },
     );
     return result.affected || 0;
   }
@@ -282,11 +318,13 @@ export class InvitationsService {
       role: invitation.role,
       status: invitation.status,
       message: invitation.message,
-      invitedBy: invitation.invitedBy ? {
-        id: invitation.invitedBy.id,
-        name: invitation.invitedBy.name,
-        email: invitation.invitedBy.email,
-      } : null,
+      invitedBy: invitation.invitedBy
+        ? {
+            id: invitation.invitedBy.id,
+            name: invitation.invitedBy.name,
+            email: invitation.invitedBy.email,
+          }
+        : null,
       expiresAt: invitation.expiresAt,
       createdAt: invitation.createdAt,
     };

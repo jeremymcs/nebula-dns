@@ -1,12 +1,29 @@
-import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsUrl, IsArray, IsObject, ArrayMinSize } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsBoolean,
+  IsUrl,
+  IsArray,
+  IsObject,
+  ArrayMinSize,
+} from 'class-validator';
 
 export const WEBHOOK_EVENTS = [
-  'policy.created', 'policy.updated', 'policy.deleted',
-  'location.created', 'location.updated', 'location.deleted',
-  'user.created', 'user.invited', 'user.deleted',
+  'policy.created',
+  'policy.updated',
+  'policy.deleted',
+  'location.created',
+  'location.updated',
+  'location.deleted',
+  'user.created',
+  'user.invited',
+  'user.deleted',
   'threat.detected',
   'report.generated',
-  'subscription.created', 'subscription.updated', 'subscription.cancelled',
+  'subscription.created',
+  'subscription.updated',
+  'subscription.cancelled',
 ] as const;
 
 export class CreateWebhookDto {

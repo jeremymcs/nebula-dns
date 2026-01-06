@@ -1,5 +1,20 @@
-import { Controller, Get, Post, Patch, Param, Query, Body, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Query,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { ThreatFeedsService } from './threat-feeds.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard, Roles, Role } from '@/common/guards/roles.guard';
@@ -14,7 +29,11 @@ export class ThreatFeedsController {
   @Get()
   @Roles(Role.OWNER, Role.ADMIN, Role.ANALYST)
   @ApiOperation({ summary: 'Get all threat feeds' })
-  @ApiQuery({ name: 'category', required: false, description: 'Filter by threat category' })
+  @ApiQuery({
+    name: 'category',
+    required: false,
+    description: 'Filter by threat category',
+  })
   @ApiResponse({ status: 200, description: 'Feeds retrieved' })
   async getFeeds(@Query('category') category?: string) {
     const feeds = category
@@ -37,13 +56,15 @@ export class ThreatFeedsController {
   @ApiOperation({ summary: 'Check if a domain is in threat feeds' })
   @ApiResponse({ status: 200, description: 'Domain check result' })
   async checkDomain(@Param('domain') domain: string) {
-    const result = await this.threatFeedsService.checkDomain(domain.toLowerCase());
+    const result = await this.threatFeedsService.checkDomain(
+      domain.toLowerCase(),
+    );
     return {
       data: {
         domain,
         isThreat: !!result,
         indicator: result,
-      }
+      },
     };
   }
 
@@ -52,13 +73,15 @@ export class ThreatFeedsController {
   @ApiOperation({ summary: 'Check multiple domains against threat feeds' })
   @ApiResponse({ status: 200, description: 'Batch check results' })
   async checkDomainBatch(@Body() body: { domains: string[] }) {
-    const results = await this.threatFeedsService.checkDomainBatch(body.domains);
+    const results = await this.threatFeedsService.checkDomainBatch(
+      body.domains,
+    );
     return {
       data: {
         checked: body.domains.length,
         threats: results.size,
         results: Object.fromEntries(results),
-      }
+      },
     };
   }
 
@@ -79,7 +102,10 @@ export class ThreatFeedsController {
     @Param('feedId') feedId: string,
     @Body() body: { enabled: boolean },
   ) {
-    const result = await this.threatFeedsService.toggleFeed(feedId, body.enabled);
+    const result = await this.threatFeedsService.toggleFeed(
+      feedId,
+      body.enabled,
+    );
     return { data: result };
   }
 
@@ -95,4 +121,3 @@ export class ThreatFeedsController {
     };
   }
 }
-

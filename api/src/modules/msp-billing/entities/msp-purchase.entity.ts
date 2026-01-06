@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
+} from 'typeorm';
 import { Partner } from '../../partners/entities/partner.entity';
 import { QueryBundle } from './query-bundle.entity';
 
@@ -40,11 +47,21 @@ export class MspPurchase {
   amount: number;
 
   // Stripe payment intent ID
-  @Column({ name: 'stripe_payment_intent_id', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'stripe_payment_intent_id',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   stripePaymentIntentId: string | null;
 
   // Stripe invoice ID
-  @Column({ name: 'stripe_invoice_id', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'stripe_invoice_id',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   stripeInvoiceId: string | null;
 
   // Expiration date (when these queries expire)
@@ -59,10 +76,17 @@ export class MspPurchase {
   @Column({ name: 'is_auto_purchase', type: 'boolean', default: false })
   isAutoPurchase: boolean;
 
-  @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    name: 'created_at',
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt: Date;
 
-  @Column({ name: 'updated_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    name: 'updated_at',
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   updatedAt: Date;
 }
-

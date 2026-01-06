@@ -10,7 +10,15 @@ export interface ThreatFeedSource {
   type: 'domain_list' | 'ip_list' | 'stix' | 'taxii' | 'hostfile';
   url: string;
   format: 'text' | 'json' | 'csv' | 'stix' | 'hostfile';
-  category: 'malware' | 'phishing' | 'ransomware' | 'c2' | 'botnet' | 'cryptomining' | 'spam' | 'dga';
+  category:
+    | 'malware'
+    | 'phishing'
+    | 'ransomware'
+    | 'c2'
+    | 'botnet'
+    | 'cryptomining'
+    | 'spam'
+    | 'dga';
   updateFrequency: string;
   isEnabled: boolean;
   lastUpdated: Date | null;
@@ -38,12 +46,12 @@ export class ThreatFeedsService {
   private threatCache: Map<string, ThreatIndicator> = new Map();
   private redisClient: Redis | null = null;
 
-  constructor(
-    @Optional() @Inject('REDIS_CLIENT') redis?: Redis,
-  ) {
+  constructor(@Optional() @Inject('REDIS_CLIENT') redis?: Redis) {
     this.redisClient = redis || null;
     if (!this.redisClient) {
-      this.logger.warn('Redis not available, using in-memory threat cache only');
+      this.logger.warn(
+        'Redis not available, using in-memory threat cache only',
+      );
     }
   }
 
@@ -199,11 +207,14 @@ export class ThreatFeedsService {
   }
 
   async getFeedsByCategory(category: string): Promise<ThreatFeedSource[]> {
-    return this.defaultFeeds.filter(f => f.category === category);
+    return this.defaultFeeds.filter((f) => f.category === category);
   }
 
-  async toggleFeed(feedId: string, enabled: boolean): Promise<ThreatFeedSource | null> {
-    const feed = this.defaultFeeds.find(f => f.id === feedId);
+  async toggleFeed(
+    feedId: string,
+    enabled: boolean,
+  ): Promise<ThreatFeedSource | null> {
+    const feed = this.defaultFeeds.find((f) => f.id === feedId);
     if (feed) {
       feed.isEnabled = enabled;
       return feed;
@@ -211,8 +222,13 @@ export class ThreatFeedsService {
     return null;
   }
 
-  async updateFeed(feedId: string): Promise<{ success: boolean; entryCount: number; error?: string; duration?: number }> {
-    const feed = this.defaultFeeds.find(f => f.id === feedId);
+  async updateFeed(feedId: string): Promise<{
+    success: boolean;
+    entryCount: number;
+    error?: string;
+    duration?: number;
+  }> {
+    const feed = this.defaultFeeds.find((f) => f.id === feedId);
     if (!feed) {
       return { success: false, entryCount: 0, error: 'Feed not found' };
     }
@@ -238,7 +254,9 @@ export class ThreatFeedsService {
       feed.entryCount = entries.length;
 
       const duration = Date.now() - startTime;
-      this.logger.log(`Updated feed ${feed.name}: ${entries.length} entries in ${duration}ms`);
+      this.logger.log(
+        `Updated feed ${feed.name}: ${entries.length} entries in ${duration}ms`,
+      );
       return { success: true, entryCount: entries.length, duration };
     } catch (error) {
       this.logger.error(`Failed to update feed ${feed.name}: ${error.message}`);
@@ -246,7 +264,10 @@ export class ThreatFeedsService {
     }
   }
 
-  private async updateRedisCache(category: string, entries: ThreatIndicator[]): Promise<void> {
+  private async updateRedisCache(
+    category: string,
+    entries: ThreatIndicator[],
+  ): Promise<void> {
     if (!this.redisClient) return;
 
     const pipeline = this.redisClient.pipeline();
@@ -259,11 +280,17 @@ export class ThreatFeedsService {
     pipeline.expire(key, REDIS_THREAT_TTL);
 
     await pipeline.exec();
-    this.logger.debug(`Updated Redis cache for ${category}: ${entries.length} entries`);
+    this.logger.debug(
+      `Updated Redis cache for ${category}: ${entries.length} entries`,
+    );
   }
 
   @Cron(CronExpression.EVERY_HOUR)
-  async updateAllFeeds(): Promise<{ updated: number; failed: number; total: number }> {
+  async updateAllFeeds(): Promise<{
+    updated: number;
+    failed: number;
+    total: number;
+  }> {
     this.logger.log('Starting scheduled threat feed update');
 
     let updated = 0;
@@ -278,16 +305,23 @@ export class ThreatFeedsService {
           failed++;
         }
         // Small delay between feeds to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
 
     // Publish invalidation message
     if (this.redisClient && updated > 0) {
-      await this.redisClient.publish('nebula:invalidate', JSON.stringify({ type: 'threats' }));
+      await this.redisClient.publish(
+        'nebula:invalidate',
+        JSON.stringify({ type: 'threats' }),
+      );
     }
 
-    return { updated, failed, total: this.defaultFeeds.filter(f => f.isEnabled).length };
+    return {
+      updated,
+      failed,
+      total: this.defaultFeeds.filter((f) => f.isEnabled).length,
+    };
   }
 
   async checkDomain(domain: string): Promise<ThreatIndicator | null> {
@@ -297,8 +331,18 @@ export class ThreatFeedsService {
 
     // Check Redis if available
     if (this.redisClient) {
-      for (const category of ['malware', 'phishing', 'c2', 'ransomware', 'cryptomining', 'dga']) {
-        const isMember = await this.redisClient.sismember(`${REDIS_THREAT_PREFIX}${category}`, domain);
+      for (const category of [
+        'malware',
+        'phishing',
+        'c2',
+        'ransomware',
+        'cryptomining',
+        'dga',
+      ]) {
+        const isMember = await this.redisClient.sismember(
+          `${REDIS_THREAT_PREFIX}${category}`,
+          domain,
+        );
         if (isMember) {
           return {
             type: 'domain',
@@ -316,7 +360,9 @@ export class ThreatFeedsService {
     return null;
   }
 
-  async checkDomainBatch(domains: string[]): Promise<Map<string, ThreatIndicator>> {
+  async checkDomainBatch(
+    domains: string[],
+  ): Promise<Map<string, ThreatIndicator>> {
     const results = new Map<string, ThreatIndicator>();
 
     for (const domain of domains) {
@@ -336,18 +382,36 @@ export class ThreatFeedsService {
   async getStats(): Promise<{
     totalIndicators: number;
     byCategory: Record<string, number>;
-    feedStats: Array<{ id: string; name: string; entryCount: number; lastUpdated: Date | null; isEnabled: boolean }>;
+    feedStats: Array<{
+      id: string;
+      name: string;
+      entryCount: number;
+      lastUpdated: Date | null;
+      isEnabled: boolean;
+    }>;
   }> {
     const byCategory: Record<string, number> = {};
 
     for (const indicator of this.threatCache.values()) {
-      byCategory[indicator.category] = (byCategory[indicator.category] || 0) + 1;
+      byCategory[indicator.category] =
+        (byCategory[indicator.category] || 0) + 1;
     }
 
     // Also check Redis counts if available
     if (this.redisClient) {
-      for (const category of ['malware', 'phishing', 'c2', 'ransomware', 'cryptomining', 'dga', 'spam', 'botnet']) {
-        const count = await this.redisClient.scard(`${REDIS_THREAT_PREFIX}${category}`);
+      for (const category of [
+        'malware',
+        'phishing',
+        'c2',
+        'ransomware',
+        'cryptomining',
+        'dga',
+        'spam',
+        'botnet',
+      ]) {
+        const count = await this.redisClient.scard(
+          `${REDIS_THREAT_PREFIX}${category}`,
+        );
         if (count > 0) {
           byCategory[category] = Math.max(byCategory[category] || 0, count);
         }
@@ -357,7 +421,7 @@ export class ThreatFeedsService {
     return {
       totalIndicators: this.threatCache.size,
       byCategory,
-      feedStats: this.defaultFeeds.map(f => ({
+      feedStats: this.defaultFeeds.map((f) => ({
         id: f.id,
         name: f.name,
         entryCount: f.entryCount,
@@ -367,7 +431,9 @@ export class ThreatFeedsService {
     };
   }
 
-  private getSeverityForCategory(category: string): 'low' | 'medium' | 'high' | 'critical' {
+  private getSeverityForCategory(
+    category: string,
+  ): 'low' | 'medium' | 'high' | 'critical' {
     switch (category) {
       case 'ransomware':
       case 'c2':
@@ -387,32 +453,36 @@ export class ThreatFeedsService {
   private async fetchFeed(url: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const protocol = url.startsWith('https') ? https : http;
-      const request = protocol.get(url, {
-        headers: {
-          'User-Agent': 'Nebula-DNS-Threat-Loader/1.0',
-          'Accept': 'text/plain, application/json, text/csv',
+      const request = protocol.get(
+        url,
+        {
+          headers: {
+            'User-Agent': 'Nebula-DNS-Threat-Loader/1.0',
+            Accept: 'text/plain, application/json, text/csv',
+          },
+          timeout: 30000,
         },
-        timeout: 30000,
-      }, (res) => {
-        // Handle redirects
-        if (res.statusCode === 301 || res.statusCode === 302) {
-          const redirectUrl = res.headers.location;
-          if (redirectUrl) {
-            this.fetchFeed(redirectUrl).then(resolve).catch(reject);
+        (res) => {
+          // Handle redirects
+          if (res.statusCode === 301 || res.statusCode === 302) {
+            const redirectUrl = res.headers.location;
+            if (redirectUrl) {
+              this.fetchFeed(redirectUrl).then(resolve).catch(reject);
+              return;
+            }
+          }
+
+          if (res.statusCode !== 200) {
+            reject(new Error(`HTTP ${res.statusCode}: ${res.statusMessage}`));
             return;
           }
-        }
 
-        if (res.statusCode !== 200) {
-          reject(new Error(`HTTP ${res.statusCode}: ${res.statusMessage}`));
-          return;
-        }
-
-        let data = '';
-        res.on('data', chunk => data += chunk);
-        res.on('end', () => resolve(data));
-        res.on('error', reject);
-      });
+          let data = '';
+          res.on('data', (chunk) => (data += chunk));
+          res.on('end', () => resolve(data));
+          res.on('error', reject);
+        },
+      );
 
       request.on('error', reject);
       request.on('timeout', () => {
@@ -422,7 +492,10 @@ export class ThreatFeedsService {
     });
   }
 
-  private parseFeed(content: string, feed: ThreatFeedSource): ThreatIndicator[] {
+  private parseFeed(
+    content: string,
+    feed: ThreatFeedSource,
+  ): ThreatIndicator[] {
     const indicators: ThreatIndicator[] = [];
     const now = new Date();
 
@@ -440,11 +513,21 @@ export class ThreatFeedsService {
     }
   }
 
-  private parseTextFeed(content: string, feed: ThreatFeedSource, now: Date): ThreatIndicator[] {
+  private parseTextFeed(
+    content: string,
+    feed: ThreatFeedSource,
+    now: Date,
+  ): ThreatIndicator[] {
     const indicators: ThreatIndicator[] = [];
-    const lines = content.split('\n').filter(line =>
-      line.trim() && !line.startsWith('#') && !line.startsWith('//') && !line.startsWith(';')
-    );
+    const lines = content
+      .split('\n')
+      .filter(
+        (line) =>
+          line.trim() &&
+          !line.startsWith('#') &&
+          !line.startsWith('//') &&
+          !line.startsWith(';'),
+      );
 
     for (const line of lines) {
       const domain = this.extractDomain(line.trim().toLowerCase());
@@ -464,11 +547,15 @@ export class ThreatFeedsService {
     return indicators;
   }
 
-  private parseHostfileFeed(content: string, feed: ThreatFeedSource, now: Date): ThreatIndicator[] {
+  private parseHostfileFeed(
+    content: string,
+    feed: ThreatFeedSource,
+    now: Date,
+  ): ThreatIndicator[] {
     const indicators: ThreatIndicator[] = [];
-    const lines = content.split('\n').filter(line =>
-      line.trim() && !line.startsWith('#')
-    );
+    const lines = content
+      .split('\n')
+      .filter((line) => line.trim() && !line.startsWith('#'));
 
     for (const line of lines) {
       // Hostfile format: "127.0.0.1 domain.com" or "0.0.0.0 domain.com"
@@ -492,11 +579,15 @@ export class ThreatFeedsService {
     return indicators;
   }
 
-  private parseCsvFeed(content: string, feed: ThreatFeedSource, now: Date): ThreatIndicator[] {
+  private parseCsvFeed(
+    content: string,
+    feed: ThreatFeedSource,
+    now: Date,
+  ): ThreatIndicator[] {
     const indicators: ThreatIndicator[] = [];
-    const lines = content.split('\n').filter(line =>
-      line.trim() && !line.startsWith('#')
-    );
+    const lines = content
+      .split('\n')
+      .filter((line) => line.trim() && !line.startsWith('#'));
 
     // Skip header row
     for (let i = 1; i < lines.length; i++) {
@@ -522,15 +613,24 @@ export class ThreatFeedsService {
     return indicators;
   }
 
-  private parseJsonFeed(content: string, feed: ThreatFeedSource, now: Date): ThreatIndicator[] {
+  private parseJsonFeed(
+    content: string,
+    feed: ThreatFeedSource,
+    now: Date,
+  ): ThreatIndicator[] {
     const indicators: ThreatIndicator[] = [];
 
     try {
       const data = JSON.parse(content);
-      const items = Array.isArray(data) ? data : (data.domains || data.items || data.data || []);
+      const items = Array.isArray(data)
+        ? data
+        : data.domains || data.items || data.data || [];
 
       for (const item of items) {
-        const domain = typeof item === 'string' ? item : (item.domain || item.url || item.value);
+        const domain =
+          typeof item === 'string'
+            ? item
+            : item.domain || item.url || item.value;
         if (domain) {
           const extracted = this.extractDomain(domain);
           if (extracted && this.isValidDomain(extracted)) {
@@ -573,8 +673,8 @@ export class ThreatFeedsService {
     // Must have at least one dot
     if (!domain.includes('.')) return false;
     // Basic domain pattern check
-    const domainPattern = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/;
+    const domainPattern =
+      /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/;
     return domainPattern.test(domain);
   }
 }
-

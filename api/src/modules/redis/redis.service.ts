@@ -23,13 +23,14 @@ export class RedisService implements OnModuleDestroy {
   private readonly INVALIDATION_CHANNEL = 'nebula:invalidate';
 
   constructor(private configService: ConfigService) {
-    const redisUrl = this.configService.get<string>('REDIS_URL') || 'redis://localhost:4379';
+    const redisUrl =
+      this.configService.get<string>('REDIS_URL') || 'redis://localhost:4379';
     this.client = new Redis(redisUrl);
-    
+
     this.client.on('connect', () => {
       this.logger.log('Connected to Redis');
     });
-    
+
     this.client.on('error', (err) => {
       this.logger.error('Redis connection error', err);
     });
@@ -86,7 +87,9 @@ export class RedisService implements OnModuleDestroy {
       locationId,
     };
     await this.publish(this.INVALIDATION_CHANNEL, JSON.stringify(message));
-    this.logger.debug(`Published policy invalidation for location: ${locationId}`);
+    this.logger.debug(
+      `Published policy invalidation for location: ${locationId}`,
+    );
   }
 
   async invalidateToken(tokenHash: string): Promise<void> {
@@ -109,7 +112,11 @@ export class RedisService implements OnModuleDestroy {
   }
 
   // Compiled policy storage
-  async storeCompiledPolicy(locationId: string, policy: object, ttlSeconds = 3600): Promise<void> {
+  async storeCompiledPolicy(
+    locationId: string,
+    policy: object,
+    ttlSeconds = 3600,
+  ): Promise<void> {
     const key = `policy:compiled:${locationId}`;
     await this.set(key, JSON.stringify(policy), ttlSeconds);
   }
@@ -121,7 +128,11 @@ export class RedisService implements OnModuleDestroy {
   }
 
   // Token storage
-  async storeToken(tokenHash: string, tokenInfo: object, ttlSeconds = 86400): Promise<void> {
+  async storeToken(
+    tokenHash: string,
+    tokenInfo: object,
+    ttlSeconds = 86400,
+  ): Promise<void> {
     const key = `token:${tokenHash}`;
     await this.set(key, JSON.stringify(tokenInfo), ttlSeconds);
   }
@@ -139,7 +150,10 @@ export class RedisService implements OnModuleDestroy {
   }
 
   // IP Range storage for location-based lookup
-  async storeIPRange(locationId: string, mapping: IPRangeMapping): Promise<void> {
+  async storeIPRange(
+    locationId: string,
+    mapping: IPRangeMapping,
+  ): Promise<void> {
     const key = `ip_range:${locationId}`;
     await this.set(key, JSON.stringify(mapping));
     await this.invalidateIPRanges();
@@ -176,4 +190,3 @@ export class RedisService implements OnModuleDestroy {
     return mappings;
   }
 }
-

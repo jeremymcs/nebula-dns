@@ -14,7 +14,10 @@ import {
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { SubscriptionsService } from './subscriptions.service';
-import { CreateSignupDto, CreateCheckoutSessionDto } from './dto/create-signup.dto';
+import {
+  CreateSignupDto,
+  CreateCheckoutSessionDto,
+} from './dto/create-signup.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentTenant } from '@/common/decorators/tenant.decorator';
 
@@ -51,7 +54,9 @@ export class SubscriptionsController {
 
     // For free plans, process immediately
     if (dto.planId === 'free') {
-      const result = await this.subscriptionsService.processSignup(signupRequest.id);
+      const result = await this.subscriptionsService.processSignup(
+        signupRequest.id,
+      );
       return {
         success: true,
         message: 'Account created successfully',
@@ -102,14 +107,16 @@ export class SubscriptionsController {
   @UseGuards(JwtAuthGuard)
   @Get('subscription')
   async getSubscription(@CurrentTenant() tenantId: string) {
-    const subscription = await this.subscriptionsService.getSubscription(tenantId);
+    const subscription =
+      await this.subscriptionsService.getSubscription(tenantId);
     return { data: subscription };
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('subscription/cancel')
   async cancelSubscription(@CurrentTenant() tenantId: string) {
-    const subscription = await this.subscriptionsService.cancelSubscription(tenantId);
+    const subscription =
+      await this.subscriptionsService.cancelSubscription(tenantId);
     return {
       success: true,
       message: 'Subscription will be canceled at the end of the billing period',
@@ -120,7 +127,8 @@ export class SubscriptionsController {
   @UseGuards(JwtAuthGuard)
   @Post('subscription/resume')
   async resumeSubscription(@CurrentTenant() tenantId: string) {
-    const subscription = await this.subscriptionsService.resumeSubscription(tenantId);
+    const subscription =
+      await this.subscriptionsService.resumeSubscription(tenantId);
     return {
       success: true,
       message: 'Subscription resumed',

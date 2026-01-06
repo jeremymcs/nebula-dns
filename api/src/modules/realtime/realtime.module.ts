@@ -19,4 +19,3 @@ import { ClickHouseModule } from '../clickhouse/clickhouse.module';
   exports: [RealtimeGateway],
 })
 export class RealtimeModule {}
-

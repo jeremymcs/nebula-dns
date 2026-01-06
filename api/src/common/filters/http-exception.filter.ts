@@ -60,7 +60,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     // Generate request ID if not present
-    const requestId = (request.headers['x-request-id'] as string) || this.generateRequestId();
+    const requestId =
+      (request.headers['x-request-id'] as string) || this.generateRequestId();
 
     const errorResponse: ErrorResponse = {
       statusCode: status,

@@ -11,4 +11,3 @@ import { UserGroup } from './entities/group.entity';
   exports: [GroupsService],
 })
 export class GroupsModule {}
-

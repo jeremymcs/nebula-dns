@@ -3,11 +3,33 @@
  * Provides endpoints for MSP users to manage their client organizations
  */
 
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { CurrentUser, CurrentTenant } from '@/common/decorators/tenant.decorator';
-import { MspService, ClientOrganization, CreateClientDto, UpdateClientDto } from './msp.service';
+import {
+  CurrentUser,
+  CurrentTenant,
+} from '@/common/decorators/tenant.decorator';
+import {
+  MspService,
+  ClientOrganization,
+  CreateClientDto,
+  UpdateClientDto,
+} from './msp.service';
 
 @ApiTags('msp')
 @ApiBearerAuth()
@@ -25,7 +47,10 @@ export class MspController {
     @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
   ): Promise<{ clients: ClientOrganization[] }> {
-    const clients = await this.mspService.getClientOrganizations(user.id, tenantId);
+    const clients = await this.mspService.getClientOrganizations(
+      user.id,
+      tenantId,
+    );
     return { clients };
   }
 
@@ -88,15 +113,24 @@ export class MspController {
 
   @Post('switch')
   @ApiOperation({ summary: 'Switch to a different client organization' })
-  @ApiResponse({ status: 200, description: 'Switched to organization, new tokens returned' })
+  @ApiResponse({
+    status: 200,
+    description: 'Switched to organization, new tokens returned',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Not authorized to access this organization' })
+  @ApiResponse({
+    status: 403,
+    description: 'Not authorized to access this organization',
+  })
   async switchOrganization(
     @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
     @Body() body: { organizationId: string },
   ): Promise<{ accessToken: string; refreshToken: string; user: any }> {
-    return this.mspService.switchOrganization(user.id, tenantId, body.organizationId);
+    return this.mspService.switchOrganization(
+      user.id,
+      tenantId,
+      body.organizationId,
+    );
   }
 }
-

@@ -12,12 +12,21 @@ import {
   Param,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { FamilyService } from './family.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard, Roles, Role } from '@/common/guards/roles.guard';
 import { CurrentTenant } from '@/common/decorators/tenant.decorator';
-import { CreateFamilyMemberDto, UpdateFamilyMemberDto, AssignDeviceDto } from './dto/family.dto';
+import {
+  CreateFamilyMemberDto,
+  UpdateFamilyMemberDto,
+  AssignDeviceDto,
+} from './dto/family.dto';
 
 @ApiTags('family')
 @ApiBearerAuth()
@@ -48,7 +57,10 @@ export class FamilyController {
   @Roles(Role.OWNER, Role.ADMIN)
   @ApiOperation({ summary: 'Create a new family member' })
   @ApiResponse({ status: 201, description: 'Family member created' })
-  async create(@CurrentTenant() tenantId: string, @Body() dto: CreateFamilyMemberDto) {
+  async create(
+    @CurrentTenant() tenantId: string,
+    @Body() dto: CreateFamilyMemberDto,
+  ) {
     const member = await this.familyService.create(tenantId, dto);
     return { data: member };
   }
@@ -84,7 +96,11 @@ export class FamilyController {
     @Param('id') memberId: string,
     @Body() dto: AssignDeviceDto,
   ) {
-    const member = await this.familyService.assignDevice(tenantId, memberId, dto);
+    const member = await this.familyService.assignDevice(
+      tenantId,
+      memberId,
+      dto,
+    );
     return { data: member };
   }
 
@@ -97,8 +113,11 @@ export class FamilyController {
     @Param('id') memberId: string,
     @Param('deviceId') deviceId: string,
   ) {
-    const member = await this.familyService.removeDevice(tenantId, memberId, deviceId);
+    const member = await this.familyService.removeDevice(
+      tenantId,
+      memberId,
+      deviceId,
+    );
     return { data: member };
   }
 }
-

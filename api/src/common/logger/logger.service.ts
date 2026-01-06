@@ -1,11 +1,15 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
+ *
  * Production Logger Service with JSON formatting
  */
 
-import { LoggerService as NestLoggerService, Injectable, Scope } from '@nestjs/common';
+import {
+  LoggerService as NestLoggerService,
+  Injectable,
+  Scope,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 export interface LogEntry {
@@ -60,7 +64,12 @@ export class ProductionLoggerService implements NestLoggerService {
     }
   }
 
-  private printMessage(level: string, message: any, context?: string, trace?: string) {
+  private printMessage(
+    level: string,
+    message: any,
+    context?: string,
+    trace?: string,
+  ) {
     const entry: LogEntry = {
       level,
       message: typeof message === 'object' ? JSON.stringify(message) : message,

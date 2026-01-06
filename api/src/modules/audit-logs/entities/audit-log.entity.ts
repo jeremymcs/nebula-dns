@@ -1,20 +1,46 @@
-import { Entity, Column, ManyToOne, JoinColumn, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+} from 'typeorm';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 import { User } from '../../users/entities/user.entity';
 
 export type AuditAction =
-  | 'create' | 'update' | 'delete'
-  | 'login' | 'logout' | 'login_failed'
-  | 'mfa_enabled' | 'mfa_disabled'
-  | 'password_change' | 'password_reset'
-  | 'invite_sent' | 'invite_accepted'
-  | 'token_rotate' | 'api_key_create' | 'api_key_revoke'
-  | 'export' | 'import';
+  | 'create'
+  | 'update'
+  | 'delete'
+  | 'login'
+  | 'logout'
+  | 'login_failed'
+  | 'mfa_enabled'
+  | 'mfa_disabled'
+  | 'password_change'
+  | 'password_reset'
+  | 'invite_sent'
+  | 'invite_accepted'
+  | 'token_rotate'
+  | 'api_key_create'
+  | 'api_key_revoke'
+  | 'export'
+  | 'import';
 
 export type AuditResourceType =
-  | 'user' | 'policy' | 'location' | 'list'
-  | 'webhook' | 'siem' | 'report' | 'subscription'
-  | 'tenant' | 'api_key' | 'sso' | 'block_page';
+  | 'user'
+  | 'policy'
+  | 'location'
+  | 'list'
+  | 'webhook'
+  | 'siem'
+  | 'report'
+  | 'subscription'
+  | 'tenant'
+  | 'api_key'
+  | 'sso'
+  | 'block_page';
 
 @Entity('audit_logs')
 export class AuditLog {
@@ -44,7 +70,12 @@ export class AuditLog {
   @Column({ name: 'resource_id', type: 'uuid', nullable: true })
   resourceId: string | null;
 
-  @Column({ name: 'resource_name', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'resource_name',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   resourceName: string | null;
 
   @Column({ name: 'old_value', type: 'jsonb', nullable: true })
@@ -65,4 +96,3 @@ export class AuditLog {
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 }
-

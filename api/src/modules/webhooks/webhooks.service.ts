@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import * as crypto from 'crypto';
@@ -30,24 +35,27 @@ export class WebhooksService {
 
   // Generate HMAC signature for payload
   private generateSignature(payload: string, secret: string): string {
-    return crypto
-      .createHmac('sha256', secret)
-      .update(payload)
-      .digest('hex');
+    return crypto.createHmac('sha256', secret).update(payload).digest('hex');
   }
 
   async create(tenantId: string, dto: CreateWebhookDto): Promise<Webhook> {
     // Validate events
-    const invalidEvents = dto.events.filter(e => !WEBHOOK_EVENTS.includes(e as any));
+    const invalidEvents = dto.events.filter(
+      (e) => !WEBHOOK_EVENTS.includes(e as any),
+    );
     if (invalidEvents.length > 0) {
-      throw new BadRequestException(`Invalid events: ${invalidEvents.join(', ')}`);
+      throw new BadRequestException(
+        `Invalid events: ${invalidEvents.join(', ')}`,
+      );
     }
 
     const webhook = this.webhookRepository.create({
       tenantId,
       name: dto.name,
       url: dto.url,
-      secretHash: dto.secret ? crypto.createHash('sha256').update(dto.secret).digest('hex') : null,
+      secretHash: dto.secret
+        ? crypto.createHash('sha256').update(dto.secret).digest('hex')
+        : null,
       events: dto.events as WebhookEvent[],
       headers: dto.headers || {},
     } as Partial<Webhook>);
@@ -61,7 +69,7 @@ export class WebhooksService {
       order: { createdAt: 'DESC' },
     });
 
-    return webhooks.map(w => this.toResponseDto(w));
+    return webhooks.map((w) => this.toResponseDto(w));
   }
 
   async findOne(tenantId: string, id: string): Promise<Webhook> {
@@ -76,19 +84,31 @@ export class WebhooksService {
     return webhook;
   }
 
-  async update(tenantId: string, id: string, dto: UpdateWebhookDto): Promise<Webhook> {
+  async update(
+    tenantId: string,
+    id: string,
+    dto: UpdateWebhookDto,
+  ): Promise<Webhook> {
     const webhook = await this.findOne(tenantId, id);
 
     if (dto.events) {
-      const invalidEvents = dto.events.filter(e => !WEBHOOK_EVENTS.includes(e as any));
+      const invalidEvents = dto.events.filter(
+        (e) => !WEBHOOK_EVENTS.includes(e as any),
+      );
       if (invalidEvents.length > 0) {
-        throw new BadRequestException(`Invalid events: ${invalidEvents.join(', ')}`);
+        throw new BadRequestException(
+          `Invalid events: ${invalidEvents.join(', ')}`,
+        );
       }
     }
 
     if (dto.name) webhook.name = dto.name;
     if (dto.url) webhook.url = dto.url;
-    if (dto.secret) webhook.secretHash = crypto.createHash('sha256').update(dto.secret).digest('hex');
+    if (dto.secret)
+      webhook.secretHash = crypto
+        .createHash('sha256')
+        .update(dto.secret)
+        .digest('hex');
     if (dto.events) webhook.events = dto.events as WebhookEvent[];
     if (dto.isEnabled !== undefined) webhook.isEnabled = dto.isEnabled;
     if (dto.headers) webhook.headers = dto.headers;
@@ -116,7 +136,11 @@ export class WebhooksService {
   }
 
   // Get delivery history
-  async getDeliveries(tenantId: string, id: string, limit = 50): Promise<WebhookDeliveryResponseDto[]> {
+  async getDeliveries(
+    tenantId: string,
+    id: string,
+    limit = 50,
+  ): Promise<WebhookDeliveryResponseDto[]> {
     const webhook = await this.findOne(tenantId, id);
 
     const deliveries = await this.deliveryRepository.find({
@@ -125,7 +149,7 @@ export class WebhooksService {
       take: limit,
     });
 
-    return deliveries.map(d => ({
+    return deliveries.map((d) => ({
       id: d.id,
       eventType: d.eventType,
       payload: d.payload,
@@ -138,7 +162,11 @@ export class WebhooksService {
   }
 
   // Test webhook
-  async test(tenantId: string, id: string, eventType?: string): Promise<TestWebhookResultDto> {
+  async test(
+    tenantId: string,
+    id: string,
+    eventType?: string,
+  ): Promise<TestWebhookResultDto> {
     const webhook = await this.findOne(tenantId, id);
     const event = eventType || webhook.events[0] || 'policy.updated';
 
@@ -156,12 +184,16 @@ export class WebhooksService {
   }
 
   // Trigger webhooks for an event
-  async trigger(tenantId: string, event: WebhookEvent, data: any): Promise<void> {
+  async trigger(
+    tenantId: string,
+    event: WebhookEvent,
+    data: any,
+  ): Promise<void> {
     const webhooks = await this.webhookRepository.find({
       where: { tenantId, isEnabled: true },
     });
 
-    const relevantWebhooks = webhooks.filter(w => w.events.includes(event));
+    const relevantWebhooks = webhooks.filter((w) => w.events.includes(event));
 
     const payload = {
       event,
@@ -170,7 +202,9 @@ export class WebhooksService {
     };
 
     await Promise.all(
-      relevantWebhooks.map(webhook => this.deliver(webhook, event, payload, false))
+      relevantWebhooks.map((webhook) =>
+        this.deliver(webhook, event, payload, false),
+      ),
     );
   }
 
@@ -195,7 +229,8 @@ export class WebhooksService {
     // Add signature if secret is set
     if (webhook.secretHash) {
       // Use a placeholder secret for signing (in production, store the secret securely)
-      headers['X-Webhook-Signature'] = `sha256=${this.generateSignature(payloadString, webhook.secretHash)}`;
+      headers['X-Webhook-Signature'] =
+        `sha256=${this.generateSignature(payloadString, webhook.secretHash)}`;
     }
 
     let statusCode: number = 0;
@@ -212,13 +247,17 @@ export class WebhooksService {
 
         // Success - break out of retry loop
         if (statusCode >= 200 && statusCode < 300) {
-          this.logger.log(`Delivered ${eventType} to ${webhook.name} (${webhook.url})`);
+          this.logger.log(
+            `Delivered ${eventType} to ${webhook.name} (${webhook.url})`,
+          );
           break;
         }
 
         // Server error (5xx) - retry
         if (statusCode >= 500 && retryCount < this.maxRetries) {
-          this.logger.warn(`Webhook ${webhook.name} returned ${statusCode}, retrying...`);
+          this.logger.warn(
+            `Webhook ${webhook.name} returned ${statusCode}, retrying...`,
+          );
           await this.delay(this.retryDelays[retryCount] || 30000);
           retryCount++;
           continue;
@@ -227,13 +266,14 @@ export class WebhooksService {
         // Client error (4xx) - don't retry
         error = `HTTP ${statusCode}: ${responseBody?.substring(0, 200)}`;
         break;
-
       } catch (err: any) {
         error = err.message || 'Failed to deliver webhook';
 
         // Network error - retry
         if (retryCount < this.maxRetries) {
-          this.logger.warn(`Webhook ${webhook.name} failed: ${error}, retrying...`);
+          this.logger.warn(
+            `Webhook ${webhook.name} failed: ${error}, retrying...`,
+          );
           await this.delay(this.retryDelays[retryCount] || 30000);
           retryCount++;
           continue;
@@ -262,14 +302,14 @@ export class WebhooksService {
       // Update webhook status
       webhook.lastTriggeredAt = new Date();
       webhook.lastStatusCode = statusCode;
-      
+
       if (success) {
         webhook.failureCount = 0;
         webhook.lastError = null;
       } else {
         webhook.failureCount++;
         webhook.lastError = error;
-        
+
         // Disable after 10 consecutive failures
         if (webhook.failureCount >= 10) {
           webhook.isEnabled = false;

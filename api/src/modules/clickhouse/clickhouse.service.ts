@@ -53,8 +53,14 @@ export class ClickHouseService implements OnModuleInit {
   async onModuleInit() {
     const host = this.configService.get<string>('CLICKHOUSE_HOST', 'localhost');
     const port = this.configService.get<number>('CLICKHOUSE_PORT', 8123);
-    const database = this.configService.get<string>('CLICKHOUSE_DATABASE', 'nebula_dns');
-    const username = this.configService.get<string>('CLICKHOUSE_USER', 'default');
+    const database = this.configService.get<string>(
+      'CLICKHOUSE_DATABASE',
+      'nebula_dns',
+    );
+    const username = this.configService.get<string>(
+      'CLICKHOUSE_USER',
+      'default',
+    );
     const password = this.configService.get<string>('CLICKHOUSE_PASSWORD', '');
 
     try {
@@ -74,7 +80,9 @@ export class ClickHouseService implements OnModuleInit {
       this.logger.log('ClickHouse connection established');
     } catch (error) {
       this.lastConnectionAttempt = new Date();
-      this.logger.warn(`ClickHouse connection failed: ${error.message}. Query logging will use mock data.`);
+      this.logger.warn(
+        `ClickHouse connection failed: ${error.message}. Query logging will use mock data.`,
+      );
       this.scheduleReconnect();
     }
   }
@@ -133,12 +141,15 @@ export class ClickHouseService implements OnModuleInit {
 
       // Exponential backoff for retries
       const backoffMs = Math.min(
-        this.connectionRetryIntervalMs * Math.pow(2, this.consecutiveFailures - 1),
+        this.connectionRetryIntervalMs *
+          Math.pow(2, this.consecutiveFailures - 1),
         300000, // Max 5 minutes
       );
 
       if (this.consecutiveFailures < this.maxConsecutiveFailures) {
-        this.logger.log(`Scheduling next reconnect attempt in ${backoffMs / 1000} seconds`);
+        this.logger.log(
+          `Scheduling next reconnect attempt in ${backoffMs / 1000} seconds`,
+        );
         setTimeout(() => this.attemptReconnect(), backoffMs);
       } else {
         this.logger.error(
@@ -178,7 +189,9 @@ export class ClickHouseService implements OnModuleInit {
 
       // If we're seeing consistent failures, mark as disconnected
       if (this.consecutiveFailures >= 3) {
-        this.logger.warn('Multiple consecutive ClickHouse failures detected, marking as disconnected');
+        this.logger.warn(
+          'Multiple consecutive ClickHouse failures detected, marking as disconnected',
+        );
         this.isConnected = false;
         this.scheduleReconnect();
       }
@@ -276,22 +289,24 @@ export class ClickHouseService implements OnModuleInit {
     try {
       await this.client.insert({
         table: 'query_logs',
-        values: [{
-          timestamp: log.timestamp,
-          tenant_id: log.tenantId,
-          location_id: log.locationId,
-          location_name: log.locationName,
-          domain: log.domain,
-          query_type: log.queryType,
-          client_ip: log.clientIp,
-          action: log.action,
-          reason: log.reason,
-          category: log.category || null,
-          response_time_ms: log.responseTime,
-          cached: log.cached ? 1 : 0,
-          threat_type: log.threatType || null,
-          policy_id: log.policyId || null,
-        }],
+        values: [
+          {
+            timestamp: log.timestamp,
+            tenant_id: log.tenantId,
+            location_id: log.locationId,
+            location_name: log.locationName,
+            domain: log.domain,
+            query_type: log.queryType,
+            client_ip: log.clientIp,
+            action: log.action,
+            reason: log.reason,
+            category: log.category || null,
+            response_time_ms: log.responseTime,
+            cached: log.cached ? 1 : 0,
+            threat_type: log.threatType || null,
+            policy_id: log.policyId || null,
+          },
+        ],
         format: 'JSONEachRow',
       });
     } catch (error) {
@@ -307,7 +322,7 @@ export class ClickHouseService implements OnModuleInit {
     try {
       await this.client.insert({
         table: 'query_logs',
-        values: logs.map(log => ({
+        values: logs.map((log) => ({
           timestamp: log.timestamp,
           tenant_id: log.tenantId,
           location_id: log.locationId,
@@ -365,7 +380,7 @@ export class ClickHouseService implements OnModuleInit {
           query: `SELECT count() as total FROM query_logs WHERE ${whereClause}`,
           format: 'JSONEachRow',
         });
-        const countData = await countResult.json() as any[];
+        const countData = (await countResult.json()) as any[];
         const total = countData[0]?.total || 0;
 
         const result = await this.client.query({
@@ -394,7 +409,7 @@ export class ClickHouseService implements OnModuleInit {
           format: 'JSONEachRow',
         });
 
-        const data = await result.json() as any[];
+        const data = (await result.json()) as any[];
 
         return {
           data: data.map((row: any) => ({
@@ -445,20 +460,22 @@ export class ClickHouseService implements OnModuleInit {
           format: 'JSONEachRow',
         });
 
-        const data = await result.json() as any[];
+        const data = (await result.json()) as any[];
         const stats = data[0] || {};
 
         return {
           totalQueries: Number(stats.total_queries) || 0,
           blockedQueries: Number(stats.blocked_queries) || 0,
           threatsBlocked: Number(stats.threats_blocked) || 0,
-          blockRate: stats.total_queries > 0
-            ? ((stats.blocked_queries / stats.total_queries) * 100).toFixed(1)
-            : 0,
+          blockRate:
+            stats.total_queries > 0
+              ? ((stats.blocked_queries / stats.total_queries) * 100).toFixed(1)
+              : 0,
           avgResponseTime: Math.round(stats.avg_response_time) || 0,
-          cacheHitRate: stats.total_queries > 0
-            ? ((stats.cached_queries / stats.total_queries) * 100).toFixed(1)
-            : 0,
+          cacheHitRate:
+            stats.total_queries > 0
+              ? ((stats.cached_queries / stats.total_queries) * 100).toFixed(1)
+              : 0,
         };
       },
       () => this.getMockSummaryStats(),
@@ -466,7 +483,11 @@ export class ClickHouseService implements OnModuleInit {
     );
   }
 
-  async getTopBlocked(tenantId: string, period: string, limit: number = 10): Promise<any[]> {
+  async getTopBlocked(
+    tenantId: string,
+    period: string,
+    limit: number = 10,
+  ): Promise<any[]> {
     const dateFilter = this.getPeriodFilter(period);
 
     return this.safeQuery(
@@ -496,7 +517,11 @@ export class ClickHouseService implements OnModuleInit {
   }
 
   // Alias for getTopBlocked - used by realtime gateway
-  async getTopBlockedDomains(tenantId: string, period: string, limit: number = 10): Promise<any[]> {
+  async getTopBlockedDomains(
+    tenantId: string,
+    period: string,
+    limit: number = 10,
+  ): Promise<any[]> {
     return this.getTopBlocked(tenantId, period, limit);
   }
 
@@ -520,13 +545,17 @@ export class ClickHouseService implements OnModuleInit {
           format: 'JSONEachRow',
         });
 
-        const data = await result.json() as any[];
-        const total = data.reduce((sum: number, item: any) => sum + Number(item.count), 0);
+        const data = (await result.json()) as any[];
+        const total = data.reduce(
+          (sum: number, item: any) => sum + Number(item.count),
+          0,
+        );
 
         return data.map((item: any) => ({
           category: item.category,
           count: Number(item.count),
-          percentage: total > 0 ? Math.round((Number(item.count) / total) * 100) : 0,
+          percentage:
+            total > 0 ? Math.round((Number(item.count) / total) * 100) : 0,
         }));
       },
       () => this.getMockBlocksByCategory(),
@@ -554,16 +583,17 @@ export class ClickHouseService implements OnModuleInit {
           format: 'JSONEachRow',
         });
 
-        const data = await result.json() as any[];
+        const data = (await result.json()) as any[];
 
         return data.map((item: any) => ({
           locationId: item.location_id,
           locationName: item.location_name,
           totalQueries: Number(item.total_queries),
           blockedQueries: Number(item.blocked_queries),
-          blockRate: item.total_queries > 0
-            ? ((item.blocked_queries / item.total_queries) * 100).toFixed(1)
-            : 0,
+          blockRate:
+            item.total_queries > 0
+              ? ((item.blocked_queries / item.total_queries) * 100).toFixed(1)
+              : 0,
         }));
       },
       () => this.getMockLocationStats(),
@@ -571,7 +601,10 @@ export class ClickHouseService implements OnModuleInit {
     );
   }
 
-  async getHeatmapData(tenantId: string, period: string): Promise<Array<{ hour: number; day: number; value: number }>> {
+  async getHeatmapData(
+    tenantId: string,
+    period: string,
+  ): Promise<Array<{ hour: number; day: number; value: number }>> {
     const dateFilter = this.getPeriodFilter(period);
 
     return this.safeQuery(
@@ -592,7 +625,7 @@ export class ClickHouseService implements OnModuleInit {
           format: 'JSONEachRow',
         });
 
-        const data = await result.json() as any[];
+        const data = (await result.json()) as any[];
         return data.map((item: any) => ({
           day: Number(item.day),
           hour: Number(item.hour),
@@ -629,11 +662,16 @@ export class ClickHouseService implements OnModuleInit {
     );
   }
 
-  async getClientIPStats(tenantId: string, period: string): Promise<Array<{
-    clientIp: string;
-    queryCount: number;
-    blockedCount: number;
-  }>> {
+  async getClientIPStats(
+    tenantId: string,
+    period: string,
+  ): Promise<
+    Array<{
+      clientIp: string;
+      queryCount: number;
+      blockedCount: number;
+    }>
+  > {
     const dateFilter = this.getPeriodFilter(period);
 
     return this.safeQuery(
@@ -653,8 +691,8 @@ export class ClickHouseService implements OnModuleInit {
           format: 'JSONEachRow',
         });
 
-        const data = await result.json() as any[];
-        return data.map(item => ({
+        const data = (await result.json()) as any[];
+        return data.map((item) => ({
           clientIp: item.clientIp,
           queryCount: Number(item.queryCount),
           blockedCount: Number(item.blockedCount),
@@ -683,12 +721,31 @@ export class ClickHouseService implements OnModuleInit {
     const actions = ['allow', 'block', 'rewrite'] as const;
     const queryTypes = ['A', 'AAAA', 'MX', 'TXT', 'CNAME'];
     const domains = [
-      'google.com', 'facebook.com', 'twitter.com', 'ads.doubleclick.net',
-      'malware-site.com', 'phishing-example.com', 'youtube.com', 'github.com',
-      'tracking.analytics.com', 'cdn.example.com'
+      'google.com',
+      'facebook.com',
+      'twitter.com',
+      'ads.doubleclick.net',
+      'malware-site.com',
+      'phishing-example.com',
+      'youtube.com',
+      'github.com',
+      'tracking.analytics.com',
+      'cdn.example.com',
     ];
-    const categories = ['advertising', 'social_media', 'malware', 'phishing', 'streaming', 'productivity'];
-    const reasons = ['Allowed by policy', 'Blocked: malware', 'Blocked: advertising', 'Blocked: category'];
+    const categories = [
+      'advertising',
+      'social_media',
+      'malware',
+      'phishing',
+      'streaming',
+      'productivity',
+    ];
+    const reasons = [
+      'Allowed by policy',
+      'Blocked: malware',
+      'Blocked: advertising',
+      'Blocked: category',
+    ];
 
     const limit = filter.limit || 50;
     const mockData = [];
@@ -706,11 +763,17 @@ export class ClickHouseService implements OnModuleInit {
         queryType: queryTypes[Math.floor(Math.random() * queryTypes.length)],
         clientIp: `192.168.1.${Math.floor(Math.random() * 255)}`,
         action,
-        reason: action === 'allow' ? 'Allowed by policy' : reasons[Math.floor(Math.random() * reasons.length)],
+        reason:
+          action === 'allow'
+            ? 'Allowed by policy'
+            : reasons[Math.floor(Math.random() * reasons.length)],
         category: categories[Math.floor(Math.random() * categories.length)],
         responseTime: Math.floor(Math.random() * 50) + 5,
         cached: Math.random() > 0.5,
-        threatType: action === 'block' ? threatTypes[Math.floor(Math.random() * threatTypes.length)] : null,
+        threatType:
+          action === 'block'
+            ? threatTypes[Math.floor(Math.random() * threatTypes.length)]
+            : null,
         policyId: 'policy-mock-001',
       });
     }
@@ -756,9 +819,27 @@ export class ClickHouseService implements OnModuleInit {
 
   private getMockLocationStats() {
     return [
-      { locationId: '1', locationName: 'Main Office', totalQueries: 1234567, blockedQueries: 61728, blockRate: 5.0 },
-      { locationId: '2', locationName: 'Remote Office', totalQueries: 534256, blockedQueries: 26712, blockRate: 5.0 },
-      { locationId: '3', locationName: 'Data Center', totalQueries: 987654, blockedQueries: 49382, blockRate: 5.0 },
+      {
+        locationId: '1',
+        locationName: 'Main Office',
+        totalQueries: 1234567,
+        blockedQueries: 61728,
+        blockRate: 5.0,
+      },
+      {
+        locationId: '2',
+        locationName: 'Remote Office',
+        totalQueries: 534256,
+        blockedQueries: 26712,
+        blockRate: 5.0,
+      },
+      {
+        locationId: '3',
+        locationName: 'Data Center',
+        totalQueries: 987654,
+        blockedQueries: 49382,
+        blockRate: 5.0,
+      },
     ];
   }
 
@@ -775,12 +856,17 @@ export class ClickHouseService implements OnModuleInit {
   /**
    * Get time-series query trends for charts
    */
-  async getQueryTrends(tenantId: string, period: string): Promise<Array<{
-    timestamp: string;
-    total: number;
-    allowed: number;
-    blocked: number;
-  }>> {
+  async getQueryTrends(
+    tenantId: string,
+    period: string,
+  ): Promise<
+    Array<{
+      timestamp: string;
+      total: number;
+      allowed: number;
+      blocked: number;
+    }>
+  > {
     // Determine grouping interval based on period
     let interval: string;
     let dateFilter: string;
@@ -824,8 +910,8 @@ export class ClickHouseService implements OnModuleInit {
           format: 'JSONEachRow',
         });
 
-        const data = await result.json() as any[];
-        return data.map(item => ({
+        const data = (await result.json()) as any[];
+        return data.map((item) => ({
           timestamp: item.ts,
           total: Number(item.total),
           allowed: Number(item.allowed),
@@ -844,7 +930,12 @@ export class ClickHouseService implements OnModuleInit {
     blocked: number;
   }> {
     const now = new Date();
-    const data: Array<{ timestamp: string; total: number; allowed: number; blocked: number }> = [];
+    const data: Array<{
+      timestamp: string;
+      total: number;
+      allowed: number;
+      blocked: number;
+    }> = [];
 
     let points: number;
     let intervalMs: number;

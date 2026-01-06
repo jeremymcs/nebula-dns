@@ -3,7 +3,12 @@ import { BaseEntity } from '@/common/entities/base.entity';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 import { User } from '../../users/entities/user.entity';
 
-export type SignupStatus = 'pending' | 'payment_pending' | 'completed' | 'failed' | 'expired';
+export type SignupStatus =
+  | 'pending'
+  | 'payment_pending'
+  | 'completed'
+  | 'failed'
+  | 'expired';
 
 @Entity('signup_requests')
 export class SignupRequest extends BaseEntity {
@@ -16,13 +21,23 @@ export class SignupRequest extends BaseEntity {
   @Column({ name: 'plan_id', type: 'varchar', length: 50 })
   planId: string;
 
-  @Column({ type: 'varchar', length: 20, default: 'monthly', name: 'billing_cycle' })
+  @Column({
+    type: 'varchar',
+    length: 20,
+    default: 'monthly',
+    name: 'billing_cycle',
+  })
   billingCycle: 'monthly' | 'yearly';
 
   @Column({ type: 'varchar', length: 20, default: 'pending' })
   status: SignupStatus;
 
-  @Column({ type: 'varchar', length: 100, nullable: true, name: 'stripe_checkout_session_id' })
+  @Column({
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+    name: 'stripe_checkout_session_id',
+  })
   stripeCheckoutSessionId: string;
 
   @Column({ name: 'tenant_id', type: 'uuid', nullable: true })

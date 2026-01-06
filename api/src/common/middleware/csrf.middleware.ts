@@ -1,7 +1,7 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * CSRF Protection Middleware
- * 
+ *
  * Uses double-submit cookie pattern for stateless CSRF protection
  */
 
@@ -61,8 +61,8 @@ export class CsrfMiddleware implements NestMiddleware {
   }
 
   private isExemptPath(path: string): boolean {
-    return EXEMPT_PATHS.some(exempt => 
-      path === exempt || path.startsWith(exempt)
+    return EXEMPT_PATHS.some(
+      (exempt) => path === exempt || path.startsWith(exempt),
     );
   }
 
@@ -99,7 +99,7 @@ export class CsrfMiddleware implements NestMiddleware {
     // Constant-time comparison to prevent timing attacks
     return crypto.timingSafeEqual(
       Buffer.from(cookieToken),
-      Buffer.from(headerToken)
+      Buffer.from(headerToken),
     );
   }
 }
@@ -111,4 +111,3 @@ export class CsrfMiddleware implements NestMiddleware {
 export function generateCsrfToken(): string {
   return crypto.randomBytes(CSRF_TOKEN_LENGTH).toString('hex');
 }
-

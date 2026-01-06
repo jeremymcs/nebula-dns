@@ -8,4 +8,3 @@ import { RealtimeModule } from '../realtime/realtime.module';
   exports: [ThreatDetectionService],
 })
 export class ThreatDetectionModule {}
-

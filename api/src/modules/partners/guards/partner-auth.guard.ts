@@ -1,4 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PartnersService } from '../partners.service';
@@ -14,7 +19,7 @@ export class PartnerAuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
-    
+
     if (!token) {
       throw new UnauthorizedException('No token provided');
     }
@@ -30,8 +35,11 @@ export class PartnerAuthGuard implements CanActivate {
       }
 
       // Fetch the partner user
-      const partnerUser = await this.partnersService.findUserById(payload.partnerId, payload.sub);
-      
+      const partnerUser = await this.partnersService.findUserById(
+        payload.partnerId,
+        payload.sub,
+      );
+
       if (!partnerUser || partnerUser.status !== 'active') {
         throw new UnauthorizedException('User not found or inactive');
       }
@@ -52,4 +60,3 @@ export class PartnerAuthGuard implements CanActivate {
     return type === 'Bearer' ? token : undefined;
   }
 }
-

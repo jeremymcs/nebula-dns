@@ -1,4 +1,12 @@
-import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsUrl, IsEmail, Matches } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsBoolean,
+  IsUrl,
+  IsEmail,
+  Matches,
+} from 'class-validator';
 
 export class CreateBlockPageDto {
   @IsString()

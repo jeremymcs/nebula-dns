@@ -45,10 +45,20 @@ export class SubscriptionPlan {
   @Column({ type: 'varchar', length: 3, default: 'USD' })
   currency: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true, name: 'stripe_price_monthly_id' })
+  @Column({
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+    name: 'stripe_price_monthly_id',
+  })
   stripePriceMonthlyId: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true, name: 'stripe_price_yearly_id' })
+  @Column({
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+    name: 'stripe_price_yearly_id',
+  })
   stripePriceYearlyId: string;
 
   @Column({ type: 'jsonb', default: {} })

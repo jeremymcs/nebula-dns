@@ -6,4 +6,3 @@ import { GeoIPService } from './geoip.service';
   exports: [GeoIPService],
 })
 export class GeoIPModule {}
-

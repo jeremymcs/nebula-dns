@@ -9,7 +9,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { InvitationsService } from './invitations.service';
-import { CreateInvitationDto, BulkInviteDto, AcceptInvitationDto } from './dto/invitation.dto';
+import {
+  CreateInvitationDto,
+  BulkInviteDto,
+  AcceptInvitationDto,
+} from './dto/invitation.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -53,10 +57,16 @@ export class InvitationsController {
     @CurrentUser() user: any,
     @Body() dto: CreateInvitationDto,
   ) {
-    const { invitation, sent } = await this.invitationsService.create(tenantId, user.id, dto);
+    const { invitation, sent } = await this.invitationsService.create(
+      tenantId,
+      user.id,
+      dto,
+    );
     return {
       data: invitation,
-      message: sent ? 'Invitation sent successfully' : 'Invitation created but email could not be sent',
+      message: sent
+        ? 'Invitation sent successfully'
+        : 'Invitation created but email could not be sent',
     };
   }
 
@@ -68,7 +78,11 @@ export class InvitationsController {
     @CurrentUser() user: any,
     @Body() dto: BulkInviteDto,
   ) {
-    const result = await this.invitationsService.bulkInvite(tenantId, user.id, dto.invitations);
+    const result = await this.invitationsService.bulkInvite(
+      tenantId,
+      user.id,
+      dto.invitations,
+    );
     return {
       data: result,
       message: `${result.successful.length} invitations sent, ${result.failed.length} failed`,
@@ -99,20 +113,23 @@ export class InvitationsController {
     @CurrentUser() user: any,
     @Param('id') id: string,
   ) {
-    const { sent } = await this.invitationsService.resend(tenantId, id, user.id);
+    const { sent } = await this.invitationsService.resend(
+      tenantId,
+      id,
+      user.id,
+    );
     return {
       success: true,
-      message: sent ? 'Invitation resent successfully' : 'Failed to resend invitation email',
+      message: sent
+        ? 'Invitation resent successfully'
+        : 'Failed to resend invitation email',
     };
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'owner')
-  async revoke(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async revoke(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     await this.invitationsService.revoke(tenantId, id);
     return { success: true, message: 'Invitation revoked' };
   }

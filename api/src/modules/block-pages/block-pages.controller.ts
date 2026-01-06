@@ -13,7 +13,12 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { BlockPagesService } from './block-pages.service';
-import { CreateBlockPageDto, UpdateBlockPageDto, CreateAccessRequestDto, ReviewAccessRequestDto } from './dto/block-page.dto';
+import {
+  CreateBlockPageDto,
+  UpdateBlockPageDto,
+  CreateAccessRequestDto,
+  ReviewAccessRequestDto,
+} from './dto/block-page.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -39,7 +44,8 @@ export class BlockPagesController {
     // For now, return a default page
     const mockBlockPage = {
       title: 'Access Blocked',
-      message: "This website has been blocked by your organization's security policy.",
+      message:
+        "This website has been blocked by your organization's security policy.",
       backgroundColor: '#f3f4f6',
       primaryColor: '#4f46e5',
       textColor: '#1f2937',
@@ -66,7 +72,11 @@ export class BlockPagesController {
     const tenantId = 'demo-tenant-id';
     const ip = req.ip || req.socket.remoteAddress;
 
-    const request = await this.blockPagesService.createAccessRequest(tenantId, dto, ip);
+    const request = await this.blockPagesService.createAccessRequest(
+      tenantId,
+      dto,
+      ip,
+    );
     return {
       success: true,
       message: 'Your request has been submitted for review',
@@ -96,10 +106,7 @@ export class BlockPagesController {
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
-  async findOne(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async findOne(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     const blockPage = await this.blockPagesService.findOne(tenantId, id);
     return { data: blockPage };
   }
@@ -136,10 +143,7 @@ export class BlockPagesController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'owner')
-  async delete(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async delete(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     await this.blockPagesService.delete(tenantId, id);
     return { success: true };
   }
@@ -147,10 +151,7 @@ export class BlockPagesController {
   @Post(':id/set-default')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'owner')
-  async setDefault(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async setDefault(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     const blockPage = await this.blockPagesService.setDefault(tenantId, id);
     return { data: blockPage };
   }
@@ -163,7 +164,10 @@ export class BlockPagesController {
     @CurrentTenant() tenantId: string,
     @Query('status') status: string,
   ) {
-    const requests = await this.blockPagesService.getAccessRequests(tenantId, status);
+    const requests = await this.blockPagesService.getAccessRequests(
+      tenantId,
+      status,
+    );
     return { data: requests };
   }
 
@@ -176,7 +180,12 @@ export class BlockPagesController {
     @Param('id') id: string,
     @Body() dto: ReviewAccessRequestDto,
   ) {
-    const request = await this.blockPagesService.reviewAccessRequest(tenantId, id, user.id, dto);
+    const request = await this.blockPagesService.reviewAccessRequest(
+      tenantId,
+      id,
+      user.id,
+      dto,
+    );
     return { data: request };
   }
 }

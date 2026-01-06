@@ -6,4 +6,3 @@ export const CurrentPartner = createParamDecorator(
     return request.partnerId;
   },
 );
-

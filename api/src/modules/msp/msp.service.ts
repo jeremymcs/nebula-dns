@@ -3,7 +3,12 @@
  * Handles business logic for MSP user operations
  */
 
-import { Injectable, ForbiddenException, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tenant, TenantPlan } from '../tenants/entities/tenant.entity';
@@ -70,7 +75,10 @@ export class MspService {
   /**
    * Get all client organizations for an MSP user with detailed stats
    */
-  async getClientOrganizations(userId: string, tenantId: string): Promise<ClientOrganization[]> {
+  async getClientOrganizations(
+    userId: string,
+    tenantId: string,
+  ): Promise<ClientOrganization[]> {
     // Get the user to check their email
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
@@ -91,7 +99,7 @@ export class MspService {
       const currentTenant = await this.tenantRepository.findOne({
         where: { id: tenantId },
       });
-      
+
       if (currentTenant?.partnerId) {
         partnerId = currentTenant.partnerId;
       }
@@ -110,10 +118,10 @@ export class MspService {
     });
 
     // Get policy counts for each organization
-    const orgIds = organizations.map(org => org.id);
+    const orgIds = organizations.map((org) => org.id);
     const policyCounts = await this.getPolicyCounts(orgIds);
 
-    return organizations.map(org => ({
+    return organizations.map((org) => ({
       id: org.id,
       name: org.name,
       slug: org.slug,
@@ -129,7 +137,9 @@ export class MspService {
   /**
    * Get policy counts for multiple organizations
    */
-  private async getPolicyCounts(tenantIds: string[]): Promise<Map<string, number>> {
+  private async getPolicyCounts(
+    tenantIds: string[],
+  ): Promise<Map<string, number>> {
     if (tenantIds.length === 0) return new Map();
 
     const counts = await this.policyRepository
@@ -150,7 +160,10 @@ export class MspService {
   /**
    * Get partner ID for the current user
    */
-  private async getPartnerId(userId: string, tenantId: string): Promise<string> {
+  private async getPartnerId(
+    userId: string,
+    tenantId: string,
+  ): Promise<string> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new ForbiddenException('User not found');
@@ -164,7 +177,9 @@ export class MspService {
       return partnerUser.partnerId;
     }
 
-    const tenant = await this.tenantRepository.findOne({ where: { id: tenantId } });
+    const tenant = await this.tenantRepository.findOne({
+      where: { id: tenantId },
+    });
     if (tenant?.partnerId) {
       return tenant.partnerId;
     }
@@ -175,16 +190,27 @@ export class MspService {
   /**
    * Create a new client organization
    */
-  async createClient(userId: string, tenantId: string, dto: CreateClientDto): Promise<ClientOrganization> {
+  async createClient(
+    userId: string,
+    tenantId: string,
+    dto: CreateClientDto,
+  ): Promise<ClientOrganization> {
     const partnerId = await this.getPartnerId(userId, tenantId);
 
     // Generate slug from name if not provided
-    const slug = dto.slug || dto.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const slug =
+      dto.slug ||
+      dto.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
 
     // Check if slug already exists
     const existing = await this.tenantRepository.findOne({ where: { slug } });
     if (existing) {
-      throw new ConflictException(`Organization with slug "${slug}" already exists`);
+      throw new ConflictException(
+        `Organization with slug "${slug}" already exists`,
+      );
     }
 
     const tenant = this.tenantRepository.create({
@@ -223,7 +249,11 @@ export class MspService {
   /**
    * Get a single client organization by ID
    */
-  async getClient(userId: string, tenantId: string, clientId: string): Promise<ClientOrganization> {
+  async getClient(
+    userId: string,
+    tenantId: string,
+    clientId: string,
+  ): Promise<ClientOrganization> {
     const partnerId = await this.getPartnerId(userId, tenantId);
 
     const client = await this.tenantRepository.findOne({
@@ -258,7 +288,12 @@ export class MspService {
   /**
    * Update a client organization
    */
-  async updateClient(userId: string, tenantId: string, clientId: string, dto: UpdateClientDto): Promise<ClientOrganization> {
+  async updateClient(
+    userId: string,
+    tenantId: string,
+    clientId: string,
+    dto: UpdateClientDto,
+  ): Promise<ClientOrganization> {
     const partnerId = await this.getPartnerId(userId, tenantId);
 
     const client = await this.tenantRepository.findOne({
@@ -287,7 +322,11 @@ export class MspService {
   /**
    * Delete a client organization
    */
-  async deleteClient(userId: string, tenantId: string, clientId: string): Promise<void> {
+  async deleteClient(
+    userId: string,
+    tenantId: string,
+    clientId: string,
+  ): Promise<void> {
     const partnerId = await this.getPartnerId(userId, tenantId);
 
     const client = await this.tenantRepository.findOne({
@@ -305,7 +344,11 @@ export class MspService {
    * Switch to a different client organization
    * Returns new tokens scoped to the target organization
    */
-  async switchOrganization(userId: string, currentTenantId: string, targetOrgId: string): Promise<{
+  async switchOrganization(
+    userId: string,
+    currentTenantId: string,
+    targetOrgId: string,
+  ): Promise<{
     accessToken: string;
     refreshToken: string;
     user: any;
@@ -342,7 +385,12 @@ export class MspService {
     });
 
     const refreshToken = this.jwtService.sign(
-      { sub: user.id, type: 'refresh', jti: crypto.randomUUID(), mfaVerified: false },
+      {
+        sub: user.id,
+        type: 'refresh',
+        jti: crypto.randomUUID(),
+        mfaVerified: false,
+      },
       {
         secret: this.configService.get('JWT_REFRESH_SECRET'),
         expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN') || '7d',
@@ -363,4 +411,3 @@ export class MspService {
     };
   }
 }
-

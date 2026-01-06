@@ -9,14 +9,27 @@ import {
   HttpStatus,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { LoginDto, LoginResponseDto, MfaVerifyLoginDto, MfaRequiredResponseDto } from './dto/login.dto';
+import {
+  LoginDto,
+  LoginResponseDto,
+  MfaVerifyLoginDto,
+  MfaRequiredResponseDto,
+} from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { SwitchTenantDto } from './dto/switch-tenant.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { CurrentUser, CurrentTenant } from '@/common/decorators/tenant.decorator';
+import {
+  CurrentUser,
+  CurrentTenant,
+} from '@/common/decorators/tenant.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -26,16 +39,26 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Authenticate user and get tokens' })
-  @ApiResponse({ status: 200, description: 'Login successful or MFA required', type: LoginResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Login successful or MFA required',
+    type: LoginResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(@Body() loginDto: LoginDto): Promise<LoginResponseDto | MfaRequiredResponseDto> {
+  async login(
+    @Body() loginDto: LoginDto,
+  ): Promise<LoginResponseDto | MfaRequiredResponseDto> {
     return this.authService.login(loginDto);
   }
 
   @Post('mfa/verify')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Verify MFA code and complete login' })
-  @ApiResponse({ status: 200, description: 'MFA verified, login successful', type: LoginResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'MFA verified, login successful',
+    type: LoginResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Invalid MFA code or token' })
   async verifyMfa(@Body() dto: MfaVerifyLoginDto): Promise<LoginResponseDto> {
     return this.authService.verifyMfaLogin(dto);
@@ -44,9 +67,15 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Refresh access token' })
-  @ApiResponse({ status: 200, description: 'Token refreshed', type: LoginResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Token refreshed',
+    type: LoginResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
-  async refresh(@Body() refreshDto: RefreshTokenDto): Promise<LoginResponseDto> {
+  async refresh(
+    @Body() refreshDto: RefreshTokenDto,
+  ): Promise<LoginResponseDto> {
     return this.authService.refreshToken(refreshDto.refreshToken);
   }
 
@@ -108,15 +137,28 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Switch to a different organization (MSP users only)' })
-  @ApiResponse({ status: 200, description: 'Switched successfully, new tokens returned', type: LoginResponseDto })
-  @ApiResponse({ status: 403, description: 'Not authorized to switch to this organization' })
+  @ApiOperation({
+    summary: 'Switch to a different organization (MSP users only)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Switched successfully, new tokens returned',
+    type: LoginResponseDto,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Not authorized to switch to this organization',
+  })
   async switchTenant(
     @CurrentUser() user: any,
     @CurrentTenant() currentTenantId: string,
     @Body() dto: SwitchTenantDto,
   ): Promise<LoginResponseDto> {
-    return this.authService.switchTenant(user.id, currentTenantId, dto.tenantId);
+    return this.authService.switchTenant(
+      user.id,
+      currentTenantId,
+      dto.tenantId,
+    );
   }
 
   @Get('sessions')

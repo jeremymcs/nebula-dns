@@ -1,11 +1,17 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * DoH Authentication Guard
- * 
+ *
  * Validates agent tokens for DoH requests
  */
 
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Location } from '../locations/entities/location.entity';
@@ -34,7 +40,7 @@ export class DoHAuthGuard implements CanActivate {
     }
 
     const token = authHeader.slice(7);
-    
+
     // Token format: <tenantId>:<locationToken>
     const parts = token.split(':');
     if (parts.length < 2) {
@@ -56,7 +62,9 @@ export class DoHAuthGuard implements CanActivate {
       });
 
       if (!location) {
-        this.logger.warn(`Location not found: ${locationId} for tenant ${tenantId}`);
+        this.logger.warn(
+          `Location not found: ${locationId} for tenant ${tenantId}`,
+        );
         throw new UnauthorizedException('Invalid location');
       }
 
@@ -77,4 +85,3 @@ export class DoHAuthGuard implements CanActivate {
     }
   }
 }
-

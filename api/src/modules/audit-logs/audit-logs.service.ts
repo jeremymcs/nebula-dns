@@ -1,8 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
-import { AuditLog, AuditAction, AuditResourceType } from './entities/audit-log.entity';
-import { QueryAuditLogsDto, AuditLogResponseDto, CreateAuditLogDto } from './dto/audit-log.dto';
+import {
+  AuditLog,
+  AuditAction,
+  AuditResourceType,
+} from './entities/audit-log.entity';
+import {
+  QueryAuditLogsDto,
+  AuditLogResponseDto,
+  CreateAuditLogDto,
+} from './dto/audit-log.dto';
 
 @Injectable()
 export class AuditLogsService {
@@ -29,11 +37,16 @@ export class AuditLogsService {
     });
 
     const saved = await this.auditLogRepository.save(auditLog);
-    this.logger.debug(`Audit log: ${dto.action} on ${dto.resourceType}${dto.resourceId ? ` (${dto.resourceId})` : ''}`);
+    this.logger.debug(
+      `Audit log: ${dto.action} on ${dto.resourceType}${dto.resourceId ? ` (${dto.resourceId})` : ''}`,
+    );
     return saved;
   }
 
-  async findAll(tenantId: string, query: QueryAuditLogsDto): Promise<{
+  async findAll(
+    tenantId: string,
+    query: QueryAuditLogsDto,
+  ): Promise<{
     data: AuditLogResponseDto[];
     cursor: string | null;
     hasMore: boolean;
@@ -49,7 +62,10 @@ export class AuditLogsService {
     if (query.resourceId) where.resourceId = query.resourceId;
 
     if (query.startTime && query.endTime) {
-      where.createdAt = Between(new Date(query.startTime), new Date(query.endTime));
+      where.createdAt = Between(
+        new Date(query.startTime),
+        new Date(query.endTime),
+      );
     } else if (query.startTime) {
       where.createdAt = MoreThanOrEqual(new Date(query.startTime));
     } else if (query.endTime) {
@@ -65,7 +81,7 @@ export class AuditLogsService {
     });
 
     const hasMore = logs.length > limit;
-    const data = logs.slice(0, limit).map(log => this.toResponse(log));
+    const data = logs.slice(0, limit).map((log) => this.toResponse(log));
 
     return {
       data,
@@ -87,7 +103,7 @@ export class AuditLogsService {
       take: limit,
     });
 
-    return logs.map(log => this.toResponse(log));
+    return logs.map((log) => this.toResponse(log));
   }
 
   async export(
@@ -120,15 +136,28 @@ export class AuditLogsService {
 
     if (format === 'json') {
       return {
-        data: JSON.stringify(logs.map(log => this.toResponse(log)), null, 2),
+        data: JSON.stringify(
+          logs.map((log) => this.toResponse(log)),
+          null,
+          2,
+        ),
         contentType: 'application/json',
         filename: `audit-logs-${timestamp}.json`,
       };
     }
 
     // CSV format
-    const headers = ['Timestamp', 'User', 'Email', 'Action', 'Resource Type', 'Resource ID', 'Resource Name', 'IP Address'];
-    const rows = logs.map(log => [
+    const headers = [
+      'Timestamp',
+      'User',
+      'Email',
+      'Action',
+      'Resource Type',
+      'Resource ID',
+      'Resource Name',
+      'IP Address',
+    ];
+    const rows = logs.map((log) => [
       log.createdAt.toISOString(),
       log.user?.name || 'System',
       log.user?.email || '',
@@ -139,7 +168,11 @@ export class AuditLogsService {
       log.ipAddress || '',
     ]);
 
-    const csv = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const csv = [headers, ...rows]
+      .map((row) =>
+        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','),
+      )
+      .join('\n');
 
     return {
       data: csv,

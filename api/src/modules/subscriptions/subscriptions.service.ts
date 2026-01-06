@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
@@ -55,11 +60,19 @@ export class SubscriptionsService {
 
   // ==================== SIGNUP ====================
 
-  async createSignupRequest(dto: CreateSignupDto, ipAddress?: string, userAgent?: string): Promise<SignupRequest> {
+  async createSignupRequest(
+    dto: CreateSignupDto,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<SignupRequest> {
     // Check if email already exists
-    const existingUser = await this.usersRepository.findOne({ where: { email: dto.email } });
+    const existingUser = await this.usersRepository.findOne({
+      where: { email: dto.email },
+    });
     if (existingUser) {
-      throw new BadRequestException('An account with this email already exists');
+      throw new BadRequestException(
+        'An account with this email already exists',
+      );
     }
 
     // Create signup request
@@ -84,7 +97,9 @@ export class SubscriptionsService {
     return this.signupRequestsRepository.save(signupRequest);
   }
 
-  async processSignup(signupRequestId: string): Promise<{ tenant: Tenant; user: User; subscription: Subscription }> {
+  async processSignup(
+    signupRequestId: string,
+  ): Promise<{ tenant: Tenant; user: User; subscription: Subscription }> {
     const signupRequest = await this.signupRequestsRepository.findOne({
       where: { id: signupRequestId },
     });
@@ -124,7 +139,10 @@ export class SubscriptionsService {
       billingCycle: signupRequest.billingCycle,
       currentPeriodStart: new Date(),
       currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-      trialEnd: plan.priceMonthly > 0 ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) : null, // 14 day trial
+      trialEnd:
+        plan.priceMonthly > 0
+          ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+          : null, // 14 day trial
     });
 
     await this.subscriptionsRepository.save(subscription);
@@ -169,10 +187,13 @@ export class SubscriptionsService {
     country?: string;
   }): Promise<Tenant> {
     // Generate a unique slug
-    const baseSlug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const baseSlug = data.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
     let slug = baseSlug;
     let counter = 1;
-    
+
     while (await this.tenantsRepository.findOne({ where: { slug } })) {
       slug = `${baseSlug}-${counter}`;
       counter++;
@@ -214,7 +235,8 @@ export class SubscriptionsService {
     const policy = this.policiesRepository.create({
       tenantId: tenant.id,
       name: 'Default Security Policy',
-      description: 'Automatically created security policy with recommended settings',
+      description:
+        'Automatically created security policy with recommended settings',
       currentVersion: 1,
       isDefault: true,
     });
@@ -270,21 +292,29 @@ export class SubscriptionsService {
     }
   }
 
-  private async handleSubscriptionUpdated(stripeSubscription: any): Promise<void> {
+  private async handleSubscriptionUpdated(
+    stripeSubscription: any,
+  ): Promise<void> {
     const subscription = await this.subscriptionsRepository.findOne({
       where: { stripeSubscriptionId: stripeSubscription.id },
     });
 
     if (subscription) {
       subscription.status = this.mapStripeStatus(stripeSubscription.status);
-      subscription.currentPeriodStart = new Date(stripeSubscription.current_period_start * 1000);
-      subscription.currentPeriodEnd = new Date(stripeSubscription.current_period_end * 1000);
+      subscription.currentPeriodStart = new Date(
+        stripeSubscription.current_period_start * 1000,
+      );
+      subscription.currentPeriodEnd = new Date(
+        stripeSubscription.current_period_end * 1000,
+      );
       subscription.cancelAtPeriodEnd = stripeSubscription.cancel_at_period_end;
       await this.subscriptionsRepository.save(subscription);
     }
   }
 
-  private async handleSubscriptionDeleted(stripeSubscription: any): Promise<void> {
+  private async handleSubscriptionDeleted(
+    stripeSubscription: any,
+  ): Promise<void> {
     const subscription = await this.subscriptionsRepository.findOne({
       where: { stripeSubscriptionId: stripeSubscription.id },
     });
@@ -295,7 +325,9 @@ export class SubscriptionsService {
       await this.subscriptionsRepository.save(subscription);
 
       // Downgrade tenant to free plan
-      await this.tenantsRepository.update(subscription.tenantId, { plan: 'free' });
+      await this.tenantsRepository.update(subscription.tenantId, {
+        plan: 'free',
+      });
     }
   }
 
@@ -314,7 +346,9 @@ export class SubscriptionsService {
       await this.subscriptionsRepository.save(subscription);
 
       // Send payment failed email
-      const tenant = await this.tenantsRepository.findOne({ where: { id: subscription.tenantId } });
+      const tenant = await this.tenantsRepository.findOne({
+        where: { id: subscription.tenantId },
+      });
       if (tenant) {
         await this.emailService.sendPaymentFailedEmail({
           to: (tenant as any).billingEmail || '',
@@ -325,7 +359,9 @@ export class SubscriptionsService {
     }
   }
 
-  private mapStripeStatus(stripeStatus: string): 'active' | 'past_due' | 'canceled' | 'trialing' | 'paused' {
+  private mapStripeStatus(
+    stripeStatus: string,
+  ): 'active' | 'past_due' | 'canceled' | 'trialing' | 'paused' {
     const statusMap: Record<string, any> = {
       active: 'active',
       past_due: 'past_due',
@@ -368,7 +404,10 @@ export class SubscriptionsService {
 
   // ==================== STRIPE INTEGRATION HELPERS ====================
 
-  async completeSignup(signupRequestId: string, stripeData: { stripeCustomerId: string; stripeSubscriptionId: string }): Promise<void> {
+  async completeSignup(
+    signupRequestId: string,
+    stripeData: { stripeCustomerId: string; stripeSubscriptionId: string },
+  ): Promise<void> {
     const signupRequest = await this.signupRequestsRepository.findOne({
       where: { id: signupRequestId },
     });
@@ -387,14 +426,17 @@ export class SubscriptionsService {
     await this.subscriptionsRepository.save(subscription);
   }
 
-  async updateSubscription(tenantId: string, updates: Partial<{
-    planCode: string;
-    stripeCustomerId: string;
-    stripeSubscriptionId: string;
-    status: string;
-    currentPeriodEnd: Date;
-    cancelAtPeriodEnd: boolean;
-  }>): Promise<void> {
+  async updateSubscription(
+    tenantId: string,
+    updates: Partial<{
+      planCode: string;
+      stripeCustomerId: string;
+      stripeSubscriptionId: string;
+      status: string;
+      currentPeriodEnd: Date;
+      cancelAtPeriodEnd: boolean;
+    }>,
+  ): Promise<void> {
     const subscription = await this.getSubscription(tenantId);
     if (!subscription) {
       throw new NotFoundException('Subscription not found');
@@ -402,19 +444,27 @@ export class SubscriptionsService {
 
     if (updates.planCode) {
       // Plan id is the plan code (e.g., 'free', 'pro', 'enterprise')
-      const plan = await this.plansRepository.findOne({ where: { id: updates.planCode } });
+      const plan = await this.plansRepository.findOne({
+        where: { id: updates.planCode },
+      });
       if (plan) {
         subscription.planId = plan.id;
         // Update tenant plan as well
-        await this.tenantsRepository.update(tenantId, { plan: updates.planCode as any });
+        await this.tenantsRepository.update(tenantId, {
+          plan: updates.planCode as any,
+        });
       }
     }
 
-    if (updates.stripeCustomerId) subscription.stripeCustomerId = updates.stripeCustomerId;
-    if (updates.stripeSubscriptionId) subscription.stripeSubscriptionId = updates.stripeSubscriptionId;
+    if (updates.stripeCustomerId)
+      subscription.stripeCustomerId = updates.stripeCustomerId;
+    if (updates.stripeSubscriptionId)
+      subscription.stripeSubscriptionId = updates.stripeSubscriptionId;
     if (updates.status) subscription.status = updates.status as any;
-    if (updates.currentPeriodEnd) subscription.currentPeriodEnd = updates.currentPeriodEnd;
-    if (updates.cancelAtPeriodEnd !== undefined) subscription.cancelAtPeriodEnd = updates.cancelAtPeriodEnd;
+    if (updates.currentPeriodEnd)
+      subscription.currentPeriodEnd = updates.currentPeriodEnd;
+    if (updates.cancelAtPeriodEnd !== undefined)
+      subscription.cancelAtPeriodEnd = updates.cancelAtPeriodEnd;
 
     await this.subscriptionsRepository.save(subscription);
   }
