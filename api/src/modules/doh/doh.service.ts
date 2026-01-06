@@ -52,11 +52,24 @@ interface DnsQuestion {
   class: number;
 }
 
+// DNS cache entry
+interface DnsCacheEntry {
+  response: Buffer;
+  expiresAt: number;
+}
+
 @Injectable()
 export class DoHService {
   private readonly logger = new Logger(DoHService.name);
   private readonly upstreamDns: string[];
   private readonly policySvcUrl: string;
+
+  // DNS response cache
+  private readonly dnsCache = new Map<string, DnsCacheEntry>();
+  private readonly cacheTtlMs: number;
+  private readonly maxCacheSize: number;
+  private cacheHits = 0;
+  private cacheMisses = 0;
 
   // DNS record types
   private static readonly TYPE_A = 1;
@@ -86,6 +99,90 @@ export class DoHService {
       'POLICY_SVC_URL',
       'http://localhost:4080',
     );
+    // DNS cache settings
+    this.cacheTtlMs = this.configService.get('DNS_CACHE_TTL_MS', 300000); // 5 minutes default
+    this.maxCacheSize = this.configService.get('DNS_CACHE_MAX_SIZE', 10000);
+
+    // Periodic cache cleanup every 60 seconds
+    setInterval(() => this.cleanupCache(), 60000);
+  }
+
+  /**
+   * Generate cache key from domain and query type
+   */
+  private getCacheKey(domain: string, qtype: number): string {
+    return `${domain.toLowerCase()}:${qtype}`;
+  }
+
+  /**
+   * Get cached DNS response if available and not expired
+   */
+  private getCachedResponse(domain: string, qtype: number): Buffer | null {
+    const key = this.getCacheKey(domain, qtype);
+    const entry = this.dnsCache.get(key);
+
+    if (!entry) {
+      this.cacheMisses++;
+      return null;
+    }
+
+    if (Date.now() > entry.expiresAt) {
+      this.dnsCache.delete(key);
+      this.cacheMisses++;
+      return null;
+    }
+
+    this.cacheHits++;
+    return entry.response;
+  }
+
+  /**
+   * Cache a DNS response
+   */
+  private cacheResponse(domain: string, qtype: number, response: Buffer): void {
+    // Enforce max cache size with LRU-like behavior (remove oldest entries)
+    if (this.dnsCache.size >= this.maxCacheSize) {
+      const firstKey = this.dnsCache.keys().next().value;
+      if (firstKey) this.dnsCache.delete(firstKey);
+    }
+
+    const key = this.getCacheKey(domain, qtype);
+    this.dnsCache.set(key, {
+      response: Buffer.from(response), // Copy buffer
+      expiresAt: Date.now() + this.cacheTtlMs,
+    });
+  }
+
+  /**
+   * Remove expired cache entries
+   */
+  private cleanupCache(): void {
+    const now = Date.now();
+    let removed = 0;
+
+    for (const [key, entry] of this.dnsCache.entries()) {
+      if (now > entry.expiresAt) {
+        this.dnsCache.delete(key);
+        removed++;
+      }
+    }
+
+    if (removed > 0) {
+      this.logger.debug(`DNS cache cleanup: removed ${removed} expired entries`);
+    }
+  }
+
+  /**
+   * Get cache statistics
+   */
+  getCacheStats(): { size: number; hits: number; misses: number; hitRate: number } {
+    const total = this.cacheHits + this.cacheMisses;
+    return {
+      size: this.dnsCache.size,
+      hits: this.cacheHits,
+      misses: this.cacheMisses,
+      hitRate: total > 0 ? (this.cacheHits / total) * 100 : 0,
+    };
   }
 
   /**
@@ -171,13 +268,13 @@ export class DoHService {
     if (action === 'rewrite' && rewriteTarget) {
       // Resolve the rewrite target instead of the original domain
       try {
-        const response = await this.resolveDomain(
+        const result = await this.resolveDomain(
           rewriteTarget,
           qtype,
           header.id,
           dnsWire,
         );
-        return response;
+        return result.response;
       } catch (error) {
         this.logger.error(
           `Resolution failed for rewrite target ${rewriteTarget}:`,
@@ -189,13 +286,16 @@ export class DoHService {
 
     // Resolve the domain
     try {
-      const response = await this.resolveDomain(
+      const result = await this.resolveDomain(
         domain,
         qtype,
         header.id,
         dnsWire,
       );
-      return response;
+      if (result.cached) {
+        this.logger.debug(`Cache hit for ${domain} (type ${qtype})`);
+      }
+      return result.response;
     } catch (error) {
       this.logger.error(`Resolution failed for ${domain}:`, error);
       return this.buildNxdomainResponse(dnsWire, header.id);
@@ -357,23 +457,39 @@ export class DoHService {
     qtype: number,
     id: number,
     originalQuery: Buffer,
-  ): Promise<Buffer> {
+  ): Promise<{ response: Buffer; cached: boolean }> {
+    // Check cache first
+    const cachedResponse = this.getCachedResponse(domain, qtype);
+    if (cachedResponse) {
+      // Update the ID in the cached response to match the current query
+      const response = Buffer.from(cachedResponse);
+      response.writeUInt16BE(id, 0);
+      return { response, cached: true };
+    }
+
     // Use node's DNS resolver
     try {
+      let response: Buffer;
       switch (qtype) {
         case DoHService.TYPE_A:
           const ipv4 = await resolve4(domain);
-          return this.buildAResponse(originalQuery, id, domain, ipv4);
+          response = this.buildAResponse(originalQuery, id, domain, ipv4);
+          break;
         case DoHService.TYPE_AAAA:
           const ipv6 = await resolve6(domain);
-          return this.buildAAAAResponse(originalQuery, id, domain, ipv6);
+          response = this.buildAAAAResponse(originalQuery, id, domain, ipv6);
+          break;
         default:
-          // Forward to upstream for other types
-          return this.forwardToUpstream(originalQuery);
+          // Forward to upstream for other types (don't cache)
+          return { response: await this.forwardToUpstream(originalQuery), cached: false };
       }
+
+      // Cache successful response
+      this.cacheResponse(domain, qtype, response);
+      return { response, cached: false };
     } catch (error) {
       if (error.code === 'ENODATA' || error.code === 'ENOTFOUND') {
-        return this.buildNxdomainResponse(originalQuery, id);
+        return { response: this.buildNxdomainResponse(originalQuery, id), cached: false };
       }
       throw error;
     }
