@@ -101,12 +101,21 @@ export class ClickHouseService implements OnModuleInit {
     connected: boolean;
     lastAttempt: Date | null;
     consecutiveFailures: number;
+    usingMockData: boolean;
   } {
     return {
       connected: this.isConnected,
       lastAttempt: this.lastConnectionAttempt,
       consecutiveFailures: this.consecutiveFailures,
+      usingMockData: !this.isConnected,
     };
+  }
+
+  /**
+   * Check if currently returning mock data instead of real analytics
+   */
+  isUsingMockData(): boolean {
+    return !this.isConnected;
   }
 
   /**

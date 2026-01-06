@@ -14,6 +14,44 @@ import {
   ReviewAccessRequestDto,
 } from './dto/block-page.dto';
 
+// HTML entity map for escaping
+const HTML_ENTITIES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+  '/': '&#x2F;',
+  '`': '&#x60;',
+  '=': '&#x3D;',
+};
+
+// Escape HTML to prevent XSS
+function escapeHtml(str: string): string {
+  return str.replace(/[&<>"'`=/]/g, (char) => HTML_ENTITIES[char] || char);
+}
+
+// Sanitize CSS to prevent CSS injection attacks
+function sanitizeCss(css: string): string {
+  // Remove potentially dangerous patterns
+  return css
+    .replace(/javascript:/gi, '')
+    .replace(/expression\s*\(/gi, '')
+    .replace(/url\s*\(\s*['"]*\s*data:/gi, 'url(')
+    .replace(/@import/gi, '');
+}
+
+// Sanitize custom HTML - allow basic tags but escape dangerous attributes
+function sanitizeCustomHtml(html: string): string {
+  // Remove script tags and event handlers
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/on\w+\s*=\s*[^\s>]*/gi, '')
+    .replace(/javascript:/gi, '')
+    .replace(/data:/gi, '');
+}
+
 @Injectable()
 export class BlockPagesService {
   constructor(
@@ -143,15 +181,33 @@ export class BlockPagesService {
         ? `Protected by ${partnerBranding.companyName}`
         : 'Protected by Nebula DNS');
 
-    // If custom HTML is provided, use it with variable substitution
+    // Escape user-provided context variables to prevent XSS
+    const safeDomain = escapeHtml(domain);
+    const safeCategory = escapeHtml(category || 'Unknown');
+    const safeTimestamp = escapeHtml(timestamp || new Date().toISOString());
+    const safeTitle = escapeHtml(blockPage.title);
+    const safeMessage = escapeHtml(blockPage.message);
+
+    // If custom HTML is provided, sanitize it and use with variable substitution
     if (blockPage.customHtml) {
-      return blockPage.customHtml
-        .replace(/\{\{domain\}\}/g, domain)
-        .replace(/\{\{category\}\}/g, category || 'Unknown')
-        .replace(/\{\{timestamp\}\}/g, timestamp || new Date().toISOString())
-        .replace(/\{\{title\}\}/g, blockPage.title)
-        .replace(/\{\{message\}\}/g, blockPage.message);
+      return sanitizeCustomHtml(blockPage.customHtml)
+        .replace(/\{\{domain\}\}/g, safeDomain)
+        .replace(/\{\{category\}\}/g, safeCategory)
+        .replace(/\{\{timestamp\}\}/g, safeTimestamp)
+        .replace(/\{\{title\}\}/g, safeTitle)
+        .replace(/\{\{message\}\}/g, safeMessage);
     }
+
+    // Sanitize custom CSS if provided
+    const safeCustomCss = blockPage.customCss
+      ? sanitizeCss(blockPage.customCss)
+      : '';
+
+    // Escape other user-provided values used in templates
+    const safeLogoUrl = escapeHtml(effectiveLogoUrl);
+    const safeFooterText = escapeHtml(effectiveFooterText);
+    const safeSupportEmail = escapeHtml(effectiveSupportEmail);
+    const safeSupportUrl = escapeHtml(effectiveSupportUrl);
 
     // Default template
     return `<!DOCTYPE html>
@@ -159,7 +215,7 @@ export class BlockPagesService {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${blockPage.title}</title>
+  <title>${safeTitle}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -246,27 +302,27 @@ export class BlockPagesService {
       color: #6b7280;
     }
     .footer a { color: ${effectivePrimaryColor}; text-decoration: none; }
-    ${blockPage.customCss || ''}
+    ${safeCustomCss}
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      ${effectiveLogoUrl ? `<img src="${effectiveLogoUrl}" alt="Logo" class="logo">` : ''}
+      ${safeLogoUrl ? `<img src="${safeLogoUrl}" alt="Logo" class="logo">` : ''}
       <div class="icon">
         <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
       </div>
-      <h1>${blockPage.title}</h1>
+      <h1>${safeTitle}</h1>
     </div>
     <div class="content">
-      <p class="message">${blockPage.message}</p>
+      <p class="message">${safeMessage}</p>
       <div class="details">
         ${
           blockPage.showDomain
             ? `
         <div class="detail-row">
           <span class="detail-label">Blocked Domain</span>
-          <span class="detail-value">${domain}</span>
+          <span class="detail-value">${safeDomain}</span>
         </div>`
             : ''
         }
@@ -275,7 +331,7 @@ export class BlockPagesService {
             ? `
         <div class="detail-row">
           <span class="detail-label">Category</span>
-          <span class="detail-value">${category}</span>
+          <span class="detail-value">${safeCategory}</span>
         </div>`
             : ''
         }
@@ -284,7 +340,7 @@ export class BlockPagesService {
             ? `
         <div class="detail-row">
           <span class="detail-label">Time</span>
-          <span class="detail-value">${timestamp || new Date().toLocaleString()}</span>
+          <span class="detail-value">${safeTimestamp}</span>
         </div>`
             : ''
         }
@@ -294,9 +350,9 @@ export class BlockPagesService {
           ? `
       <div class="request-form">
         <form action="/api/access-requests" method="POST">
-          <input type="hidden" name="domain" value="${domain}">
-          <input type="hidden" name="category" value="${category || ''}">
-          ${requestId ? `<input type="hidden" name="requestId" value="${requestId}">` : ''}
+          <input type="hidden" name="domain" value="${safeDomain}">
+          <input type="hidden" name="category" value="${safeCategory}">
+          ${requestId ? `<input type="hidden" name="requestId" value="${escapeHtml(requestId)}">` : ''}
           <textarea name="reason" placeholder="Why do you need access to this site?"></textarea>
           <button type="submit">Request Access</button>
         </form>
@@ -305,9 +361,9 @@ export class BlockPagesService {
       }
     </div>
     <div class="footer">
-      ${effectiveFooterText}
-      ${effectiveSupportEmail ? `<br><a href="mailto:${effectiveSupportEmail}">Contact Support</a>` : ''}
-      ${effectiveSupportUrl ? `<br><a href="${effectiveSupportUrl}" target="_blank">Help Center</a>` : ''}
+      ${safeFooterText}
+      ${safeSupportEmail ? `<br><a href="mailto:${safeSupportEmail}">Contact Support</a>` : ''}
+      ${safeSupportUrl ? `<br><a href="${safeSupportUrl}" target="_blank">Help Center</a>` : ''}
     </div>
   </div>
 </body>

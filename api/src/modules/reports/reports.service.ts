@@ -1008,4 +1008,25 @@ export class ReportsService {
       endDate: endDate.toISOString(),
     };
   }
+
+  /**
+   * Get analytics data source status
+   * Returns whether ClickHouse is connected or using mock data
+   */
+  getDataStatus(): {
+    source: 'clickhouse' | 'mock';
+    connected: boolean;
+    usingMockData: boolean;
+    message: string;
+  } {
+    const status = this.clickhouseService.getConnectionStatus();
+    return {
+      source: status.connected ? 'clickhouse' : 'mock',
+      connected: status.connected,
+      usingMockData: status.usingMockData,
+      message: status.connected
+        ? 'Analytics data is from ClickHouse'
+        : 'Analytics data is simulated (ClickHouse not connected)',
+    };
+  }
 }

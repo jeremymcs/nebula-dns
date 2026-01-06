@@ -102,6 +102,15 @@ import configuration from './config/configuration';
           configService.get<string>('NODE_ENV') === 'production'
             ? { rejectUnauthorized: false }
             : false,
+        // Connection pooling
+        extra: {
+          max: configService.get<number>('DB_POOL_SIZE', 20),
+          connectionTimeoutMillis: configService.get<number>(
+            'DB_CONNECTION_TIMEOUT',
+            5000,
+          ),
+          idleTimeoutMillis: configService.get<number>('DB_IDLE_TIMEOUT', 30000),
+        },
       }),
     }),
 

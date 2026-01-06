@@ -53,9 +53,8 @@ export class WebhooksService {
       tenantId,
       name: dto.name,
       url: dto.url,
-      secretHash: dto.secret
-        ? crypto.createHash('sha256').update(dto.secret).digest('hex')
-        : null,
+      // Store secret directly for HMAC signing (in production, encrypt at rest)
+      secretHash: dto.secret || null,
       events: dto.events as WebhookEvent[],
       headers: dto.headers || {},
     } as Partial<Webhook>);
@@ -104,11 +103,7 @@ export class WebhooksService {
 
     if (dto.name) webhook.name = dto.name;
     if (dto.url) webhook.url = dto.url;
-    if (dto.secret)
-      webhook.secretHash = crypto
-        .createHash('sha256')
-        .update(dto.secret)
-        .digest('hex');
+    if (dto.secret) webhook.secretHash = dto.secret;
     if (dto.events) webhook.events = dto.events as WebhookEvent[];
     if (dto.isEnabled !== undefined) webhook.isEnabled = dto.isEnabled;
     if (dto.headers) webhook.headers = dto.headers;
@@ -226,9 +221,8 @@ export class WebhooksService {
       ...webhook.headers,
     };
 
-    // Add signature if secret is set
+    // Add HMAC-SHA256 signature if secret is configured
     if (webhook.secretHash) {
-      // Use a placeholder secret for signing (in production, store the secret securely)
       headers['X-Webhook-Signature'] =
         `sha256=${this.generateSignature(payloadString, webhook.secretHash)}`;
     }

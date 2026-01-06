@@ -124,4 +124,12 @@ export class ReportsController {
   ) {
     return this.reportsService.investigateDomain(tenantId, domain);
   }
+
+  @Get('data-status')
+  @Roles(Role.OWNER, Role.ADMIN, Role.ANALYST, Role.READONLY)
+  @ApiOperation({ summary: 'Get analytics data source status' })
+  @ApiResponse({ status: 200, description: 'Data source status retrieved' })
+  async getDataStatus() {
+    return this.reportsService.getDataStatus();
+  }
 }
