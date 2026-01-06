@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { DataSource } from 'typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { RedisService } from '../redis/redis.service';
+import { ClickHouseService } from '../clickhouse/clickhouse.service';
 
 export interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -26,7 +30,12 @@ export interface DetailedHealthStatus extends HealthStatus {
 export class HealthService {
   private readonly startTime = Date.now();
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly redisService: RedisService,
+    private readonly clickhouseService: ClickHouseService,
+  ) {}
 
   async check(): Promise<HealthStatus> {
     return {
@@ -67,10 +76,9 @@ export class HealthService {
   }
 
   private async checkPostgres(): Promise<DependencyStatus> {
-    // Placeholder - would use TypeORM connection
     try {
       const start = Date.now();
-      // await this.dataSource.query('SELECT 1');
+      await this.dataSource.query('SELECT 1');
       return {
         status: 'healthy',
         latencyMs: Date.now() - start,
@@ -84,10 +92,9 @@ export class HealthService {
   }
 
   private async checkRedis(): Promise<DependencyStatus> {
-    // Placeholder - would use Redis client
     try {
       const start = Date.now();
-      // await this.redis.ping();
+      await this.redisService.getClient().ping();
       return {
         status: 'healthy',
         latencyMs: Date.now() - start,
@@ -101,14 +108,20 @@ export class HealthService {
   }
 
   private async checkClickhouse(): Promise<DependencyStatus> {
-    // Placeholder - would use ClickHouse client
     try {
       const start = Date.now();
-      // await this.clickhouse.query('SELECT 1');
-      return {
-        status: 'healthy',
-        latencyMs: Date.now() - start,
-      };
+      const status = this.clickhouseService.getConnectionStatus();
+      if (status.connected) {
+        return {
+          status: 'healthy',
+          latencyMs: Date.now() - start,
+        };
+      } else {
+        return {
+          status: 'unhealthy',
+          error: `Not connected (${status.consecutiveFailures} consecutive failures)`,
+        };
+      }
     } catch (error) {
       return {
         status: 'unhealthy',

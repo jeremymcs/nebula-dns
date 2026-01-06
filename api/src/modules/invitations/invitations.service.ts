@@ -4,8 +4,8 @@ import {
   BadRequestException,
   ConflictException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan } from 'typeorm';
+import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
+import { Repository, LessThan, DataSource } from 'typeorm';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { Invitation, InvitationStatus } from './entities/invitation.entity';
@@ -28,6 +28,8 @@ export class InvitationsService {
     private userRepository: Repository<User>,
     @InjectRepository(Tenant)
     private tenantRepository: Repository<Tenant>,
+    @InjectDataSource()
+    private dataSource: DataSource,
     private emailService: EmailService,
   ) {}
 
@@ -210,31 +212,32 @@ export class InvitationsService {
     });
 
     if (existingUser) {
-      // User exists - just add them to this tenant
-      // Note: In a real app, you might handle this differently
       throw new ConflictException(
         'An account with this email already exists. Please log in to join this organization.',
       );
     }
 
-    // Create new user
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
-    const user = this.userRepository.create({
-      tenantId: invitation.tenantId,
-      email: invitation.email,
-      name: dto.name,
-      passwordHash: hashedPassword,
-      role: invitation.role as any,
+    // Use transaction to ensure atomicity of user creation and invitation update
+    return await this.dataSource.transaction(async (manager) => {
+      // Create new user
+      const hashedPassword = await bcrypt.hash(dto.password, 10);
+      const user = manager.create(User, {
+        tenantId: invitation.tenantId,
+        email: invitation.email,
+        name: dto.name,
+        passwordHash: hashedPassword,
+        role: invitation.role as any,
+      });
+
+      await manager.save(user);
+
+      // Mark invitation as accepted
+      invitation.status = 'accepted';
+      invitation.acceptedAt = new Date();
+      await manager.save(invitation);
+
+      return { user, tenant: invitation.tenant };
     });
-
-    await this.userRepository.save(user);
-
-    // Mark invitation as accepted
-    invitation.status = 'accepted';
-    invitation.acceptedAt = new Date();
-    await this.invitationRepository.save(invitation);
-
-    return { user, tenant: invitation.tenant };
   }
 
   async revoke(tenantId: string, id: string): Promise<void> {

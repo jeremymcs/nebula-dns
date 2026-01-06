@@ -94,7 +94,7 @@ export class AuthService {
           email: user.email,
           tenantId: user.tenantId,
         },
-        { expiresIn: '5m' }, // Short-lived token for MFA step
+        { expiresIn: '2m' }, // Short-lived token for MFA step (2 min for security)
       );
 
       this.logger.log(`MFA required for user: ${email}`);

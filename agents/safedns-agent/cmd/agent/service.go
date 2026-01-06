@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/fluxlabs/dns-filter/agents/safedns-agent/internal/config"
 	"github.com/fluxlabs/dns-filter/agents/safedns-agent/internal/dns"
@@ -75,9 +76,32 @@ func runAgent(asService bool) error {
 	logger.Info("Received shutdown signal")
 	cancel()
 
-	// Restore DNS
-	if err := a.dnsManager.Restore(); err != nil {
-		logger.Error("Failed to restore DNS settings", zap.Error(err))
+	// Restore DNS with retry logic (critical - user must have working DNS)
+	maxRetries := 3
+	retryDelays := []time.Duration{500 * time.Millisecond, 1 * time.Second, 2 * time.Second}
+	var restoreErr error
+
+	for i := 0; i < maxRetries; i++ {
+		if err := a.dnsManager.Restore(); err != nil {
+			restoreErr = err
+			logger.Warn("Failed to restore DNS settings, retrying...",
+				zap.Int("attempt", i+1),
+				zap.Int("maxRetries", maxRetries),
+				zap.Error(err))
+
+			if i < maxRetries-1 {
+				time.Sleep(retryDelays[i])
+			}
+		} else {
+			logger.Info("DNS settings restored successfully")
+			restoreErr = nil
+			break
+		}
+	}
+
+	if restoreErr != nil {
+		logger.Error("Failed to restore DNS settings after all retries - user may need to manually fix DNS",
+			zap.Error(restoreErr))
 	}
 
 	return nil

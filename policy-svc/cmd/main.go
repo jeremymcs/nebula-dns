@@ -46,6 +46,14 @@ func main() {
 		redisURL = "redis:6379"
 	}
 
+	// Request timeout (default 5s for policy evaluation)
+	requestTimeout := 5 * time.Second
+	if timeout := os.Getenv("REQUEST_TIMEOUT_MS"); timeout != "" {
+		if ms, err := time.ParseDuration(timeout + "ms"); err == nil {
+			requestTimeout = ms
+		}
+	}
+
 	failMode := os.Getenv("FAIL_MODE")
 	if failMode == "" {
 		failMode = "open"
@@ -102,7 +110,7 @@ func main() {
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Recoverer)
-	r.Use(middleware.Timeout(100 * time.Millisecond))
+	r.Use(middleware.Timeout(requestTimeout))
 
 	// Routes
 	r.Get("/health", h.Health)
