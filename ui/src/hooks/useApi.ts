@@ -102,8 +102,19 @@ export function useBlocksByCategory(period: string = '7d') {
   )
 }
 
+interface ThreatTrendItem {
+  date: string
+  count: number
+}
+
+interface ThreatData {
+  threats: any[]
+  heatmap: any[]
+  trends: ThreatTrendItem[]
+}
+
 export function useThreatTrends(period: string = '7d') {
-  return useSWR(
+  return useSWR<ThreatData>(
     `/reports/threats?period=${period}`,
     fetcher,
     defaultConfig
@@ -179,9 +190,13 @@ export function usePolicy(id: string | null) {
 // Locations Hooks
 // ============================================
 
-export function useLocations() {
+export function useLocations(params?: { cursor?: string; limit?: number }) {
+  const searchParams = new URLSearchParams()
+  if (params?.cursor) searchParams.set('cursor', params.cursor)
+  if (params?.limit) searchParams.set('limit', params.limit.toString())
+  const query = searchParams.toString()
   return useSWR<PaginatedResponse<any>>(
-    '/locations',
+    `/locations${query ? `?${query}` : ''}`,
     fetcher,
     defaultConfig
   )
@@ -227,9 +242,13 @@ export function useListEntries(listId: string | null) {
 // Users Hooks
 // ============================================
 
-export function useUsers() {
+export function useUsers(params?: { cursor?: string; limit?: number }) {
+  const searchParams = new URLSearchParams()
+  if (params?.cursor) searchParams.set('cursor', params.cursor)
+  if (params?.limit) searchParams.set('limit', params.limit.toString())
+  const query = searchParams.toString()
   return useSWR<PaginatedResponse<any>>(
-    '/users',
+    `/users${query ? `?${query}` : ''}`,
     fetcher,
     defaultConfig
   )
@@ -442,6 +461,28 @@ export function useScheduledReports() {
     '/scheduled-reports',
     fetcher,
     defaultConfig
+  )
+}
+
+// ============================================
+// Data Status Hooks
+// ============================================
+
+interface DataStatus {
+  clickhouseConnected: boolean
+  usingMockData: boolean
+  lastConnectionAttempt: string | null
+  consecutiveFailures: number
+}
+
+export function useDataStatus() {
+  return useSWR<DataStatus>(
+    '/reports/data-status',
+    fetcher,
+    {
+      ...defaultConfig,
+      refreshInterval: 60000, // Refresh every minute
+    }
   )
 }
 

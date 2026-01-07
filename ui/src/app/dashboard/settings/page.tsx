@@ -60,6 +60,10 @@ export default function SettingsPage() {
   const [weeklyReports, setWeeklyReports] = useState(true)
   const [systemUpdates, setSystemUpdates] = useState(false)
 
+  // DNS settings
+  const [dnssecEnabled, setDnssecEnabled] = useState(true)
+  const [logAllQueries, setLogAllQueries] = useState(true)
+
   // Sync form state when tenant data loads
   useEffect(() => {
     if (tenant) {
@@ -69,6 +73,9 @@ export default function SettingsPage() {
       setThreatAlerts(tenant.settings?.notifications?.threatAlerts ?? true)
       setWeeklyReports(tenant.settings?.notifications?.weeklyReports ?? true)
       setSystemUpdates(tenant.settings?.notifications?.systemUpdates ?? false)
+      // DNS settings
+      setDnssecEnabled((tenant.settings as any)?.dns?.dnssecEnabled ?? true)
+      setLogAllQueries((tenant.settings as any)?.dns?.logAllQueries ?? true)
     }
   }, [tenant])
 
@@ -109,6 +116,27 @@ export default function SettingsPage() {
       mutate()
     } catch (error) {
       showToast('error', 'Failed to save notification settings')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleSaveDnsSettings = async () => {
+    setSaving(true)
+    try {
+      await api.updateTenant({
+        settings: {
+          ...(tenant?.settings || {}),
+          dns: {
+            dnssecEnabled,
+            logAllQueries,
+          }
+        }
+      })
+      showToast('success', 'DNS settings saved')
+      mutate()
+    } catch (error) {
+      showToast('error', 'Failed to save DNS settings')
     } finally {
       setSaving(false)
     }
@@ -354,8 +382,11 @@ export default function SettingsPage() {
                       <h3 className="text-sm font-medium text-space-900 dark:text-white">DNSSEC Validation</h3>
                       <p className="text-sm text-space-500 dark:text-space-400">Validate DNS responses with DNSSEC</p>
                     </div>
-                    <button className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-primary-600 transition-colors duration-200 ease-in-out">
-                      <span className="translate-x-5 inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" />
+                    <button
+                      onClick={() => setDnssecEnabled(!dnssecEnabled)}
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${dnssecEnabled ? 'bg-primary-600' : 'bg-space-200 dark:bg-space-600'}`}
+                    >
+                      <span className={`${dnssecEnabled ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`} />
                     </button>
                   </div>
 
@@ -364,9 +395,18 @@ export default function SettingsPage() {
                       <h3 className="text-sm font-medium text-space-900 dark:text-white">Log All Queries</h3>
                       <p className="text-sm text-space-500 dark:text-space-400">Store all DNS queries for analytics</p>
                     </div>
-                    <button className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-primary-600 transition-colors duration-200 ease-in-out">
-                      <span className="translate-x-5 inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" />
+                    <button
+                      onClick={() => setLogAllQueries(!logAllQueries)}
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${logAllQueries ? 'bg-primary-600' : 'bg-space-200 dark:bg-space-600'}`}
+                    >
+                      <span className={`${logAllQueries ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`} />
                     </button>
+                  </div>
+
+                  <div className="pt-4 border-t border-space-200 dark:border-space-700">
+                    <Button variant="primary" onClick={handleSaveDnsSettings} disabled={saving}>
+                      {saving ? 'Saving...' : 'Save DNS Settings'}
+                    </Button>
                   </div>
                 </div>
               </Card>

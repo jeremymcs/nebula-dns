@@ -7,8 +7,10 @@
 
 'use client'
 
-import { useState, useMemo } from 'react'
-import { useSummaryStats, useTopBlocked, useBlocksByCategory, useLocationStats, useQueryTrends, useInsights } from '@/hooks/useApi'
+import { useState, useMemo, useCallback } from 'react'
+import { useSummaryStats, useTopBlocked, useBlocksByCategory, useLocationStats, useQueryTrends, useInsights, useSecurityScore, useThreatTrends, useDataStatus } from '@/hooks/useApi'
+import { exportReport, type ReportData, type ExportOptions } from '@/lib/export'
+import { useToast } from '@/components/Toast'
 import {
   ArrowDownTrayIcon,
   ShieldExclamationIcon,
@@ -111,7 +113,15 @@ export default function ReportsPage() {
   const [dateRange, setDateRange] = useState('7d')
   const [activeReportType, setActiveReportType] = useState('overview')
   const [showExportModal, setShowExportModal] = useState(false)
-  const [exportFormat, setExportFormat] = useState('pdf')
+  const [exportFormat, setExportFormat] = useState<'pdf' | 'csv' | 'json'>('pdf')
+  const [isExporting, setIsExporting] = useState(false)
+  const [exportSections, setExportSections] = useState({
+    summary: true,
+    topBlocked: true,
+    categories: true,
+    locations: true,
+    trends: true,
+  })
   const [compareEnabled, setCompareEnabled] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [showAnomalies, setShowAnomalies] = useState(false)
@@ -119,12 +129,16 @@ export default function ReportsPage() {
   const [selectedPolicy, setSelectedPolicy] = useState('All Policies')
   const [selectedUserGroup, setSelectedUserGroup] = useState('All Users')
 
+  const { showToast } = useToast()
   const { data: summary, isLoading: summaryLoading } = useSummaryStats(dateRange)
   const { data: topBlocked, isLoading: topBlockedLoading } = useTopBlocked(dateRange, 8)
   const { data: categoryStats, isLoading: categoryLoading } = useBlocksByCategory(dateRange)
   const { data: locationStats, isLoading: locationLoading } = useLocationStats(dateRange)
   const { data: queryTrends, isLoading: trendsLoading } = useQueryTrends(dateRange)
   const { data: insightsData } = useInsights(dateRange)
+  const { data: securityScoreData } = useSecurityScore()
+  const { data: threatData } = useThreatTrends(dateRange)
+  const { data: dataStatus } = useDataStatus()
 
   const isLoading = summaryLoading || topBlockedLoading || categoryLoading || locationLoading || trendsLoading
 
@@ -163,22 +177,39 @@ export default function ReportsPage() {
     color: categoryColors[idx % categoryColors.length],
   }))
 
-  // Generate threat trend data
-  const threatTrendData = [
-    { label: 'Mon', value: 120, color: '#f97316' },
-    { label: 'Tue', value: 145, color: '#f97316' },
-    { label: 'Wed', value: 98, color: '#f97316' },
-    { label: 'Thu', value: 167, color: '#f97316' },
-    { label: 'Fri', value: 132, color: '#f97316' },
-    { label: 'Sat', value: 78, color: '#f97316' },
-    { label: 'Sun', value: 56, color: '#f97316' },
-  ]
+  // Transform threat data from API for BarChart format, with fallback
+  const threatTrendData = useMemo(() => {
+    const defaultData = [
+      { label: 'Mon', value: 120, color: '#f97316' },
+      { label: 'Tue', value: 145, color: '#f97316' },
+      { label: 'Wed', value: 98, color: '#f97316' },
+      { label: 'Thu', value: 167, color: '#f97316' },
+      { label: 'Fri', value: 132, color: '#f97316' },
+      { label: 'Sat', value: 78, color: '#f97316' },
+      { label: 'Sun', value: 56, color: '#f97316' },
+    ]
+
+    // API returns { threats, heatmap, trends }
+    if (!threatData?.trends || threatData.trends.length === 0) {
+      return defaultData
+    }
+
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    return threatData.trends.map((item) => {
+      const date = new Date(item.date)
+      return {
+        label: dayNames[date.getDay()],
+        value: item.count || 0,
+        color: '#f97316',
+      }
+    }).slice(-7)
+  }, [threatData])
 
   const blockRate = summary?.blockRate || 0
   const cacheHitRate = summary?.cacheHitRate || 0
 
-  // Calculate security score (mock calculation)
-  const securityScore = Math.min(100, Math.max(0, 100 - (blockRate * 2) + (cacheHitRate / 2)))
+  // Use security score from API, with fallback to mock calculation
+  const securityScore = securityScoreData?.score ?? Math.min(100, Math.max(0, 100 - (blockRate * 2) + (cacheHitRate / 2)))
 
   const dateRangeOptions = [
     { value: '24h', label: 'Last 24 hours' },
@@ -187,10 +218,57 @@ export default function ReportsPage() {
     { value: '90d', label: 'Last 90 days' },
   ]
 
-  const handleExport = () => {
-    // Handle export logic
-    setShowExportModal(false)
-  }
+  const handleExport = useCallback(async () => {
+    setIsExporting(true)
+    try {
+      // Prepare report data
+      const reportData: ReportData = {
+        summary: exportSections.summary ? {
+          totalQueries: summary?.totalQueries,
+          blockedQueries: summary?.blockedQueries,
+          blockRate: summary?.blockRate,
+          cacheHitRate: summary?.cacheHitRate,
+          avgResponseTime: summary?.avgResponseTime,
+        } : undefined,
+        topBlocked: exportSections.topBlocked ? topBlocked?.map(item => ({
+          domain: item.domain,
+          count: item.count,
+          category: item.category,
+        })) : undefined,
+        categoryStats: exportSections.categories ? categoryStats?.map(item => ({
+          category: item.category,
+          count: item.count,
+        })) : undefined,
+        locationStats: exportSections.locations ? locationStats?.map(loc => ({
+          location: loc.locationName,
+          queries: loc.totalQueries,
+          blocked: loc.blockedQueries,
+        })) : undefined,
+        queryTrends: exportSections.trends ? queryTrends?.map(item => ({
+          timestamp: item.timestamp,
+          total: item.total,
+          blocked: item.blocked,
+        })) : undefined,
+      }
+
+      // Export options
+      const exportOptions: ExportOptions = {
+        dateRange: dateRange === '24h' ? 'Last 24 Hours' : dateRange === '7d' ? 'Last 7 Days' : dateRange === '30d' ? 'Last 30 Days' : 'Last 90 Days',
+        reportType: activeReportType,
+        title: `Nebula DNS ${activeReportType.charAt(0).toUpperCase() + activeReportType.slice(1)} Report`,
+        includeSections: exportSections,
+      }
+
+      await exportReport(exportFormat, reportData, exportOptions)
+      showToast('success', 'Report Exported', `Your ${exportFormat.toUpperCase()} report has been downloaded`)
+      setShowExportModal(false)
+    } catch (error) {
+      console.error('Export failed:', error)
+      showToast('error', 'Export Failed', 'There was an error generating your report. Please try again.')
+    } finally {
+      setIsExporting(false)
+    }
+  }, [exportFormat, exportSections, summary, topBlocked, categoryStats, locationStats, queryTrends, dateRange, activeReportType, showToast])
 
   return (
     <div className="space-y-6">
@@ -301,8 +379,13 @@ export default function ReportsPage() {
         {/* Data Freshness Indicator */}
         <div className="relative mt-4 flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-white/70">
-            <SignalIcon className="h-4 w-4 text-success-400" />
+            <SignalIcon className={clsx('h-4 w-4', dataStatus?.usingMockData ? 'text-warning-400' : 'text-success-400')} />
             <span>Data updated <strong className="text-white">2 minutes ago</strong></span>
+            {dataStatus?.usingMockData && (
+              <span className="ml-2 px-2 py-0.5 rounded-full bg-warning-500/20 text-warning-300 text-xs font-medium ring-1 ring-warning-500/30" title="Analytics database not connected - showing demo data">
+                Demo Data
+              </span>
+            )}
             <button className="ml-2 p-1 rounded-lg hover:bg-white/10 transition-colors">
               <ArrowPathIcon className="h-4 w-4" />
             </button>
@@ -950,11 +1033,11 @@ export default function ReportsPage() {
         <div className="space-y-3 mb-6">
           <label className="text-sm font-medium text-space-700 dark:text-space-300">Export Format</label>
           <div className="grid grid-cols-3 gap-3">
-            {[
-              { id: 'pdf', label: 'PDF', icon: DocumentArrowDownIcon, description: 'Best for sharing' },
-              { id: 'csv', label: 'CSV', icon: TableCellsIcon, description: 'For spreadsheets' },
-              { id: 'json', label: 'JSON', icon: CodeBracketIcon, description: 'For developers' },
-            ].map((format) => {
+            {([
+              { id: 'pdf' as const, label: 'PDF', icon: DocumentArrowDownIcon, description: 'Best for sharing' },
+              { id: 'csv' as const, label: 'CSV', icon: TableCellsIcon, description: 'For spreadsheets' },
+              { id: 'json' as const, label: 'JSON', icon: CodeBracketIcon, description: 'For developers' },
+            ]).map((format) => {
               const Icon = format.icon
               return (
                 <button
@@ -981,15 +1064,17 @@ export default function ReportsPage() {
           <label className="text-sm font-medium text-space-700 dark:text-space-300">Include in Report</label>
           <div className="space-y-2">
             {[
-              { id: 'summary', label: 'Executive Summary', checked: true },
-              { id: 'charts', label: 'Charts & Visualizations', checked: true },
-              { id: 'tables', label: 'Detailed Tables', checked: true },
-              { id: 'insights', label: 'AI-Generated Insights', checked: false },
+              { id: 'summary', label: 'Executive Summary', key: 'summary' as const },
+              { id: 'topBlocked', label: 'Top Blocked Domains', key: 'topBlocked' as const },
+              { id: 'categories', label: 'Category Statistics', key: 'categories' as const },
+              { id: 'locations', label: 'Location Statistics', key: 'locations' as const },
+              { id: 'trends', label: 'Query Trends', key: 'trends' as const },
             ].map((option) => (
               <label key={option.id} className="flex items-center gap-3 p-3 rounded-lg bg-space-50 dark:bg-space-800/50 cursor-pointer hover:bg-space-100 dark:hover:bg-space-700/50 transition-colors">
                 <input
                   type="checkbox"
-                  defaultChecked={option.checked}
+                  checked={exportSections[option.key]}
+                  onChange={(e) => setExportSections(prev => ({ ...prev, [option.key]: e.target.checked }))}
                   className="h-4 w-4 rounded border-space-300 text-nebula-600 focus:ring-nebula-500"
                 />
                 <span className="text-sm text-space-700 dark:text-space-300">{option.label}</span>
@@ -1000,11 +1085,15 @@ export default function ReportsPage() {
 
         {/* Actions */}
         <div className="flex items-center justify-between pt-4 border-t border-space-200 dark:border-space-700">
-          <Button variant="ghost" onClick={() => setShowExportModal(false)}>
+          <Button variant="ghost" onClick={() => setShowExportModal(false)} disabled={isExporting}>
             Cancel
           </Button>
-          <Button onClick={handleExport} leftIcon={<ArrowDownTrayIcon className="h-4 w-4" />}>
-            Export {exportFormat.toUpperCase()}
+          <Button
+            onClick={handleExport}
+            leftIcon={isExporting ? <ArrowPathIcon className="h-4 w-4 animate-spin" /> : <ArrowDownTrayIcon className="h-4 w-4" />}
+            disabled={isExporting}
+          >
+            {isExporting ? 'Exporting...' : `Export ${exportFormat.toUpperCase()}`}
           </Button>
         </div>
       </Modal>

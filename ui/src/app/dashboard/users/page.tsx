@@ -7,7 +7,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useUsers, useInvitations } from '@/hooks/useApi'
 import { api } from '@/lib/api'
 import { useToast } from '@/components/Toast'
@@ -22,7 +22,14 @@ import {
   XMarkIcon,
   EnvelopeIcon,
   ShieldCheckIcon,
-  ClockIcon
+  ClockIcon,
+  MagnifyingGlassIcon,
+  FunnelIcon,
+  PauseCircleIcon,
+  PlayCircleIcon,
+  KeyIcon,
+  ClipboardDocumentIcon,
+  CheckIcon,
 } from '@heroicons/react/24/outline'
 import { Button, Card, Badge, Modal, Input, EmptyState } from '@/components/ui'
 
@@ -60,9 +67,20 @@ export default function UsersPage() {
   
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [showPasswordResetModal, setShowPasswordResetModal] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null)
+  const [temporaryPassword, setTemporaryPassword] = useState<string | null>(null)
+  const [copiedPassword, setCopiedPassword] = useState(false)
+  const [resettingPassword, setResettingPassword] = useState(false)
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState<'users' | 'invitations'>('users')
+
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState('')
+  const [roleFilter, setRoleFilter] = useState<string>('')
+  const [statusFilter, setStatusFilter] = useState<string>('')
+  const [mfaFilter, setMfaFilter] = useState<string>('')
 
   const [inviteForm, setInviteForm] = useState({
     email: '',
@@ -80,6 +98,38 @@ export default function UsersPage() {
   const pendingInvitations = invitations.filter(i => i.status === 'pending')
 
   const isAdmin = currentUser?.role === 'owner' || currentUser?.role === 'admin'
+
+  // Filter users
+  const filteredUsers = useMemo(() => {
+    return users.filter(user => {
+      // Search filter
+      const matchesSearch = searchQuery === '' ||
+        user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase())
+
+      // Role filter
+      const matchesRole = roleFilter === '' || user.role === roleFilter
+
+      // Status filter
+      const matchesStatus = statusFilter === '' || user.status === statusFilter
+
+      // MFA filter
+      const matchesMfa = mfaFilter === '' ||
+        (mfaFilter === 'enabled' && user.mfaEnabled) ||
+        (mfaFilter === 'disabled' && !user.mfaEnabled)
+
+      return matchesSearch && matchesRole && matchesStatus && matchesMfa
+    })
+  }, [users, searchQuery, roleFilter, statusFilter, mfaFilter])
+
+  const hasActiveFilters = searchQuery || roleFilter || statusFilter || mfaFilter
+
+  const clearFilters = () => {
+    setSearchQuery('')
+    setRoleFilter('')
+    setStatusFilter('')
+    setMfaFilter('')
+  }
 
   const openEditModal = (user: User) => {
     setEditingUser(user)
@@ -120,7 +170,7 @@ export default function UsersPage() {
     setSaving(true)
     try {
       const token = localStorage.getItem('token')
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${editingUser.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${editingUser.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -131,6 +181,12 @@ export default function UsersPage() {
           role: editForm.role,
         }),
       })
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ message: 'Request failed' }))
+        throw new Error(errorData.message || `Failed to update user (${res.status})`)
+      }
+
       showToast('success', 'User updated successfully')
       mutateUsers()
       setShowEditModal(false)
@@ -167,6 +223,75 @@ export default function UsersPage() {
     } catch (err: any) {
       showToast('error', err.message || 'Failed to remove user')
     }
+  }
+
+  const handleToggleUserStatus = async (user: User) => {
+    if (user.id === currentUser?.id) {
+      showToast('error', 'You cannot deactivate yourself')
+      return
+    }
+
+    if (user.role === 'owner') {
+      showToast('error', 'Cannot deactivate the account owner')
+      return
+    }
+
+    const action = user.status === 'active' ? 'deactivate' : 'reactivate'
+    if (!confirm(`Are you sure you want to ${action} ${user.name}?`)) {
+      return
+    }
+
+    try {
+      if (user.status === 'active') {
+        await api.suspendUser(user.id)
+        showToast('success', 'User deactivated')
+      } else {
+        await api.reactivateUser(user.id)
+        showToast('success', 'User reactivated')
+      }
+      mutateUsers()
+    } catch (err: any) {
+      showToast('error', err.message || `Failed to ${action} user`)
+    }
+  }
+
+  const handleResetPassword = async (user: User) => {
+    if (user.role === 'owner') {
+      showToast('error', 'Cannot reset password for the account owner')
+      return
+    }
+
+    if (!confirm(`Are you sure you want to reset the password for ${user.name || user.email}? They will need to use a temporary password to log in.`)) {
+      return
+    }
+
+    setResetPasswordUser(user)
+    setResettingPassword(true)
+    try {
+      const result = await api.adminResetPassword(user.id)
+      setTemporaryPassword(result.temporaryPassword)
+      setShowPasswordResetModal(true)
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to reset password')
+      setResetPasswordUser(null)
+    } finally {
+      setResettingPassword(false)
+    }
+  }
+
+  const copyTemporaryPassword = () => {
+    if (temporaryPassword) {
+      navigator.clipboard.writeText(temporaryPassword)
+      setCopiedPassword(true)
+      setTimeout(() => setCopiedPassword(false), 2000)
+    }
+  }
+
+  const closePasswordResetModal = () => {
+    setShowPasswordResetModal(false)
+    setResetPasswordUser(null)
+    setTemporaryPassword(null)
+    setCopiedPassword(false)
   }
 
   const handleResendInvitation = async (invitation: Invitation) => {
@@ -264,14 +389,93 @@ export default function UsersPage() {
 
       {/* Users Tab */}
       {activeTab === 'users' && (
-        usersLoading ? (
-          <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="skeleton h-16 rounded-xl" />
-            ))}
+        <>
+          {/* Search and Filter Bar */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-space-400" />
+              <input
+                type="text"
+                placeholder="Search by name or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-space-800 border border-space-200 dark:border-space-700 text-space-900 dark:text-white placeholder-space-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Filters */}
+            <div className="flex items-center gap-3">
+              {/* Role Filter */}
+              <div className="relative">
+                <select
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                  className="appearance-none pl-3 pr-8 py-2.5 rounded-xl bg-white dark:bg-space-800 border border-space-200 dark:border-space-700 text-space-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                >
+                  <option value="">All Roles</option>
+                  <option value="owner">Owner</option>
+                  <option value="admin">Admin</option>
+                  <option value="analyst">Analyst</option>
+                  <option value="readonly">Read Only</option>
+                </select>
+                <FunnelIcon className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-space-400 pointer-events-none" />
+              </div>
+
+              {/* Status Filter */}
+              <div className="relative">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="appearance-none pl-3 pr-8 py-2.5 rounded-xl bg-white dark:bg-space-800 border border-space-200 dark:border-space-700 text-space-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                >
+                  <option value="">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="pending">Pending</option>
+                </select>
+                <FunnelIcon className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-space-400 pointer-events-none" />
+              </div>
+
+              {/* MFA Filter */}
+              <div className="relative">
+                <select
+                  value={mfaFilter}
+                  onChange={(e) => setMfaFilter(e.target.value)}
+                  className="appearance-none pl-3 pr-8 py-2.5 rounded-xl bg-white dark:bg-space-800 border border-space-200 dark:border-space-700 text-space-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                >
+                  <option value="">MFA Status</option>
+                  <option value="enabled">MFA Enabled</option>
+                  <option value="disabled">MFA Disabled</option>
+                </select>
+                <FunnelIcon className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-space-400 pointer-events-none" />
+              </div>
+            </div>
           </div>
-        ) : (
-          <Card variant="solid" padding="none">
+
+          {/* Results count */}
+          {users.length > 0 && (
+            <div className="text-sm text-space-500 dark:text-space-400 mb-4">
+              Showing {filteredUsers.length} of {users.length} team members
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="ml-2 text-primary-600 dark:text-primary-400 hover:underline"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          )}
+
+          {usersLoading ? (
+            <div className="space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="skeleton h-16 rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <Card variant="solid" padding="none">
             <div className="table-container">
               <table className="table">
                 <thead className="table-header">
@@ -285,7 +489,7 @@ export default function UsersPage() {
                   </tr>
                 </thead>
                 <tbody className="table-body">
-                  {users.map((user) => (
+                  {filteredUsers.map((user) => (
                     <tr key={user.id} className="table-row">
                       <td className="table-cell">
                         <div className="flex items-center">
@@ -337,12 +541,32 @@ export default function UsersPage() {
                                 size="sm"
                                 onClick={() => openEditModal(user)}
                                 leftIcon={<PencilIcon className="h-4 w-4" />}
+                                title="Edit user"
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleResetPassword(user)}
+                                disabled={resettingPassword}
+                                leftIcon={<KeyIcon className="h-4 w-4 text-accent-500" />}
+                                title="Reset password"
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleToggleUserStatus(user)}
+                                leftIcon={user.status === 'active'
+                                  ? <PauseCircleIcon className="h-4 w-4 text-warning-500" />
+                                  : <PlayCircleIcon className="h-4 w-4 text-success-500" />
+                                }
+                                title={user.status === 'active' ? 'Deactivate user' : 'Reactivate user'}
                               />
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleRemoveUser(user)}
                                 leftIcon={<TrashIcon className="h-4 w-4 text-danger-500" />}
+                                title="Remove user"
                               />
                             </div>
                           )}
@@ -359,9 +583,17 @@ export default function UsersPage() {
                   description="Get started by inviting a team member."
                 />
               )}
+              {users.length > 0 && filteredUsers.length === 0 && (
+                <EmptyState
+                  icon={<MagnifyingGlassIcon className="h-12 w-12" />}
+                  title="No matching users"
+                  description="No users match your current filters. Try adjusting your search or filters."
+                />
+              )}
             </div>
           </Card>
-        )
+          )}
+        </>
       )}
 
       {/* Invitations Tab */}
@@ -552,6 +784,87 @@ export default function UsersPage() {
             </div>
           </>
         )}
+      </Modal>
+
+      {/* Password Reset Modal */}
+      <Modal
+        isOpen={showPasswordResetModal && !!temporaryPassword}
+        onClose={closePasswordResetModal}
+        title="Password Reset"
+        size="md"
+      >
+        <div className="space-y-4">
+          {/* User info */}
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-space-50 dark:bg-space-800">
+            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+              <span className="text-sm font-medium text-primary-600 dark:text-primary-400">
+                {resetPasswordUser?.name?.charAt(0).toUpperCase() || resetPasswordUser?.email.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div>
+              <p className="font-medium text-space-900 dark:text-white">{resetPasswordUser?.name}</p>
+              <p className="text-sm text-space-500 dark:text-space-400">{resetPasswordUser?.email}</p>
+            </div>
+          </div>
+
+          {/* Warning */}
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-warning-50 dark:bg-warning-900/20 ring-1 ring-warning-200 dark:ring-warning-800">
+            <KeyIcon className="h-5 w-5 text-warning-600 dark:text-warning-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-warning-800 dark:text-warning-200 text-sm">
+                Save this password now
+              </p>
+              <p className="text-sm text-warning-700 dark:text-warning-300 mt-0.5">
+                This temporary password will only be shown once. Share it securely with the user.
+              </p>
+            </div>
+          </div>
+
+          {/* Password display */}
+          <div className="rounded-xl bg-space-900 dark:bg-space-950 p-4 ring-1 ring-space-700">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-space-400 uppercase tracking-wider">
+                Temporary Password
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 font-mono text-lg text-primary-400 break-all select-all">
+                {temporaryPassword}
+              </code>
+              <button
+                onClick={copyTemporaryPassword}
+                className={`flex-shrink-0 p-2.5 rounded-lg transition-all duration-200 ${
+                  copiedPassword
+                    ? 'bg-success-500 text-white scale-95'
+                    : 'bg-space-700 hover:bg-space-600 text-space-300 hover:text-white'
+                }`}
+                title={copiedPassword ? 'Copied!' : 'Copy to clipboard'}
+              >
+                {copiedPassword ? (
+                  <CheckIcon className="h-5 w-5" />
+                ) : (
+                  <ClipboardDocumentIcon className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+            {copiedPassword && (
+              <p className="mt-2 text-xs text-success-400 flex items-center gap-1">
+                <CheckIcon className="h-3.5 w-3.5" />
+                Password copied to clipboard
+              </p>
+            )}
+          </div>
+
+          <p className="text-sm text-space-500 dark:text-space-400">
+            The user will be required to change this password upon their next login.
+          </p>
+        </div>
+
+        <div className="flex justify-end mt-6 pt-4 border-t border-space-200 dark:border-space-700">
+          <Button onClick={closePasswordResetModal}>
+            Done
+          </Button>
+        </div>
       </Modal>
     </div>
   )

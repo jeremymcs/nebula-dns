@@ -82,7 +82,16 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     }),
-  
+
+  changePassword: (currentPassword: string, newPassword: string) =>
+    request<void>('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }),
+
+  regenerateBackupCodes: () =>
+    request<{ backupCodes: string[] }>('/mfa/backup-codes', { method: 'POST' }),
+
   // Policies
   getPolicies: (cursor?: string) =>
     request<{ data: any[]; pagination: { cursor: string | null; hasMore: boolean } }>(
@@ -143,7 +152,17 @@ export const api = {
         body: JSON.stringify(data),
       }
     ),
-  
+
+  getLocationTokens: (locationId: string) =>
+    request<{ data: Array<{ id: string; label: string; createdAt: string; expiresAt: string | null; lastUsedAt: string | null }> }>(
+      `/locations/${locationId}/tokens`
+    ),
+
+  revokeLocationToken: (locationId: string, tokenId: string) =>
+    request<void>(`/locations/${locationId}/tokens/${tokenId}`, {
+      method: 'DELETE',
+    }),
+
   // Lists
   getLists: (type?: 'allowlist' | 'blocklist') =>
     request<{ data: any[]; pagination: { cursor: string | null; hasMore: boolean } }>(
@@ -210,6 +229,15 @@ export const api = {
   deleteUser: (id: string) =>
     request<void>(`/users/${id}`, { method: 'DELETE' }),
 
+  suspendUser: (id: string) =>
+    request<void>(`/users/${id}/suspend`, { method: 'POST' }),
+
+  reactivateUser: (id: string) =>
+    request<void>(`/users/${id}/reactivate`, { method: 'POST' }),
+
+  adminResetPassword: (id: string) =>
+    request<{ temporaryPassword: string }>(`/users/${id}/reset-password`, { method: 'POST' }),
+
   // Query Logs
   getQueryLogs: (params?: {
     cursor?: string
@@ -269,6 +297,9 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+
+  testSsoConnection: (type: 'saml' | 'oidc') =>
+    request<{ success: boolean; error?: string }>(`/sso/${type}/test`, { method: 'POST' }),
 
   // Agents
   getAgents: (cursor?: string) =>
@@ -353,6 +384,15 @@ export const api = {
   testSiemIntegration: (id: string) =>
     request<{ success: boolean; message: string }>(`/siem/${id}/test`, { method: 'POST' }),
 
+  updateSiemIntegration: (id: string, data: any) =>
+    request<any>(`/siem/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deleteSiemIntegration: (id: string) =>
+    request<void>(`/siem/${id}`, { method: 'DELETE' }),
+
   // Webhooks
   getWebhooks: () =>
     request<{ data: any[]; pagination: { cursor: string | null; hasMore: boolean } }>('/webhooks'),
@@ -367,6 +407,15 @@ export const api = {
   
   testWebhook: (id: string) =>
     request<{ success: boolean; statusCode: number }>(`/webhooks/${id}/test`, { method: 'POST' }),
+
+  updateWebhook: (id: string, data: { url?: string; events?: string[]; secret?: string; isEnabled?: boolean }) =>
+    request<any>(`/webhooks/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deleteWebhook: (id: string) =>
+    request<void>(`/webhooks/${id}`, { method: 'DELETE' }),
 
   // Scheduled Reports
   getScheduledReports: () =>

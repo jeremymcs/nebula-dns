@@ -7,7 +7,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useLocations, usePolicies } from '@/hooks/useApi'
 import { api } from '@/lib/api'
 import { useToast } from '@/components/Toast'
@@ -25,6 +25,9 @@ import {
   SignalIcon,
   ClockIcon,
   DocumentTextIcon,
+  MagnifyingGlassIcon,
+  FunnelIcon,
+  ArrowsUpDownIcon,
 } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 
@@ -41,6 +44,14 @@ interface Location {
   updatedAt: string
 }
 
+interface LocationToken {
+  id: string
+  label: string
+  createdAt: string
+  expiresAt: string | null
+  lastUsedAt: string | null
+}
+
 export default function LocationsPage() {
   const { data, isLoading, error, mutate } = useLocations()
   const { data: policiesData } = usePolicies()
@@ -53,8 +64,59 @@ export default function LocationsPage() {
   const [copiedToken, setCopiedToken] = useState(false)
   const [saving, setSaving] = useState(false)
 
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [policyFilter, setPolicyFilter] = useState<string>('')
+  const [sortBy, setSortBy] = useState<'name' | 'status' | 'createdAt'>('name')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+
+  // Token management state
+  const [showTokenManagement, setShowTokenManagement] = useState(false)
+  const [managingLocation, setManagingLocation] = useState<Location | null>(null)
+  const [locationTokens, setLocationTokens] = useState<LocationToken[]>([])
+  const [loadingTokens, setLoadingTokens] = useState(false)
+  const [revokingTokenId, setRevokingTokenId] = useState<string | null>(null)
+
   const locations: Location[] = data?.data || []
   const policies = policiesData?.data || []
+
+  // Filter and sort locations
+  const filteredLocations = useMemo(() => {
+    let result = locations.filter(location => {
+      // Search filter
+      const matchesSearch = searchQuery === '' ||
+        location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (location.description?.toLowerCase().includes(searchQuery.toLowerCase()))
+
+      // Status filter
+      const matchesStatus = statusFilter === 'all' || location.status === statusFilter
+
+      // Policy filter
+      const matchesPolicy = policyFilter === '' || location.policyId === policyFilter
+
+      return matchesSearch && matchesStatus && matchesPolicy
+    })
+
+    // Sort
+    result.sort((a, b) => {
+      let comparison = 0
+      if (sortBy === 'name') {
+        comparison = a.name.localeCompare(b.name)
+      } else if (sortBy === 'status') {
+        comparison = a.status.localeCompare(b.status)
+      } else if (sortBy === 'createdAt') {
+        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      }
+      return sortOrder === 'asc' ? comparison : -comparison
+    })
+
+    return result
+  }, [locations, searchQuery, statusFilter, policyFilter, sortBy, sortOrder])
 
   const openCreateModal = () => {
     setEditingLocation(null)
@@ -162,6 +224,85 @@ export default function LocationsPage() {
     }
   }
 
+  // Bulk selection handlers
+  const toggleSelection = (id: string) => {
+    const newSelected = new Set(selectedIds)
+    if (newSelected.has(id)) {
+      newSelected.delete(id)
+    } else {
+      newSelected.add(id)
+    }
+    setSelectedIds(newSelected)
+  }
+
+  const selectAll = () => {
+    if (selectedIds.size === filteredLocations.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(filteredLocations.map(l => l.id)))
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return
+
+    if (!confirm(`Are you sure you want to delete ${selectedIds.size} location(s)? This action cannot be undone.`)) {
+      return
+    }
+
+    setBulkDeleting(true)
+    try {
+      const token = localStorage.getItem('token')
+      const deletePromises = Array.from(selectedIds).map(id =>
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      )
+
+      await Promise.all(deletePromises)
+      showToast('success', `Successfully deleted ${selectedIds.size} location(s)`)
+      setSelectedIds(new Set())
+      mutate()
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to delete some locations')
+    } finally {
+      setBulkDeleting(false)
+    }
+  }
+
+  // Token management handlers
+  const openTokenManagement = async (location: Location) => {
+    setManagingLocation(location)
+    setShowTokenManagement(true)
+    setLoadingTokens(true)
+    try {
+      const result = await api.getLocationTokens(location.id)
+      setLocationTokens(result.data || [])
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to load tokens')
+      setLocationTokens([])
+    } finally {
+      setLoadingTokens(false)
+    }
+  }
+
+  const handleRevokeToken = async (tokenId: string) => {
+    if (!managingLocation) return
+    if (!confirm('Are you sure you want to revoke this token? Any devices using it will lose access.')) return
+
+    setRevokingTokenId(tokenId)
+    try {
+      await api.revokeLocationToken(managingLocation.id, tokenId)
+      setLocationTokens(prev => prev.filter(t => t.id !== tokenId))
+      showToast('success', 'Token revoked successfully')
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to revoke token')
+    } finally {
+      setRevokingTokenId(null)
+    }
+  }
+
   if (error) {
     return (
       <div className="p-4 rounded-xl bg-danger-50 dark:bg-danger-900/20 ring-1 ring-danger-200 dark:ring-danger-800">
@@ -187,6 +328,114 @@ export default function LocationsPage() {
         </div>
       </div>
 
+      {/* Search and Filter Bar */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        {/* Search Input */}
+        <div className="relative flex-1">
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-space-400" />
+          <input
+            type="text"
+            placeholder="Search zones by name or description..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-space-800 border border-space-200 dark:border-space-700 text-space-900 dark:text-white placeholder-space-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          />
+        </div>
+
+        {/* Filters */}
+        <div className="flex items-center gap-3">
+          {/* Status Filter */}
+          <div className="relative">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+              className="appearance-none pl-3 pr-8 py-2.5 rounded-xl bg-white dark:bg-space-800 border border-space-200 dark:border-space-700 text-space-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+            <FunnelIcon className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-space-400 pointer-events-none" />
+          </div>
+
+          {/* Policy Filter */}
+          <div className="relative">
+            <select
+              value={policyFilter}
+              onChange={(e) => setPolicyFilter(e.target.value)}
+              className="appearance-none pl-3 pr-8 py-2.5 rounded-xl bg-white dark:bg-space-800 border border-space-200 dark:border-space-700 text-space-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+            >
+              <option value="">All Policies</option>
+              {policies.map((policy: any) => (
+                <option key={policy.id} value={policy.id}>{policy.name}</option>
+              ))}
+            </select>
+            <FunnelIcon className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-space-400 pointer-events-none" />
+          </div>
+
+          {/* Sort */}
+          <div className="relative">
+            <select
+              value={`${sortBy}-${sortOrder}`}
+              onChange={(e) => {
+                const [newSortBy, newSortOrder] = e.target.value.split('-') as ['name' | 'status' | 'createdAt', 'asc' | 'desc']
+                setSortBy(newSortBy)
+                setSortOrder(newSortOrder)
+              }}
+              className="appearance-none pl-3 pr-8 py-2.5 rounded-xl bg-white dark:bg-space-800 border border-space-200 dark:border-space-700 text-space-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+            >
+              <option value="name-asc">Name A-Z</option>
+              <option value="name-desc">Name Z-A</option>
+              <option value="status-asc">Status A-Z</option>
+              <option value="status-desc">Status Z-A</option>
+              <option value="createdAt-desc">Newest First</option>
+              <option value="createdAt-asc">Oldest First</option>
+            </select>
+            <ArrowsUpDownIcon className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-space-400 pointer-events-none" />
+          </div>
+        </div>
+      </div>
+
+      {/* Results count and bulk selection */}
+      {!isLoading && locations.length > 0 && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {/* Select All Checkbox */}
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filteredLocations.length > 0 && selectedIds.size === filteredLocations.length}
+                onChange={selectAll}
+                className="h-4 w-4 rounded border-space-300 dark:border-space-600 text-primary-600 focus:ring-primary-500 dark:bg-space-800"
+              />
+              <span className="text-sm text-space-600 dark:text-space-400">
+                Select All
+              </span>
+            </label>
+            {selectedIds.size > 0 && (
+              <span className="text-sm font-medium text-primary-600 dark:text-primary-400">
+                {selectedIds.size} selected
+              </span>
+            )}
+          </div>
+          <div className="text-sm text-space-500 dark:text-space-400">
+            Showing {filteredLocations.length} of {locations.length} zones
+            {(searchQuery || statusFilter !== 'all' || policyFilter) && (
+              <button
+                onClick={() => {
+                  setSearchQuery('')
+                  setStatusFilter('all')
+                  setPolicyFilter('')
+                }}
+                className="ml-2 text-primary-600 dark:text-primary-400 hover:underline"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[...Array(3)].map((_, i) => (
@@ -208,9 +457,32 @@ export default function LocationsPage() {
             </Button>
           </div>
         </Card>
+      ) : filteredLocations.length === 0 ? (
+        <Card variant="glass" padding="lg" className="text-center">
+          <div className="flex flex-col items-center py-8">
+            <div className="p-4 rounded-2xl bg-space-100 dark:bg-space-800 mb-4">
+              <MagnifyingGlassIcon className="h-10 w-10 text-space-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-space-900 dark:text-white">No matching zones</h3>
+            <p className="mt-2 text-space-500 dark:text-space-400 max-w-sm">
+              No zones match your current filters. Try adjusting your search or filters.
+            </p>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setSearchQuery('')
+                setStatusFilter('all')
+                setPolicyFilter('')
+              }}
+              className="mt-6"
+            >
+              Clear Filters
+            </Button>
+          </div>
+        </Card>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {locations.map((location) => (
+          {filteredLocations.map((location) => (
             <Card
               key={location.id}
               variant="interactive"
@@ -221,6 +493,14 @@ export default function LocationsPage() {
               <div className="p-4 relative">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
+                    {/* Selection Checkbox */}
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(location.id)}
+                      onChange={() => toggleSelection(location.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="h-4 w-4 rounded border-space-300 dark:border-space-600 text-primary-600 focus:ring-primary-500 dark:bg-space-800 cursor-pointer"
+                    />
                     <div className={clsx(
                       'p-3 rounded-xl',
                       location.status === 'active'
@@ -276,16 +556,26 @@ export default function LocationsPage() {
                   )}
                 </div>
 
-                {/* Generate Token Button */}
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="w-full mt-2"
-                  onClick={() => generateToken(location)}
-                  leftIcon={<KeyIcon className="h-4 w-4" />}
-                >
-                  Generate DoH Token
-                </Button>
+                {/* Token Buttons */}
+                <div className="flex gap-2 mt-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => generateToken(location)}
+                    leftIcon={<KeyIcon className="h-4 w-4" />}
+                  >
+                    Generate Token
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => openTokenManagement(location)}
+                    title="Manage Tokens"
+                  >
+                    <DocumentTextIcon className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
 
               {/* Card Footer */}
@@ -467,6 +757,155 @@ export default function LocationsPage() {
           </Button>
         </div>
       </Modal>
+
+      {/* Token Management Modal */}
+      <Modal
+        isOpen={showTokenManagement}
+        onClose={() => {
+          setShowTokenManagement(false)
+          setManagingLocation(null)
+          setLocationTokens([])
+        }}
+        size="lg"
+      >
+        <div className="flex items-center gap-4 mb-6">
+          <div className="flex-shrink-0 p-3 rounded-2xl bg-gradient-to-br from-primary-500/20 to-accent-500/20 ring-1 ring-primary-500/30">
+            <DocumentTextIcon className="h-8 w-8 text-primary-500" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-space-900 dark:text-white">
+              Manage Tokens
+            </h2>
+            <p className="text-sm text-space-500 dark:text-space-400">
+              {managingLocation?.name}
+            </p>
+          </div>
+        </div>
+
+        {loadingTokens ? (
+          <div className="py-8 text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-500 border-r-transparent"></div>
+            <p className="mt-4 text-sm text-space-500 dark:text-space-400">Loading tokens...</p>
+          </div>
+        ) : locationTokens.length === 0 ? (
+          <div className="py-8 text-center">
+            <div className="p-4 rounded-2xl bg-space-100 dark:bg-space-800 inline-block mb-4">
+              <KeyIcon className="h-8 w-8 text-space-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-space-900 dark:text-white">No active tokens</h3>
+            <p className="mt-2 text-sm text-space-500 dark:text-space-400">
+              Generate a new token to enable DoH access for this location.
+            </p>
+            <Button
+              className="mt-4"
+              onClick={() => {
+                setShowTokenManagement(false)
+                if (managingLocation) generateToken(managingLocation)
+              }}
+              leftIcon={<KeyIcon className="h-4 w-4" />}
+            >
+              Generate Token
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {locationTokens.map((token) => (
+              <div
+                key={token.id}
+                className="flex items-center justify-between p-4 rounded-xl bg-space-50 dark:bg-space-800 ring-1 ring-space-200 dark:ring-space-700"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-space-900 dark:text-white truncate">
+                      {token.label || 'Unnamed Token'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4 mt-1 text-xs text-space-500 dark:text-space-400">
+                    <span className="flex items-center gap-1">
+                      <ClockIcon className="h-3.5 w-3.5" />
+                      Created {new Date(token.createdAt).toLocaleDateString()}
+                    </span>
+                    {token.expiresAt && (
+                      <span className="flex items-center gap-1">
+                        Expires {new Date(token.expiresAt).toLocaleDateString()}
+                      </span>
+                    )}
+                    {token.lastUsedAt && (
+                      <span>
+                        Last used {new Date(token.lastUsedAt).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => handleRevokeToken(token.id)}
+                  disabled={revokingTokenId === token.id}
+                  leftIcon={<TrashIcon className="h-4 w-4" />}
+                >
+                  {revokingTokenId === token.id ? 'Revoking...' : 'Revoke'}
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-6 flex justify-between pt-4 border-t border-space-200 dark:border-space-700">
+          {locationTokens.length > 0 && (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowTokenManagement(false)
+                if (managingLocation) generateToken(managingLocation)
+              }}
+              leftIcon={<PlusIcon className="h-4 w-4" />}
+            >
+              Generate New Token
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setShowTokenManagement(false)
+              setManagingLocation(null)
+              setLocationTokens([])
+            }}
+            className={locationTokens.length === 0 ? 'ml-auto' : ''}
+          >
+            Close
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Floating Bulk Action Bar */}
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+          <div className="flex items-center gap-4 px-6 py-3 rounded-2xl bg-space-900 dark:bg-space-800 shadow-2xl ring-1 ring-space-700">
+            <span className="text-sm font-medium text-white">
+              {selectedIds.size} zone{selectedIds.size > 1 ? 's' : ''} selected
+            </span>
+            <div className="h-4 w-px bg-space-600" />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedIds(new Set())}
+              className="text-space-300 hover:text-white hover:bg-space-700"
+            >
+              Clear
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={handleBulkDelete}
+              disabled={bulkDeleting}
+              leftIcon={<TrashIcon className="h-4 w-4" />}
+            >
+              {bulkDeleting ? 'Deleting...' : 'Delete Selected'}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
