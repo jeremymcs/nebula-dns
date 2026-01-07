@@ -27,11 +27,30 @@ const fetcher = async <T>(endpoint: string): Promise<T> => {
   return res.json()
 }
 
-// Default SWR config
+// Default SWR config with optimized caching
 const defaultConfig: SWRConfiguration = {
-  revalidateOnFocus: false,
-  errorRetryCount: 2,
-  dedupingInterval: 5000,
+  revalidateOnFocus: false,        // Don't refetch when window regains focus
+  revalidateOnReconnect: true,     // Refetch when network reconnects
+  errorRetryCount: 2,              // Retry failed requests twice
+  errorRetryInterval: 5000,        // Wait 5s between retries
+  dedupingInterval: 10000,         // Dedupe identical requests within 10s
+  focusThrottleInterval: 30000,    // Throttle focus revalidations to every 30s
+  keepPreviousData: true,          // Keep showing previous data while fetching new
+}
+
+// Longer cache for data that changes less frequently
+const staticDataConfig: SWRConfiguration = {
+  ...defaultConfig,
+  dedupingInterval: 60000,         // 1 minute deduping for static data
+  revalidateOnMount: false,        // Don't refetch if data exists
+  revalidateIfStale: true,         // Revalidate stale data in background
+}
+
+// Real-time data config for frequently changing data
+const realtimeConfig: SWRConfiguration = {
+  ...defaultConfig,
+  refreshInterval: 30000,          // Auto-refresh every 30s
+  dedupingInterval: 5000,          // Shorter deduping for real-time data
 }
 
 // Types

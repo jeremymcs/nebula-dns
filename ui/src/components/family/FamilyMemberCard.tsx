@@ -1,12 +1,13 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
+ *
  * Family Member Card - Individual family member display
  */
 
 'use client'
 
+import { memo } from 'react'
 import { motion } from 'framer-motion'
 import clsx from 'clsx'
 import { FamilyMember, DEVICE_ICONS } from './types'
@@ -24,7 +25,7 @@ interface FamilyMemberCardProps {
   index: number
 }
 
-export function FamilyMemberCard({ member, isSelected, onClick, onPauseInternet, index }: FamilyMemberCardProps) {
+export const FamilyMemberCard = memo(function FamilyMemberCard({ member, isSelected, onClick, onPauseInternet, index }: FamilyMemberCardProps) {
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60)
     const mins = minutes % 60
@@ -151,5 +152,5 @@ export function FamilyMemberCard({ member, isSelected, onClick, onPauseInternet,
       </div>
     </motion.div>
   )
-}
+})
 
