@@ -17,6 +17,7 @@ import {
   BoltIcon,
   ClockIcon,
   CheckBadgeIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline'
 
 interface PlaybookListProps {
@@ -24,10 +25,11 @@ interface PlaybookListProps {
   onToggle: (id: string, enabled: boolean) => void
   onEdit: (playbook: Playbook) => void
   onRun: (playbook: Playbook) => void
+  runningIds?: Set<string>
   className?: string
 }
 
-export function PlaybookList({ playbooks, onToggle, onEdit, onRun, className }: PlaybookListProps) {
+export function PlaybookList({ playbooks, onToggle, onEdit, onRun, runningIds, className }: PlaybookListProps) {
   const getTriggerLabel = (type: string) => {
     switch (type) {
       case 'threat_detected':
@@ -133,13 +135,19 @@ export function PlaybookList({ playbooks, onToggle, onEdit, onRun, className }: 
 
             {/* Actions */}
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => onRun(playbook)}
-                className="p-2 hover:bg-space-100 dark:hover:bg-space-700 rounded-lg text-space-500 hover:text-nebula-500"
-                title="Run manually"
-              >
-                <PlayIcon className="h-5 w-5" />
-              </button>
+              {runningIds?.has(playbook.id) ? (
+                <div className="p-2 rounded-lg bg-nebula-100 dark:bg-nebula-900/30" title="Running...">
+                  <ArrowPathIcon className="h-5 w-5 text-nebula-500 animate-spin" />
+                </div>
+              ) : (
+                <button
+                  onClick={() => onRun(playbook)}
+                  className="p-2 hover:bg-space-100 dark:hover:bg-space-700 rounded-lg text-space-500 hover:text-nebula-500"
+                  title="Run manually"
+                >
+                  <PlayIcon className="h-5 w-5" />
+                </button>
+              )}
               <button
                 onClick={() => onEdit(playbook)}
                 className="p-2 hover:bg-space-100 dark:hover:bg-space-700 rounded-lg text-space-500 hover:text-nebula-500"
