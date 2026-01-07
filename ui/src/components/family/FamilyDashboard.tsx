@@ -15,12 +15,16 @@ import { FamilyMemberCard } from './FamilyMemberCard'
 import { QuickActions } from './QuickActions'
 import { ActivitySummary } from './ActivitySummary'
 import { AddFamilyMemberModal } from './AddFamilyMemberModal'
+import { MemberDetailPanel } from './MemberDetailPanel'
 import { useFamilyMembers, useSummaryStats } from '@/hooks/useApi'
 import { api } from '@/lib/api'
+import { Card, Button, Modal } from '@/components/ui'
+import { useToast } from '@/components/Toast'
 import {
   ShieldCheckIcon,
   PlusIcon,
   Cog6ToothIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline'
 
 interface FamilyDashboardProps {
@@ -30,8 +34,16 @@ interface FamilyDashboardProps {
 export function FamilyDashboard({ className }: FamilyDashboardProps) {
   const { data: familyData, isLoading, mutate: mutateFamilyMembers } = useFamilyMembers()
   const { data: summaryStats } = useSummaryStats('24h')
+  const { showToast } = useToast()
   const [selectedMember, setSelectedMember] = useState<string | null>(null)
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [defaultSettings, setDefaultSettings] = useState({
+    dailyLimit: 180,
+    bedtimeStart: '21:00',
+    bedtimeEnd: '07:00',
+    safeSearch: true,
+  })
 
   // Use API data if available, otherwise fall back to demo data
   const demoMembers = generateDemoFamilyMembers()
@@ -39,6 +51,8 @@ export function FamilyDashboard({ className }: FamilyDashboardProps) {
 
   const onlineCount = members.filter((m) => m.isOnline).length
   const totalThreatsBlocked = summaryStats?.threatsBlocked ?? 0
+  // Calculate unique blocked categories from all members' restrictions
+  const categoriesBlocked = new Set(members.flatMap(m => m.restrictions?.blockedCategories ?? [])).size
 
   // Quick action handlers
   const handleQuickAction = async (actionId: string) => {
@@ -114,6 +128,39 @@ export function FamilyDashboard({ className }: FamilyDashboardProps) {
     mutateFamilyMembers()
   }
 
+  const handlePauseInternet = async (member: FamilyMember) => {
+    if (member.role === 'parent') return
+
+    try {
+      // Block all categories for this member
+      await api.updateFamilyMember(member.id, {
+        restrictions: {
+          ...member.restrictions,
+          blockedCategories: ['adult', 'gambling', 'gaming', 'social-media', 'streaming', 'shopping', 'news', 'entertainment'],
+        },
+      })
+      mutateFamilyMembers()
+      showToast('success', `Internet paused for ${member.name}`)
+    } catch (error) {
+      console.error('Failed to pause internet:', error)
+      showToast('error', 'Failed to pause internet')
+    }
+  }
+
+  const handleSaveMemberRestrictions = async (memberId: string, updates: Partial<FamilyMember['restrictions']>) => {
+    try {
+      await api.updateFamilyMember(memberId, { restrictions: updates })
+      mutateFamilyMembers()
+      showToast('success', 'Restrictions updated')
+      setSelectedMember(null)
+    } catch (error) {
+      console.error('Failed to update restrictions:', error)
+      showToast('error', 'Failed to update restrictions')
+    }
+  }
+
+  const selectedMemberData = members.find(m => m.id === selectedMember) || null
+
   return (
     <div className={clsx('min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-space-900 dark:to-space-800', className)}>
       {/* Header */}
@@ -130,7 +177,11 @@ export function FamilyDashboard({ className }: FamilyDashboardProps) {
               </p>
             </div>
           </div>
-          <button className="p-2 hover:bg-space-100 dark:hover:bg-space-700 rounded-lg">
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="p-2 hover:bg-space-100 dark:hover:bg-space-700 rounded-lg"
+            title="Family Settings"
+          >
             <Cog6ToothIcon className="h-6 w-6 text-space-500" />
           </button>
         </div>
@@ -159,6 +210,7 @@ export function FamilyDashboard({ className }: FamilyDashboardProps) {
                 member={member}
                 isSelected={selectedMember === member.id}
                 onClick={() => setSelectedMember(member.id === selectedMember ? null : member.id)}
+                onPauseInternet={handlePauseInternet}
                 index={index}
               />
             ))}
@@ -177,7 +229,11 @@ export function FamilyDashboard({ className }: FamilyDashboardProps) {
         </section>
 
         {/* Activity Summary */}
-        <ActivitySummary members={members} />
+        <ActivitySummary
+          members={members}
+          threatsBlocked={totalThreatsBlocked}
+          categoriesBlocked={categoriesBlocked}
+        />
       </main>
 
       {/* Add Family Member Modal */}
@@ -185,6 +241,96 @@ export function FamilyDashboard({ className }: FamilyDashboardProps) {
         isOpen={isAddMemberModalOpen}
         onClose={() => setIsAddMemberModalOpen(false)}
         onSave={handleAddMember}
+      />
+
+      {/* Family Settings Modal */}
+      <Modal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        title="Family Settings"
+      >
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
+              Default Daily Screen Time Limit
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="30"
+                max="480"
+                step="30"
+                value={defaultSettings.dailyLimit}
+                onChange={(e) => setDefaultSettings({ ...defaultSettings, dailyLimit: parseInt(e.target.value) })}
+                className="flex-1"
+              />
+              <span className="text-sm font-medium text-space-900 dark:text-white w-16">
+                {Math.floor(defaultSettings.dailyLimit / 60)}h {defaultSettings.dailyLimit % 60}m
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
+              Default Bedtime
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-space-500 mb-1">Start</label>
+                <input
+                  type="time"
+                  value={defaultSettings.bedtimeStart}
+                  onChange={(e) => setDefaultSettings({ ...defaultSettings, bedtimeStart: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-space-200 dark:border-space-600 bg-white dark:bg-space-800 text-space-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-space-500 mb-1">End</label>
+                <input
+                  type="time"
+                  value={defaultSettings.bedtimeEnd}
+                  onChange={(e) => setDefaultSettings({ ...defaultSettings, bedtimeEnd: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-space-200 dark:border-space-600 bg-white dark:bg-space-800 text-space-900 dark:text-white"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-4 rounded-xl bg-space-50 dark:bg-space-800/50">
+            <div>
+              <h3 className="text-sm font-medium text-space-900 dark:text-white">Safe Search</h3>
+              <p className="text-sm text-space-500">Enforce safe search on Google, Bing, YouTube</p>
+            </div>
+            <button
+              onClick={() => setDefaultSettings({ ...defaultSettings, safeSearch: !defaultSettings.safeSearch })}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${defaultSettings.safeSearch ? 'bg-success-500' : 'bg-space-200 dark:bg-space-600'}`}
+            >
+              <span className={`${defaultSettings.safeSearch ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`} />
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-6 flex justify-end gap-3">
+          <Button variant="secondary" onClick={() => setIsSettingsOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              showToast('success', 'Settings saved')
+              setIsSettingsOpen(false)
+            }}
+          >
+            Save Settings
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Member Detail Panel */}
+      <MemberDetailPanel
+        member={selectedMemberData}
+        onClose={() => setSelectedMember(null)}
+        onSave={handleSaveMemberRestrictions}
       />
     </div>
   )

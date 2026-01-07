@@ -7,4 +7,5 @@ export { FamilyDashboard } from './FamilyDashboard'
 export { FamilyMemberCard } from './FamilyMemberCard'
 export { QuickActions } from './QuickActions'
 export { ActivitySummary } from './ActivitySummary'
+export { MemberDetailPanel } from './MemberDetailPanel'
 

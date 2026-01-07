@@ -20,10 +20,11 @@ interface FamilyMemberCardProps {
   member: FamilyMember
   isSelected: boolean
   onClick: () => void
+  onPauseInternet?: (member: FamilyMember) => void
   index: number
 }
 
-export function FamilyMemberCard({ member, isSelected, onClick, index }: FamilyMemberCardProps) {
+export function FamilyMemberCard({ member, isSelected, onClick, onPauseInternet, index }: FamilyMemberCardProps) {
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60)
     const mins = minutes % 60
@@ -75,16 +76,18 @@ export function FamilyMemberCard({ member, isSelected, onClick, index }: FamilyM
             </span>
           </div>
         </div>
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            // Pause internet action
-          }}
-          className="p-2 hover:bg-space-100 dark:hover:bg-space-700 rounded-lg text-space-400 hover:text-danger-500"
-          title="Pause Internet"
-        >
-          <PauseCircleIcon className="h-5 w-5" />
-        </button>
+        {member.role !== 'parent' && onPauseInternet && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onPauseInternet(member)
+            }}
+            className="p-2 hover:bg-space-100 dark:hover:bg-space-700 rounded-lg text-space-400 hover:text-danger-500"
+            title="Pause Internet"
+          >
+            <PauseCircleIcon className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
       {/* Screen Time */}

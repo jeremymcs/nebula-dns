@@ -19,15 +19,15 @@ import {
 
 interface ActivitySummaryProps {
   members: FamilyMember[]
+  threatsBlocked?: number
+  categoriesBlocked?: number
   className?: string
 }
 
-export function ActivitySummary({ members, className }: ActivitySummaryProps) {
+export function ActivitySummary({ members, threatsBlocked = 0, categoriesBlocked = 0, className }: ActivitySummaryProps) {
   // Calculate totals
   const totalScreenTime = members.reduce((sum, m) => sum + m.screenTime.today, 0)
-  const avgScreenTime = Math.round(totalScreenTime / members.length)
-  const threatsBlocked = 47 // Demo value
-  const categoriesBlocked = 12 // Demo value
+  const avgScreenTime = members.length > 0 ? Math.round(totalScreenTime / members.length) : 0
 
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60)
