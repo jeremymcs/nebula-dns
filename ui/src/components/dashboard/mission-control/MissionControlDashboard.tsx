@@ -21,6 +21,7 @@ import { BlockDomainModal } from './BlockDomainModal'
 import { ConfirmDialog } from '@/components/ui/Modal'
 import { useThreatData, useSecurityScore, useLocations } from '@/hooks/useApi'
 import { api } from '@/lib/api'
+import { logger } from '@/lib/logger'
 import { ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
 export function MissionControlDashboard() {
@@ -105,7 +106,7 @@ export function MissionControlDashboard() {
       await mutateLocations()
       setIsPauseDialogOpen(false)
     } catch (error) {
-      console.error('Failed to toggle protection:', error)
+      logger.error('Failed to toggle protection:', error)
     } finally {
       setIsProcessing(false)
     }
@@ -133,7 +134,7 @@ export function MissionControlDashboard() {
       await mutateLocations()
       setIsLockdownDialogOpen(false)
     } catch (error) {
-      console.error('Failed to activate lockdown:', error)
+      logger.error('Failed to activate lockdown:', error)
     } finally {
       setIsProcessing(false)
     }

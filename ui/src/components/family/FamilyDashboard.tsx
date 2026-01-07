@@ -18,6 +18,7 @@ import { AddFamilyMemberModal } from './AddFamilyMemberModal'
 import { MemberDetailPanel } from './MemberDetailPanel'
 import { useFamilyMembers, useSummaryStats } from '@/hooks/useApi'
 import { api } from '@/lib/api'
+import { logger } from '@/lib/logger'
 import { Card, Button, Modal } from '@/components/ui'
 import { useToast } from '@/components/Toast'
 import {
@@ -119,7 +120,7 @@ export function FamilyDashboard({ className }: FamilyDashboardProps) {
       }
       mutateFamilyMembers()
     } catch (error) {
-      console.error('Failed to apply quick action:', error)
+      logger.error('Failed to apply quick action:', error)
     }
   }
 
@@ -142,7 +143,7 @@ export function FamilyDashboard({ className }: FamilyDashboardProps) {
       mutateFamilyMembers()
       showToast('success', `Internet paused for ${member.name}`)
     } catch (error) {
-      console.error('Failed to pause internet:', error)
+      logger.error('Failed to pause internet:', error)
       showToast('error', 'Failed to pause internet')
     }
   }
@@ -154,7 +155,7 @@ export function FamilyDashboard({ className }: FamilyDashboardProps) {
       showToast('success', 'Restrictions updated')
       setSelectedMember(null)
     } catch (error) {
-      console.error('Failed to update restrictions:', error)
+      logger.error('Failed to update restrictions:', error)
       showToast('error', 'Failed to update restrictions')
     }
   }

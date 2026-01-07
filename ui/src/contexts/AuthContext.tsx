@@ -9,6 +9,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
+import { logger } from '@/lib/logger'
 
 interface User {
   id: string
@@ -194,7 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('mspInfo', JSON.stringify(data))
       }
     } catch (error) {
-      console.error('Failed to fetch MSP info:', error)
+      logger.error('Failed to fetch MSP info:', error)
     }
   }, [])
 
@@ -230,7 +231,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Reload the page to ensure all data is fresh for the new org
       window.location.href = '/dashboard'
     } catch (error) {
-      console.error('Failed to switch organization:', error)
+      logger.error('Failed to switch organization:', error)
       throw error
     }
   }, [refreshMspInfo])
@@ -269,7 +270,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       } catch (error) {
-        console.error('Auth initialization failed:', error)
+        logger.error('Auth initialization failed:', error)
         logout()
       } finally {
         setLoading(false)
