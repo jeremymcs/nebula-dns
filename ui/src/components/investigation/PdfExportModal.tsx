@@ -3,13 +3,12 @@
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
  *
  * PDF Export Modal - Branded PDF report generation for investigations
+ * Uses dynamic imports for jsPDF to reduce initial bundle size
  */
 
 'use client'
 
 import { useState } from 'react'
-import { jsPDF } from 'jspdf'
-import autoTable from 'jspdf-autotable'
 import { InvestigationData } from './types'
 import {
   XMarkIcon,
@@ -77,8 +76,13 @@ export function PdfExportModal({ isOpen, onClose, investigation }: PdfExportModa
 
   const generatePdf = async () => {
     setIsGenerating(true)
-    
+
     try {
+      // Dynamic import to reduce initial bundle size
+      const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+        import('jspdf'),
+        import('jspdf-autotable'),
+      ])
       const doc = new jsPDF()
       const pageWidth = doc.internal.pageSize.getWidth()
       const pageHeight = doc.internal.pageSize.getHeight()

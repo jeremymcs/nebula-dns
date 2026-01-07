@@ -3,11 +3,19 @@
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
  *
  * Export Service for generating PDF, CSV, and JSON reports
+ * Uses dynamic imports for jsPDF to reduce initial bundle size
  */
 
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
 import Papa from 'papaparse'
+
+// Lazy load jsPDF only when needed (reduces initial bundle by ~200KB)
+async function loadJsPdf() {
+  const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+    import('jspdf'),
+    import('jspdf-autotable'),
+  ])
+  return { jsPDF, autoTable }
+}
 
 // Type definitions
 export interface ReportData {
@@ -85,6 +93,7 @@ function getDateString(): string {
  * Export report data to PDF format
  */
 export async function exportToPdf(data: ReportData, options: ExportOptions = {}): Promise<Blob> {
+  const { jsPDF, autoTable } = await loadJsPdf()
   const doc = new jsPDF()
   const title = options.title || 'Nebula DNS Security Report'
   const dateRange = options.dateRange || 'Last 7 days'
