@@ -28,6 +28,7 @@ export default function SsoSettingsPage() {
   const config: SsoConfig | null = ssoData?.data || null
 
   const [saving, setSaving] = useState(false)
+  const [testing, setTesting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [activeTab, setActiveTab] = useState<'saml' | 'oidc'>('saml')
@@ -133,6 +134,25 @@ export default function SsoSettingsPage() {
       mutate()
     } catch (err) {
       setError(`Failed to ${enable ? 'enable' : 'disable'} SSO`)
+    }
+  }
+
+  const testConnection = async () => {
+    setError('')
+    setSuccess('')
+    setTesting(true)
+
+    try {
+      const result = await api.testSsoConnection(activeTab)
+      if (result.success) {
+        setSuccess(`${activeTab.toUpperCase()} connection test successful! Your SSO configuration is working correctly.`)
+      } else {
+        setError(result.error || `${activeTab.toUpperCase()} connection test failed. Please check your configuration.`)
+      }
+    } catch (err: any) {
+      setError(err.message || `Failed to test ${activeTab.toUpperCase()} connection`)
+    } finally {
+      setTesting(false)
     }
   }
 
@@ -405,11 +425,18 @@ export default function SsoSettingsPage() {
             </div>
           </div>
 
-          {/* Save Button */}
-          <div className="mt-6 pt-6 border-t border-space-200 dark:border-space-700 flex justify-end">
+          {/* Action Buttons */}
+          <div className="mt-6 pt-6 border-t border-space-200 dark:border-space-700 flex justify-end gap-3">
+            <button
+              onClick={testConnection}
+              disabled={testing || saving}
+              className="px-6 py-2 bg-space-100 dark:bg-space-700 text-space-700 dark:text-space-300 rounded-lg font-medium hover:bg-space-200 dark:hover:bg-space-600 disabled:opacity-50"
+            >
+              {testing ? 'Testing...' : 'Test Connection'}
+            </button>
             <button
               onClick={activeTab === 'saml' ? saveSamlConfig : saveOidcConfig}
-              disabled={saving}
+              disabled={saving || testing}
               className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50"
             >
               {saving ? 'Saving...' : 'Save Configuration'}

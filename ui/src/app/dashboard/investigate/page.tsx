@@ -7,7 +7,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { DomainInvestigationPanel, InvestigationData, PdfExportModal } from '@/components/investigation'
 import { useToast } from '@/components/Toast'
 import { useLists } from '@/hooks/useApi'
@@ -58,11 +58,42 @@ export default function InvestigatePage() {
   const lists: DomainList[] = listsData?.data || []
   const blocklists = lists.filter(l => l.type === 'blocklist')
   const allowlists = lists.filter(l => l.type === 'allowlist')
-  const [recentInvestigations, setRecentInvestigations] = useState<RecentInvestigation[]>([
-    { domain: 'example.com', timestamp: new Date(Date.now() - 3600000), status: 'clean', threatScore: 0 },
-    { domain: 'suspicious-site.net', timestamp: new Date(Date.now() - 7200000), status: 'suspicious', threatScore: 35 },
-    { domain: 'malware-c2.bad', timestamp: new Date(Date.now() - 86400000), status: 'malicious', threatScore: 85 },
-  ])
+
+  // Initialize recent investigations from localStorage or use demo data
+  const [recentInvestigations, setRecentInvestigations] = useState<RecentInvestigation[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('recentInvestigations')
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          // Convert timestamp strings back to Date objects
+          return parsed.map((item: any) => ({
+            ...item,
+            timestamp: new Date(item.timestamp)
+          }))
+        }
+      } catch {
+        // Fall through to default
+      }
+    }
+    // Default demo data for new users
+    return [
+      { domain: 'example.com', timestamp: new Date(Date.now() - 3600000), status: 'clean' as const, threatScore: 0 },
+      { domain: 'suspicious-site.net', timestamp: new Date(Date.now() - 7200000), status: 'suspicious' as const, threatScore: 35 },
+      { domain: 'malware-c2.bad', timestamp: new Date(Date.now() - 86400000), status: 'malicious' as const, threatScore: 85 },
+    ]
+  })
+
+  // Persist recent investigations to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('recentInvestigations', JSON.stringify(recentInvestigations))
+      } catch {
+        // Silently fail if localStorage is full or unavailable
+      }
+    }
+  }, [recentInvestigations])
   const [bulkDomains, setBulkDomains] = useState('')
   const [activeTab, setActiveTab] = useState<'search' | 'recent' | 'bulk'>('search')
 

@@ -52,6 +52,8 @@ export default function IntegrationsPage() {
   const [showWebhookModal, setShowWebhookModal] = useState(false);
   const [selectedSiemType, setSelectedSiemType] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [editingSiemId, setEditingSiemId] = useState<string | null>(null);
+  const [editingWebhookId, setEditingWebhookId] = useState<string | null>(null);
 
   const siemIntegrations: SiemIntegration[] = siemData?.data || [];
   const webhooks: Webhook[] = webhooksData?.data || [];
@@ -198,6 +200,126 @@ export default function IntegrationsPage() {
     }
   };
 
+  const handleEditSiem = (integration: SiemIntegration) => {
+    setEditingSiemId(integration.id);
+    setSelectedSiemType(integration.type);
+    setSiemForm({
+      ...siemForm,
+      name: integration.name,
+    });
+    setShowSiemModal(true);
+  };
+
+  const handleDeleteSiem = async (integration: SiemIntegration) => {
+    if (!confirm(`Are you sure you want to delete the "${integration.name}" integration?`)) {
+      return;
+    }
+
+    try {
+      await api.deleteSiemIntegration(integration.id);
+      showToast('success', 'SIEM integration deleted');
+      mutateSiem();
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to delete SIEM integration');
+    }
+  };
+
+  const handleUpdateSiem = async () => {
+    if (!siemForm.name.trim() || !selectedSiemType || !editingSiemId) {
+      showToast('error', 'Please fill in all required fields');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const payload: Record<string, any> = {
+        name: siemForm.name,
+        logTypes: siemForm.logTypes,
+      };
+
+      if (selectedSiemType === 'splunk') {
+        payload.hecUrl = siemForm.hecUrl;
+        payload.hecToken = siemForm.hecToken;
+      } else if (selectedSiemType === 'elastic') {
+        payload.url = siemForm.url;
+        payload.apiKey = siemForm.apiKey;
+      } else if (selectedSiemType === 'sentinel') {
+        payload.workspaceId = siemForm.workspaceId;
+        payload.sharedKey = siemForm.sharedKey;
+      } else if (selectedSiemType === 'syslog') {
+        payload.host = siemForm.host;
+        payload.port = parseInt(siemForm.port) || 514;
+        payload.protocol = siemForm.protocol;
+      }
+
+      await api.updateSiemIntegration(editingSiemId, payload);
+      showToast('success', 'SIEM integration updated successfully');
+      mutateSiem();
+      setShowSiemModal(false);
+      resetSiemForm();
+      setEditingSiemId(null);
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to update SIEM integration');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleEditWebhook = (webhook: Webhook) => {
+    setEditingWebhookId(webhook.id);
+    setWebhookForm({
+      name: webhook.name,
+      url: webhook.url,
+      secret: '',
+      events: webhook.events,
+    });
+    setShowWebhookModal(true);
+  };
+
+  const handleDeleteWebhook = async (webhook: Webhook) => {
+    if (!confirm(`Are you sure you want to delete the "${webhook.name}" webhook?`)) {
+      return;
+    }
+
+    try {
+      await api.deleteWebhook(webhook.id);
+      showToast('success', 'Webhook deleted');
+      mutateWebhooks();
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to delete webhook');
+    }
+  };
+
+  const handleUpdateWebhook = async () => {
+    if (!webhookForm.name.trim() || !webhookForm.url.trim() || !editingWebhookId) {
+      showToast('error', 'Name and URL are required');
+      return;
+    }
+
+    if (webhookForm.events.length === 0) {
+      showToast('error', 'At least one event must be selected');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await api.updateWebhook(editingWebhookId, {
+        url: webhookForm.url,
+        events: webhookForm.events,
+        secret: webhookForm.secret || undefined,
+      });
+      showToast('success', 'Webhook updated successfully');
+      mutateWebhooks();
+      setShowWebhookModal(false);
+      resetWebhookForm();
+      setEditingWebhookId(null);
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to update webhook');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -259,8 +381,18 @@ export default function IntegrationsPage() {
                     >
                       Test
                     </button>
-                    <button className="text-sm text-space-600 dark:text-space-400 hover:text-space-800 dark:hover:text-space-300">Edit</button>
-                    <button className="text-sm text-danger-600 dark:text-danger-400 hover:text-danger-800 dark:hover:text-danger-300">Delete</button>
+                    <button
+                      onClick={() => handleEditSiem(integration)}
+                      className="text-sm text-space-600 dark:text-space-400 hover:text-space-800 dark:hover:text-space-300"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteSiem(integration)}
+                      className="text-sm text-danger-600 dark:text-danger-400 hover:text-danger-800 dark:hover:text-danger-300"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               </div>
@@ -347,8 +479,18 @@ export default function IntegrationsPage() {
                         >
                           Test
                         </button>
-                        <button className="text-sm text-space-600 dark:text-space-400 hover:text-space-800 dark:hover:text-space-300">Edit</button>
-                        <button className="text-sm text-danger-600 dark:text-danger-400 hover:text-danger-800 dark:hover:text-danger-300">Delete</button>
+                        <button
+                          onClick={() => handleEditWebhook(webhook)}
+                          className="text-sm text-space-600 dark:text-space-400 hover:text-space-800 dark:hover:text-space-300"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteWebhook(webhook)}
+                          className="text-sm text-danger-600 dark:text-danger-400 hover:text-danger-800 dark:hover:text-danger-300"
+                        >
+                          Delete
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -369,7 +511,11 @@ export default function IntegrationsPage() {
           <div className="bg-white dark:bg-space-800 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b dark:border-space-700">
               <h2 className="text-xl font-semibold dark:text-white">
-                {selectedSiemType ? `Configure ${siemTypes[selectedSiemType as keyof typeof siemTypes].name}` : 'Add SIEM Integration'}
+                {editingSiemId
+                  ? `Edit ${siemTypes[selectedSiemType as keyof typeof siemTypes]?.name || 'SIEM'} Integration`
+                  : selectedSiemType
+                    ? `Configure ${siemTypes[selectedSiemType as keyof typeof siemTypes].name}`
+                    : 'Add SIEM Integration'}
               </h2>
             </div>
 
@@ -550,6 +696,7 @@ export default function IntegrationsPage() {
                   onClick={() => {
                     setShowSiemModal(false);
                     resetSiemForm();
+                    setEditingSiemId(null);
                   }}
                   className="px-4 py-2 text-space-700 dark:text-space-300 hover:bg-space-100 dark:hover:bg-space-700 rounded-lg"
                 >
@@ -557,11 +704,13 @@ export default function IntegrationsPage() {
                 </button>
                 {selectedSiemType && (
                   <button
-                    onClick={handleCreateSiem}
+                    onClick={editingSiemId ? handleUpdateSiem : handleCreateSiem}
                     disabled={saving}
                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
                   >
-                    {saving ? 'Adding...' : 'Add Integration'}
+                    {saving
+                      ? (editingSiemId ? 'Updating...' : 'Adding...')
+                      : (editingSiemId ? 'Update Integration' : 'Add Integration')}
                   </button>
                 )}
               </div>
@@ -575,7 +724,9 @@ export default function IntegrationsPage() {
         <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-space-800 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b dark:border-space-700">
-              <h2 className="text-xl font-semibold dark:text-white">Add Webhook</h2>
+              <h2 className="text-xl font-semibold dark:text-white">
+                {editingWebhookId ? 'Edit Webhook' : 'Add Webhook'}
+              </h2>
             </div>
 
             <div className="p-6 space-y-4">
@@ -646,17 +797,20 @@ export default function IntegrationsPage() {
                 onClick={() => {
                   setShowWebhookModal(false);
                   resetWebhookForm();
+                  setEditingWebhookId(null);
                 }}
                 className="px-4 py-2 text-space-700 dark:text-space-300 hover:bg-space-100 dark:hover:bg-space-700 rounded-lg"
               >
                 Cancel
               </button>
               <button
-                onClick={handleCreateWebhook}
+                onClick={editingWebhookId ? handleUpdateWebhook : handleCreateWebhook}
                 disabled={saving}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
               >
-                {saving ? 'Adding...' : 'Add Webhook'}
+                {saving
+                  ? (editingWebhookId ? 'Updating...' : 'Adding...')
+                  : (editingWebhookId ? 'Update Webhook' : 'Add Webhook')}
               </button>
             </div>
           </div>

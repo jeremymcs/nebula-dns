@@ -86,6 +86,57 @@ const TIMEZONES = [
   { value: 'Australia/Sydney', label: 'Sydney (AEST)' },
 ]
 
+// IP/CIDR validation helpers
+const isValidIPv4 = (ip: string): boolean => {
+  const parts = ip.split('.')
+  if (parts.length !== 4) return false
+  return parts.every(part => {
+    const num = parseInt(part, 10)
+    return !isNaN(num) && num >= 0 && num <= 255 && part === String(num)
+  })
+}
+
+const isValidIPv6 = (ip: string): boolean => {
+  // Simplified IPv6 validation - accepts standard format
+  const ipv6Regex = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::$|^([0-9a-fA-F]{1,4}:)*::([0-9a-fA-F]{1,4}:)*[0-9a-fA-F]{1,4}$/
+  return ipv6Regex.test(ip)
+}
+
+const isValidCIDR = (cidr: string): boolean => {
+  const parts = cidr.split('/')
+  if (parts.length !== 2) return false
+  const [ip, prefix] = parts
+  const prefixNum = parseInt(prefix, 10)
+
+  if (ip.includes(':')) {
+    // IPv6 CIDR
+    return isValidIPv6(ip) && !isNaN(prefixNum) && prefixNum >= 0 && prefixNum <= 128
+  } else {
+    // IPv4 CIDR
+    return isValidIPv4(ip) && !isNaN(prefixNum) && prefixNum >= 0 && prefixNum <= 32
+  }
+}
+
+const validateIpOrCidr = (value: string): string | null => {
+  if (!value.trim()) return null // Empty is ok, will be filtered out
+  const trimmed = value.trim()
+
+  if (trimmed.includes('/')) {
+    if (!isValidCIDR(trimmed)) {
+      return 'Invalid CIDR notation (e.g., 192.168.1.0/24)'
+    }
+  } else if (trimmed.includes(':')) {
+    if (!isValidIPv6(trimmed)) {
+      return 'Invalid IPv6 address'
+    }
+  } else {
+    if (!isValidIPv4(trimmed)) {
+      return 'Invalid IPv4 address (e.g., 192.168.1.1)'
+    }
+  }
+  return null
+}
+
 const DEFAULT_FORM: ZoneFormData = {
   name: '',
   description: '',
@@ -118,6 +169,7 @@ export function ZoneEditorModal({
   const [activeTab, setActiveTab] = useState('general')
   const [form, setForm] = useState<ZoneFormData>(DEFAULT_FORM)
   const [errors, setErrors] = useState<Partial<Record<keyof ZoneFormData, string>>>({})
+  const [ipErrors, setIpErrors] = useState<Record<number, string>>({})
 
   useEffect(() => {
     if (isOpen) {
@@ -134,6 +186,7 @@ export function ZoneEditorModal({
         })
       }
       setErrors({})
+      setIpErrors({})
       setActiveTab('general')
     }
   }, [isOpen, initialData, policies])
@@ -161,6 +214,21 @@ export function ZoneEditorModal({
       ...prev,
       ipRanges: prev.ipRanges.map((ip, i) => (i === index ? value : ip)),
     }))
+    // Clear general ipRanges error when typing
+    if (errors.ipRanges) {
+      setErrors(prev => ({ ...prev, ipRanges: undefined }))
+    }
+    // Validate after user stops typing (debounce effect via onBlur is better, but we validate on submit too)
+    const error = validateIpOrCidr(value)
+    if (error) {
+      setIpErrors(prev => ({ ...prev, [index]: error }))
+    } else {
+      setIpErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors[index]
+        return newErrors
+      })
+    }
   }
 
   const toggleDay = (day: string) => {
@@ -174,19 +242,34 @@ export function ZoneEditorModal({
 
   const validate = (): boolean => {
     const newErrors: Partial<Record<keyof ZoneFormData, string>> = {}
+    const newIpErrors: Record<number, string> = {}
 
     if (!form.name.trim()) {
       newErrors.name = 'Zone name is required'
     }
 
-    const hasValidIp = form.ipRanges.some(ip => ip.trim())
+    const nonEmptyIps = form.ipRanges.filter(ip => ip.trim())
     const hasDyndns = form.dyndns.trim()
 
-    if (!hasValidIp && !hasDyndns) {
+    if (nonEmptyIps.length === 0 && !hasDyndns) {
       newErrors.ipRanges = 'At least one IP range or DynDNS hostname is required'
+    } else {
+      // Validate each non-empty IP range
+      form.ipRanges.forEach((ip, index) => {
+        if (ip.trim()) {
+          const error = validateIpOrCidr(ip)
+          if (error) {
+            newIpErrors[index] = error
+          }
+        }
+      })
+      if (Object.keys(newIpErrors).length > 0) {
+        newErrors.ipRanges = 'One or more IP addresses are invalid'
+      }
     }
 
     setErrors(newErrors)
+    setIpErrors(newIpErrors)
     return Object.keys(newErrors).length === 0
   }
 
@@ -302,21 +385,24 @@ export function ZoneEditorModal({
               </div>
               <div className="space-y-3">
                 {form.ipRanges.map((ip, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <Input
-                      placeholder="e.g., 192.168.1.0/24 or 203.0.113.50"
-                      value={ip}
-                      onChange={e => updateIpRange(index, e.target.value)}
-                      leftIcon={<ServerIcon className="h-5 w-5" />}
-                    />
-                    {form.ipRanges.length > 1 && (
-                      <button
-                        onClick={() => removeIpRange(index)}
-                        className="p-2 text-danger-500 hover:bg-danger-50 dark:hover:bg-danger-900/20 rounded-lg transition-colors"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                      </button>
-                    )}
+                  <div key={index}>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        placeholder="e.g., 192.168.1.0/24 or 203.0.113.50"
+                        value={ip}
+                        onChange={e => updateIpRange(index, e.target.value)}
+                        leftIcon={<ServerIcon className="h-5 w-5" />}
+                        error={ipErrors[index]}
+                      />
+                      {form.ipRanges.length > 1 && (
+                        <button
+                          onClick={() => removeIpRange(index)}
+                          className="p-2 text-danger-500 hover:bg-danger-50 dark:hover:bg-danger-900/20 rounded-lg transition-colors"
+                        >
+                          <TrashIcon className="h-5 w-5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

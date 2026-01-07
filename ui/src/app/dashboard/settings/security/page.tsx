@@ -5,12 +5,13 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { Card, Button, Input, Badge, Modal, Tabs } from '@/components/ui'
 import { useToast } from '@/components/Toast'
 import { useSessions, useAuditLogs } from '@/hooks/useApi'
 import { api } from '@/lib/api'
+import { exportArrayToCsv } from '@/lib/export'
 import {
   ShieldCheckIcon,
   KeyIcon,
@@ -89,12 +90,67 @@ export default function SecuritySettingsPage() {
   const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false })
   const [changingPassword, setChangingPassword] = useState(false)
 
+  // MFA operations state
+  const [disablingMfa, setDisablingMfa] = useState(false)
+  const [regeneratingCodes, setRegeneratingCodes] = useState(false)
+  const [showBackupCodesModal, setShowBackupCodesModal] = useState(false)
+  const [newBackupCodes, setNewBackupCodes] = useState<string[]>([])
+  const [showDisableMfaModal, setShowDisableMfaModal] = useState(false)
+  const [disableMfaForm, setDisableMfaForm] = useState({ password: '', code: '' })
+
   // Sessions state - use API data
   const sessions: Session[] = sessionsData?.data || []
   const [revokingSession, setRevokingSession] = useState<string | null>(null)
 
   // Audit logs state - use API data
   const auditLogs: AuditLog[] = auditLogsData?.data || []
+
+  // Audit log filter state
+  const [auditActionFilter, setAuditActionFilter] = useState<string>('')
+  const [auditDateFilter, setAuditDateFilter] = useState<string>('all')
+
+  // Filtered audit logs
+  const filteredAuditLogs = useMemo(() => {
+    return auditLogs.filter(log => {
+      // Action filter
+      if (auditActionFilter && !log.action.toLowerCase().includes(auditActionFilter.toLowerCase())) {
+        return false
+      }
+
+      // Date filter
+      if (auditDateFilter !== 'all') {
+        const logDate = new Date(log.timestamp)
+        const now = new Date()
+        let cutoffDate: Date
+
+        switch (auditDateFilter) {
+          case 'today':
+            cutoffDate = new Date(now.setHours(0, 0, 0, 0))
+            break
+          case '7days':
+            cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+            break
+          case '30days':
+            cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+            break
+          default:
+            cutoffDate = new Date(0)
+        }
+
+        if (logDate < cutoffDate) {
+          return false
+        }
+      }
+
+      return true
+    })
+  }, [auditLogs, auditActionFilter, auditDateFilter])
+
+  // Get unique actions for filter dropdown
+  const uniqueActions = useMemo(() => {
+    const actions = new Set(auditLogs.map(log => log.action))
+    return Array.from(actions).sort()
+  }, [auditLogs])
 
   // Security settings state
   const [securitySettings, setSecuritySettings] = useState({
@@ -185,6 +241,49 @@ export default function SecuritySettingsPage() {
     setTimeout(() => setCopiedIndex(null), 2000)
   }
 
+  const handleDisableMfa = async () => {
+    if (!disableMfaForm.password || !disableMfaForm.code) {
+      setError('Password and verification code are required')
+      return
+    }
+
+    setDisablingMfa(true)
+    setError('')
+    try {
+      await api.disableMfa(disableMfaForm.password, disableMfaForm.code)
+      setMfaStatus({ enabled: false })
+      setSuccess('Two-factor authentication has been disabled')
+      showToast('success', 'MFA disabled successfully')
+      setShowDisableMfaModal(false)
+      setDisableMfaForm({ password: '', code: '' })
+    } catch (err: any) {
+      setError(err.message || 'Failed to disable MFA')
+      showToast('error', err.message || 'Failed to disable MFA')
+    } finally {
+      setDisablingMfa(false)
+    }
+  }
+
+  const handleRegenerateBackupCodes = async () => {
+    if (!confirm('This will invalidate your current backup codes. Make sure to save the new ones. Continue?')) {
+      return
+    }
+
+    setRegeneratingCodes(true)
+    setError('')
+    try {
+      const result = await api.regenerateBackupCodes()
+      setNewBackupCodes(result.backupCodes)
+      setShowBackupCodesModal(true)
+      fetchMfaStatus() // Refresh MFA status to update remaining codes count
+    } catch (err: any) {
+      setError(err.message || 'Failed to regenerate backup codes')
+      showToast('error', err.message || 'Failed to regenerate backup codes')
+    } finally {
+      setRegeneratingCodes(false)
+    }
+  }
+
   const handlePasswordChange = async () => {
     if (!passwordForm.current || !passwordForm.new || !passwordForm.confirm) {
       showToast('error', 'All fields are required')
@@ -201,13 +300,12 @@ export default function SecuritySettingsPage() {
 
     setChangingPassword(true)
     try {
-      // API call would go here
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await api.changePassword(passwordForm.current, passwordForm.new)
       showToast('success', 'Password changed successfully')
       setShowPasswordModal(false)
       setPasswordForm({ current: '', new: '', confirm: '' })
-    } catch (err) {
-      showToast('error', 'Failed to change password')
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to change password')
     } finally {
       setChangingPassword(false)
     }
@@ -361,11 +459,22 @@ export default function SecuritySettingsPage() {
           {mfaStatus?.enabled && (
             <div className="mt-6 pt-6 border-t border-space-200 dark:border-space-700">
               <div className="flex gap-3">
-                <Button variant="secondary" size="sm">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleRegenerateBackupCodes}
+                  disabled={regeneratingCodes}
+                  isLoading={regeneratingCodes}
+                >
                   <ArrowPathIcon className="h-4 w-4 mr-2" />
                   Regenerate Backup Codes
                 </Button>
-                <Button variant="ghost" size="sm" className="text-danger-600 hover:bg-danger-50 dark:text-danger-400 dark:hover:bg-danger-900/30">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowDisableMfaModal(true)}
+                  className="text-danger-600 hover:bg-danger-50 dark:text-danger-400 dark:hover:bg-danger-900/30"
+                >
                   Disable MFA
                 </Button>
               </div>
@@ -810,11 +919,66 @@ export default function SecuritySettingsPage() {
                 Recent security-related events on your account
               </p>
             </div>
-            <Button variant="secondary" size="sm" disabled={auditLogs.length === 0}>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={filteredAuditLogs.length === 0}
+              onClick={() => exportArrayToCsv(filteredAuditLogs, 'security-audit-log')}
+            >
               <DocumentTextIcon className="h-4 w-4 mr-2" />
               Export Log
             </Button>
           </div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap gap-3 mb-6 p-4 rounded-xl bg-space-50 dark:bg-space-800/50 ring-1 ring-space-200 dark:ring-space-700">
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-xs font-medium text-space-500 dark:text-space-400 mb-1">Action Type</label>
+              <select
+                value={auditActionFilter}
+                onChange={(e) => setAuditActionFilter(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-white dark:bg-space-700 text-space-900 dark:text-white text-sm ring-1 ring-space-200 dark:ring-space-600 focus:ring-2 focus:ring-nebula-500 focus:outline-none"
+              >
+                <option value="">All Actions</option>
+                {uniqueActions.map((action) => (
+                  <option key={action} value={action}>{action}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-xs font-medium text-space-500 dark:text-space-400 mb-1">Date Range</label>
+              <select
+                value={auditDateFilter}
+                onChange={(e) => setAuditDateFilter(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-white dark:bg-space-700 text-space-900 dark:text-white text-sm ring-1 ring-space-200 dark:ring-space-600 focus:ring-2 focus:ring-nebula-500 focus:outline-none"
+              >
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="7days">Last 7 Days</option>
+                <option value="30days">Last 30 Days</option>
+              </select>
+            </div>
+            {(auditActionFilter || auditDateFilter !== 'all') && (
+              <div className="flex items-end">
+                <button
+                  onClick={() => {
+                    setAuditActionFilter('')
+                    setAuditDateFilter('all')
+                  }}
+                  className="px-3 py-2 text-sm text-nebula-600 dark:text-nebula-400 hover:underline"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Results count */}
+          {!auditLogsLoading && auditLogs.length > 0 && (
+            <div className="text-sm text-space-500 dark:text-space-400 mb-4">
+              Showing {filteredAuditLogs.length} of {auditLogs.length} events
+            </div>
+          )}
 
           {auditLogsLoading && (
             <div className="flex items-center justify-center py-8">
@@ -835,7 +999,13 @@ export default function SecuritySettingsPage() {
             </div>
           )}
 
-          {!auditLogsLoading && !auditLogsError && auditLogs.length > 0 && (
+          {!auditLogsLoading && !auditLogsError && auditLogs.length > 0 && filteredAuditLogs.length === 0 && (
+            <div className="text-center py-8 text-space-500">
+              No events match the current filters.
+            </div>
+          )}
+
+          {!auditLogsLoading && !auditLogsError && filteredAuditLogs.length > 0 && (
             <>
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -849,7 +1019,7 @@ export default function SecuritySettingsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-space-100 dark:divide-space-700">
-                    {auditLogs.map((log) => (
+                    {filteredAuditLogs.map((log) => (
                       <tr key={log.id} className="hover:bg-space-50 dark:hover:bg-space-800/50">
                         <td className="py-3 px-4">
                           <span className="font-medium text-space-900 dark:text-white">{log.action}</span>
@@ -946,6 +1116,135 @@ export default function SecuritySettingsPage() {
           </Button>
           <Button onClick={handlePasswordChange} isLoading={changingPassword}>
             Change Password
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Backup Codes Modal */}
+      <Modal
+        isOpen={showBackupCodesModal}
+        onClose={() => {
+          setShowBackupCodesModal(false)
+          setNewBackupCodes([])
+        }}
+        title="New Backup Codes"
+        size="lg"
+      >
+        <div className="space-y-4">
+          {/* Warning */}
+          <div className="p-4 rounded-xl bg-warning-50 dark:bg-warning-900/20 ring-1 ring-warning-200 dark:ring-warning-800">
+            <p className="text-sm text-warning-800 dark:text-warning-200 flex items-center">
+              <ExclamationTriangleIcon className="h-5 w-5 mr-2 flex-shrink-0" />
+              Your previous backup codes have been invalidated. Save these new codes securely!
+            </p>
+          </div>
+
+          {/* Backup Codes Grid */}
+          <div className="grid grid-cols-2 gap-2">
+            {newBackupCodes.map((code, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between bg-space-50 dark:bg-space-800 px-4 py-2.5 rounded-lg font-mono text-sm text-space-900 dark:text-space-100 ring-1 ring-space-200 dark:ring-space-700"
+              >
+                <span>{code}</span>
+                <button
+                  onClick={() => copyToClipboard(code, index)}
+                  className="p-1.5 hover:bg-space-200 dark:hover:bg-space-600 rounded-lg transition-colors"
+                >
+                  {copiedIndex === index ? (
+                    <CheckCircleIcon className="h-4 w-4 text-success-500" />
+                  ) : (
+                    <ClipboardDocumentIcon className="h-4 w-4 text-space-400" />
+                  )}
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-sm text-space-500 dark:text-space-400">
+            Each backup code can only be used once. Store them in a safe place.
+          </p>
+        </div>
+
+        <div className="mt-6 flex justify-between">
+          <Button
+            variant="secondary"
+            onClick={() => {
+              const codesText = newBackupCodes.join('\n')
+              navigator.clipboard.writeText(codesText)
+              showToast('success', 'All codes copied to clipboard')
+            }}
+          >
+            <ClipboardDocumentIcon className="h-4 w-4 mr-2" />
+            Copy All Codes
+          </Button>
+          <Button
+            onClick={() => {
+              setShowBackupCodesModal(false)
+              setNewBackupCodes([])
+            }}
+          >
+            Done
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Disable MFA Modal */}
+      <Modal
+        isOpen={showDisableMfaModal}
+        onClose={() => {
+          setShowDisableMfaModal(false)
+          setDisableMfaForm({ password: '', code: '' })
+        }}
+        title="Disable Two-Factor Authentication"
+      >
+        <div className="space-y-4">
+          {/* Warning */}
+          <div className="p-4 rounded-xl bg-danger-50 dark:bg-danger-900/20 ring-1 ring-danger-200 dark:ring-danger-800">
+            <p className="text-sm text-danger-800 dark:text-danger-200 flex items-center">
+              <ExclamationTriangleIcon className="h-5 w-5 mr-2 flex-shrink-0" />
+              Disabling MFA will make your account less secure. Please confirm by entering your password and current verification code.
+            </p>
+          </div>
+
+          <Input
+            type="password"
+            label="Password"
+            value={disableMfaForm.password}
+            onChange={(e) => setDisableMfaForm({ ...disableMfaForm, password: e.target.value })}
+            placeholder="Enter your password"
+            required
+          />
+
+          <Input
+            type="text"
+            label="Verification Code"
+            value={disableMfaForm.code}
+            onChange={(e) => setDisableMfaForm({ ...disableMfaForm, code: e.target.value.replace(/\D/g, '').slice(0, 6) })}
+            placeholder="Enter 6-digit code from your authenticator"
+            maxLength={6}
+            required
+          />
+        </div>
+
+        <div className="mt-6 flex justify-end gap-3">
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setShowDisableMfaModal(false)
+              setDisableMfaForm({ password: '', code: '' })
+            }}
+            disabled={disablingMfa}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={handleDisableMfa}
+            isLoading={disablingMfa}
+            disabled={!disableMfaForm.password || disableMfaForm.code.length !== 6}
+          >
+            Disable MFA
           </Button>
         </div>
       </Modal>
