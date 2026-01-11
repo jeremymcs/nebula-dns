@@ -293,7 +293,7 @@ export default function ReportsPage() {
 
           <div className="flex flex-wrap items-center gap-3">
             {/* Date Range Selector */}
-            <div className="flex items-center gap-1 bg-space-900/50 backdrop-blur-sm rounded-xl p-1 ring-1 ring-white/20">
+            <div className="flex items-center gap-1 bg-space-100 dark:bg-space-900/50 backdrop-blur-sm rounded-xl p-1 ring-1 ring-space-200 dark:ring-white/20">
               {dateRangeOptions.map((option) => (
                 <button
                   key={option.value}
@@ -301,8 +301,8 @@ export default function ReportsPage() {
                   className={clsx(
                     'px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
                     dateRange === option.value
-                      ? 'bg-white text-space-900 shadow-md'
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                      ? 'bg-white dark:bg-white text-space-900 shadow-md'
+                      : 'text-space-600 dark:text-white/70 hover:text-space-900 dark:hover:text-white hover:bg-space-200 dark:hover:bg-white/10'
                   )}
                 >
                   {option.value === '24h' ? '24h' : option.value === '7d' ? '7d' : option.value === '30d' ? '30d' : '90d'}

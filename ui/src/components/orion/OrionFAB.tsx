@@ -112,11 +112,11 @@ export function OrionFAB({ onAction, alerts = [], className }: OrionFABProps) {
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 10 }}
-            className="fixed bottom-8 right-24 bg-space-900 text-white px-3 py-2 rounded-lg text-sm shadow-lg z-50"
+            className="fixed bottom-8 right-24 bg-white dark:bg-space-900 text-space-900 dark:text-white px-3 py-2 rounded-lg text-sm shadow-lg ring-1 ring-space-200 dark:ring-space-700 z-50"
           >
             <span className="font-medium">Meet Orion</span>
-            <span className="text-space-400 ml-1">- Your AI Co-Pilot</span>
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 w-2 h-2 bg-space-900 rotate-45" />
+            <span className="text-space-500 dark:text-space-400 ml-1">- Your AI Co-Pilot</span>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 w-2 h-2 bg-white dark:bg-space-900 rotate-45 ring-1 ring-space-200 dark:ring-space-700" />
           </motion.div>
         )}
       </AnimatePresence>

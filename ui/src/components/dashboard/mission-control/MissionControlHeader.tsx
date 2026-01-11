@@ -115,36 +115,29 @@ export function MissionControlHeader({
       />
 
       {/* Content */}
-      <div className="relative px-8 py-10">
+      <div className="relative px-6 py-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
+          className="flex items-center justify-between"
         >
-          <h1 className="text-3xl font-bold text-space-900 dark:text-white mb-2">{title}</h1>
-          <p className="text-space-600 dark:text-nebula-200/80">{subtitle}</p>
-        </motion.div>
+          <div>
+            <h1 className="text-2xl font-bold text-space-900 dark:text-white">{title}</h1>
+            <p className="text-sm text-space-600 dark:text-nebula-200/80">{subtitle}</p>
+          </div>
 
-        {/* Status indicators */}
-        <div className="mt-6 flex items-center gap-6">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="flex items-center gap-2"
-          >
-            <span className="w-2 h-2 rounded-full bg-success-500 dark:bg-success-400 animate-pulse" />
-            <span className="text-sm text-success-700 dark:text-success-300">All Systems Operational</span>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-sm text-space-500 dark:text-nebula-300/60"
-          >
-            Last updated: {new Date().toLocaleTimeString()}
-          </motion.div>
-        </div>
+          {/* Status indicators */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-success-500 dark:bg-success-400 animate-pulse" />
+              <span className="text-sm text-success-700 dark:text-success-300">All Systems Operational</span>
+            </div>
+            <span className="text-sm text-space-500 dark:text-nebula-300/60">
+              Last updated: {new Date().toLocaleTimeString()}
+            </span>
+          </div>
+        </motion.div>
       </div>
     </div>
   )

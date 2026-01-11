@@ -18,13 +18,26 @@ import {
 import clsx from 'clsx'
 
 export function OrgSwitcher() {
-  const { isMsp, currentOrg, organizations, switchOrganization } = useAuth()
+  const { user, isMsp, currentOrg, organizations, switchOrganization } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
   const [switching, setSwitching] = useState(false)
 
-  // Don't render if user is not an MSP
-  if (!isMsp || organizations.length === 0) {
-    return null
+  // Get display name - use currentOrg for MSP, or tenant name for regular users
+  const displayName = currentOrg?.name || user?.tenantName || 'My Organization'
+  const hasMultipleOrgs = isMsp && organizations.length > 1
+
+  // Always show org name, but only show dropdown if MSP with multiple orgs
+  if (!hasMultipleOrgs) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-space-100 dark:bg-space-800 border border-space-200 dark:border-space-700">
+        <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+          <BuildingOffice2Icon className="h-4 w-4 text-white" />
+        </div>
+        <span className="text-sm font-medium text-space-700 dark:text-space-200 max-w-[150px] truncate">
+          {displayName}
+        </span>
+      </div>
+    )
   }
 
   const filteredOrgs = organizations.filter(org =>

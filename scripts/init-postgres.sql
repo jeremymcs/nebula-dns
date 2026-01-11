@@ -80,6 +80,7 @@ CREATE TABLE policies (
     description TEXT,
     current_version INTEGER DEFAULT 1,
     is_default BOOLEAN DEFAULT FALSE,
+    visual_flow JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -112,6 +113,7 @@ CREATE TABLE locations (
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
     policy_id UUID REFERENCES policies(id) ON DELETE SET NULL,
     ip_range INET,
+    dyndns VARCHAR(255),
     rate_limit INTEGER DEFAULT 1000,
     settings JSONB DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

@@ -36,6 +36,8 @@ import {
   SparklesIcon,
   BoltIcon,
   CommandLineIcon,
+  BuildingOffice2Icon,
+  DocumentDuplicateIcon,
 } from '@heroicons/react/24/outline'
 import { useCommandBar } from '@/components/command-bar'
 import { OrgSwitcher } from './OrgSwitcher'
@@ -55,9 +57,15 @@ const adminNavigation = [
   { name: 'Settings', href: '/dashboard/settings', icon: Cog6ToothIcon },
 ]
 
+// MSP-only navigation items
+const mspNavigation = [
+  { name: 'Clients', href: '/dashboard/clients', icon: BuildingOffice2Icon },
+  { name: 'Templates', href: '/dashboard/msp/templates', icon: DocumentDuplicateIcon },
+]
+
 export function TopNav() {
   const pathname = usePathname()
-  const { user, logout } = useAuth()
+  const { user, logout, isMsp } = useAuth()
   const { theme, setTheme } = useTheme()
   const { open: openCommandBar } = useCommandBar()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -116,6 +124,59 @@ export function TopNav() {
                 {item.name}
               </Link>
             ))}
+
+            {/* MSP Dropdown Menu */}
+            {isMsp && (
+              <>
+                <div className="h-6 w-px bg-space-200 dark:bg-space-700 mx-1" />
+                <Menu as="div" className="relative">
+                  <Menu.Button
+                    className={clsx(
+                      'flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl transition-all',
+                      mspNavigation.some(item => isActive(item.href))
+                        ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+                        : 'text-space-600 dark:text-space-400 hover:text-space-900 dark:hover:text-white hover:bg-space-100 dark:hover:bg-space-800'
+                    )}
+                  >
+                    <BuildingOffice2Icon className="h-4 w-4" />
+                    MSP
+                    <ChevronDownIcon className="h-3 w-3" />
+                  </Menu.Button>
+
+                  <Transition
+                    as={Fragment}
+                    enter="transition ease-out duration-100"
+                    enterFrom="transform opacity-0 scale-95"
+                    enterTo="transform opacity-100 scale-100"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="transform opacity-100 scale-100"
+                    leaveTo="transform opacity-0 scale-95"
+                  >
+                    <Menu.Items className="absolute left-0 mt-2 w-48 origin-top-left rounded-xl bg-white dark:bg-space-800 shadow-lg ring-1 ring-space-900/5 dark:ring-white/10 focus:outline-none p-1">
+                      {mspNavigation.map((item) => (
+                        <Menu.Item key={item.name}>
+                          {({ active }) => (
+                            <Link
+                              href={item.href}
+                              className={clsx(
+                                'flex items-center gap-2 px-3 py-2 text-sm rounded-lg',
+                                active ? 'bg-emerald-50 dark:bg-emerald-900/30' : '',
+                                isActive(item.href)
+                                  ? 'text-emerald-700 dark:text-emerald-300 font-medium'
+                                  : 'text-space-700 dark:text-space-300'
+                              )}
+                            >
+                              <item.icon className="h-4 w-4" />
+                              {item.name}
+                            </Link>
+                          )}
+                        </Menu.Item>
+                      ))}
+                    </Menu.Items>
+                  </Transition>
+                </Menu>
+              </>
+            )}
           </div>
 
           {/* Right section */}
