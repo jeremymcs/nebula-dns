@@ -656,20 +656,20 @@ export default function LocationsPage() {
         </div>
 
         {/* Token Display Card */}
-        <div className="rounded-xl bg-space-900 dark:bg-space-950 p-4 ring-1 ring-space-700">
+        <div className="rounded-xl bg-space-100 dark:bg-space-900 p-4 ring-1 ring-space-200 dark:ring-space-700">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-space-400 uppercase tracking-wider">
+            <span className="text-xs font-medium text-space-500 dark:text-space-400 uppercase tracking-wider">
               Access Token
             </span>
             {generatedToken?.expiresAt && (
-              <span className="flex items-center gap-1 text-xs text-space-400">
+              <span className="flex items-center gap-1 text-xs text-space-500 dark:text-space-400">
                 <ClockIcon className="h-3.5 w-3.5" />
                 Expires {new Date(generatedToken.expiresAt).toLocaleDateString()}
               </span>
             )}
           </div>
           <div className="flex items-center gap-2">
-            <code className="flex-1 font-mono text-sm text-nebula-400 break-all select-all leading-relaxed">
+            <code className="flex-1 font-mono text-sm text-nebula-600 dark:text-nebula-400 break-all select-all leading-relaxed">
               {generatedToken?.token}
             </code>
             <button
@@ -678,7 +678,7 @@ export default function LocationsPage() {
                 'flex-shrink-0 p-2.5 rounded-lg transition-all duration-200',
                 copiedToken
                   ? 'bg-success-500 text-white scale-95'
-                  : 'bg-space-700 hover:bg-space-600 text-space-300 hover:text-white'
+                  : 'bg-space-200 dark:bg-space-700 hover:bg-space-300 dark:hover:bg-space-600 text-space-600 dark:text-space-300 hover:text-space-900 dark:hover:text-white'
               )}
               title={copiedToken ? 'Copied!' : 'Copy to clipboard'}
             >

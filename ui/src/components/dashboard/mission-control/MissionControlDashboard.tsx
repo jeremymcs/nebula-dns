@@ -46,7 +46,7 @@ export function MissionControlDashboard() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen -mx-4 sm:-mx-6 lg:-mx-8 -my-6 bg-gradient-to-b from-space-100 via-space-50 to-white dark:from-space-900 dark:via-space-950 dark:to-black flex items-center justify-center">
+      <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-space-100 via-space-50 to-white dark:from-space-900 dark:via-space-950 dark:to-black flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-nebula-500"></div>
           <p className="text-space-500 text-lg">Loading Mission Control...</p>
@@ -58,7 +58,7 @@ export function MissionControlDashboard() {
   // Error state
   if (hasError) {
     return (
-      <div className="min-h-screen -mx-4 sm:-mx-6 lg:-mx-8 -my-6 bg-gradient-to-b from-space-100 via-space-50 to-white dark:from-space-900 dark:via-space-950 dark:to-black flex items-center justify-center">
+      <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-space-100 via-space-50 to-white dark:from-space-900 dark:via-space-950 dark:to-black flex items-center justify-center">
         <div className="flex flex-col items-center gap-4 text-center max-w-md">
           <div className="p-4 rounded-full bg-danger-100 dark:bg-danger-900/30">
             <ExclamationTriangleIcon className="h-12 w-12 text-danger-500" />
@@ -145,13 +145,15 @@ export function MissionControlDashboard() {
   }
 
   return (
-    <div className="min-h-screen -mx-4 sm:-mx-6 lg:-mx-8 -my-6 bg-gradient-to-b from-space-100 via-space-50 to-white dark:from-space-900 dark:via-space-950 dark:to-black">
+    <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-space-100 via-space-50 to-white dark:from-space-900 dark:via-space-950 dark:to-black">
       {/* Mission Control Header */}
-      <MissionControlHeader />
+      <div className="px-4 sm:px-6 lg:px-8">
+        <MissionControlHeader />
+      </div>
 
-      <div className="px-4 sm:px-6 lg:px-8 pb-8 space-y-6">
+      <div className="px-4 sm:px-6 lg:px-8 pb-6 pt-4 space-y-4">
         {/* Top Row - Radar, Shield, Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Threat Radar */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -196,7 +198,7 @@ export function MissionControlDashboard() {
         </div>
 
         {/* Middle Row - Query Stream and Heatmap */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Real-time Query Stream */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -221,7 +223,7 @@ export function MissionControlDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4"
+          className="grid grid-cols-2 md:grid-cols-4 gap-3"
         >
           {[
             { label: 'Total Queries Today', value: '8.5M', change: '+12%' },

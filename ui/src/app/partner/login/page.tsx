@@ -277,6 +277,28 @@ export default function PartnerLoginPage() {
                   </span>
                 ) : 'Sign in to Partner Portal'}
               </button>
+
+              {/* Demo Login */}
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-space-200 dark:border-space-700" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white dark:bg-space-900 text-space-500">or</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('admin@acmemsp.com')
+                  setPassword('partner123')
+                }}
+                disabled={loading}
+                className="w-full py-3 px-4 bg-space-100 dark:bg-space-800 text-space-700 dark:text-space-300 font-medium rounded-xl hover:bg-space-200 dark:hover:bg-space-700 transition-all ring-1 ring-space-200 dark:ring-space-700 disabled:opacity-50"
+              >
+                Use Demo Credentials
+              </button>
             </form>
           )}
 

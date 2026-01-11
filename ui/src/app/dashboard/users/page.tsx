@@ -821,14 +821,14 @@ export default function UsersPage() {
           </div>
 
           {/* Password display */}
-          <div className="rounded-xl bg-space-900 dark:bg-space-950 p-4 ring-1 ring-space-700">
+          <div className="rounded-xl bg-space-100 dark:bg-space-900 p-4 ring-1 ring-space-200 dark:ring-space-700">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-space-400 uppercase tracking-wider">
+              <span className="text-xs font-medium text-space-500 dark:text-space-400 uppercase tracking-wider">
                 Temporary Password
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <code className="flex-1 font-mono text-lg text-primary-400 break-all select-all">
+              <code className="flex-1 font-mono text-lg text-primary-600 dark:text-primary-400 break-all select-all">
                 {temporaryPassword}
               </code>
               <button
@@ -836,7 +836,7 @@ export default function UsersPage() {
                 className={`flex-shrink-0 p-2.5 rounded-lg transition-all duration-200 ${
                   copiedPassword
                     ? 'bg-success-500 text-white scale-95'
-                    : 'bg-space-700 hover:bg-space-600 text-space-300 hover:text-white'
+                    : 'bg-space-200 dark:bg-space-700 hover:bg-space-300 dark:hover:bg-space-600 text-space-600 dark:text-space-300 hover:text-space-900 dark:hover:text-white'
                 }`}
                 title={copiedPassword ? 'Copied!' : 'Copy to clipboard'}
               >
