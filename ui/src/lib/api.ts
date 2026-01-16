@@ -691,6 +691,65 @@ export const api = {
   getClientQueryLogs: (clientId: string, params?: { limit?: number; offset?: number }) =>
     request<{ logs: any[] }>(`/msp/clients/${clientId}/logs${params ? `?limit=${params.limit || 50}` : ''}`),
 
+  // MSP Templates
+  getMspTemplates: () =>
+    request<{ templates: any[] }>('/msp/templates'),
+
+  getMspTemplate: (id: string) =>
+    request<any>(`/msp/templates/${id}`),
+
+  createMspTemplate: (data: {
+    name: string;
+    description?: string;
+    config: any;
+    isDefault?: boolean;
+    category?: string;
+    tags?: string[];
+  }) =>
+    request<any>('/msp/templates', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateMspTemplate: (id: string, data: {
+    name?: string;
+    description?: string;
+    config?: any;
+    isDefault?: boolean;
+    category?: string;
+    tags?: string[];
+  }) =>
+    request<any>(`/msp/templates/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deleteMspTemplate: (id: string) =>
+    request<void>(`/msp/templates/${id}`, { method: 'DELETE' }),
+
+  deployMspTemplate: (templateId: string, data: {
+    tenantIds: string[];
+    mode?: 'new_tenant' | 'overlay';
+  }) =>
+    request<{
+      success: boolean;
+      totalTenants: number;
+      successfulDeployments: number;
+      failedDeployments: number;
+      results: Array<{
+        tenantId: string;
+        status: 'success' | 'failed';
+        policyId?: string;
+        error?: string;
+      }>;
+    }>(`/msp/templates/${templateId}/deploy`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getMspTemplateDeployments: (templateId: string, limit?: number) =>
+    request<{ deployments: any[] }>(`/msp/templates/${templateId}/deployments${limit ? `?limit=${limit}` : ''}`),
+
   // Family
   getFamilyMembers: () =>
     request<{ data: any[] }>('/family/members'),
