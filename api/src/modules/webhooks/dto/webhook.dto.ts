@@ -1,3 +1,6 @@
+// Nebula DNS - Webhook DTOs
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 import {
   IsString,
   IsNotEmpty,
@@ -7,6 +10,9 @@ import {
   IsArray,
   IsObject,
   ArrayMinSize,
+  IsInt,
+  Min,
+  Max,
 } from 'class-validator';
 
 export const WEBHOOK_EVENTS = [
@@ -46,6 +52,17 @@ export class CreateWebhookDto {
   @IsObject()
   @IsOptional()
   headers?: Record<string, string>;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  ipAllowlist?: string[];
+
+  @IsInt()
+  @Min(0)
+  @Max(1000)
+  @IsOptional()
+  rateLimit?: number;
 }
 
 export class UpdateWebhookDto {
@@ -72,6 +89,17 @@ export class UpdateWebhookDto {
   @IsObject()
   @IsOptional()
   headers?: Record<string, string>;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  ipAllowlist?: string[];
+
+  @IsInt()
+  @Min(0)
+  @Max(1000)
+  @IsOptional()
+  rateLimit?: number;
 }
 
 export class WebhookResponseDto {
@@ -81,6 +109,8 @@ export class WebhookResponseDto {
   events: string[];
   isEnabled: boolean;
   headers: Record<string, string>;
+  ipAllowlist: string[];
+  rateLimit: number;
   lastTriggeredAt?: Date | null;
   lastStatusCode?: number | null;
   lastError?: string | null;

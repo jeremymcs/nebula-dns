@@ -1,11 +1,15 @@
+// Nebula DNS - Webhook Service with Security Controls
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 import {
   Injectable,
   NotFoundException,
   BadRequestException,
   Logger,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
 import * as https from 'https';
 import * as http from 'http';
@@ -19,34 +23,275 @@ import {
   TestWebhookResultDto,
   WEBHOOK_EVENTS,
 } from './dto/webhook.dto';
+import { RedisService } from '../redis/redis.service';
+import { MetricsService } from '../metrics/metrics.service';
+
+// Webhook event message for Redis pub/sub
+export interface WebhookEventMessage {
+  tenantId: string;
+  event: WebhookEvent;
+  data: Record<string, unknown>;
+  timestamp: string;
+}
+
+// Rate limit check result
+interface RateLimitResult {
+  allowed: boolean;
+  remaining: number;
+  resetInSeconds: number;
+}
 
 @Injectable()
-export class WebhooksService {
+export class WebhooksService implements OnModuleInit {
   private readonly logger = new Logger(WebhooksService.name);
   private readonly maxRetries = 3;
   private readonly retryDelays = [1000, 5000, 30000]; // 1s, 5s, 30s
+  private readonly WEBHOOK_EVENTS_CHANNEL = 'webhook_events';
+  private readonly RATE_LIMIT_WINDOW_SECONDS = 60;
 
   constructor(
     @InjectRepository(Webhook)
     private webhookRepository: Repository<Webhook>,
     @InjectRepository(WebhookDelivery)
     private deliveryRepository: Repository<WebhookDelivery>,
+    private readonly redisService: RedisService,
+    private readonly metricsService: MetricsService,
   ) {}
+
+  async onModuleInit(): Promise<void> {
+    // Register webhook-specific metrics
+    this.registerMetrics();
+
+    // Subscribe to webhook events channel for async dispatch
+    this.subscribeToWebhookEvents();
+  }
+
+  private registerMetrics(): void {
+    // These metrics will be tracked via MetricsService
+    this.logger.log('Webhook metrics registered');
+  }
+
+  private async subscribeToWebhookEvents(): Promise<void> {
+    try {
+      const client = this.redisService.getClient();
+      const subscriber = client.duplicate();
+
+      await subscriber.subscribe(this.WEBHOOK_EVENTS_CHANNEL);
+
+      subscriber.on('message', async (channel, message) => {
+        if (channel === this.WEBHOOK_EVENTS_CHANNEL) {
+          try {
+            const eventMessage: WebhookEventMessage = JSON.parse(message);
+            await this.processWebhookEvent(eventMessage);
+          } catch (err) {
+            this.logger.error(
+              `Failed to process webhook event: ${(err as Error).message}`,
+            );
+          }
+        }
+      });
+
+      this.logger.log(
+        `Subscribed to ${this.WEBHOOK_EVENTS_CHANNEL} channel for async webhook dispatch`,
+      );
+    } catch (err) {
+      this.logger.warn(
+        `Failed to subscribe to webhook events channel: ${(err as Error).message}. Webhooks will still work synchronously.`,
+      );
+    }
+  }
+
+  private async processWebhookEvent(
+    eventMessage: WebhookEventMessage,
+  ): Promise<void> {
+    const { tenantId, event, data } = eventMessage;
+
+    const webhooks = await this.webhookRepository.find({
+      where: { tenantId, isEnabled: true },
+    });
+
+    const relevantWebhooks = webhooks.filter((w) => w.events.includes(event));
+
+    const payload = {
+      event,
+      timestamp: eventMessage.timestamp,
+      data,
+    };
+
+    await Promise.all(
+      relevantWebhooks.map((webhook) =>
+        this.deliver(webhook, event, payload, false),
+      ),
+    );
+  }
 
   // Generate HMAC signature for payload
   private generateSignature(payload: string, secret: string): string {
     return crypto.createHmac('sha256', secret).update(payload).digest('hex');
   }
 
+  // Convert IP to number for CIDR comparison
+  private ipToNumber(ip: string): number {
+    const parts = ip.split('.');
+    if (parts.length !== 4) {
+      throw new Error('Invalid IPv4 address');
+    }
+
+    return (
+      parts.reduce((acc, part, i) => {
+        const num = parseInt(part, 10);
+        if (isNaN(num) || num < 0 || num > 255) {
+          throw new Error('Invalid IPv4 address');
+        }
+        return acc + (num << (24 - i * 8));
+      }, 0) >>> 0
+    );
+  }
+
+  // Check if IP is in CIDR range
+  private isIpInCidr(ip: string, cidr: string): boolean {
+    const [range, bits] = cidr.split('/');
+    const mask = parseInt(bits, 10);
+
+    if (isNaN(mask) || mask < 0 || mask > 32) return false;
+
+    try {
+      const ipNum = this.ipToNumber(ip);
+      const rangeNum = this.ipToNumber(range);
+      const maskNum = (-1 << (32 - mask)) >>> 0;
+
+      return (ipNum & maskNum) === (rangeNum & maskNum);
+    } catch {
+      return false;
+    }
+  }
+
+  // Validate if IP is allowed by webhook's IP allowlist
+  validateIpAllowlist(clientIp: string, allowlist: string[]): boolean {
+    // Empty allowlist means all IPs are allowed
+    if (!allowlist || allowlist.length === 0) {
+      return true;
+    }
+
+    // Normalize IPv6-mapped IPv4 addresses
+    const normalizedIp = clientIp.replace(/^::ffff:/, '');
+
+    for (const entry of allowlist) {
+      // Check if it's a CIDR range
+      if (entry.includes('/')) {
+        if (this.isIpInCidr(normalizedIp, entry)) {
+          return true;
+        }
+      } else {
+        // Exact IP match
+        if (entry === normalizedIp || entry === clientIp) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  // Check rate limit for webhook
+  async checkRateLimit(
+    webhookId: string,
+    tenantId: string,
+    limit: number,
+  ): Promise<RateLimitResult> {
+    // If limit is 0, rate limiting is disabled
+    if (limit === 0) {
+      return { allowed: true, remaining: -1, resetInSeconds: 0 };
+    }
+
+    const key = `webhook_ratelimit:${tenantId}:${webhookId}`;
+
+    try {
+      const currentStr = await this.redisService.get(key);
+      const current = currentStr ? parseInt(currentStr, 10) : 0;
+
+      if (current >= limit) {
+        // Get TTL for reset time
+        const client = this.redisService.getClient();
+        const ttl = await client.ttl(key);
+        return {
+          allowed: false,
+          remaining: 0,
+          resetInSeconds: ttl > 0 ? ttl : this.RATE_LIMIT_WINDOW_SECONDS,
+        };
+      }
+
+      // Increment counter
+      const client = this.redisService.getClient();
+      const newCount = await client.incr(key);
+
+      // Set expiration only on first request
+      if (newCount === 1) {
+        await client.expire(key, this.RATE_LIMIT_WINDOW_SECONDS);
+      }
+
+      return {
+        allowed: true,
+        remaining: limit - newCount,
+        resetInSeconds: this.RATE_LIMIT_WINDOW_SECONDS,
+      };
+    } catch (err) {
+      // On Redis error, allow the request (fail-open for rate limiting)
+      this.logger.warn(
+        `Rate limit check failed for webhook ${webhookId}: ${(err as Error).message}. Allowing request.`,
+      );
+      return { allowed: true, remaining: -1, resetInSeconds: 0 };
+    }
+  }
+
+  // Publish webhook event to Redis for async processing
+  async publishWebhookEvent(
+    tenantId: string,
+    event: WebhookEvent,
+    data: Record<string, unknown>,
+  ): Promise<void> {
+    const message: WebhookEventMessage = {
+      tenantId,
+      event,
+      data,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      await this.redisService.publish(
+        this.WEBHOOK_EVENTS_CHANNEL,
+        JSON.stringify(message),
+      );
+      this.logger.debug(
+        `Published ${event} event to ${this.WEBHOOK_EVENTS_CHANNEL}`,
+      );
+    } catch (err) {
+      this.logger.warn(
+        `Failed to publish webhook event: ${(err as Error).message}. Falling back to sync delivery.`,
+      );
+      // Fallback to synchronous trigger
+      await this.trigger(tenantId, event, data);
+    }
+  }
+
   async create(tenantId: string, dto: CreateWebhookDto): Promise<Webhook> {
     // Validate events
     const invalidEvents = dto.events.filter(
-      (e) => !WEBHOOK_EVENTS.includes(e as any),
+      (e) => !WEBHOOK_EVENTS.includes(e as (typeof WEBHOOK_EVENTS)[number]),
     );
     if (invalidEvents.length > 0) {
       throw new BadRequestException(
         `Invalid events: ${invalidEvents.join(', ')}`,
       );
+    }
+
+    // Validate IP allowlist format if provided
+    if (dto.ipAllowlist && dto.ipAllowlist.length > 0) {
+      for (const entry of dto.ipAllowlist) {
+        if (!this.isValidIpOrCidr(entry)) {
+          throw new BadRequestException(`Invalid IP or CIDR: ${entry}`);
+        }
+      }
     }
 
     const webhook = this.webhookRepository.create({
@@ -57,9 +302,34 @@ export class WebhooksService {
       secretHash: dto.secret || null,
       events: dto.events as WebhookEvent[],
       headers: dto.headers || {},
+      ipAllowlist: dto.ipAllowlist || [],
+      rateLimit: dto.rateLimit ?? 60,
     } as Partial<Webhook>);
 
     return this.webhookRepository.save(webhook);
+  }
+
+  private isValidIpOrCidr(entry: string): boolean {
+    // Check if it's a valid CIDR
+    if (entry.includes('/')) {
+      const [ip, bits] = entry.split('/');
+      const mask = parseInt(bits, 10);
+      if (isNaN(mask) || mask < 0 || mask > 32) return false;
+      return this.isValidIpv4(ip);
+    }
+
+    // Check if it's a valid IPv4
+    return this.isValidIpv4(entry);
+  }
+
+  private isValidIpv4(ip: string): boolean {
+    const parts = ip.split('.');
+    if (parts.length !== 4) return false;
+
+    return parts.every((part) => {
+      const num = parseInt(part, 10);
+      return !isNaN(num) && num >= 0 && num <= 255 && part === String(num);
+    });
   }
 
   async findAll(tenantId: string): Promise<WebhookResponseDto[]> {
@@ -92,12 +362,21 @@ export class WebhooksService {
 
     if (dto.events) {
       const invalidEvents = dto.events.filter(
-        (e) => !WEBHOOK_EVENTS.includes(e as any),
+        (e) => !WEBHOOK_EVENTS.includes(e as (typeof WEBHOOK_EVENTS)[number]),
       );
       if (invalidEvents.length > 0) {
         throw new BadRequestException(
           `Invalid events: ${invalidEvents.join(', ')}`,
         );
+      }
+    }
+
+    // Validate IP allowlist format if provided
+    if (dto.ipAllowlist && dto.ipAllowlist.length > 0) {
+      for (const entry of dto.ipAllowlist) {
+        if (!this.isValidIpOrCidr(entry)) {
+          throw new BadRequestException(`Invalid IP or CIDR: ${entry}`);
+        }
       }
     }
 
@@ -107,6 +386,8 @@ export class WebhooksService {
     if (dto.events) webhook.events = dto.events as WebhookEvent[];
     if (dto.isEnabled !== undefined) webhook.isEnabled = dto.isEnabled;
     if (dto.headers) webhook.headers = dto.headers;
+    if (dto.ipAllowlist !== undefined) webhook.ipAllowlist = dto.ipAllowlist;
+    if (dto.rateLimit !== undefined) webhook.rateLimit = dto.rateLimit;
 
     return this.webhookRepository.save(webhook);
   }
@@ -178,11 +459,11 @@ export class WebhooksService {
     return this.deliver(webhook, event, testPayload, true);
   }
 
-  // Trigger webhooks for an event
+  // Trigger webhooks for an event (synchronous)
   async trigger(
     tenantId: string,
     event: WebhookEvent,
-    data: any,
+    data: Record<string, unknown>,
   ): Promise<void> {
     const webhooks = await this.webhookRepository.find({
       where: { tenantId, isEnabled: true },
@@ -207,11 +488,40 @@ export class WebhooksService {
   private async deliver(
     webhook: Webhook,
     eventType: string,
-    payload: any,
+    payload: Record<string, unknown>,
     isTest: boolean,
   ): Promise<TestWebhookResultDto> {
     const startTime = Date.now();
     const payloadString = JSON.stringify(payload);
+
+    // Check rate limit (skip for tests)
+    if (!isTest) {
+      const rateLimitResult = await this.checkRateLimit(
+        webhook.id,
+        webhook.tenantId,
+        webhook.rateLimit,
+      );
+
+      if (!rateLimitResult.allowed) {
+        this.logger.warn(
+          `Rate limit exceeded for webhook ${webhook.name} (${webhook.id})`,
+        );
+
+        // Record rate limit as a delivery failure
+        this.recordMetrics(
+          webhook.tenantId,
+          'rate_limited',
+          Date.now() - startTime,
+        );
+
+        return {
+          success: false,
+          statusCode: 429,
+          responseTimeMs: Date.now() - startTime,
+          error: `Rate limit exceeded. Retry after ${rateLimitResult.resetInSeconds} seconds.`,
+        };
+      }
+    }
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -260,8 +570,8 @@ export class WebhooksService {
         // Client error (4xx) - don't retry
         error = `HTTP ${statusCode}: ${responseBody?.substring(0, 200)}`;
         break;
-      } catch (err: any) {
-        error = err.message || 'Failed to deliver webhook';
+      } catch (err: unknown) {
+        error = (err as Error).message || 'Failed to deliver webhook';
 
         // Network error - retry
         if (retryCount < this.maxRetries) {
@@ -278,6 +588,13 @@ export class WebhooksService {
 
     const responseTimeMs = Date.now() - startTime;
     const success = statusCode >= 200 && statusCode < 300;
+
+    // Record metrics
+    this.recordMetrics(
+      webhook.tenantId,
+      success ? 'success' : 'failure',
+      responseTimeMs,
+    );
 
     // Record delivery (skip for tests)
     if (!isTest) {
@@ -307,6 +624,9 @@ export class WebhooksService {
         // Disable after 10 consecutive failures
         if (webhook.failureCount >= 10) {
           webhook.isEnabled = false;
+          this.logger.warn(
+            `Webhook ${webhook.name} disabled after 10 consecutive failures`,
+          );
         }
       }
       await this.webhookRepository.save(webhook);
@@ -318,6 +638,31 @@ export class WebhooksService {
       responseTimeMs,
       error,
     };
+  }
+
+  private recordMetrics(
+    tenantId: string,
+    status: string,
+    responseTimeMs: number,
+  ): void {
+    try {
+      // Increment delivery counter with tenant and status labels
+      this.metricsService.incrementCounter('webhook_deliveries_total', 1, {
+        tenant_id: tenantId,
+        status,
+      });
+
+      // Record latency (convert to seconds for Prometheus convention)
+      // Note: MetricsService doesn't have histogram support, so we'll use a gauge
+      // for average latency tracking
+      this.metricsService.setGauge(
+        'webhook_delivery_latency_seconds',
+        responseTimeMs / 1000,
+        { tenant_id: tenantId },
+      );
+    } catch (err) {
+      this.logger.debug(`Failed to record metrics: ${(err as Error).message}`);
+    }
   }
 
   // Get available events
@@ -333,6 +678,8 @@ export class WebhooksService {
       events: webhook.events,
       isEnabled: webhook.isEnabled,
       headers: webhook.headers,
+      ipAllowlist: webhook.ipAllowlist || [],
+      rateLimit: webhook.rateLimit ?? 60,
       lastTriggeredAt: webhook.lastTriggeredAt,
       lastStatusCode: webhook.lastStatusCode,
       lastError: webhook.lastError,
