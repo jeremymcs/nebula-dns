@@ -1,3 +1,6 @@
+// Nebula DNS - Webhooks Controller
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 import {
   Controller,
   Get,

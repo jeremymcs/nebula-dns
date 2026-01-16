@@ -1,3 +1,6 @@
+// Nebula DNS - Webhook Entity
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '@/common/entities/base.entity';
 import { Tenant } from '../../tenants/entities/tenant.entity';
@@ -56,4 +59,10 @@ export class Webhook extends BaseEntity {
 
   @Column({ name: 'failure_count', type: 'int', default: 0 })
   failureCount: number;
+
+  @Column({ name: 'ip_allowlist', type: 'text', array: true, default: [] })
+  ipAllowlist: string[];
+
+  @Column({ name: 'rate_limit', type: 'int', default: 60 })
+  rateLimit: number;
 }
