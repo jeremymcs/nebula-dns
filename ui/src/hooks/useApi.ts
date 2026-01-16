@@ -696,6 +696,97 @@ export function useMspPurchases(params?: { limit?: number; offset?: number }) {
 }
 
 // ============================================
+// MSP Templates Hooks
+// ============================================
+
+export interface MspTemplateConfig {
+  blockCategories: string[]
+  warnCategories?: string[]
+  threatBlocking: {
+    enabled: boolean
+    feeds: string[]
+  }
+  safesearch: {
+    enabled: boolean
+    services: string[]
+    settings?: {
+      google?: 'off' | 'moderate' | 'strict'
+      bing?: 'off' | 'moderate' | 'strict'
+      youtube?: 'off' | 'moderate' | 'strict'
+      duckduckgo?: 'off' | 'moderate' | 'strict'
+    }
+  }
+  schedules?: any[]
+  policyName?: string
+  policyDescription?: string
+}
+
+export interface MspTemplate {
+  id: string
+  partnerId: string
+  name: string
+  description?: string
+  config: MspTemplateConfig
+  version: number
+  isDefault: boolean
+  category?: string
+  tags: string[]
+  deployedTo: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface MspTemplateDeployment {
+  id: string
+  templateId: string
+  tenantId: string
+  deployedBy: string
+  templateVersion: number
+  deploymentMode: 'new_tenant' | 'overlay'
+  status: 'pending' | 'in_progress' | 'completed' | 'failed'
+  policiesCreated: number
+  createdAt: string
+}
+
+export interface DeploymentResult {
+  success: boolean
+  totalTenants: number
+  successfulDeployments: number
+  failedDeployments: number
+  results: Array<{
+    tenantId: string
+    status: 'success' | 'failed'
+    policyId?: string
+    error?: string
+  }>
+}
+
+export function useMspTemplates() {
+  return useSWR<{ templates: MspTemplate[] }>(
+    '/msp/templates',
+    fetcher,
+    defaultConfig
+  )
+}
+
+export function useMspTemplate(templateId: string | null) {
+  return useSWR<MspTemplate>(
+    templateId ? `/msp/templates/${templateId}` : null,
+    fetcher,
+    defaultConfig
+  )
+}
+
+export function useMspTemplateDeployments(templateId: string | null, limit?: number) {
+  const queryString = limit ? `?limit=${limit}` : ''
+  return useSWR<{ deployments: MspTemplateDeployment[] }>(
+    templateId ? `/msp/templates/${templateId}/deployments${queryString}` : null,
+    fetcher,
+    defaultConfig
+  )
+}
+
+// ============================================
 // Family Hooks
 // ============================================
 

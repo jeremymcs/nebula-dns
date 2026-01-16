@@ -1,6 +1,7 @@
 /**
  * Nebula DNS - MSP Global Templates Page
- * Allows MSP users to manage policy and list templates for all clients
+ * Allows MSP users to manage policy templates for all clients
+ * Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
  */
 
 'use client'
@@ -8,10 +9,12 @@
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/components/Toast'
+import { useMspTemplates, MspTemplate, MspTemplateConfig } from '@/hooks/useApi'
+import { api } from '@/lib/api'
+import { mutate } from 'swr'
 import {
   DocumentDuplicateIcon,
   ShieldCheckIcon,
-  ListBulletIcon,
   PlusIcon,
   PencilSquareIcon,
   TrashIcon,
@@ -20,33 +23,7 @@ import {
   CheckIcon,
   XMarkIcon,
   MagnifyingGlassIcon,
-  GlobeAltIcon,
-  NoSymbolIcon,
-  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline'
-
-// Template types
-interface PolicyTemplate {
-  id: string
-  name: string
-  description: string
-  categories: string[]
-  safeSearch: boolean
-  blockAds: boolean
-  blockMalware: boolean
-  createdAt: string
-  deployedTo: number
-}
-
-interface ListTemplate {
-  id: string
-  name: string
-  description: string
-  type: 'allowlist' | 'blocklist'
-  entries: number
-  createdAt: string
-  deployedTo: number
-}
 
 interface Client {
   id: string
@@ -54,75 +31,31 @@ interface Client {
   slug: string
 }
 
-// Mock data - replace with API calls
-const mockPolicyTemplates: PolicyTemplate[] = [
-  {
-    id: '1',
-    name: 'K-12 Education',
-    description: 'CIPA compliant filtering for schools',
-    categories: ['adult', 'gambling', 'social-media', 'gaming'],
-    safeSearch: true,
-    blockAds: true,
-    blockMalware: true,
-    createdAt: '2024-01-15',
-    deployedTo: 5,
-  },
-  {
-    id: '2',
-    name: 'Healthcare Secure',
-    description: 'HIPAA compliant DNS security',
-    categories: ['malware', 'phishing', 'cryptomining'],
-    safeSearch: false,
-    blockAds: false,
-    blockMalware: true,
-    createdAt: '2024-01-20',
-    deployedTo: 3,
-  },
-  {
-    id: '3',
-    name: 'Small Business Standard',
-    description: 'Balanced security for SMBs',
-    categories: ['adult', 'malware', 'phishing'],
-    safeSearch: true,
-    blockAds: true,
-    blockMalware: true,
-    createdAt: '2024-02-01',
-    deployedTo: 8,
-  },
-]
-
-const mockListTemplates: ListTemplate[] = [
-  {
-    id: '1',
-    name: 'Productivity Blocklist',
-    description: 'Block social media and streaming during work hours',
-    type: 'blocklist',
-    entries: 150,
-    createdAt: '2024-01-10',
-    deployedTo: 6,
-  },
-  {
-    id: '2',
-    name: 'Internal Tools Allowlist',
-    description: 'Allow access to common business tools',
-    type: 'allowlist',
-    entries: 45,
-    createdAt: '2024-01-12',
-    deployedTo: 10,
-  },
-]
-
 export default function MspTemplatesPage() {
   const { isMsp, organizations } = useAuth()
   const { showToast } = useToast()
-  const [activeTab, setActiveTab] = useState<'policies' | 'lists'>('policies')
-  const [policyTemplates, setPolicyTemplates] = useState<PolicyTemplate[]>(mockPolicyTemplates)
-  const [listTemplates, setListTemplates] = useState<ListTemplate[]>(mockListTemplates)
+  const { data: templatesData, isLoading } = useMspTemplates()
   const [search, setSearch] = useState('')
-  const [deployModal, setDeployModal] = useState<{ type: 'policy' | 'list'; template: PolicyTemplate | ListTemplate } | null>(null)
+  const [deployModal, setDeployModal] = useState<{ template: MspTemplate } | null>(null)
   const [selectedClients, setSelectedClients] = useState<string[]>([])
   const [deploying, setDeploying] = useState(false)
-  const [createModal, setCreateModal] = useState<'policy' | 'list' | null>(null)
+  const [createModal, setCreateModal] = useState(false)
+  const [editModal, setEditModal] = useState<MspTemplate | null>(null)
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    category: '',
+    tags: [] as string[],
+    config: {
+      blockCategories: [] as string[],
+      warnCategories: [] as string[],
+      threatBlocking: { enabled: true, feeds: ['malware', 'phishing'] },
+      safesearch: { enabled: false, services: [], settings: {} },
+      schedules: [],
+    } as MspTemplateConfig,
+  })
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
 
   // Use organizations from auth context as clients
   const clients: Client[] = organizations.map(org => ({
@@ -131,42 +64,166 @@ export default function MspTemplatesPage() {
     slug: org.slug,
   }))
 
+  const templates = templatesData?.templates || []
+
   // Filter templates based on search
-  const filteredPolicies = policyTemplates.filter(t =>
+  const filteredTemplates = templates.filter(t =>
     t.name.toLowerCase().includes(search.toLowerCase()) ||
-    t.description.toLowerCase().includes(search.toLowerCase())
+    (t.description?.toLowerCase().includes(search.toLowerCase()) ?? false)
   )
 
-  const filteredLists = listTemplates.filter(t =>
-    t.name.toLowerCase().includes(search.toLowerCase()) ||
-    t.description.toLowerCase().includes(search.toLowerCase())
-  )
+  // Category options
+  const categoryOptions = [
+    'Business',
+    'Education',
+    'Healthcare',
+    'Government',
+    'Home',
+    'Security',
+    'Compliance',
+    'Basic',
+  ]
+
+  // Common blocked categories
+  const blockedCategoryOptions = [
+    'adult',
+    'gambling',
+    'malware',
+    'phishing',
+    'social-media',
+    'streaming',
+    'gaming',
+    'drugs',
+    'weapons',
+    'violence',
+    'hate-speech',
+    'dating',
+    'cryptomining',
+    'proxy-vpn',
+    'file-sharing',
+    'newly-registered',
+  ]
 
   const handleDeploy = async () => {
     if (!deployModal || selectedClients.length === 0) return
     setDeploying(true)
 
     try {
-      // TODO: API call to deploy template to selected clients
-      await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate API call
+      const result = await api.deployMspTemplate(deployModal.template.id, {
+        tenantIds: selectedClients,
+        mode: 'overlay',
+      })
 
-      showToast('success', `Template deployed to ${selectedClients.length} client(s)`)
+      if (result.success) {
+        showToast('success', `Template deployed to ${result.successfulDeployments} client(s)`)
+      } else {
+        showToast('warning', `Deployed to ${result.successfulDeployments} clients, ${result.failedDeployments} failed`)
+      }
+
       setDeployModal(null)
       setSelectedClients([])
-    } catch (err) {
-      showToast('error', 'Failed to deploy template')
+      mutate('/msp/templates')
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to deploy template')
     } finally {
       setDeploying(false)
     }
   }
 
-  const handleDelete = (type: 'policy' | 'list', id: string) => {
-    if (type === 'policy') {
-      setPolicyTemplates(prev => prev.filter(t => t.id !== id))
-    } else {
-      setListTemplates(prev => prev.filter(t => t.id !== id))
+  const handleCreate = async () => {
+    if (!formData.name.trim()) {
+      showToast('error', 'Template name is required')
+      return
     }
-    showToast('success', 'Template deleted')
+    setSaving(true)
+
+    try {
+      await api.createMspTemplate({
+        name: formData.name,
+        description: formData.description || undefined,
+        category: formData.category || undefined,
+        tags: formData.tags.length > 0 ? formData.tags : undefined,
+        config: formData.config,
+      })
+
+      showToast('success', 'Template created successfully')
+      setCreateModal(false)
+      resetForm()
+      mutate('/msp/templates')
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to create template')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleUpdate = async () => {
+    if (!editModal || !formData.name.trim()) {
+      showToast('error', 'Template name is required')
+      return
+    }
+    setSaving(true)
+
+    try {
+      await api.updateMspTemplate(editModal.id, {
+        name: formData.name,
+        description: formData.description || undefined,
+        category: formData.category || undefined,
+        tags: formData.tags.length > 0 ? formData.tags : undefined,
+        config: formData.config,
+      })
+
+      showToast('success', 'Template updated successfully')
+      setEditModal(null)
+      resetForm()
+      mutate('/msp/templates')
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to update template')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async (template: MspTemplate) => {
+    if (!confirm(`Delete template "${template.name}"? This action cannot be undone.`)) return
+    setDeleting(template.id)
+
+    try {
+      await api.deleteMspTemplate(template.id)
+      showToast('success', 'Template deleted')
+      mutate('/msp/templates')
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to delete template')
+    } finally {
+      setDeleting(null)
+    }
+  }
+
+  const openEditModal = (template: MspTemplate) => {
+    setFormData({
+      name: template.name,
+      description: template.description || '',
+      category: template.category || '',
+      tags: template.tags || [],
+      config: template.config,
+    })
+    setEditModal(template)
+  }
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      category: '',
+      tags: [],
+      config: {
+        blockCategories: [],
+        warnCategories: [],
+        threatBlocking: { enabled: true, feeds: ['malware', 'phishing'] },
+        safesearch: { enabled: false, services: [], settings: {} },
+        schedules: [],
+      },
+    })
   }
 
   const toggleClientSelection = (clientId: string) => {
@@ -183,6 +240,18 @@ export default function MspTemplatesPage() {
     } else {
       setSelectedClients(clients.map(c => c.id))
     }
+  }
+
+  const toggleCategory = (category: string) => {
+    setFormData(prev => ({
+      ...prev,
+      config: {
+        ...prev.config,
+        blockCategories: prev.config.blockCategories.includes(category)
+          ? prev.config.blockCategories.filter(c => c !== category)
+          : [...prev.config.blockCategories, category],
+      },
+    }))
   }
 
   // Redirect non-MSP users
@@ -205,43 +274,17 @@ export default function MspTemplatesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-space-900 dark:text-white">Global Templates</h1>
+          <h1 className="text-2xl font-bold text-space-900 dark:text-white">Policy Templates</h1>
           <p className="text-space-500 dark:text-space-400">
-            Create and deploy policy and list templates to all your clients
+            Create and deploy policy templates to all your clients
           </p>
         </div>
         <button
-          onClick={() => setCreateModal(activeTab === 'policies' ? 'policy' : 'list')}
+          onClick={() => { resetForm(); setCreateModal(true) }}
           className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-600 hover:to-teal-600 transition-all shadow-lg shadow-emerald-500/25"
         >
           <PlusIcon className="h-5 w-5" />
           Create Template
-        </button>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-space-100 dark:bg-space-800 rounded-xl w-fit">
-        <button
-          onClick={() => setActiveTab('policies')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-            activeTab === 'policies'
-              ? 'bg-white dark:bg-space-700 text-space-900 dark:text-white shadow-sm'
-              : 'text-space-600 dark:text-space-400 hover:text-space-900 dark:hover:text-white'
-          }`}
-        >
-          <ShieldCheckIcon className="h-5 w-5" />
-          Policy Templates ({policyTemplates.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('lists')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-            activeTab === 'lists'
-              ? 'bg-white dark:bg-space-700 text-space-900 dark:text-white shadow-sm'
-              : 'text-space-600 dark:text-space-400 hover:text-space-900 dark:hover:text-white'
-          }`}
-        >
-          <ListBulletIcon className="h-5 w-5" />
-          List Templates ({listTemplates.length})
         </button>
       </div>
 
@@ -257,24 +300,31 @@ export default function MspTemplatesPage() {
         />
       </div>
 
-      {/* Policy Templates */}
-      {activeTab === 'policies' && (
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="h-8 w-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
+
+      {/* Templates Grid */}
+      {!isLoading && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredPolicies.length === 0 ? (
+          {filteredTemplates.length === 0 ? (
             <div className="col-span-full flex flex-col items-center justify-center py-12 text-center bg-white dark:bg-space-800 rounded-2xl">
               <ShieldCheckIcon className="h-12 w-12 text-space-300 mb-4" />
-              <h3 className="text-lg font-medium text-space-900 dark:text-white mb-2">No policy templates</h3>
+              <h3 className="text-lg font-medium text-space-900 dark:text-white mb-2">No templates</h3>
               <p className="text-space-500 dark:text-space-400 mb-4">Create your first policy template to deploy to clients</p>
               <button
-                onClick={() => setCreateModal('policy')}
+                onClick={() => { resetForm(); setCreateModal(true) }}
                 className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-colors"
               >
                 <PlusIcon className="h-5 w-5" />
-                Create Policy Template
+                Create Template
               </button>
             </div>
           ) : (
-            filteredPolicies.map((template) => (
+            filteredTemplates.map((template) => (
               <div
                 key={template.id}
                 className="bg-white dark:bg-space-800 rounded-2xl p-5 ring-1 ring-space-200 dark:ring-space-700 hover:shadow-lg transition-all"
@@ -289,131 +339,61 @@ export default function MspTemplatesPage() {
                 </div>
 
                 <h3 className="font-semibold text-space-900 dark:text-white mb-1">{template.name}</h3>
-                <p className="text-sm text-space-500 dark:text-space-400 mb-3">{template.description}</p>
+                <p className="text-sm text-space-500 dark:text-space-400 mb-3 line-clamp-2">
+                  {template.description || 'No description'}
+                </p>
 
                 <div className="flex flex-wrap gap-1 mb-4">
-                  {template.blockMalware && (
+                  {template.config.threatBlocking?.enabled && (
                     <span className="text-xs px-2 py-0.5 bg-danger-100 dark:bg-danger-900/30 text-danger-700 dark:text-danger-300 rounded">
-                      Malware
+                      Threat Blocking
                     </span>
                   )}
-                  {template.blockAds && (
-                    <span className="text-xs px-2 py-0.5 bg-warning-100 dark:bg-warning-900/30 text-warning-700 dark:text-warning-300 rounded">
-                      Ads
-                    </span>
-                  )}
-                  {template.safeSearch && (
+                  {template.config.safesearch?.enabled && (
                     <span className="text-xs px-2 py-0.5 bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-300 rounded">
                       SafeSearch
                     </span>
                   )}
-                  {template.categories.slice(0, 2).map((cat) => (
+                  {template.config.blockCategories?.slice(0, 2).map((cat) => (
                     <span key={cat} className="text-xs px-2 py-0.5 bg-space-100 dark:bg-space-700 text-space-600 dark:text-space-300 rounded">
                       {cat}
                     </span>
                   ))}
-                  {template.categories.length > 2 && (
+                  {(template.config.blockCategories?.length || 0) > 2 && (
                     <span className="text-xs px-2 py-0.5 bg-space-100 dark:bg-space-700 text-space-600 dark:text-space-300 rounded">
-                      +{template.categories.length - 2}
+                      +{template.config.blockCategories.length - 2}
                     </span>
                   )}
                 </div>
 
+                <div className="text-xs text-space-500 dark:text-space-400 mb-3">
+                  Version {template.version} • {template.category || 'Uncategorized'}
+                </div>
+
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setDeployModal({ type: 'policy', template })}
+                    onClick={() => setDeployModal({ template })}
                     className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-xl text-sm font-medium hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
                   >
                     <ArrowUpTrayIcon className="h-4 w-4" />
                     Deploy
                   </button>
-                  <button className="p-2 bg-space-100 dark:bg-space-700 text-space-600 dark:text-space-300 rounded-xl hover:bg-space-200 dark:hover:bg-space-600 transition-colors">
+                  <button
+                    onClick={() => openEditModal(template)}
+                    className="p-2 bg-space-100 dark:bg-space-700 text-space-600 dark:text-space-300 rounded-xl hover:bg-space-200 dark:hover:bg-space-600 transition-colors"
+                  >
                     <PencilSquareIcon className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => handleDelete('policy', template.id)}
-                    className="p-2 bg-danger-50 dark:bg-danger-900/30 text-danger-600 dark:text-danger-400 rounded-xl hover:bg-danger-100 dark:hover:bg-danger-900/50 transition-colors"
+                    onClick={() => handleDelete(template)}
+                    disabled={deleting === template.id}
+                    className="p-2 bg-danger-50 dark:bg-danger-900/30 text-danger-600 dark:text-danger-400 rounded-xl hover:bg-danger-100 dark:hover:bg-danger-900/50 transition-colors disabled:opacity-50"
                   >
-                    <TrashIcon className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
-      {/* List Templates */}
-      {activeTab === 'lists' && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredLists.length === 0 ? (
-            <div className="col-span-full flex flex-col items-center justify-center py-12 text-center bg-white dark:bg-space-800 rounded-2xl">
-              <ListBulletIcon className="h-12 w-12 text-space-300 mb-4" />
-              <h3 className="text-lg font-medium text-space-900 dark:text-white mb-2">No list templates</h3>
-              <p className="text-space-500 dark:text-space-400 mb-4">Create your first list template to deploy to clients</p>
-              <button
-                onClick={() => setCreateModal('list')}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-colors"
-              >
-                <PlusIcon className="h-5 w-5" />
-                Create List Template
-              </button>
-            </div>
-          ) : (
-            filteredLists.map((template) => (
-              <div
-                key={template.id}
-                className="bg-white dark:bg-space-800 rounded-2xl p-5 ring-1 ring-space-200 dark:ring-space-700 hover:shadow-lg transition-all"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
-                    template.type === 'allowlist'
-                      ? 'bg-gradient-to-br from-success-500 to-emerald-600'
-                      : 'bg-gradient-to-br from-danger-500 to-rose-600'
-                  }`}>
-                    {template.type === 'allowlist' ? (
-                      <GlobeAltIcon className="h-5 w-5 text-white" />
+                    {deleting === template.id ? (
+                      <div className="h-4 w-4 border-2 border-danger-600 border-t-transparent rounded-full animate-spin" />
                     ) : (
-                      <NoSymbolIcon className="h-5 w-5 text-white" />
+                      <TrashIcon className="h-4 w-4" />
                     )}
-                  </div>
-                  <span className="text-xs font-medium px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full">
-                    {template.deployedTo} clients
-                  </span>
-                </div>
-
-                <h3 className="font-semibold text-space-900 dark:text-white mb-1">{template.name}</h3>
-                <p className="text-sm text-space-500 dark:text-space-400 mb-3">{template.description}</p>
-
-                <div className="flex items-center gap-3 mb-4 text-sm">
-                  <span className={`px-2 py-0.5 rounded ${
-                    template.type === 'allowlist'
-                      ? 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-300'
-                      : 'bg-danger-100 dark:bg-danger-900/30 text-danger-700 dark:text-danger-300'
-                  }`}>
-                    {template.type === 'allowlist' ? 'Allowlist' : 'Blocklist'}
-                  </span>
-                  <span className="text-space-500 dark:text-space-400">
-                    {template.entries} entries
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setDeployModal({ type: 'list', template })}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-xl text-sm font-medium hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
-                  >
-                    <ArrowUpTrayIcon className="h-4 w-4" />
-                    Deploy
-                  </button>
-                  <button className="p-2 bg-space-100 dark:bg-space-700 text-space-600 dark:text-space-300 rounded-xl hover:bg-space-200 dark:hover:bg-space-600 transition-colors">
-                    <PencilSquareIcon className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete('list', template.id)}
-                    className="p-2 bg-danger-50 dark:bg-danger-900/30 text-danger-600 dark:text-danger-400 rounded-xl hover:bg-danger-100 dark:hover:bg-danger-900/50 transition-colors"
-                  >
-                    <TrashIcon className="h-4 w-4" />
                   </button>
                 </div>
               </div>
@@ -436,7 +416,7 @@ export default function MspTemplatesPage() {
                 </p>
               </div>
               <button
-                onClick={() => { setDeployModal(null); setSelectedClients([]); }}
+                onClick={() => { setDeployModal(null); setSelectedClients([]) }}
                 className="p-2 rounded-lg hover:bg-space-100 dark:hover:bg-space-700 transition-colors"
               >
                 <XMarkIcon className="h-5 w-5 text-space-500" />
@@ -503,7 +483,7 @@ export default function MspTemplatesPage() {
             {/* Actions */}
             <div className="flex gap-3">
               <button
-                onClick={() => { setDeployModal(null); setSelectedClients([]); }}
+                onClick={() => { setDeployModal(null); setSelectedClients([]) }}
                 className="flex-1 px-4 py-2.5 bg-space-100 dark:bg-space-700 text-space-700 dark:text-space-200 rounded-xl font-medium hover:bg-space-200 dark:hover:bg-space-600 transition-colors"
               >
                 Cancel
@@ -530,68 +510,152 @@ export default function MspTemplatesPage() {
         </div>
       )}
 
-      {/* Create Template Modal */}
-      {createModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-space-800 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-200">
+      {/* Create/Edit Template Modal */}
+      {(createModal || editModal) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white dark:bg-space-800 rounded-2xl shadow-2xl max-w-2xl w-full p-6 animate-in fade-in zoom-in-95 duration-200 my-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-space-900 dark:text-white">
-                Create {createModal === 'policy' ? 'Policy' : 'List'} Template
+                {editModal ? 'Edit Template' : 'Create Template'}
               </h3>
               <button
-                onClick={() => setCreateModal(null)}
+                onClick={() => { setCreateModal(false); setEditModal(null); resetForm() }}
                 className="p-2 rounded-lg hover:bg-space-100 dark:hover:bg-space-700 transition-colors"
               >
                 <XMarkIcon className="h-5 w-5 text-space-500" />
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-5 max-h-[60vh] overflow-y-auto">
+              {/* Template Name */}
               <div>
                 <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-1">
-                  Template Name
+                  Template Name <span className="text-danger-500">*</span>
                 </label>
                 <input
                   type="text"
-                  placeholder={createModal === 'policy' ? 'e.g., CIPA Compliant' : 'e.g., Social Media Block'}
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g., K-12 Education"
                   className="w-full px-4 py-2.5 bg-white dark:bg-space-900 rounded-xl ring-1 ring-space-200 dark:ring-space-700 focus:ring-2 focus:ring-emerald-500 outline-none"
                 />
               </div>
 
+              {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-1">
                   Description
                 </label>
                 <textarea
-                  rows={3}
+                  rows={2}
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="Describe what this template is for..."
                   className="w-full px-4 py-2.5 bg-white dark:bg-space-900 rounded-xl ring-1 ring-space-200 dark:ring-space-700 focus:ring-2 focus:ring-emerald-500 outline-none resize-none"
                 />
               </div>
 
-              <div className="bg-space-50 dark:bg-space-900 rounded-xl p-4">
-                <p className="text-sm text-space-600 dark:text-space-400">
-                  <ExclamationTriangleIcon className="h-4 w-4 inline mr-1" />
-                  Full template configuration will be available in the next update.
-                </p>
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-1">
+                  Category
+                </label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                  className="w-full px-4 py-2.5 bg-white dark:bg-space-900 rounded-xl ring-1 ring-space-200 dark:ring-space-700 focus:ring-2 focus:ring-emerald-500 outline-none"
+                >
+                  <option value="">Select category...</option>
+                  {categoryOptions.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Blocked Categories */}
+              <div>
+                <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
+                  Blocked Categories
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {blockedCategoryOptions.map((category) => (
+                    <button
+                      key={category}
+                      type="button"
+                      onClick={() => toggleCategory(category)}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                        formData.config.blockCategories.includes(category)
+                          ? 'bg-danger-100 dark:bg-danger-900/30 text-danger-700 dark:text-danger-300 ring-1 ring-danger-300 dark:ring-danger-700'
+                          : 'bg-space-100 dark:bg-space-700 text-space-600 dark:text-space-300 hover:bg-space-200 dark:hover:bg-space-600'
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Threat Blocking */}
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="threatBlocking"
+                  checked={formData.config.threatBlocking?.enabled ?? true}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    config: {
+                      ...prev.config,
+                      threatBlocking: { ...prev.config.threatBlocking, enabled: e.target.checked },
+                    },
+                  }))}
+                  className="h-4 w-4 rounded border-space-300 text-emerald-600 focus:ring-emerald-500"
+                />
+                <label htmlFor="threatBlocking" className="text-sm font-medium text-space-700 dark:text-space-300">
+                  Enable Threat Blocking (malware, phishing)
+                </label>
+              </div>
+
+              {/* SafeSearch */}
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="safesearch"
+                  checked={formData.config.safesearch?.enabled ?? false}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    config: {
+                      ...prev.config,
+                      safesearch: { ...prev.config.safesearch, enabled: e.target.checked },
+                    },
+                  }))}
+                  className="h-4 w-4 rounded border-space-300 text-emerald-600 focus:ring-emerald-500"
+                />
+                <label htmlFor="safesearch" className="text-sm font-medium text-space-700 dark:text-space-300">
+                  Enable SafeSearch Enforcement
+                </label>
               </div>
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-3 mt-6 pt-4 border-t border-space-200 dark:border-space-700">
               <button
-                onClick={() => setCreateModal(null)}
+                onClick={() => { setCreateModal(false); setEditModal(null); resetForm() }}
                 className="flex-1 px-4 py-2.5 bg-space-100 dark:bg-space-700 text-space-700 dark:text-space-200 rounded-xl font-medium hover:bg-space-200 dark:hover:bg-space-600 transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  showToast('info', 'Template creation coming soon')
-                  setCreateModal(null)
-                }}
-                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-600 hover:to-teal-600 transition-all"
+                onClick={editModal ? handleUpdate : handleCreate}
+                disabled={saving || !formData.name.trim()}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-600 hover:to-teal-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Create Template
+                {saving ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  editModal ? 'Update Template' : 'Create Template'
+                )}
               </button>
             </div>
           </div>

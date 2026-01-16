@@ -40,7 +40,8 @@ export type AuditResourceType =
   | 'tenant'
   | 'api_key'
   | 'sso'
-  | 'block_page';
+  | 'block_page'
+  | 'template';
 
 @Entity('audit_logs')
 export class AuditLog {
