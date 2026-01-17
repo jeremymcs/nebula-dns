@@ -1,5 +1,5 @@
 -- Nebula DNS PostgreSQL Initialization Script
--- Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
+-- Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 -- This script creates the database schema for the Control Plane
 
 -- Enable extensions
@@ -58,10 +58,14 @@ CREATE TABLE audit_logs (
     action VARCHAR(50) NOT NULL,
     resource_type VARCHAR(50) NOT NULL,
     resource_id UUID,
+    resource_name VARCHAR(255),
     old_value JSONB,
     new_value JSONB,
     ip_address INET,
     user_agent TEXT,
+    metadata JSONB,
+    previous_hash VARCHAR(64),
+    record_hash VARCHAR(64) NOT NULL DEFAULT '',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -251,6 +255,61 @@ INSERT INTO safesearch_rules (id, service, domain, target_cname) VALUES
     ('youtube_m', 'youtube', 'm.youtube.com', 'restrict.youtube.com'),
     ('bing', 'bing', 'www.bing.com', 'strict.bing.com'),
     ('duckduckgo', 'duckduckgo', 'duckduckgo.com', 'safe.duckduckgo.com');
+
+-- ============================================
+-- PARTNERS (MSP/Reseller Hierarchy)
+-- ============================================
+
+CREATE TABLE partners (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'cancelled')),
+    plan VARCHAR(20) DEFAULT 'starter' CHECK (plan IN ('starter', 'professional', 'enterprise')),
+    contact_email VARCHAR(255),
+    contact_phone VARCHAR(255),
+    billing_email VARCHAR(255),
+    address TEXT,
+    branding JSONB,
+    settings JSONB,
+    stripe_customer_id VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_partners_status ON partners(status);
+CREATE INDEX idx_partners_plan ON partners(plan);
+
+CREATE TABLE partner_users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    partner_id UUID NOT NULL REFERENCES partners(id) ON DELETE CASCADE,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(30) NOT NULL CHECK (role IN ('partner_owner', 'partner_admin', 'partner_support')),
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'pending')),
+    failed_login_attempts INTEGER DEFAULT 0,
+    locked_until TIMESTAMP WITH TIME ZONE,
+    last_login_at TIMESTAMP WITH TIME ZONE,
+    mfa_enabled BOOLEAN DEFAULT FALSE,
+    mfa_secret VARCHAR(255),
+    impersonating_org_id UUID,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_partner_users_partner ON partner_users(partner_id);
+CREATE INDEX idx_partner_users_status ON partner_users(status);
+
+-- Add partner hierarchy columns to tenants
+ALTER TABLE tenants ADD COLUMN partner_id UUID REFERENCES partners(id) ON DELETE SET NULL;
+ALTER TABLE tenants ADD COLUMN contact_email VARCHAR(255);
+ALTER TABLE tenants ADD COLUMN contact_phone VARCHAR(50);
+ALTER TABLE tenants ADD COLUMN address TEXT;
+ALTER TABLE tenants ADD COLUMN industry VARCHAR(100);
+ALTER TABLE tenants ADD COLUMN company_size VARCHAR(50);
+
+CREATE INDEX idx_tenants_partner ON tenants(partner_id);
 
 -- ============================================
 -- ROW LEVEL SECURITY
@@ -474,6 +533,7 @@ CREATE TABLE IF NOT EXISTS user_mfa (
     secret_encrypted TEXT NOT NULL,
     is_enabled BOOLEAN DEFAULT FALSE,
     verified_at TIMESTAMP WITH TIME ZONE,
+    last_used_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -753,5 +813,33 @@ CREATE INDEX IF NOT EXISTS idx_webhook_deliveries_webhook ON webhook_deliveries(
 
 -- Add block_page_id to locations
 ALTER TABLE locations ADD COLUMN IF NOT EXISTS block_page_id UUID REFERENCES block_pages(id) ON DELETE SET NULL;
+
+-- ============================================
+-- FAMILY MEMBERS (Parental Controls)
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS family_members (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    avatar VARCHAR(255) DEFAULT '',
+    date_of_birth DATE,
+    role VARCHAR(20) NOT NULL DEFAULT 'child' CHECK (role IN ('parent', 'teen', 'child')),
+    devices JSONB NOT NULL DEFAULT '[]',
+    policy_overrides JSONB NOT NULL DEFAULT '{}',
+    schedules JSONB NOT NULL DEFAULT '[]',
+    screen_time JSONB NOT NULL DEFAULT '{}',
+    parental_pin_hash VARCHAR(255),
+    is_online BOOLEAN NOT NULL DEFAULT FALSE,
+    last_activity_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_family_members_tenant ON family_members(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_family_members_role ON family_members(role);
+CREATE INDEX IF NOT EXISTS idx_family_members_is_online ON family_members(is_online);
+CREATE INDEX IF NOT EXISTS idx_family_members_created ON family_members(created_at);
+CREATE INDEX IF NOT EXISTS idx_family_members_devices ON family_members USING GIN (devices);
 
 -- Done!

@@ -1,3 +1,6 @@
+// Nebula DNS - Subscriptions Controller
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 import {
   Controller,
   Get,
@@ -11,6 +14,14 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+  ApiExcludeEndpoint,
+} from '@nestjs/swagger';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { SubscriptionsService } from './subscriptions.service';
@@ -21,6 +32,7 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentTenant } from '@/common/decorators/tenant.decorator';
 
+@ApiTags('subscriptions')
 @Controller()
 export class SubscriptionsController {
   constructor(
@@ -31,17 +43,36 @@ export class SubscriptionsController {
   // ==================== PUBLIC ENDPOINTS ====================
 
   @Get('plans')
+  @ApiOperation({
+    summary: 'List available plans',
+    description: 'Returns all available subscription plans with pricing and feature information.',
+  })
+  @ApiResponse({ status: 200, description: 'Plans retrieved successfully' })
   async getPlans() {
     const plans = await this.subscriptionsService.getPlans();
     return { data: plans };
   }
 
   @Get('plans/:id')
+  @ApiOperation({
+    summary: 'Get plan by ID',
+    description: 'Returns detailed information about a specific subscription plan.',
+  })
+  @ApiParam({ name: 'id', description: 'Plan identifier', type: 'string' })
+  @ApiResponse({ status: 200, description: 'Plan retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Plan not found' })
   async getPlan(@Param('id') id: string) {
     return this.subscriptionsService.getPlan(id);
   }
 
   @Post('signup')
+  @ApiOperation({
+    summary: 'Create new account signup',
+    description:
+      'Initiates the signup process. For free plans, account is created immediately. For paid plans, returns a checkout session.',
+  })
+  @ApiResponse({ status: 201, description: 'Signup initiated or completed' })
+  @ApiResponse({ status: 400, description: 'Invalid signup data' })
   async signup(@Body() dto: CreateSignupDto, @Req() req: Request) {
     const ipAddress = req.ip || req.socket.remoteAddress;
     const userAgent = req.headers['user-agent'];
@@ -74,6 +105,13 @@ export class SubscriptionsController {
   }
 
   @Post('signup/:id/complete')
+  @ApiOperation({
+    summary: 'Complete signup after payment',
+    description: 'Completes the signup process after successful payment. Creates the tenant and user account.',
+  })
+  @ApiParam({ name: 'id', description: 'Signup request ID', type: 'string' })
+  @ApiResponse({ status: 200, description: 'Signup completed' })
+  @ApiResponse({ status: 404, description: 'Signup request not found' })
   async completeSignup(@Param('id') id: string) {
     const result = await this.subscriptionsService.processSignup(id);
     return {
@@ -88,6 +126,7 @@ export class SubscriptionsController {
 
   @Post('webhooks/stripe')
   @HttpCode(HttpStatus.OK)
+  @ApiExcludeEndpoint()
   async handleStripeWebhook(
     @Req() req: RawBodyRequest<Request>,
     @Headers('stripe-signature') signature: string,
@@ -106,6 +145,13 @@ export class SubscriptionsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('subscription')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get current subscription',
+    description: 'Returns the current subscription details for the tenant.',
+  })
+  @ApiResponse({ status: 200, description: 'Subscription retrieved' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
   async getSubscription(@CurrentTenant() tenantId: string) {
     const subscription =
       await this.subscriptionsService.getSubscription(tenantId);
@@ -114,6 +160,14 @@ export class SubscriptionsController {
 
   @UseGuards(JwtAuthGuard)
   @Post('subscription/cancel')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Cancel subscription',
+    description:
+      'Cancels the subscription at the end of the current billing period. The subscription remains active until then.',
+  })
+  @ApiResponse({ status: 200, description: 'Subscription cancellation scheduled' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
   async cancelSubscription(@CurrentTenant() tenantId: string) {
     const subscription =
       await this.subscriptionsService.cancelSubscription(tenantId);
@@ -126,6 +180,14 @@ export class SubscriptionsController {
 
   @UseGuards(JwtAuthGuard)
   @Post('subscription/resume')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Resume canceled subscription',
+    description: 'Resumes a subscription that was previously canceled but has not yet expired.',
+  })
+  @ApiResponse({ status: 200, description: 'Subscription resumed' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
+  @ApiResponse({ status: 400, description: 'Subscription cannot be resumed' })
   async resumeSubscription(@CurrentTenant() tenantId: string) {
     const subscription =
       await this.subscriptionsService.resumeSubscription(tenantId);

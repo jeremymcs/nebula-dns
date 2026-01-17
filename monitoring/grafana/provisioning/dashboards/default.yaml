@@ -1,0 +1,16 @@
+# Nebula DNS - Grafana Dashboard Provisioning
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+apiVersion: 1
+
+providers:
+  - name: 'Nebula DNS'
+    orgId: 1
+    folder: 'Nebula DNS'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false

@@ -1,0 +1,95 @@
+# Nebula DNS - Gitleaks Configuration
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+#
+# Custom secrets detection rules for Nebula DNS
+
+title = "Nebula DNS Gitleaks Configuration"
+
+[extend]
+# Use default gitleaks rules as base
+useDefault = true
+
+# Additional custom rules for Nebula DNS
+[[rules]]
+id = "nebula-api-key"
+description = "Nebula DNS API Key"
+regex = '''(?i)(nebula[_-]?api[_-]?key|api[_-]?key)[\"']?\s*[:=]\s*[\"']?([a-z0-9]{32,})'''
+tags = ["api-key", "nebula"]
+
+[[rules]]
+id = "nebula-jwt-secret"
+description = "Nebula JWT Secret"
+regex = '''(?i)(jwt[_-]?secret)[\"']?\s*[:=]\s*[\"']?([a-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{32,})'''
+tags = ["jwt", "secret"]
+
+[[rules]]
+id = "stripe-api-key"
+description = "Stripe API Key"
+regex = '''(sk|pk)_(test|live)_[0-9a-zA-Z]{24,}'''
+tags = ["stripe", "api-key"]
+
+[[rules]]
+id = "clickhouse-password"
+description = "ClickHouse Password"
+regex = '''(?i)(clickhouse[_-]?password|ch[_-]?password)[\"']?\s*[:=]\s*[\"']?([^\s\"']{8,})'''
+tags = ["clickhouse", "password"]
+
+[[rules]]
+id = "redis-password"
+description = "Redis Password"
+regex = '''(?i)(redis[_-]?password|redis[_-]?auth)[\"']?\s*[:=]\s*[\"']?([^\s\"']{8,})'''
+tags = ["redis", "password"]
+
+[[rules]]
+id = "postgres-connection-string"
+description = "PostgreSQL Connection String with Password"
+regex = '''postgres(?:ql)?://[a-zA-Z0-9_]+:([^@\s]+)@[a-zA-Z0-9._-]+(?::\d+)?/[a-zA-Z0-9_-]+'''
+tags = ["postgres", "connection-string"]
+
+[[rules]]
+id = "private-key"
+description = "Private Key"
+regex = '''-----BEGIN (?:RSA|OPENSSH|DSA|EC|PGP) PRIVATE KEY-----'''
+tags = ["private-key"]
+
+# Allowlist - paths to exclude from scanning
+[allowlist]
+description = "Allowlisted files and patterns"
+paths = [
+  '''node_modules/''',
+  '''vendor/''',
+  '''\.git/''',
+  '''dist/''',
+  '''build/''',
+  '''coverage/''',
+  '''\.next/''',
+  '''\.cache/''',
+  '''package-lock\.json''',
+  '''go\.sum''',
+  '''yarn\.lock''',
+  '''pnpm-lock\.yaml''',
+]
+
+regexes = [
+  # Test files with example secrets
+  '''(?i)test[_-]?secret''',
+  '''(?i)example[_-]?key''',
+  '''(?i)dummy[_-]?password''',
+  '''(?i)fake[_-]?token''',
+  # Known test values
+  '''test-jwt-secret''',
+  '''your-secret-key-here''',
+  '''change-me''',
+  '''placeholder''',
+]
+
+# Stopwords - patterns that indicate false positives
+stopwords = [
+  "test",
+  "example",
+  "dummy",
+  "placeholder",
+  "changeme",
+  "your-key-here",
+  "xxxxx",
+]

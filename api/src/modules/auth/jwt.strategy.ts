@@ -1,3 +1,6 @@
+// Nebula DNS - JWT Strategy with Session Blacklist
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -9,6 +12,8 @@ export interface JwtPayload {
   email: string;
   tenantId: string;
   role: string;
+  jti?: string;
+  mfaVerified?: boolean;
 }
 
 @Injectable()
@@ -25,6 +30,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload) {
+    // Check if token JTI is blacklisted (session revoked)
+    if (payload.jti) {
+      const isBlacklisted = await this.authService.isTokenBlacklisted(
+        payload.jti,
+      );
+      if (isBlacklisted) {
+        throw new UnauthorizedException('Session has been revoked');
+      }
+    }
+
     const user = await this.authService.validateUser(
       payload.sub,
       payload.tenantId,
@@ -39,6 +54,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       email: payload.email,
       tenantId: payload.tenantId,
       role: payload.role,
+      jti: payload.jti,
+      mfaVerified: payload.mfaVerified || false,
     };
   }
 }

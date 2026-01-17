@@ -1,0 +1,21 @@
+# Nebula DNS - Pod Disruption Budget for API Service
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+#
+# This PDB ensures at least 1 API pod remains available during voluntary
+# disruptions (node drains, upgrades). With HPA min=2, this allows safe
+# rolling updates while maintaining service availability.
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: api-pdb
+  namespace: nebula-dns
+  labels:
+    app: api
+    app.kubernetes.io/name: api
+    app.kubernetes.io/component: backend
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: api

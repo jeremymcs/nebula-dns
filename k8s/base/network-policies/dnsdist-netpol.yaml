@@ -1,0 +1,72 @@
+# Nebula DNS - dnsdist Network Policy
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dnsdist-netpol
+  namespace: nebula-dns
+  labels:
+    app.kubernetes.io/name: dnsdist
+    app.kubernetes.io/component: network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: dnsdist
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow all ingress for DNS-over-TLS (port 853) from internet
+    - from: []
+      ports:
+        - port: 853
+          protocol: TCP
+    # Allow all ingress for DNS-over-HTTPS (port 443) from internet
+    - from: []
+      ports:
+        - port: 443
+          protocol: TCP
+    # Allow metrics scraping from Prometheus
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+        - podSelector:
+            matchLabels:
+              app: prometheus
+      ports:
+        - port: 8083
+          protocol: TCP
+  egress:
+    # Allow egress to Policy Service (policy evaluation)
+    - to:
+        - podSelector:
+            matchLabels:
+              app: policy-svc
+      ports:
+        - port: 8080
+          protocol: TCP
+    # Allow egress to Unbound (DNS resolution)
+    - to:
+        - podSelector:
+            matchLabels:
+              app: unbound
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    # Allow DNS resolution (kube-dns)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+        - podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP

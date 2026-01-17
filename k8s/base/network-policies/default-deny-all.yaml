@@ -1,0 +1,19 @@
+# Nebula DNS - Default Deny All Network Policy
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+#
+# This policy denies all ingress and egress traffic by default.
+# Specific policies for each service will allow only necessary traffic.
+# This implements a zero-trust network security model.
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: nebula-dns
+  labels:
+    app.kubernetes.io/component: network-policy
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress

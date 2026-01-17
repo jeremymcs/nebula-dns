@@ -277,18 +277,36 @@ go test -bench=.      # Benchmarks
 
 ## CI/CD
 
+[![CI](https://github.com/OWNER/nebula-dns/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/nebula-dns/actions/workflows/ci.yml)
+[![Security Scan](https://github.com/OWNER/nebula-dns/actions/workflows/security-scan.yml/badge.svg)](https://github.com/OWNER/nebula-dns/actions/workflows/security-scan.yml)
+[![Release](https://github.com/OWNER/nebula-dns/actions/workflows/release.yml/badge.svg)](https://github.com/OWNER/nebula-dns/actions/workflows/release.yml)
+
 GitHub Actions workflows are provided for:
 
 - **CI** (`.github/workflows/ci.yml`): Runs on PRs and pushes to main
   - API linting and tests
   - UI type checking and build
   - Policy service tests
+  - DNS E2E tests with full stack
   - Docker image builds
-  - Security scanning (Trivy)
+  - Coverage reporting
+
+- **Security Scan** (`.github/workflows/security-scan.yml`): Comprehensive security analysis
+  - CodeQL SAST (JavaScript, TypeScript, Go)
+  - Secrets detection (Gitleaks)
+  - Dependency vulnerability scanning (NPM Audit, govulncheck)
+  - Container image scanning (Trivy)
+  - SBOM generation (Syft)
+  - Container image signing (Cosign)
+  - License compliance scanning
+  - Automated issue creation for critical findings
+  - Daily scheduled scans
 
 - **Release** (`.github/workflows/release.yml`): Runs on version tags
   - Builds and pushes Docker images
   - Creates GitHub releases
+
+See [docs/O-security-scanning-ci.md](docs/O-security-scanning-ci.md) for detailed security scanning documentation
 
 ## Security
 

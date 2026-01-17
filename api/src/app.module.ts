@@ -55,6 +55,12 @@ import { FamilyModule } from './modules/family/family.module';
 // Onboarding
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
 
+// Distributed Rate Limiting
+import { RateLimitModule } from './modules/rate-limit/rate-limit.module';
+
+// Secrets Management
+import { SecretsModule } from './modules/secrets/secrets.module';
+
 // Configuration
 import configuration from './config/configuration';
 
@@ -109,7 +115,10 @@ import configuration from './config/configuration';
             'DB_CONNECTION_TIMEOUT',
             5000,
           ),
-          idleTimeoutMillis: configService.get<number>('DB_IDLE_TIMEOUT', 30000),
+          idleTimeoutMillis: configService.get<number>(
+            'DB_IDLE_TIMEOUT',
+            30000,
+          ),
         },
       }),
     }),
@@ -171,6 +180,12 @@ import configuration from './config/configuration';
 
     // Onboarding
     OnboardingModule,
+
+    // Distributed Rate Limiting (Redis-backed)
+    RateLimitModule,
+
+    // Secrets Management (AWS/Vault/env)
+    SecretsModule,
   ],
 })
 export class AppModule implements NestModule {

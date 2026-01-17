@@ -1,0 +1,14 @@
+# Nebula DNS - Trivy Ignore List
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+#
+# Use this file to suppress false positives from Trivy container scans.
+# Format: CVE-ID or vulnerability ID, one per line
+#
+# Only add entries with proper justification documented here.
+# Review this file quarterly to remove resolved issues.
+
+# Example format:
+# CVE-2024-12345  # Brief justification for ignoring
+
+# Add ignored vulnerabilities below:
+# (Currently empty - no suppressions)

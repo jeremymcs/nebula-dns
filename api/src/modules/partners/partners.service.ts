@@ -21,6 +21,7 @@ import {
   CreateOrganizationDto,
   UpdateOrganizationDto,
 } from './dto/partner.dto';
+import { getEncryptionKey } from '../../config/encryption.config';
 
 @Injectable()
 export class PartnersService {
@@ -36,11 +37,9 @@ export class PartnersService {
     private tenantsRepository: Repository<Tenant>,
     private configService: ConfigService,
   ) {
-    // Use a 32-byte key for AES-256 (same as MfaService)
-    const key = this.configService.get(
-      'MFA_ENCRYPTION_KEY',
-      'default-key-change-in-production!',
-    );
+    // Use centralized encryption key management - no hardcoded defaults
+    // Partners service shares MFA encryption key for MFA verification
+    const key = getEncryptionKey('MFA_ENCRYPTION_KEY');
     this.encryptionKey = crypto.scryptSync(key, 'salt', 32);
   }
 

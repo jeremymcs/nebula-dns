@@ -1,3 +1,6 @@
+// Nebula DNS - API Key IP Allowlisting
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 import {
   Injectable,
   NotFoundException,
@@ -54,6 +57,8 @@ export class ApiKeysService {
       scopes: dto.scopes || ['read'],
       rateLimit: dto.rateLimit || 1000,
       expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
+      allowedIps: dto.allowedIps || null,
+      allowedCidrs: dto.allowedCidrs || null,
     });
 
     const saved = (await this.apiKeyRepository.save(apiKey)) as ApiKey;
@@ -67,6 +72,8 @@ export class ApiKeysService {
       isActive: saved.isActive,
       expiresAt: saved.expiresAt,
       createdAt: saved.createdAt,
+      allowedIps: saved.allowedIps,
+      allowedCidrs: saved.allowedCidrs,
       apiKey: key, // Only returned once!
     };
   }
@@ -101,10 +108,30 @@ export class ApiKeysService {
   ): Promise<ApiKeyResponseDto> {
     const apiKey = await this.findOne(tenantId, id);
 
-    Object.assign(apiKey, {
-      ...dto,
-      expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : apiKey.expiresAt,
-    });
+    // Build update object, handling IP allowlist fields explicitly
+    const updateData: Partial<ApiKey> = {};
+
+    if (dto.name !== undefined) updateData.name = dto.name;
+    if (dto.scopes !== undefined) updateData.scopes = dto.scopes;
+    if (dto.rateLimit !== undefined) updateData.rateLimit = dto.rateLimit;
+    if (dto.isActive !== undefined) updateData.isActive = dto.isActive;
+    if (dto.expiresAt !== undefined) {
+      updateData.expiresAt = dto.expiresAt ? new Date(dto.expiresAt) : null;
+    }
+
+    // Handle IP allowlist fields - allow setting to empty array to remove restrictions
+    if (dto.allowedIps !== undefined) {
+      updateData.allowedIps =
+        dto.allowedIps && dto.allowedIps.length > 0 ? dto.allowedIps : null;
+    }
+    if (dto.allowedCidrs !== undefined) {
+      updateData.allowedCidrs =
+        dto.allowedCidrs && dto.allowedCidrs.length > 0
+          ? dto.allowedCidrs
+          : null;
+    }
+
+    Object.assign(apiKey, updateData);
 
     const saved = await this.apiKeyRepository.save(apiKey);
     return this.toResponseDto(saved);
@@ -138,7 +165,7 @@ export class ApiKeysService {
     // Generate new key
     const { key, prefix, hash } = this.generateApiKey();
 
-    // Create new API key with same settings
+    // Create new API key with same settings (including IP allowlist)
     const newApiKey = this.apiKeyRepository.create({
       tenantId,
       userId: oldKey.userId,
@@ -148,6 +175,8 @@ export class ApiKeysService {
       scopes: oldKey.scopes,
       rateLimit: oldKey.rateLimit,
       expiresAt: oldKey.expiresAt,
+      allowedIps: oldKey.allowedIps,
+      allowedCidrs: oldKey.allowedCidrs,
     });
 
     const saved = (await this.apiKeyRepository.save(newApiKey)) as ApiKey;
@@ -169,6 +198,8 @@ export class ApiKeysService {
       isActive: saved.isActive,
       expiresAt: saved.expiresAt,
       createdAt: saved.createdAt,
+      allowedIps: saved.allowedIps,
+      allowedCidrs: saved.allowedCidrs,
       apiKey: key, // Only returned once!
       rotatedFromId: id,
       oldKeyExpiresAt: gracePeriodEnd,
@@ -352,6 +383,8 @@ export class ApiKeysService {
       lastUsedAt: apiKey.lastUsedAt,
       expiresAt: apiKey.expiresAt,
       createdAt: apiKey.createdAt,
+      allowedIps: apiKey.allowedIps,
+      allowedCidrs: apiKey.allowedCidrs,
     };
   }
 }

@@ -7,6 +7,7 @@ This guide covers deploying Nebula DNS to production environments.
 1. [Infrastructure Requirements](#infrastructure-requirements)
 2. [DNS Infrastructure Setup](#dns-infrastructure-setup)
 3. [Kubernetes Deployment](#kubernetes-deployment)
+   - [Pod Disruption Budgets (PDBs)](#pod-disruption-budgets-pdbs)
 4. [Security Configuration](#security-configuration)
 5. [Monitoring Setup](#monitoring-setup)
 6. [Backup and Recovery](#backup-and-recovery)
@@ -222,6 +223,86 @@ curl -H "Authorization: Bearer <location-token>" \
   -H "Accept: application/dns-message" \
   "https://dns.example.com/dns-query?dns=AAABAAABAAAAAAAAB2dvb2dsZQNjb20AAAEAAQ"
 ```
+
+### Pod Disruption Budgets (PDBs)
+
+Pod Disruption Budgets are automatically deployed with the base configuration to ensure high availability during voluntary disruptions (node drains, cluster upgrades, etc.).
+
+#### Overview
+
+PDBs protect critical services by guaranteeing a minimum number of pods remain available during maintenance operations:
+
+| Service | Min Available | Purpose |
+|---------|---------------|---------|
+| API | 1 | Ensures API remains responsive during rolling updates |
+| Policy Service | 2 | Critical for DNS resolution, maintains high availability |
+| dnsdist | 1 | Critical for DNS service availability |
+| UI | 1 | Maintains dashboard access during maintenance |
+
+#### Verify PDBs
+
+```bash
+# List all Pod Disruption Budgets
+kubectl get pdb -n nebula-dns
+
+# Check specific PDB status
+kubectl describe pdb policy-svc-pdb -n nebula-dns
+
+# View current allowed disruptions
+kubectl get pdb -n nebula-dns -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.disruptionsAllowed}{"\n"}{end}'
+```
+
+#### Example Output
+
+```
+NAME              MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+api-pdb           1               N/A               1                     10d
+dnsdist-pdb       1               N/A               1                     10d
+policy-svc-pdb    2               N/A               1                     10d
+ui-pdb            1               N/A               1                     10d
+```
+
+#### How PDBs Work
+
+1. **During Node Drain**: Kubernetes eviction API respects PDBs, ensuring minimum pods stay running
+2. **During HPA Scale-Down**: Autoscaler coordinates with PDBs to prevent over-scaling
+3. **During Rolling Updates**: Deployment controller ensures PDB constraints are met
+
+#### Testing PDB Protection
+
+```bash
+# Attempt to drain a node (will respect PDBs)
+kubectl drain <node-name> --ignore-daemonsets --delete-emptydir-data
+
+# Watch pod evictions (should maintain minimums)
+kubectl get pods -n nebula-dns -w
+
+# Check PDB status during drain
+kubectl get pdb -n nebula-dns -w
+```
+
+#### Customizing PDBs
+
+For environments with different availability requirements, modify PDB values:
+
+```bash
+# Edit PDB for higher availability
+kubectl edit pdb policy-svc-pdb -n nebula-dns
+
+# Or patch directly
+kubectl patch pdb policy-svc-pdb -n nebula-dns \
+  --type merge \
+  --patch '{"spec":{"minAvailable":3}}'
+```
+
+**Important**: Ensure your HPA `minReplicas` settings allow for the PDB constraints. For example, if `policy-svc-pdb` requires `minAvailable: 2`, the HPA must have `minReplicas: 3` or higher to allow any disruptions.
+
+#### PDB Best Practices
+
+1. **Match with HPA**: Set PDB `minAvailable` less than HPA `minReplicas` to allow maintenance
+2. **Critical Services**: Use higher `minAvailable` values for DNS-critical services (policy-svc, dnsdist)
+3. **Monitor Disruptions**: Set up alerts when `disruptionsAllowed` reaches 0
+4. **Test Regularly**: Perform controlled node drains to verify PDB behavior
 
 ---
 

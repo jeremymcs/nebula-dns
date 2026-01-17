@@ -1,0 +1,22 @@
+# Nebula DNS - Pod Disruption Budget for dnsdist DNS Frontend
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+#
+# This PDB ensures at least 1 dnsdist pod remains available during voluntary
+# disruptions. This is CRITICAL for DNS service availability. With HPA min=2
+# and hard anti-affinity, this ensures DNS requests can always be served
+# during cluster maintenance operations.
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: dnsdist-pdb
+  namespace: nebula-dns
+  labels:
+    app: dnsdist
+    app.kubernetes.io/name: dnsdist
+    app.kubernetes.io/component: dns-frontend
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: dnsdist

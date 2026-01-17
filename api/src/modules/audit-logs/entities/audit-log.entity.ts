@@ -1,3 +1,6 @@
+// Nebula DNS - Audit Log Entity
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 import {
   Entity,
   Column,
@@ -93,6 +96,17 @@ export class AuditLog {
 
   @Column({ type: 'jsonb', nullable: true })
   metadata: Record<string, any> | null;
+
+  @Column({
+    name: 'previous_hash',
+    type: 'varchar',
+    length: 64,
+    nullable: true,
+  })
+  previousHash: string | null;
+
+  @Column({ name: 'record_hash', type: 'varchar', length: 64, default: '' })
+  recordHash: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;

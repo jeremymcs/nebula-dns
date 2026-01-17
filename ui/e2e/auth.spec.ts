@@ -1,6 +1,5 @@
-/**
- * Nebula DNS - Authentication E2E Tests
- */
+// Nebula DNS - Authentication E2E Tests
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import { test, expect } from '@playwright/test'
 

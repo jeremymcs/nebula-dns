@@ -1,3 +1,6 @@
+// Nebula DNS - SSO DTOs
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 import {
   IsString,
   IsNotEmpty,
@@ -47,6 +50,10 @@ export class ConfigureSamlDto {
   @IsString()
   @IsNotEmpty()
   certificate: string; // Base64 encoded X.509 certificate
+
+  @IsBoolean()
+  @IsOptional()
+  signRequests?: boolean; // Enable signing of SAML requests
 
   @IsBoolean()
   @IsOptional()
@@ -113,6 +120,10 @@ export class ConfigureOidcDto {
   @Type(() => AttributeMappingDto)
   @IsOptional()
   attributeMapping?: AttributeMappingDto;
+
+  @IsBoolean()
+  @IsOptional()
+  pkceRequired?: boolean;
 }
 
 export class SsoLoginDto {
@@ -139,4 +150,23 @@ export class OidcCallbackDto {
   @IsString()
   @IsNotEmpty()
   state: string;
+}
+
+/**
+ * Response DTO for signing certificate endpoint
+ */
+export class SigningCertificateResponseDto {
+  certificate: string;
+  certificateBase64: string;
+  signRequestsEnabled: boolean;
+}
+
+/**
+ * Response DTO for key rotation endpoint
+ */
+export class KeyRotationResponseDto {
+  newCertificate: string;
+  newCertificateBase64: string;
+  previousCertExpiresAt: string;
+  gracePeriodHours: number;
 }

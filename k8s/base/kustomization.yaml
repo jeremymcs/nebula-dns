@@ -5,11 +5,14 @@ namespace: nebula-dns
 
 resources:
   - namespace.yaml
+  - jobs/
   - api-deployment.yaml
   - policy-svc-deployment.yaml
   - dnsdist-deployment.yaml
   - ui-deployment.yaml
   - ingress.yaml
+  - pdbs/
+  - network-policies/
   # Optional: Enable these as needed
   # - cert-manager/
   # - external-secrets/

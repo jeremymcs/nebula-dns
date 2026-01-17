@@ -1,6 +1,7 @@
 /**
  * Nebula DNS - Dashboard Layout Component
  * Cosmic Security Theme - Top Navigation Layout with Command Bar and Orion AI
+ * Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
  */
 
 'use client'
@@ -15,6 +16,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { ArrowsRightLeftIcon } from '@heroicons/react/24/outline'
 import { CommandBarProvider } from '@/components/command-bar'
 import { OrionFAB } from '@/components/orion'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 // Breadcrumb mapping
 const breadcrumbLabels: Record<string, string> = {
@@ -108,46 +110,57 @@ export function DashboardLayout({ children, showBreadcrumbs = true }: DashboardL
   }
 
   return (
-    <CommandBarProvider>
-      <div className="min-h-screen bg-space-50 dark:bg-space-950">
-        {/* Impersonation Banner */}
-        {isImpersonating && (
-          <div className="bg-amber-500 text-white px-4 py-2 flex items-center justify-between">
-            <span className="text-sm font-medium">
-              <ArrowsRightLeftIcon className="h-4 w-4 inline mr-2" />
-              You are viewing this organization as a partner admin
-            </span>
-            <button
-              onClick={exitImpersonation}
-              className="text-sm bg-white/20 hover:bg-white/30 px-3 py-1 rounded transition-colors"
-            >
-              Return to Partner Portal
-            </button>
-          </div>
-        )}
-        <TopNav />
+    <ErrorBoundary name="AppLayout" showReload>
+      <CommandBarProvider>
+        <div className="min-h-screen bg-space-50 dark:bg-space-950">
+          {/* Impersonation Banner */}
+          {isImpersonating && (
+            <div className="bg-amber-500 text-white px-4 py-2 flex items-center justify-between">
+              <span className="text-sm font-medium">
+                <ArrowsRightLeftIcon className="h-4 w-4 inline mr-2" />
+                You are viewing this organization as a partner admin
+              </span>
+              <button
+                onClick={exitImpersonation}
+                className="text-sm bg-white/20 hover:bg-white/30 px-3 py-1 rounded transition-colors"
+              >
+                Return to Partner Portal
+              </button>
+            </div>
+          )}
 
-        <main className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 pt-4 pb-20 lg:pb-6">
-          {showBreadcrumbs && <Breadcrumbs />}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={pathname}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
-        </main>
+          <ErrorBoundary name="TopNav">
+            <TopNav />
+          </ErrorBoundary>
 
-        <MobileNav />
+          <main className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 pt-4 pb-20 lg:pb-6">
+            {showBreadcrumbs && <Breadcrumbs />}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={pathname}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+              >
+                <ErrorBoundary name="PageContent">
+                  {children}
+                </ErrorBoundary>
+              </motion.div>
+            </AnimatePresence>
+          </main>
 
-        {/* Orion AI Assistant FAB */}
-        <OrionFAB />
-      </div>
-    </CommandBarProvider>
+          <ErrorBoundary name="MobileNav">
+            <MobileNav />
+          </ErrorBoundary>
+
+          {/* Orion AI Assistant FAB */}
+          <ErrorBoundary name="OrionFAB">
+            <OrionFAB />
+          </ErrorBoundary>
+        </div>
+      </CommandBarProvider>
+    </ErrorBoundary>
   )
 }
 

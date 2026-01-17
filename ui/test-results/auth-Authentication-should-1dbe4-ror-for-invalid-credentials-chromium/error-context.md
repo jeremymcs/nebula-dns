@@ -1,0 +1,57 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+  - alert [ref=e11]
+  - generic [ref=e12]:
+    - generic [ref=e22]:
+      - generic [ref=e23]:
+        - img [ref=e25]
+        - generic [ref=e27]:
+          - heading "Nebula DNS" [level=1] [ref=e28]
+          - paragraph [ref=e29]: Enterprise Security
+      - heading "Protect your network from the cosmos" [level=2] [ref=e30]:
+        - text: Protect your network
+        - text: from the cosmos
+      - paragraph [ref=e31]: Advanced DNS security, threat intelligence, and content filtering for modern enterprises.
+      - generic [ref=e32]:
+        - generic [ref=e33]:
+          - img [ref=e35]
+          - text: Real-time threat blocking
+        - generic [ref=e37]:
+          - img [ref=e39]
+          - text: AI-powered categorization
+        - generic [ref=e41]:
+          - img [ref=e43]
+          - text: Zero-latency filtering
+    - generic [ref=e45]:
+      - button "Toggle theme" [ref=e46] [cursor=pointer]:
+        - img [ref=e47]
+      - generic [ref=e49]:
+        - generic [ref=e50]:
+          - heading "Welcome back" [level=2] [ref=e51]
+          - paragraph [ref=e52]: Sign in to your account to continue
+        - paragraph [ref=e54]: Failed to fetch
+        - generic [ref=e55]:
+          - generic [ref=e56]:
+            - generic [ref=e57]: Email address
+            - textbox "Email address" [ref=e58]:
+              - /placeholder: you@company.com
+              - text: invalid@example.com
+          - generic [ref=e59]:
+            - generic [ref=e60]: Password
+            - textbox "Password" [ref=e61]:
+              - /placeholder: ••••••••
+              - text: wrongpassword
+          - button "Sign in" [ref=e62] [cursor=pointer]
+          - generic [ref=e67]: or
+          - generic [ref=e68]:
+            - button "Demo" [ref=e69] [cursor=pointer]:
+              - img [ref=e70]
+              - generic [ref=e73]: Demo
+            - button "MSP Demo" [ref=e74] [cursor=pointer]:
+              - img [ref=e75]
+              - generic [ref=e77]: MSP Demo
+```

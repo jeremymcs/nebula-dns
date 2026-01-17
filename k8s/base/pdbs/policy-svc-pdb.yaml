@@ -1,0 +1,22 @@
+# Nebula DNS - Pod Disruption Budget for Policy Service
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+#
+# This PDB ensures at least 2 Policy Service pods remain available during
+# voluntary disruptions. This is CRITICAL for DNS resolution availability.
+# With HPA min=3, this allows single-pod disruptions while maintaining
+# high availability for DNS query evaluation.
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: policy-svc-pdb
+  namespace: nebula-dns
+  labels:
+    app: policy-svc
+    app.kubernetes.io/name: policy-svc
+    app.kubernetes.io/component: dns-policy
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: policy-svc

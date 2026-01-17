@@ -1,0 +1,108 @@
+// Nebula DNS - Network Policy Diagram
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+//
+// Generate PNG: dot -Tpng network-policies.dot -o network-policies.png
+// Generate SVG: dot -Tsvg network-policies.dot -o network-policies.svg
+
+digraph NebulaNetworkPolicies {
+    rankdir=LR;
+    node [shape=box, style=filled];
+
+    // Define styling
+    subgraph cluster_internet {
+        label="Internet";
+        style=dashed;
+        color=gray;
+        Internet [shape=cloud, fillcolor=lightblue];
+    }
+
+    subgraph cluster_ingress {
+        label="Ingress Layer";
+        style=filled;
+        color=lightgray;
+        IngressNginx [label="Ingress NGINX", fillcolor=orange];
+    }
+
+    subgraph cluster_app {
+        label="Application Layer";
+        style=filled;
+        color=lightgray;
+
+        UI [label="UI\n(Next.js)", fillcolor=lightgreen];
+        API [label="API\n(NestJS)", fillcolor=lightgreen];
+        PolicySvc [label="Policy Service\n(Go)", fillcolor=lightgreen];
+        dnsdist [label="dnsdist\n(DNS Proxy)", fillcolor=lightgreen];
+    }
+
+    subgraph cluster_data {
+        label="Data Layer";
+        style=filled;
+        color=lightgray;
+
+        PostgreSQL [label="PostgreSQL", fillcolor=yellow];
+        Redis [label="Redis", fillcolor=yellow];
+        ClickHouse [label="ClickHouse", fillcolor=yellow];
+        Unbound [label="Unbound\n(Resolver)", fillcolor=yellow];
+    }
+
+    subgraph cluster_external {
+        label="External Services";
+        style=dashed;
+        color=gray;
+
+        Stripe [shape=ellipse, fillcolor=lightblue];
+        SendGrid [shape=ellipse, fillcolor=lightblue];
+        DNS_Upstream [label="DNS Servers", shape=ellipse, fillcolor=lightblue];
+    }
+
+    // Internet to dnsdist
+    Internet -> dnsdist [label="DoT:853\nDoH:443", color=blue, penwidth=2];
+
+    // Ingress to UI and API
+    IngressNginx -> UI [label="HTTP:3000", color=green];
+    IngressNginx -> API [label="HTTP:3000", color=green];
+
+    // dnsdist connections
+    dnsdist -> PolicySvc [label="HTTP:8080", color=blue];
+    dnsdist -> Unbound [label="DNS:53", color=blue];
+
+    // Policy Service connections
+    PolicySvc -> Redis [label="Redis:6379", color=purple];
+    PolicySvc -> ClickHouse [label="HTTP:8123", color=purple];
+    PolicySvc -> Unbound [label="DNS:53", color=purple];
+
+    // API connections
+    API -> PostgreSQL [label="PG:5432", color=green];
+    API -> Redis [label="Redis:6379", color=green];
+    API -> ClickHouse [label="HTTP:8123", color=green];
+    API -> Stripe [label="HTTPS:443", color=green, style=dashed];
+    API -> SendGrid [label="HTTPS:443", color=green, style=dashed];
+
+    // Unbound to internet
+    Unbound -> DNS_Upstream [label="DNS:53\nDoT:853", color=blue, style=dashed];
+
+    // Legend
+    subgraph cluster_legend {
+        label="Legend";
+        style=filled;
+        color=white;
+
+        node [shape=plaintext, fillcolor=white];
+        legend [label=<
+            <table border="0" cellborder="1" cellspacing="0">
+                <tr><td bgcolor="lightgreen">Application Services</td></tr>
+                <tr><td bgcolor="yellow">Data Services</td></tr>
+                <tr><td bgcolor="orange">Infrastructure</td></tr>
+                <tr><td bgcolor="lightblue">External/Internet</td></tr>
+            </table>
+        >];
+    }
+
+    // Notes
+    note [shape=note, fillcolor=lightyellow, label=
+        "Network Policies enforce:\n\
+        • Default deny-all\n\
+        • Least-privilege access\n\
+        • Zero-trust networking\n\
+        • Micro-segmentation"];
+}

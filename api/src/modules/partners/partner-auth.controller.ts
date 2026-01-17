@@ -1,3 +1,6 @@
+// Nebula DNS - Partner Auth Controller
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 import {
   Controller,
   Post,
@@ -7,12 +10,14 @@ import {
   HttpStatus,
   BadRequestException,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PartnersService } from './partners.service';
 import { PartnerLoginDto } from './dto/partner.dto';
 import { EmailService } from '../email/email.service';
 
+@ApiTags('partner-auth')
 @Controller('partner-auth')
 export class PartnerAuthController {
   private readonly partnerPortalUrl: string;
@@ -31,6 +36,16 @@ export class PartnerAuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Partner user login',
+    description:
+      'Authenticates a partner user with email and password. Returns JWT token on success. If MFA is enabled, requires mfaCode.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Login successful, returns access token',
+  })
+  @ApiResponse({ status: 401, description: 'Invalid credentials or MFA code' })
   async login(@Body() dto: PartnerLoginDto) {
     // Validate credentials
     const user = await this.partnersService.validatePartnerUser(
@@ -92,6 +107,13 @@ export class PartnerAuthController {
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Refresh partner access token',
+    description:
+      'Exchanges a valid JWT token for a new one with extended expiry.',
+  })
+  @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
+  @ApiResponse({ status: 401, description: 'Invalid or expired token' })
   async refresh(@Body() body: { token: string }) {
     try {
       const decoded = this.jwtService.verify(body.token);
@@ -133,6 +155,16 @@ export class PartnerAuthController {
 
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Request password reset',
+    description:
+      'Sends a password reset email if the account exists. Always returns success to prevent email enumeration.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Password reset email sent (if account exists)',
+  })
+  @ApiResponse({ status: 400, description: 'Email is required' })
   async forgotPassword(@Body() body: { email: string }) {
     if (!body.email) {
       throw new BadRequestException('Email is required');
@@ -162,6 +194,16 @@ export class PartnerAuthController {
 
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Reset password with token',
+    description:
+      'Resets the password using a valid reset token from the email. Token expires after 1 hour.',
+  })
+  @ApiResponse({ status: 200, description: 'Password reset successfully' })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid token, password too short, or missing fields',
+  })
   async resetPassword(@Body() body: { token: string; password: string }) {
     if (!body.token || !body.password) {
       throw new BadRequestException('Token and password are required');
@@ -181,6 +223,13 @@ export class PartnerAuthController {
 
   @Post('validate-reset-token')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Validate password reset token',
+    description:
+      'Checks if a password reset token is valid and not expired. Returns partially masked email if valid.',
+  })
+  @ApiResponse({ status: 200, description: 'Token validation result' })
+  @ApiResponse({ status: 400, description: 'Token is required' })
   async validateResetToken(@Body() body: { token: string }) {
     if (!body.token) {
       throw new BadRequestException('Token is required');

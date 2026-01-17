@@ -1,4 +1,4 @@
-// Nebula DNS - Webhook Service with Security Controls
+// Nebula DNS - Webhook Service with Idempotency Support
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import {
@@ -9,22 +9,28 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, LessThan } from 'typeorm';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import * as crypto from 'crypto';
 import * as https from 'https';
 import * as http from 'http';
+import { v4 as uuidv4 } from 'uuid';
 import { Webhook, WebhookEvent } from './entities/webhook.entity';
 import { WebhookDelivery } from './entities/webhook-delivery.entity';
+import { WebhookIdempotencyKey } from './entities/webhook-idempotency.entity';
 import {
   CreateWebhookDto,
   UpdateWebhookDto,
   WebhookResponseDto,
   WebhookDeliveryResponseDto,
   TestWebhookResultDto,
+  RotateSecretResponseDto,
+  WebhookSecretStatusDto,
   WEBHOOK_EVENTS,
 } from './dto/webhook.dto';
 import { RedisService } from '../redis/redis.service';
 import { MetricsService } from '../metrics/metrics.service';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 
 // Webhook event message for Redis pub/sub
 export interface WebhookEventMessage {
@@ -54,9 +60,113 @@ export class WebhooksService implements OnModuleInit {
     private webhookRepository: Repository<Webhook>,
     @InjectRepository(WebhookDelivery)
     private deliveryRepository: Repository<WebhookDelivery>,
+    @InjectRepository(WebhookIdempotencyKey)
+    private idempotencyRepository: Repository<WebhookIdempotencyKey>,
     private readonly redisService: RedisService,
     private readonly metricsService: MetricsService,
+    private readonly auditLogsService: AuditLogsService,
   ) {}
+
+  /**
+   * Generate a unique idempotency key for each webhook event.
+   * This key is sent as X-Idempotency-Key header to allow consumers
+   * to deduplicate webhook events.
+   */
+  private generateIdempotencyKey(): string {
+    return uuidv4();
+  }
+
+  /**
+   * Check if an idempotency key has already been delivered successfully.
+   * Returns the cached response if available.
+   */
+  async checkIdempotencyKey(
+    webhookId: string,
+    idempotencyKey: string,
+  ): Promise<{
+    exists: boolean;
+    cachedResponse?: { statusCode: number; body: string };
+  }> {
+    try {
+      const existing = await this.idempotencyRepository.findOne({
+        where: { key: idempotencyKey, webhookId },
+      });
+
+      if (existing && existing.acknowledged) {
+        return {
+          exists: true,
+          cachedResponse: existing.responseStatus
+            ? {
+                statusCode: existing.responseStatus,
+                body: existing.responseBody || '',
+              }
+            : undefined,
+        };
+      }
+
+      return { exists: false };
+    } catch (err) {
+      this.logger.warn(
+        `Idempotency check failed: ${(err as Error).message}. Proceeding with delivery.`,
+      );
+      return { exists: false };
+    }
+  }
+
+  /**
+   * Store a delivered idempotency key with optional response caching.
+   */
+  async storeIdempotencyKey(
+    idempotencyKey: string,
+    webhookId: string,
+    eventType: string,
+    acknowledged: boolean,
+    response?: { statusCode: number; body: string },
+  ): Promise<void> {
+    try {
+      const idempotencyRecord = this.idempotencyRepository.create({
+        key: idempotencyKey,
+        webhookId,
+        eventType,
+        acknowledged,
+        responseStatus: response?.statusCode,
+        responseBody: response?.body?.substring(0, 1000), // Limit stored response
+      });
+
+      await this.idempotencyRepository.save(idempotencyRecord);
+    } catch (err) {
+      // Log but don't fail - idempotency storage is not critical
+      this.logger.warn(
+        `Failed to store idempotency key: ${(err as Error).message}`,
+      );
+    }
+  }
+
+  /**
+   * Cleanup old idempotency keys older than 7 days.
+   * Runs daily at 3:00 AM.
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  async cleanupOldIdempotencyKeys(): Promise<void> {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    try {
+      const result = await this.idempotencyRepository.delete({
+        deliveredAt: LessThan(sevenDaysAgo),
+      });
+
+      if (result.affected && result.affected > 0) {
+        this.logger.log(
+          `Cleaned up ${result.affected} old idempotency keys older than 7 days`,
+        );
+      }
+    } catch (err) {
+      this.logger.error(
+        `Failed to cleanup old idempotency keys: ${(err as Error).message}`,
+      );
+    }
+  }
 
   async onModuleInit(): Promise<void> {
     // Register webhook-specific metrics
@@ -411,6 +521,183 @@ export class WebhooksService implements OnModuleInit {
     return this.webhookRepository.save(webhook);
   }
 
+  // ============================================
+  // Secret Rotation Methods
+  // ============================================
+
+  /**
+   * Generate a new cryptographically secure webhook secret.
+   * Format: whsec_<32 random hex characters>
+   */
+  private generateWebhookSecret(): string {
+    const randomBytes = crypto.randomBytes(16).toString('hex');
+    return `whsec_${randomBytes}`;
+  }
+
+  /**
+   * Check if a webhook is currently within its secret grace period.
+   */
+  isInGracePeriod(webhook: Webhook): boolean {
+    if (!webhook.secretGracePeriodEnds) {
+      return false;
+    }
+    return new Date() < webhook.secretGracePeriodEnds;
+  }
+
+  /**
+   * Get the secret status of a webhook.
+   */
+  async getSecretStatus(
+    tenantId: string,
+    id: string,
+  ): Promise<WebhookSecretStatusDto> {
+    const webhook = await this.findOne(tenantId, id);
+
+    return {
+      hasSecret: !!webhook.secretHash,
+      lastRotatedAt: webhook.secretRotatedAt,
+      inGracePeriod: this.isInGracePeriod(webhook),
+      gracePeriodEndsAt: webhook.secretGracePeriodEnds,
+    };
+  }
+
+  /**
+   * Rotate the webhook secret with a configurable grace period.
+   * During the grace period, both old and new secrets are valid for signature verification.
+   *
+   * @param tenantId - The tenant ID
+   * @param id - The webhook ID
+   * @param gracePeriodHours - Hours during which both secrets are valid (default: 24)
+   * @param userId - User performing the rotation (for audit logging)
+   * @param ipAddress - IP address of the requester (for audit logging)
+   * @param userAgent - User agent of the requester (for audit logging)
+   */
+  async rotateSecret(
+    tenantId: string,
+    id: string,
+    gracePeriodHours: number = 24,
+    userId?: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<RotateSecretResponseDto> {
+    const webhook = await this.findOne(tenantId, id);
+
+    // Generate new secret
+    const newSecret = this.generateWebhookSecret();
+    const now = new Date();
+    const gracePeriodEnds = new Date(
+      now.getTime() + gracePeriodHours * 60 * 60 * 1000,
+    );
+
+    // Store current secret as previous (if exists)
+    const hadPreviousSecret = !!webhook.secretHash;
+    if (hadPreviousSecret) {
+      webhook.previousSecret = webhook.secretHash;
+    }
+
+    // Set new secret and rotation timestamps
+    webhook.secretHash = newSecret;
+    webhook.secretRotatedAt = now;
+    webhook.secretGracePeriodEnds = gracePeriodEnds;
+
+    await this.webhookRepository.save(webhook);
+
+    // Log audit event
+    try {
+      await this.auditLogsService.log({
+        tenantId,
+        userId: userId || null,
+        action: 'token_rotate',
+        resourceType: 'webhook',
+        resourceId: webhook.id,
+        resourceName: webhook.name,
+        oldValue: hadPreviousSecret ? { hasSecret: true } : null,
+        newValue: {
+          rotatedAt: now.toISOString(),
+          gracePeriodEnds: gracePeriodEnds.toISOString(),
+          gracePeriodHours,
+        },
+        ipAddress: ipAddress || null,
+        userAgent: userAgent || null,
+        metadata: {
+          action: 'secret_rotation',
+          webhookUrl: webhook.url,
+        },
+      });
+    } catch (err) {
+      this.logger.warn(
+        `Failed to log audit event for secret rotation: ${(err as Error).message}`,
+      );
+    }
+
+    this.logger.log(
+      `Rotated secret for webhook ${webhook.name} (${webhook.id}). Grace period ends: ${gracePeriodEnds.toISOString()}`,
+    );
+
+    return {
+      secret: newSecret,
+      gracePeriodEndsAt: gracePeriodEnds,
+      rotatedAt: now,
+      hasPreviousSecret: hadPreviousSecret,
+    };
+  }
+
+  /**
+   * Expire the previous secret for a webhook (clear grace period).
+   * Called automatically or manually to end the grace period early.
+   */
+  async expirePreviousSecret(tenantId: string, id: string): Promise<void> {
+    const webhook = await this.findOne(tenantId, id);
+
+    if (!webhook.previousSecret) {
+      return; // No previous secret to expire
+    }
+
+    webhook.previousSecret = null;
+    webhook.secretGracePeriodEnds = null;
+
+    await this.webhookRepository.save(webhook);
+
+    this.logger.log(
+      `Expired previous secret for webhook ${webhook.name} (${webhook.id})`,
+    );
+  }
+
+  /**
+   * Cleanup expired grace periods - runs hourly.
+   * Clears previousSecret for webhooks whose grace period has ended.
+   */
+  @Cron(CronExpression.EVERY_HOUR)
+  async cleanupExpiredGracePeriods(): Promise<void> {
+    try {
+      const now = new Date();
+      const expiredWebhooks = await this.webhookRepository
+        .createQueryBuilder('webhook')
+        .where('webhook.previousSecret IS NOT NULL')
+        .andWhere('webhook.secretGracePeriodEnds <= :now', { now })
+        .getMany();
+
+      if (expiredWebhooks.length === 0) {
+        return;
+      }
+
+      for (const webhook of expiredWebhooks) {
+        webhook.previousSecret = null;
+        webhook.secretGracePeriodEnds = null;
+      }
+
+      await this.webhookRepository.save(expiredWebhooks);
+
+      this.logger.log(
+        `Cleaned up ${expiredWebhooks.length} webhook(s) with expired grace periods`,
+      );
+    } catch (err) {
+      this.logger.error(
+        `Failed to cleanup expired grace periods: ${(err as Error).message}`,
+      );
+    }
+  }
+
   // Get delivery history
   async getDeliveries(
     tenantId: string,
@@ -433,6 +720,7 @@ export class WebhooksService implements OnModuleInit {
       responseTimeMs: d.responseTimeMs,
       error: d.error,
       retryCount: d.retryCount,
+      idempotencyKey: d.idempotencyKey,
       createdAt: d.createdAt,
     }));
   }
@@ -484,15 +772,52 @@ export class WebhooksService implements OnModuleInit {
     );
   }
 
-  // Deliver webhook
+  // Deliver webhook with idempotency support
   private async deliver(
     webhook: Webhook,
     eventType: string,
     payload: Record<string, unknown>,
     isTest: boolean,
+    providedIdempotencyKey?: string,
   ): Promise<TestWebhookResultDto> {
     const startTime = Date.now();
     const payloadString = JSON.stringify(payload);
+
+    // Generate or use provided idempotency key
+    const idempotencyKey =
+      providedIdempotencyKey || this.generateIdempotencyKey();
+
+    // Check for existing delivery with same idempotency key (skip for tests)
+    if (!isTest) {
+      const idempotencyCheck = await this.checkIdempotencyKey(
+        webhook.id,
+        idempotencyKey,
+      );
+      if (idempotencyCheck.exists) {
+        this.logger.debug(
+          `Skipping duplicate delivery for webhook ${webhook.name} with idempotency key ${idempotencyKey}`,
+        );
+
+        // Return cached response if available
+        if (idempotencyCheck.cachedResponse) {
+          return {
+            success:
+              idempotencyCheck.cachedResponse.statusCode >= 200 &&
+              idempotencyCheck.cachedResponse.statusCode < 300,
+            statusCode: idempotencyCheck.cachedResponse.statusCode,
+            responseTimeMs: 0,
+            error: null,
+          };
+        }
+
+        return {
+          success: true,
+          statusCode: 200,
+          responseTimeMs: 0,
+          error: null,
+        };
+      }
+    }
 
     // Check rate limit (skip for tests)
     if (!isTest) {
@@ -528,6 +853,7 @@ export class WebhooksService implements OnModuleInit {
       'User-Agent': 'Nebula DNS-Webhook/1.0',
       'X-Webhook-Event': eventType,
       'X-Webhook-Timestamp': new Date().toISOString(),
+      'X-Idempotency-Key': idempotencyKey,
       ...webhook.headers,
     };
 
@@ -535,6 +861,13 @@ export class WebhooksService implements OnModuleInit {
     if (webhook.secretHash) {
       headers['X-Webhook-Signature'] =
         `sha256=${this.generateSignature(payloadString, webhook.secretHash)}`;
+
+      // During grace period, also include signature with previous secret
+      // This allows consumers to gradually migrate to the new secret
+      if (this.isInGracePeriod(webhook) && webhook.previousSecret) {
+        headers['X-Webhook-Signature-Previous'] =
+          `sha256=${this.generateSignature(payloadString, webhook.previousSecret)}`;
+      }
     }
 
     let statusCode: number = 0;
@@ -552,7 +885,7 @@ export class WebhooksService implements OnModuleInit {
         // Success - break out of retry loop
         if (statusCode >= 200 && statusCode < 300) {
           this.logger.log(
-            `Delivered ${eventType} to ${webhook.name} (${webhook.url})`,
+            `Delivered ${eventType} to ${webhook.name} (${webhook.url}) with idempotency key ${idempotencyKey}`,
           );
           break;
         }
@@ -596,8 +929,17 @@ export class WebhooksService implements OnModuleInit {
       responseTimeMs,
     );
 
-    // Record delivery (skip for tests)
+    // Record delivery and idempotency key (skip for tests)
     if (!isTest) {
+      // Store idempotency key with response caching
+      await this.storeIdempotencyKey(
+        idempotencyKey,
+        webhook.id,
+        eventType,
+        success,
+        { statusCode, body: responseBody },
+      );
+
       const delivery = this.deliveryRepository.create({
         webhookId: webhook.id,
         eventType,
@@ -607,6 +949,7 @@ export class WebhooksService implements OnModuleInit {
         responseTimeMs,
         error,
         retryCount,
+        idempotencyKey,
       });
       await this.deliveryRepository.save(delivery);
 

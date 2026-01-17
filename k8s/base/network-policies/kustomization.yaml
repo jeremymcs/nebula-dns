@@ -1,0 +1,27 @@
+# Nebula DNS - Network Policies Kustomization
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: nebula-dns
+
+resources:
+  # Default deny-all policy (applied first for zero-trust)
+  - default-deny-all.yaml
+
+  # Application layer policies
+  - api-netpol.yaml
+  - ui-netpol.yaml
+  - policy-svc-netpol.yaml
+  - dnsdist-netpol.yaml
+
+  # Data layer policies
+  - postgres-netpol.yaml
+  - redis-netpol.yaml
+  - clickhouse-netpol.yaml
+  - unbound-netpol.yaml
+
+commonLabels:
+  app.kubernetes.io/part-of: nebula-dns
+  app.kubernetes.io/managed-by: kustomize

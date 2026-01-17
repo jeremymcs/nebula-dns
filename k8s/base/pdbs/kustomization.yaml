@@ -1,0 +1,13 @@
+# Nebula DNS - Pod Disruption Budgets Kustomization
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: nebula-dns
+
+resources:
+  - api-pdb.yaml
+  - policy-svc-pdb.yaml
+  - dnsdist-pdb.yaml
+  - ui-pdb.yaml
