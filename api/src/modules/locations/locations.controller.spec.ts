@@ -20,12 +20,11 @@ describe('LocationsController', () => {
 
   const mockLocation = {
     id: mockLocationId,
-    label: 'Office HQ',
+    name: 'Office HQ',
     description: 'Main office location',
     tenantId: mockTenantId,
     ipRange: '192.168.1.0/24',
     policyId: 'policy-123',
-
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
   };
@@ -222,7 +221,7 @@ describe('LocationsController', () => {
 
     it('should reject overlapping IP ranges', async () => {
       const createDto: CreateLocationDto = {
-        label: 'Test Location',
+        name: 'Test Location',
         description: 'Test',
         ipRange: '192.168.1.0/24',
         policyId: 'policy-123',
@@ -239,7 +238,7 @@ describe('LocationsController', () => {
 
     it('should require location name', async () => {
       const createDto = {
-        label: '',
+        name: '',
         description: 'Test',
         ipRange: '192.168.1.0/24',
         policyId: 'policy-123',
@@ -258,7 +257,7 @@ describe('LocationsController', () => {
   describe('PATCH /locations/:id', () => {
     it('should update location with valid data', async () => {
       const updateDto: UpdateLocationDto = {
-        label: 'Updated Office',
+        name: 'Updated Office',
       };
 
       const updatedLocation = { ...mockLocation, ...updateDto };
@@ -296,7 +295,7 @@ describe('LocationsController', () => {
     });
 
     it('should throw NotFoundException for non-existent location', async () => {
-      const updateDto: UpdateLocationDto = { label: 'Updated' };
+      const updateDto: UpdateLocationDto = { name: 'Updated' };
 
       mockLocationsService.update.mockRejectedValue(
         new NotFoundException('Location not found'),
@@ -483,7 +482,7 @@ describe('LocationsController', () => {
 
     it('should propagate validation errors', async () => {
       const createDto: CreateLocationDto = {
-        label: 'Test',
+        name: 'Test',
         description: 'Test',
         ipRange: '192.168.1.0/24',
         policyId: 'policy-123',

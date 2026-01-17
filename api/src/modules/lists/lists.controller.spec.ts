@@ -24,7 +24,7 @@ describe('ListsController', () => {
     name: 'Block List',
     description: 'Custom block list',
     tenantId: mockTenantId,
-    type: 'block',
+    type: 'blocklist',
     entryCount: 10,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
@@ -33,8 +33,8 @@ describe('ListsController', () => {
   const mockEntry = {
     id: mockEntryId,
     listId: mockListId,
-    value: 'malicious-domain.com',
-    type: 'domain',
+    domain: 'malicious-domain.com',
+    type: 'exact',
     createdAt: new Date('2024-01-01'),
   };
 
@@ -84,7 +84,7 @@ describe('ListsController', () => {
     });
 
     it('should filter by list type', async () => {
-      const query: ListQueryDto = { type: 'block' };
+      const query: ListQueryDto = { type: 'blocklist' };
       const mockResponse = {
         data: [mockList],
         pagination: { hasMore: false, cursor: null },
@@ -158,7 +158,7 @@ describe('ListsController', () => {
       const createDto: CreateListDto = {
         name: 'New Block List',
         description: 'Custom block list',
-        type: 'block',
+        type: 'blocklist',
       };
 
       const expectedList = { ...mockList, ...createDto };
@@ -174,10 +174,10 @@ describe('ListsController', () => {
       const createDto: CreateListDto = {
         name: 'Allow List',
         description: 'Whitelist domains',
-        type: 'allow',
+        type: 'allowlist',
       };
 
-      const expectedList = { ...mockList, type: 'allow', ...createDto };
+      const expectedList = { ...mockList, type: 'allowlist', ...createDto };
       mockListsService.create.mockResolvedValue(expectedList);
 
       const result = await controller.create(mockTenantId, createDto);
@@ -205,7 +205,7 @@ describe('ListsController', () => {
       const createDto = {
         name: '',
         description: 'Test',
-        type: 'block' as const,
+        type: 'blocklist' as const,
       };
 
       mockListsService.create.mockRejectedValue(
@@ -221,7 +221,7 @@ describe('ListsController', () => {
       const createDto: CreateListDto = {
         name: mockList.name,
         description: 'Duplicate',
-        type: 'block',
+        type: 'blocklist',
       };
 
       mockListsService.create.mockRejectedValue(
@@ -385,14 +385,14 @@ describe('ListsController', () => {
     it('should add entries to list', async () => {
       const addEntriesDto: AddEntriesDto = {
         entries: [
-          { value: 'malicious1.com', type: 'domain' },
-          { value: 'malicious2.com', type: 'domain' },
+          { domain: 'malicious1.com', type: 'exact' },
+          { domain: 'malicious2.com', type: 'exact' },
         ],
       };
 
       const mockResponse = {
         added: 2,
-        duplicates: 0,
+        skipped: 0,
         entries: [mockEntry],
       };
 
@@ -414,12 +414,12 @@ describe('ListsController', () => {
 
     it('should handle duplicate entries', async () => {
       const addEntriesDto: AddEntriesDto = {
-        entries: [{ value: 'existing.com', type: 'domain' }],
+        entries: [{ domain: 'existing.com', type: 'exact' }],
       };
 
       const mockResponse = {
         added: 0,
-        duplicates: 1,
+        skipped: 1,
         entries: [],
       };
 
@@ -431,18 +431,18 @@ describe('ListsController', () => {
         addEntriesDto,
       );
 
-      expect(result.duplicates).toBe(1);
+      expect(result.skipped).toBe(1);
     });
 
-    it('should add IP address entries', async () => {
+    it('should add wildcard entries', async () => {
       const addEntriesDto: AddEntriesDto = {
-        entries: [{ value: '192.168.1.100', type: 'ip' }],
+        entries: [{ domain: '*.example.com', type: 'wildcard' }],
       };
 
       mockListsService.addEntries.mockResolvedValue({
         added: 1,
-        duplicates: 0,
-        entries: [{ ...mockEntry, type: 'ip' }],
+        skipped: 0,
+        entries: [{ ...mockEntry, type: 'wildcard' }],
       });
 
       const result = await controller.addEntries(
@@ -456,7 +456,7 @@ describe('ListsController', () => {
 
     it('should reject invalid entry types', async () => {
       const addEntriesDto = {
-        entries: [{ value: 'test.com', type: 'invalid-type' }],
+        entries: [{ domain: 'test.com', type: 'invalid-type' }],
       } as any;
 
       mockListsService.addEntries.mockRejectedValue(
@@ -470,7 +470,7 @@ describe('ListsController', () => {
 
     it('should reject invalid domain format', async () => {
       const addEntriesDto: AddEntriesDto = {
-        entries: [{ value: 'invalid domain', type: 'domain' }],
+        entries: [{ domain: 'invalid domain', type: 'exact' }],
       };
 
       mockListsService.addEntries.mockRejectedValue(
@@ -484,7 +484,7 @@ describe('ListsController', () => {
 
     it('should throw NotFoundException for non-existent list', async () => {
       const addEntriesDto: AddEntriesDto = {
-        entries: [{ value: 'test.com', type: 'domain' }],
+        entries: [{ domain: 'test.com', type: 'exact' }],
       };
 
       mockListsService.addEntries.mockRejectedValue(
@@ -563,7 +563,7 @@ describe('ListsController', () => {
       const createDto: CreateListDto = {
         name: 'Test',
         description: 'Test',
-        type: 'block',
+        type: 'blocklist',
       };
 
       mockListsService.create.mockRejectedValue(
