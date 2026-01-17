@@ -76,35 +76,35 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| IMP-01 | TBD | Pending |
-| IMP-02 | TBD | Pending |
-| IMP-03 | TBD | Pending |
-| IMP-04 | TBD | Pending |
-| IMP-05 | TBD | Pending |
-| VIS-01 | TBD | Pending |
-| VIS-02 | TBD | Pending |
-| VIS-03 | TBD | Pending |
-| VIS-04 | TBD | Pending |
-| VIS-05 | TBD | Pending |
-| ONB-01 | TBD | Pending |
-| ONB-02 | TBD | Pending |
-| ONB-03 | TBD | Pending |
-| ONB-04 | TBD | Pending |
-| BIL-01 | TBD | Pending |
-| BIL-02 | TBD | Pending |
-| BIL-03 | TBD | Pending |
-| BIL-04 | TBD | Pending |
-| BIL-05 | TBD | Pending |
-| SYS-01 | TBD | Pending |
-| SYS-02 | TBD | Pending |
-| SYS-03 | TBD | Pending |
-| SYS-04 | TBD | Pending |
+| IMP-01 | Phase 2 | Pending |
+| IMP-02 | Phase 3 | Pending |
+| IMP-03 | Phase 3 | Pending |
+| IMP-04 | Phase 3 | Pending |
+| IMP-05 | Phase 3 | Pending |
+| VIS-01 | Phase 4 | Pending |
+| VIS-02 | Phase 5 | Pending |
+| VIS-03 | Phase 5 | Pending |
+| VIS-04 | Phase 5 | Pending |
+| VIS-05 | Phase 4 | Pending |
+| ONB-01 | Phase 7 | Pending |
+| ONB-02 | Phase 7 | Pending |
+| ONB-03 | Phase 7 | Pending |
+| ONB-04 | Phase 7 | Pending |
+| BIL-01 | Phase 8 | Pending |
+| BIL-02 | Phase 8 | Pending |
+| BIL-03 | Phase 8 | Pending |
+| BIL-04 | Phase 8 | Pending |
+| BIL-05 | Phase 8 | Pending |
+| SYS-01 | Phase 6 | Pending |
+| SYS-02 | Phase 6 | Pending |
+| SYS-03 | Phase 6 | Pending |
+| SYS-04 | Phase 6 | Pending |
 
 **Coverage:**
 - v1 requirements: 23 total
-- Mapped to phases: 0
-- Unmapped: 23 ⚠️
+- Mapped to phases: 23
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-17*
-*Last updated: 2026-01-17 after initial definition*
+*Last updated: 2026-01-17 after roadmap creation*
