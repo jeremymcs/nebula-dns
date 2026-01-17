@@ -6,10 +6,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
-import {
-  AdminJwtPayload,
-  AdminUser,
-} from '../dto/admin-jwt-payload.dto';
+import { AdminJwtPayload, AdminUser } from '../dto/admin-jwt-payload.dto';
 
 /**
  * Admin JWT Strategy - Named 'admin-jwt'
@@ -73,7 +70,7 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
    * @param jti - The JWT ID to check
    * @returns true if blacklisted, false otherwise
    */
-  private async isTokenBlacklisted(jti: string): Promise<boolean> {
+  private async isTokenBlacklisted(_jti: string): Promise<boolean> {
     // TODO: Implement via AdminService in plan 02
     // This stub allows the strategy to work before AdminService exists
     return false;
