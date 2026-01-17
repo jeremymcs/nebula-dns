@@ -2,7 +2,7 @@
 // Global system administrators for internal operations
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-import { Entity, Column, OneToOne, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { BaseEntity } from '@/common/entities/base.entity';
 

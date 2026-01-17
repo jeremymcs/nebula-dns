@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 
 import { AuthModule } from './modules/auth/auth.module';
+import { AdminModule } from './modules/admin/admin.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
 import { UsersModule } from './modules/users/users.module';
 import { PoliciesModule } from './modules/policies/policies.module';
@@ -38,9 +39,12 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { DoHModule } from './modules/doh/doh.module';
 
 // MSP/SaaS Multi-tenant
-import { PartnersModule } from './modules/partners/partners.module';
+// NOTE: PartnersModule has been deprecated and removed (US-022, US-023)
+// All partner functionality is now handled by the unified tier system via MspModule
+// See docs/msp-migration-guide.md for migration details
 import { MspModule } from './modules/msp/msp.module';
 import { MspBillingModule } from './modules/msp-billing/msp-billing.module';
+import { MspClientsModule } from './modules/msp-clients/msp-clients.module';
 
 // Audit Logging
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
@@ -60,6 +64,18 @@ import { RateLimitModule } from './modules/rate-limit/rate-limit.module';
 
 // Secrets Management
 import { SecretsModule } from './modules/secrets/secrets.module';
+
+// Subscription Plan Limits
+import { SubscriptionPlansModule } from './modules/subscription-plans/subscription-plans.module';
+
+// Billing Meter (Stripe metered billing for locations/clients)
+import { BillingMeterModule } from './modules/billing-meter/billing-meter.module';
+
+// Tier Upgrade Trials (US-032, US-033)
+import { TrialsModule } from './modules/trials/trials.module';
+
+// Subscription Lapse (US-027, US-028, US-029)
+import { SubscriptionLapseModule } from './modules/subscription-lapse/subscription-lapse.module';
 
 // Configuration
 import configuration from './config/configuration';
@@ -131,6 +147,7 @@ import configuration from './config/configuration';
 
     // Feature modules
     AuthModule,
+    AdminModule, // Separate admin authentication system (Phase 1)
     TenantsModule,
     UsersModule,
     PoliciesModule,
@@ -158,10 +175,11 @@ import configuration from './config/configuration';
     // DNS-over-HTTPS for agents
     DoHModule,
 
-    // MSP/SaaS Multi-tenant
-    PartnersModule,
+    // MSP/SaaS Multi-tenant (Unified Tier System)
+    // PartnersModule removed - see docs/msp-migration-guide.md
     MspModule,
     MspBillingModule,
+    MspClientsModule,
 
     // Observability & Logging
     MetricsModule,
@@ -186,6 +204,18 @@ import configuration from './config/configuration';
 
     // Secrets Management (AWS/Vault/env)
     SecretsModule,
+
+    // Subscription Plan Limits (tier-based billing)
+    SubscriptionPlansModule,
+
+    // Billing Meter (Stripe metered billing for locations/clients)
+    BillingMeterModule,
+
+    // Tier Upgrade Trials (US-032, US-033)
+    TrialsModule,
+
+    // Subscription Lapse (US-027, US-028, US-029)
+    SubscriptionLapseModule,
   ],
 })
 export class AppModule implements NestModule {

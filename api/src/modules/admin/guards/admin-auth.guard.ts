@@ -2,7 +2,11 @@
 // Protects admin routes using admin-jwt strategy
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-import { Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 /**
@@ -43,7 +47,7 @@ export class AdminAuthGuard extends AuthGuard('admin-jwt') {
    * @returns The authenticated AdminUser
    * @throws UnauthorizedException with admin-specific message
    */
-  handleRequest(err: any, user: any, info: any) {
+  handleRequest(err: any, user: any, _info: any) {
     // If there's an error or no user, throw admin-specific exception
     if (err || !user) {
       // Include additional context for debugging in development
