@@ -30,10 +30,13 @@ describe('PoliciesController', () => {
     name: 'Test Policy',
     description: 'Test policy description',
     tenantId: mockTenantId,
-    action: 'block',
-    categories: ['malware', 'phishing'],
-    enabled: true,
-    version: 1,
+    config: {
+      blockCategories: ['malware', 'phishing'],
+      threatBlocking: { enabled: true, feeds: ['abuse.ch'] },
+      safesearch: { enabled: false, services: [] },
+    },
+    isDefault: false,
+    versions: [],
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
   };
@@ -159,9 +162,11 @@ describe('PoliciesController', () => {
       const createDto: CreatePolicyDto = {
         name: 'New Policy',
         description: 'New policy description',
-        action: 'block',
-        categories: ['malware'],
-        enabled: true,
+        config: {
+          blockCategories: ['malware'],
+          threatBlocking: { enabled: true, feeds: ['abuse.ch'] },
+          safesearch: { enabled: false, services: [] },
+        },
       };
 
       const expectedPolicy = { ...mockPolicy, ...createDto };
@@ -177,17 +182,19 @@ describe('PoliciesController', () => {
       expect(result.name).toBe(createDto.name);
     });
 
-    it('should reject invalid action', async () => {
+    it('should reject invalid config', async () => {
       const createDto = {
         name: 'Test Policy',
         description: 'Test',
-        action: 'invalid-action' as any,
-        categories: ['malware'],
-        enabled: true,
+        config: {
+          blockCategories: ['malware'],
+          threatBlocking: { enabled: true, feeds: [] },
+          safesearch: { enabled: false, services: [] },
+        },
       };
 
       mockPoliciesService.create.mockRejectedValue(
-        new BadRequestException('Invalid action'),
+        new BadRequestException('Invalid config'),
       );
 
       await expect(
@@ -196,12 +203,14 @@ describe('PoliciesController', () => {
     });
 
     it('should reject invalid categories', async () => {
-      const createDto = {
+      const createDto: CreatePolicyDto = {
         name: 'Test Policy',
         description: 'Test',
-        action: 'block' as const,
-        categories: ['invalid-category'],
-        enabled: true,
+        config: {
+          blockCategories: ['invalid-category'],
+          threatBlocking: { enabled: true, feeds: [] },
+          safesearch: { enabled: false, services: [] },
+        },
       };
 
       mockPoliciesService.create.mockRejectedValue(
@@ -214,12 +223,14 @@ describe('PoliciesController', () => {
     });
 
     it('should require policy name', async () => {
-      const createDto = {
+      const createDto: CreatePolicyDto = {
         name: '',
         description: 'Test',
-        action: 'block' as const,
-        categories: ['malware'],
-        enabled: true,
+        config: {
+          blockCategories: ['malware'],
+          threatBlocking: { enabled: true, feeds: [] },
+          safesearch: { enabled: false, services: [] },
+        },
       };
 
       mockPoliciesService.create.mockRejectedValue(
@@ -238,7 +249,7 @@ describe('PoliciesController', () => {
         name: 'Updated Policy',
       };
 
-      const updatedPolicy = { ...mockPolicy, ...updateDto, version: 2 };
+      const updatedPolicy = { ...mockPolicy, ...updateDto };
       mockPoliciesService.update.mockResolvedValue(updatedPolicy);
 
       const result = await controller.update(
@@ -255,7 +266,6 @@ describe('PoliciesController', () => {
         mockUser.id,
       );
       expect(result.name).toBe(updateDto.name);
-      expect(result.version).toBe(2);
     });
 
     it('should throw NotFoundException for non-existent policy', async () => {
@@ -505,9 +515,11 @@ describe('PoliciesController', () => {
       const createDto: CreatePolicyDto = {
         name: 'Test',
         description: 'Test',
-        action: 'block',
-        categories: ['malware'],
-        enabled: true,
+        config: {
+          blockCategories: ['malware'],
+          threatBlocking: { enabled: true, feeds: [] },
+          safesearch: { enabled: false, services: [] },
+        },
       };
 
       mockPoliciesService.create.mockRejectedValue(
