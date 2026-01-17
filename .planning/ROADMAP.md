@@ -32,11 +32,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Admin endpoints reject regular tenant JWT tokens
   3. Admin auth guard protects all admin routes
   4. Admin session includes admin identity for audit purposes
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Admin module scaffolding and auth guard
-- [ ] 01-02: Admin authentication endpoint and session management
+- [ ] 01-01-PLAN.md — Admin module scaffolding, entity, migration, strategy, and auth guard
+- [ ] 01-02-PLAN.md — Admin authentication endpoints and session management
 
 ### Phase 2: Tenant Search
 **Goal**: Admin can quickly find any tenant in the system
@@ -160,7 +160,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Admin Auth Foundation | 0/2 | Not started | - |
+| 1. Admin Auth Foundation | 0/2 | Planned | - |
 | 2. Tenant Search | 0/1 | Not started | - |
 | 3. Impersonation Core | 0/3 | Not started | - |
 | 4. MSP Listing | 0/2 | Not started | - |
@@ -171,4 +171,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 ---
 *Created: 2026-01-17*
-*Last updated: 2026-01-17 after roadmap creation*
+*Last updated: 2026-01-17 after Phase 1 planning*
