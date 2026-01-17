@@ -71,6 +71,25 @@ k6 run scripts/load-testing/api-load-test.js
 k6 run scripts/load-testing/dns-load-test.js
 ```
 
+### Database Migrations (Kubernetes)
+```bash
+# Deploy with automatic migrations (via Helm hooks)
+helm upgrade nebula-dns ./helm/safedns -n nebula-dns --wait
+
+# Manual migration job execution
+kubectl apply -f k8s/base/jobs/db-migration-job.yaml
+kubectl logs -n nebula-dns job/db-migration
+
+# Rollback last migration
+./scripts/rollback-migration.sh
+
+# Interactive migration helper
+./scripts/migration-helper.sh
+
+# ClickHouse initialization
+kubectl apply -f k8s/base/jobs/clickhouse-init-job.yaml
+```
+
 ## Service Ports (Docker Compose)
 
 | Service | Port | Purpose |
@@ -160,3 +179,4 @@ Comprehensive docs in `docs/` directory:
 - D-api-spec.md: API specifications
 - E-policy-evaluation-algorithm.md: O(1) algorithm details
 - F-dnsdist-routing-approach.md: Tenant extraction logic
+- DATABASE-MIGRATIONS.md: Database migration guide (Kubernetes)

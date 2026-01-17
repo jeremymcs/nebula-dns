@@ -1,0 +1,79 @@
+# Nebula DNS - ClickHouse Network Policy
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: clickhouse-netpol
+  namespace: nebula-dns
+  labels:
+    app.kubernetes.io/name: clickhouse
+    app.kubernetes.io/component: network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: clickhouse
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow ingress from API (reports, analytics)
+    - from:
+        - podSelector:
+            matchLabels:
+              app: api
+      ports:
+        - port: 8123
+          protocol: TCP
+        - port: 9000
+          protocol: TCP
+    # Allow ingress from Policy Service (query logging)
+    - from:
+        - podSelector:
+            matchLabels:
+              app: policy-svc
+      ports:
+        - port: 8123
+          protocol: TCP
+        - port: 9000
+          protocol: TCP
+    # Allow ingress from Report Service (if deployed)
+    - from:
+        - podSelector:
+            matchLabels:
+              app: report-svc
+      ports:
+        - port: 8123
+          protocol: TCP
+        - port: 9000
+          protocol: TCP
+    # Allow ingress from backup jobs
+    - from:
+        - podSelector:
+            matchLabels:
+              app: clickhouse-backup
+      ports:
+        - port: 8123
+          protocol: TCP
+        - port: 9000
+          protocol: TCP
+  egress:
+    # Allow DNS resolution (kube-dns)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+        - podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    # Allow backup to S3/cloud storage (HTTPS)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - port: 443
+          protocol: TCP

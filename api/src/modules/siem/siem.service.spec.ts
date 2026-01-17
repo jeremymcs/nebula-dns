@@ -1,6 +1,7 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * SIEM Service Unit Tests
+ * Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
  */
 
 import { Test, TestingModule } from '@nestjs/testing';
@@ -20,6 +21,12 @@ describe('SiemService', () => {
     findOne: jest.fn(),
     remove: jest.fn(),
   };
+
+  // Set test encryption keys in environment before tests run
+  beforeAll(() => {
+    process.env.SIEM_ENCRYPTION_KEY =
+      'test-siem-encryption-key-minimum-32-bytes';
+  });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

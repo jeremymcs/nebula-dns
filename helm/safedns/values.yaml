@@ -22,6 +22,8 @@ api:
   service:
     type: ClusterIP
     port: 4000
+  secrets:
+    name: api-secrets
   autoscaling:
     enabled: true
     minReplicas: 2
@@ -128,6 +130,8 @@ dnsEndpoints:
 # Database configuration
 postgresql:
   enabled: true
+  host: postgres
+  port: 5432
   auth:
     postgresPassword: ""
     database: nebuladns
@@ -148,6 +152,11 @@ redis:
 # ClickHouse configuration
 clickhouse:
   enabled: true
+  host: clickhouse
+  port: 8123
+  database: nebula_dns
+  secretName: clickhouse-secrets
+  retentionDays: 90
   persistence:
     size: 100Gi
 
@@ -162,4 +171,23 @@ secrets:
 serviceMonitor:
   enabled: false
   interval: 30s
+
+# Database Migrations
+migrations:
+  enabled: true
+  hookWeight: "-5"
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+  activeDeadlineSeconds: 600
+  logLevel: info
+  initImage: busybox:1.36
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  annotations: {}
+  extraEnv: []
 

@@ -1,0 +1,21 @@
+# Nebula DNS - Pod Disruption Budget for UI Service
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+#
+# This PDB ensures at least 1 UI pod remains available during voluntary
+# disruptions. While less critical than DNS services, this maintains
+# dashboard availability for operators during cluster maintenance.
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ui-pdb
+  namespace: nebula-dns
+  labels:
+    app: ui
+    app.kubernetes.io/name: ui
+    app.kubernetes.io/component: frontend
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: ui

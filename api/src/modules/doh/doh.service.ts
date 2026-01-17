@@ -43,7 +43,14 @@ interface UpstreamResolver {
   address: string;
   port: number;
   socket: dgram.Socket | null;
-  pending: Map<number, { resolve: (buf: Buffer) => void; reject: (err: Error) => void; timeout: NodeJS.Timeout }>;
+  pending: Map<
+    number,
+    {
+      resolve: (buf: Buffer) => void;
+      reject: (err: Error) => void;
+      timeout: NodeJS.Timeout;
+    }
+  >;
   lastUsed: number;
 }
 
@@ -131,7 +138,8 @@ export class DoHService implements OnModuleDestroy {
     this.queryTimeout = this.configService.get('DNS_QUERY_TIMEOUT_MS', 5000);
 
     // DNSSEC validation (enabled by default when using validating resolvers like 1.1.1.1 or 8.8.8.8)
-    this.dnssecEnabled = this.configService.get('DNSSEC_ENABLED', 'true') === 'true';
+    this.dnssecEnabled =
+      this.configService.get('DNSSEC_ENABLED', 'true') === 'true';
 
     // Initialize upstream resolver connection pool
     this.initializeResolvers();
@@ -163,7 +171,9 @@ export class DoHService implements OnModuleDestroy {
       `Initialized ${this.resolvers.length} upstream resolvers: ${this.resolvers.map((r) => r.address).join(', ')}`,
     );
     if (this.dnssecEnabled) {
-      this.logger.log('DNSSEC validation enabled (using validating upstream resolvers)');
+      this.logger.log(
+        'DNSSEC validation enabled (using validating upstream resolvers)',
+      );
     }
   }
 
@@ -190,7 +200,9 @@ export class DoHService implements OnModuleDestroy {
       });
 
       resolver.socket.on('error', (err) => {
-        this.logger.error(`Resolver socket error (${resolver.address}): ${err.message}`);
+        this.logger.error(
+          `Resolver socket error (${resolver.address}): ${err.message}`,
+        );
         // Reject all pending queries
         for (const [id, pending] of resolver.pending.entries()) {
           clearTimeout(pending.timeout);
@@ -277,14 +289,21 @@ export class DoHService implements OnModuleDestroy {
     }
 
     if (removed > 0) {
-      this.logger.debug(`DNS cache cleanup: removed ${removed} expired entries`);
+      this.logger.debug(
+        `DNS cache cleanup: removed ${removed} expired entries`,
+      );
     }
   }
 
   /**
    * Get cache statistics
    */
-  getCacheStats(): { size: number; hits: number; misses: number; hitRate: number } {
+  getCacheStats(): {
+    size: number;
+    hits: number;
+    misses: number;
+    hitRate: number;
+  } {
     const total = this.cacheHits + this.cacheMisses;
     return {
       size: this.dnsCache.size,
@@ -590,7 +609,10 @@ export class DoHService implements OnModuleDestroy {
           break;
         default:
           // Forward to upstream for other types (don't cache)
-          return { response: await this.forwardToUpstream(originalQuery), cached: false };
+          return {
+            response: await this.forwardToUpstream(originalQuery),
+            cached: false,
+          };
       }
 
       // Cache successful response
@@ -598,7 +620,10 @@ export class DoHService implements OnModuleDestroy {
       return { response, cached: false };
     } catch (error) {
       if (error.code === 'ENODATA' || error.code === 'ENOTFOUND') {
-        return { response: this.buildNxdomainResponse(originalQuery, id), cached: false };
+        return {
+          response: this.buildNxdomainResponse(originalQuery, id),
+          cached: false,
+        };
       }
       throw error;
     }
@@ -806,7 +831,11 @@ export class DoHService implements OnModuleDestroy {
    * Get resolver pool statistics
    */
   getResolverStats(): {
-    resolvers: { address: string; pendingQueries: number; lastUsed: Date | null }[];
+    resolvers: {
+      address: string;
+      pendingQueries: number;
+      lastUsed: Date | null;
+    }[];
   } {
     return {
       resolvers: this.resolvers.map((r) => ({

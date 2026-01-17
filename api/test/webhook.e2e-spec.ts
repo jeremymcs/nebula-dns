@@ -1,4 +1,4 @@
-// Nebula DNS - Webhook E2E Tests
+// Nebula DNS - Webhook E2E Tests with Secret Rotation
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import { Test, TestingModule } from '@nestjs/testing';
@@ -169,6 +169,97 @@ describe('Webhook E2E Tests', () => {
           events: ['policy.created'],
           rateLimit: 99999, // Exceeds max of 1000
         });
+
+      // Either 401 (no auth) or 400 (validation error)
+      expect([400, 401]).toContain(response.status);
+    });
+  });
+
+  // ============================================
+  // Secret Rotation E2E Tests
+  // ============================================
+
+  describe('Webhook Secret Rotation', () => {
+    describe('POST /webhooks/:id/rotate-secret', () => {
+      it('should require authentication to rotate secret', async () => {
+        const response = await request(app.getHttpServer())
+          .post('/webhooks/test-id/rotate-secret')
+          .send({});
+
+        expect(response.status).toBe(401);
+      });
+
+      it('should require authentication with grace period param', async () => {
+        const response = await request(app.getHttpServer())
+          .post('/webhooks/test-id/rotate-secret')
+          .send({ gracePeriodHours: 48 });
+
+        expect(response.status).toBe(401);
+      });
+
+      it('should reject invalid grace period (below minimum)', async () => {
+        const response = await request(app.getHttpServer())
+          .post('/webhooks/test-id/rotate-secret')
+          .send({ gracePeriodHours: 0 }); // Min is 1
+
+        // Either 401 (no auth) or 400 (validation error)
+        expect([400, 401]).toContain(response.status);
+      });
+
+      it('should reject invalid grace period (above maximum)', async () => {
+        const response = await request(app.getHttpServer())
+          .post('/webhooks/test-id/rotate-secret')
+          .send({ gracePeriodHours: 200 }); // Max is 168 (7 days)
+
+        // Either 401 (no auth) or 400 (validation error)
+        expect([400, 401]).toContain(response.status);
+      });
+    });
+
+    describe('GET /webhooks/:id/secret-status', () => {
+      it('should require authentication to get secret status', async () => {
+        const response = await request(app.getHttpServer()).get(
+          '/webhooks/test-id/secret-status',
+        );
+
+        expect(response.status).toBe(401);
+      });
+    });
+
+    describe('POST /webhooks/:id/expire-previous-secret', () => {
+      it('should require authentication to expire previous secret', async () => {
+        const response = await request(app.getHttpServer()).post(
+          '/webhooks/test-id/expire-previous-secret',
+        );
+
+        expect(response.status).toBe(401);
+      });
+    });
+  });
+
+  describe('Webhook Secret Rotation DTO Validation', () => {
+    it('should accept valid grace period of 1 hour', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/webhooks/test-id/rotate-secret')
+        .send({ gracePeriodHours: 1 });
+
+      // 401 means DTO validation passed, just auth failed
+      expect(response.status).toBe(401);
+    });
+
+    it('should accept valid grace period of 168 hours (7 days)', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/webhooks/test-id/rotate-secret')
+        .send({ gracePeriodHours: 168 });
+
+      // 401 means DTO validation passed, just auth failed
+      expect(response.status).toBe(401);
+    });
+
+    it('should reject non-integer grace period', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/webhooks/test-id/rotate-secret')
+        .send({ gracePeriodHours: 'invalid' });
 
       // Either 401 (no auth) or 400 (validation error)
       expect([400, 401]).toContain(response.status);

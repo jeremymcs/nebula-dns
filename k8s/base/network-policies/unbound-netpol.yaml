@@ -1,0 +1,67 @@
+# Nebula DNS - Unbound Network Policy
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: unbound-netpol
+  namespace: nebula-dns
+  labels:
+    app.kubernetes.io/name: unbound
+    app.kubernetes.io/component: network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: unbound
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow ingress from dnsdist (DNS resolution)
+    - from:
+        - podSelector:
+            matchLabels:
+              app: dnsdist
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    # Allow ingress from Policy Service (DNS resolution)
+    - from:
+        - podSelector:
+            matchLabels:
+              app: policy-svc
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+  egress:
+    # Allow DNS queries to internet (port 53)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    # Allow DNS over TLS to upstream resolvers (port 853)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - port: 853
+          protocol: TCP
+    # Allow kube-dns resolution
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+        - podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP

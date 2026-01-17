@@ -1,4 +1,4 @@
-// Nebula DNS - Webhook Entity
+// Nebula DNS - Webhook Entity with Secret Rotation Support
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
@@ -65,4 +65,23 @@ export class Webhook extends BaseEntity {
 
   @Column({ name: 'rate_limit', type: 'int', default: 60 })
   rateLimit: number;
+
+  // Secret rotation fields
+  @Column({
+    name: 'previous_secret',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  previousSecret: string | null;
+
+  @Column({ name: 'secret_rotated_at', type: 'timestamptz', nullable: true })
+  secretRotatedAt: Date | null;
+
+  @Column({
+    name: 'secret_grace_period_ends',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  secretGracePeriodEnds: Date | null;
 }

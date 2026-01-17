@@ -1,7 +1,13 @@
+// Nebula DNS - MFA Service
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+//
+// Multi-Factor Authentication service using TOTP with AES-256-GCM encryption
+
 import {
   Injectable,
   BadRequestException,
   UnauthorizedException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,9 +18,19 @@ import { UserMfa } from './entities/user-mfa.entity';
 import { MfaBackupCode } from './entities/mfa-backup-code.entity';
 import { User } from '../users/entities/user.entity';
 import { SetupMfaResponseDto } from './dto/mfa.dto';
+import { getEncryptionKey } from '../../config/encryption.config';
+import {
+  encrypt,
+  decrypt,
+  deriveKey,
+  decryptWithLegacySupport,
+  detectEncryptionFormat,
+  EncryptionError,
+} from '../../common/utils/encryption.util';
 
 @Injectable()
 export class MfaService {
+  private readonly logger = new Logger(MfaService.name);
   private readonly encryptionKey: Buffer;
 
   constructor(
@@ -26,12 +42,9 @@ export class MfaService {
     private userRepository: Repository<User>,
     private configService: ConfigService,
   ) {
-    // Use a 32-byte key for AES-256
-    const key = this.configService.get(
-      'MFA_ENCRYPTION_KEY',
-      'default-key-change-in-production!',
-    );
-    this.encryptionKey = crypto.scryptSync(key, 'salt', 32);
+    // Use centralized encryption key management with GCM key derivation
+    const key = getEncryptionKey('MFA_ENCRYPTION_KEY');
+    this.encryptionKey = deriveKey(key, 'mfa-gcm-salt');
   }
 
   // Generate a TOTP secret
@@ -46,27 +59,82 @@ export class MfaService {
     return secret;
   }
 
-  // Encrypt the secret for storage
-  private encrypt(text: string): string {
-    const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv('aes-256-cbc', this.encryptionKey, iv);
-    let encrypted = cipher.update(text, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    return iv.toString('hex') + ':' + encrypted;
+  // Encrypt the secret using AES-256-GCM
+  private encryptSecret(text: string): string {
+    return encrypt(text, this.encryptionKey);
   }
 
-  // Decrypt the secret
-  private decrypt(encryptedText: string): string {
+  // Decrypt the secret with legacy CBC support for backward compatibility
+  private decryptSecret(encryptedText: string): string {
+    try {
+      const formatInfo = detectEncryptionFormat(encryptedText);
+
+      if (formatInfo.isLegacy) {
+        // Log legacy format detection for monitoring (do not log the secret)
+        this.logger.warn(
+          'Detected legacy CBC encryption format in MFA secret - consider running migration',
+        );
+      }
+
+      // For legacy CBC data, we need to use the old key derivation method
+      if (formatInfo.format === 'cbc') {
+        return this.decryptLegacyCBC(encryptedText);
+      }
+
+      // For GCM format, use the new encryption utility
+      return decrypt(encryptedText, this.encryptionKey);
+    } catch (error) {
+      // Log decryption failure without exposing the encrypted value
+      this.logger.error('MFA secret decryption failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        context: 'MfaService.decryptSecret',
+        isLegacy:
+          error instanceof EncryptionError ? error.isLegacyFormat : false,
+      });
+      throw new BadRequestException(
+        'Unable to decrypt MFA configuration. Please contact support.',
+      );
+    }
+  }
+
+  // Decrypt legacy CBC-encrypted data using the old key derivation
+  private decryptLegacyCBC(encryptedText: string): string {
+    const key = getEncryptionKey('MFA_ENCRYPTION_KEY');
+    // Legacy key derivation used 'salt' instead of 'mfa-gcm-salt'
+    const legacyKey = crypto.scryptSync(key, 'salt', 32);
+
     const [ivHex, encrypted] = encryptedText.split(':');
     const iv = Buffer.from(ivHex, 'hex');
-    const decipher = crypto.createDecipheriv(
-      'aes-256-cbc',
-      this.encryptionKey,
-      iv,
-    );
+    const decipher = crypto.createDecipheriv('aes-256-cbc', legacyKey, iv);
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;
+  }
+
+  // Re-encrypt legacy data to GCM format (opportunistic migration)
+  private async reEncryptIfLegacy(
+    userMfa: UserMfa,
+    decryptedSecret: string,
+    encryptedText: string,
+  ): Promise<void> {
+    const formatInfo = detectEncryptionFormat(encryptedText);
+
+    if (formatInfo.isLegacy) {
+      try {
+        // Re-encrypt using GCM
+        userMfa.secretEncrypted = this.encryptSecret(decryptedSecret);
+        await this.userMfaRepository.save(userMfa);
+        this.logger.log(
+          `MFA: Migrated user ${userMfa.userId} secret to GCM encryption`,
+        );
+      } catch (error) {
+        // Log but don't fail - migration is opportunistic
+        this.logger.warn(
+          `MFA: Failed to migrate user ${userMfa.userId} to GCM encryption`,
+          error instanceof Error ? error.message : 'Unknown error',
+        );
+      }
+    }
   }
 
   // Generate TOTP code for a given secret and time
@@ -111,7 +179,7 @@ export class MfaService {
   // Verify TOTP code (with window for clock drift)
   private verifyTOTP(secret: string, code: string): boolean {
     const now = Date.now();
-    // Check current time and ±1 interval for clock drift
+    // Check current time and +-1 interval for clock drift
     for (let i = -1; i <= 1; i++) {
       const time = now + i * 30000;
       if (this.generateTOTP(secret, time) === code) {
@@ -145,15 +213,15 @@ export class MfaService {
       throw new BadRequestException('User not found');
     }
 
-    // Create or update MFA record
+    // Create or update MFA record with GCM encrypted secret
     if (!userMfa) {
       userMfa = this.userMfaRepository.create({
         userId,
-        secretEncrypted: this.encrypt(secret),
+        secretEncrypted: this.encryptSecret(secret),
         isEnabled: false,
       });
     } else {
-      userMfa.secretEncrypted = this.encrypt(secret);
+      userMfa.secretEncrypted = this.encryptSecret(secret);
       userMfa.isEnabled = false;
     }
 
@@ -198,7 +266,11 @@ export class MfaService {
       throw new BadRequestException('MFA is already enabled');
     }
 
-    const secret = this.decrypt(userMfa.secretEncrypted);
+    const originalEncrypted = userMfa.secretEncrypted;
+    const secret = this.decryptSecret(originalEncrypted);
+
+    // Re-encrypt if legacy format was detected (opportunistic migration)
+    await this.reEncryptIfLegacy(userMfa, secret, originalEncrypted);
 
     if (!this.verifyTOTP(secret, code)) {
       throw new BadRequestException('Invalid verification code');
@@ -222,7 +294,11 @@ export class MfaService {
       throw new BadRequestException('MFA is not enabled');
     }
 
-    const secret = this.decrypt(userMfa.secretEncrypted);
+    const originalEncrypted = userMfa.secretEncrypted;
+    const secret = this.decryptSecret(originalEncrypted);
+
+    // Re-encrypt if legacy format was detected (opportunistic migration)
+    await this.reEncryptIfLegacy(userMfa, secret, originalEncrypted);
 
     // Try TOTP first
     if (this.verifyTOTP(secret, code)) {

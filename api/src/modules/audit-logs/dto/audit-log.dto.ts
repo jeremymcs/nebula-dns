@@ -1,3 +1,6 @@
+// Nebula DNS - Audit Log DTOs
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 import {
   IsString,
   IsOptional,
@@ -6,6 +9,7 @@ import {
   IsInt,
   Min,
   Max,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { AuditAction, AuditResourceType } from '../entities/audit-log.entity';
@@ -61,6 +65,8 @@ export class AuditLogResponseDto {
   ipAddress: string | null;
   userAgent: string | null;
   metadata: Record<string, any> | null;
+  previousHash: string | null;
+  recordHash: string;
   createdAt: Date;
 }
 
@@ -94,4 +100,33 @@ export class ExportAuditLogsDto {
   @IsOptional()
   @IsString()
   resourceType?: AuditResourceType;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  verifyIntegrity?: boolean = false;
+}
+
+export class VerifyIntegrityDto {
+  @IsOptional()
+  @IsUUID()
+  startId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  endId?: string;
+}
+
+export class IntegrityVerificationResultDto {
+  valid: boolean;
+  totalRecords: number;
+  verifiedRecords: number;
+  brokenAt?: {
+    id: string;
+    expectedHash: string;
+    actualHash: string;
+  };
+  firstRecordId?: string;
+  lastRecordId?: string;
+  verifiedAt: Date;
 }

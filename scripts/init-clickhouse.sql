@@ -1,5 +1,5 @@
 -- Nebula DNS ClickHouse Initialization Script
--- Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
+-- Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 -- This script creates the schema for DNS query logging
 
 -- Create database

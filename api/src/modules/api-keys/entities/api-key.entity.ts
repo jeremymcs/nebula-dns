@@ -1,3 +1,6 @@
+// Nebula DNS - API Key IP Allowlisting
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '@/common/entities/base.entity';
 import { Tenant } from '../../tenants/entities/tenant.entity';
@@ -47,4 +50,18 @@ export class ApiKey extends BaseEntity {
 
   @Column({ name: 'expires_at', type: 'timestamptz', nullable: true })
   expiresAt: Date | null;
+
+  /**
+   * Array of exact IP addresses allowed to use this API key.
+   * If null or empty (and allowedCidrs is also empty), all IPs are allowed.
+   */
+  @Column({ name: 'allowed_ips', type: 'text', array: true, nullable: true })
+  allowedIps: string[] | null;
+
+  /**
+   * Array of CIDR ranges allowed to use this API key.
+   * If null or empty (and allowedIps is also empty), all IPs are allowed.
+   */
+  @Column({ name: 'allowed_cidrs', type: 'text', array: true, nullable: true })
+  allowedCidrs: string[] | null;
 }

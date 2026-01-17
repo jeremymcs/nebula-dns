@@ -44,6 +44,9 @@ export class WebhookDelivery {
   @Column({ name: 'retry_count', type: 'int', default: 0 })
   retryCount: number;
 
+  @Column({ name: 'idempotency_key', type: 'uuid', nullable: true })
+  idempotencyKey: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 }

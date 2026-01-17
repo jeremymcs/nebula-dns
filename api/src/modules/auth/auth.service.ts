@@ -1,3 +1,6 @@
+// Nebula DNS - Authentication Service
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 import {
   Injectable,
   UnauthorizedException,
@@ -25,6 +28,15 @@ import {
 } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { MfaService } from '../mfa/mfa.service';
+import { SessionService, SessionResponse } from './session.service';
+
+/**
+ * Request context for login operations
+ */
+export interface LoginContext {
+  userAgent: string;
+  ipAddress: string;
+}
 
 @Injectable()
 export class AuthService {
@@ -43,10 +55,12 @@ export class AuthService {
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => MfaService))
     private readonly mfaService: MfaService,
+    private readonly sessionService: SessionService,
   ) {}
 
   async login(
     loginDto: LoginDto,
+    context?: LoginContext,
   ): Promise<LoginResponseDto | MfaRequiredResponseDto> {
     const { email, password } = loginDto;
 
@@ -87,12 +101,20 @@ export class AuthService {
 
     if (mfaEnabled) {
       // Generate a temporary token for MFA verification
+      // Include context info for session creation after MFA
       const tempToken = this.jwtService.sign(
         {
           sub: user.id,
           type: 'mfa_pending',
           email: user.email,
           tenantId: user.tenantId,
+          // Store context for post-MFA session creation
+          loginContext: context
+            ? {
+                userAgent: context.userAgent,
+                ipAddress: context.ipAddress,
+              }
+            : undefined,
         },
         { expiresIn: '2m' }, // Short-lived token for MFA step (2 min for security)
       );
@@ -106,9 +128,9 @@ export class AuthService {
       };
     }
 
-    // No MFA - complete login
+    // No MFA - complete login with session creation
     await this.userRepository.update(user.id, { lastLoginAt: new Date() });
-    return this.generateTokens(user);
+    return this.generateTokens(user, false, context);
   }
 
   async verifyMfaLogin(dto: MfaVerifyLoginDto): Promise<LoginResponseDto> {
@@ -142,18 +164,29 @@ export class AuthService {
       // Update last login
       await this.userRepository.update(user.id, { lastLoginAt: new Date() });
 
+      // Extract login context from temp token if available
+      const loginContext: LoginContext | undefined = payload.loginContext
+        ? {
+            userAgent: payload.loginContext.userAgent || '',
+            ipAddress: payload.loginContext.ipAddress || '',
+          }
+        : undefined;
+
       this.logger.log(`MFA verification successful for user: ${user.email}`);
-      return this.generateTokens(user, true); // MFA was verified
+      return this.generateTokens(user, true, loginContext); // MFA was verified
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         throw error;
       }
-      this.logger.warn(`MFA verification failed: ${error.message}`);
+      this.logger.warn(`MFA verification failed: ${(error as Error).message}`);
       throw new UnauthorizedException('Invalid or expired MFA token');
     }
   }
 
-  async refreshToken(refreshToken: string): Promise<LoginResponseDto> {
+  async refreshToken(
+    refreshToken: string,
+    context?: LoginContext,
+  ): Promise<LoginResponseDto> {
     try {
       const payload = this.jwtService.verify(refreshToken, {
         secret: this.configService.get<string>('JWT_SECRET'),
@@ -161,6 +194,19 @@ export class AuthService {
 
       if (payload.type !== 'refresh') {
         throw new UnauthorizedException('Invalid token type');
+      }
+
+      // Check if token JTI is blacklisted
+      if (payload.jti) {
+        const isBlacklisted = await this.sessionService.isTokenBlacklisted(
+          payload.jti,
+        );
+        if (isBlacklisted) {
+          this.logger.warn(
+            `Attempted to use blacklisted refresh token for user ${payload.sub}`,
+          );
+          throw new UnauthorizedException('Token has been revoked');
+        }
       }
 
       const user = await this.userRepository.findOne({
@@ -172,15 +218,26 @@ export class AuthService {
         throw new UnauthorizedException('User not found or inactive');
       }
 
+      // Update session activity if we have a JTI
+      if (payload.jti) {
+        await this.sessionService.updateSessionActivity(user.id, payload.jti);
+      }
+
       // Preserve MFA verification status from the refresh token
-      return this.generateTokens(user, payload.mfaVerified || false);
-    } catch {
+      return this.generateTokens(user, payload.mfaVerified || false, context);
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
 
-  async logout(userId: string): Promise<void> {
-    // In a production system, you'd invalidate the refresh token in Redis
+  async logout(userId: string, jti?: string): Promise<void> {
+    // Blacklist the current token if JTI provided
+    if (jti) {
+      await this.sessionService.blacklistToken(jti);
+    }
     this.logger.log(`User ${userId} logged out`);
   }
 
@@ -431,24 +488,58 @@ export class AuthService {
     await this.userRepository.update(user.id, updateData);
   }
 
-  private generateTokens(user: User, mfaVerified = false): LoginResponseDto {
+  private async generateTokens(
+    user: User,
+    mfaVerified = false,
+    context?: LoginContext,
+  ): Promise<LoginResponseDto> {
+    const jti = uuidv4();
+
     const payload = {
       sub: user.id,
       email: user.email,
       tenantId: user.tenantId,
       role: user.role,
+      jti, // Include JTI in access token for blacklist checking
       mfaVerified, // Track if MFA was verified for this session
     };
 
     const accessToken = this.jwtService.sign(payload);
 
     const refreshToken = this.jwtService.sign(
-      { sub: user.id, type: 'refresh', jti: uuidv4(), mfaVerified },
+      {
+        sub: user.id,
+        type: 'refresh',
+        jti,
+        mfaVerified,
+        tenantId: user.tenantId,
+      },
       {
         expiresIn:
           this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d',
       },
     );
+
+    // Create session in Redis if context is provided
+    if (context) {
+      try {
+        const deviceInfo = this.sessionService.parseDeviceInfo(
+          context.userAgent,
+        );
+        await this.sessionService.createSession(
+          user.id,
+          user.tenantId,
+          jti,
+          deviceInfo,
+          context.ipAddress,
+        );
+      } catch (error) {
+        // Log but don't fail login if session creation fails
+        this.logger.warn(
+          `Failed to create session for user ${user.id}: ${(error as Error).message}`,
+        );
+      }
+    }
 
     return {
       accessToken,
@@ -464,39 +555,47 @@ export class AuthService {
     };
   }
 
-  async getSessions(userId: string): Promise<{ data: any[] }> {
-    // In a production system, sessions would be stored in Redis or a sessions table
-    // For now, return mock session data based on the current user
+  /**
+   * Get all active sessions for a user
+   */
+  async getSessions(
+    userId: string,
+    currentJti?: string,
+  ): Promise<{ data: SessionResponse[] }> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
-    // Return current session info
-    return {
-      data: [
-        {
-          id: 'current',
-          device: 'Current Device',
-          browser: 'Unknown',
-          location: 'Unknown',
-          ipAddress: '0.0.0.0',
-          lastActive: new Date().toISOString(),
-          isCurrent: true,
-        },
-      ],
-    };
+    const sessions = await this.sessionService.getSessions(userId, currentJti);
+    return { data: sessions };
   }
 
-  async revokeSession(userId: string, sessionId: string): Promise<void> {
-    // In a production system, this would invalidate the specific session token
-    this.logger.log(`Revoking session ${sessionId} for user ${userId}`);
-    // For now, this is a no-op since we don't have persistent session storage
+  /**
+   * Revoke a specific session by ID
+   */
+  async revokeSession(
+    userId: string,
+    sessionId: string,
+    currentJti?: string,
+  ): Promise<void> {
+    await this.sessionService.revokeSession(userId, sessionId, currentJti);
   }
 
-  async revokeAllSessions(userId: string): Promise<void> {
-    // In a production system, this would invalidate all refresh tokens for the user
-    this.logger.log(`Revoking all sessions for user ${userId}`);
-    // For now, this is a no-op since we don't have persistent session storage
+  /**
+   * Revoke all sessions for a user except the current one
+   */
+  async revokeAllSessions(
+    userId: string,
+    currentJti?: string,
+  ): Promise<number> {
+    return this.sessionService.revokeAllSessions(userId, currentJti);
+  }
+
+  /**
+   * Check if a token JTI is blacklisted
+   */
+  async isTokenBlacklisted(jti: string): Promise<boolean> {
+    return this.sessionService.isTokenBlacklisted(jti);
   }
 }

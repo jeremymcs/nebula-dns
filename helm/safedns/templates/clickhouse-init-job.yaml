@@ -1,0 +1,210 @@
+# Nebula DNS - ClickHouse Initialization Job (Helm Template)
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+{{- if .Values.clickhouse.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "safedns.fullname" . }}-clickhouse-init
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "safedns.labels" . | nindent 4 }}
+    app.kubernetes.io/component: clickhouse-init
+  annotations:
+    helm.sh/hook: pre-upgrade,pre-install
+    helm.sh/hook-weight: "-10"
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+  activeDeadlineSeconds: 300
+
+  template:
+    metadata:
+      labels:
+        {{- include "safedns.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: clickhouse-init
+        sidecar.istio.io/inject: "false"
+    spec:
+      restartPolicy: Never
+
+      serviceAccountName: {{ include "safedns.fullname" . }}-clickhouse-init
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      initContainers:
+        - name: wait-for-clickhouse
+          image: curlimages/curl:8.5.0
+          command:
+            - 'sh'
+            - '-c'
+            - |
+              echo "Waiting for ClickHouse to be ready..."
+              until curl -sf "http://{{ .Values.clickhouse.host | default "clickhouse" }}:{{ .Values.clickhouse.port | default 8123 }}/ping"; do
+                echo "ClickHouse is unavailable - sleeping"
+                sleep 2
+              done
+              echo "ClickHouse is up - proceeding with initialization"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+
+      containers:
+        - name: init-schema
+          image: curlimages/curl:8.5.0
+          command:
+            - 'sh'
+            - '-c'
+            - |
+              set -e
+              echo "Initializing ClickHouse schema..."
+
+              curl -X POST "http://{{ .Values.clickhouse.host | default "clickhouse" }}:{{ .Values.clickhouse.port | default 8123 }}" \
+                --data-binary @/scripts/init-clickhouse.sql \
+                -u "${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}"
+
+              echo "ClickHouse schema initialized successfully"
+
+              echo "Verifying tables..."
+              TABLES=$(curl -s "http://{{ .Values.clickhouse.host | default "clickhouse" }}:{{ .Values.clickhouse.port | default 8123 }}/?query=SHOW+TABLES+FROM+{{ .Values.clickhouse.database | default "nebula_dns" }}" \
+                -u "${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}")
+
+              echo "Created tables:"
+              echo "$TABLES"
+
+              if echo "$TABLES" | grep -q "query_logs"; then
+                echo "✓ query_logs table created"
+              else
+                echo "✗ query_logs table missing"
+                exit 1
+              fi
+
+          env:
+            - name: CLICKHOUSE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.clickhouse.secretName | default "clickhouse-secrets" }}
+                  key: username
+                  optional: true
+
+            - name: CLICKHOUSE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.clickhouse.secretName | default "clickhouse-secrets" }}
+                  key: password
+                  optional: true
+
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+
+          volumeMounts:
+            - name: init-scripts
+              mountPath: /scripts
+              readOnly: true
+
+      volumes:
+        - name: init-scripts
+          configMap:
+            name: {{ include "safedns.fullname" . }}-clickhouse-init-scripts
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "safedns.fullname" . }}-clickhouse-init
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "safedns.labels" . | nindent 4 }}
+    app.kubernetes.io/component: clickhouse-init
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "safedns.fullname" . }}-clickhouse-init-scripts
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "safedns.labels" . | nindent 4 }}
+    app.kubernetes.io/component: clickhouse-init
+data:
+  init-clickhouse.sql: |
+    -- Nebula DNS ClickHouse Initialization Script
+    -- Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+    CREATE DATABASE IF NOT EXISTS {{ .Values.clickhouse.database | default "nebula_dns" }};
+
+    CREATE TABLE IF NOT EXISTS {{ .Values.clickhouse.database | default "nebula_dns" }}.query_logs
+    (
+        timestamp DateTime64(3),
+        tenant_id UUID,
+        location_id UUID,
+        location_name String,
+        domain String,
+        query_type String,
+        client_ip String,
+        action Enum8('allow' = 1, 'block' = 2, 'rewrite' = 3),
+        reason String,
+        category Nullable(String),
+        response_time_ms UInt32,
+        cached UInt8,
+        threat_type Nullable(String),
+        policy_id Nullable(UUID)
+    ) ENGINE = MergeTree()
+    PARTITION BY toYYYYMMDD(timestamp)
+    ORDER BY (tenant_id, timestamp)
+    TTL toDateTime(timestamp) + INTERVAL {{ .Values.clickhouse.retentionDays | default 90 }} DAY
+    SETTINGS index_granularity = 8192;
+
+    ALTER TABLE {{ .Values.clickhouse.database | default "nebula_dns" }}.query_logs ADD INDEX IF NOT EXISTS idx_domain domain TYPE bloom_filter(0.01) GRANULARITY 1;
+    ALTER TABLE {{ .Values.clickhouse.database | default "nebula_dns" }}.query_logs ADD INDEX IF NOT EXISTS idx_category category TYPE set(100) GRANULARITY 1;
+
+    CREATE TABLE IF NOT EXISTS {{ .Values.clickhouse.database | default "nebula_dns" }}.hourly_stats (
+        hour DateTime,
+        tenant_id UUID,
+        location_id UUID,
+        total_queries UInt64,
+        blocked_queries UInt64,
+        allowed_queries UInt64,
+        threat_blocks UInt64,
+        avg_response_time Float64,
+        cached_queries UInt64
+    ) ENGINE = SummingMergeTree()
+    PARTITION BY toYYYYMM(hour)
+    ORDER BY (tenant_id, hour, location_id);
+
+    CREATE TABLE IF NOT EXISTS {{ .Values.clickhouse.database | default "nebula_dns" }}.category_stats (
+        date Date,
+        tenant_id UUID,
+        category String,
+        count UInt64
+    ) ENGINE = SummingMergeTree()
+    PARTITION BY toYYYYMM(date)
+    ORDER BY (tenant_id, date, category);
+
+    CREATE TABLE IF NOT EXISTS {{ .Values.clickhouse.database | default "nebula_dns" }}.domain_stats (
+        date Date,
+        tenant_id UUID,
+        domain String,
+        action Enum8('allow' = 1, 'block' = 2, 'rewrite' = 3),
+        category String,
+        count UInt64
+    ) ENGINE = SummingMergeTree()
+    PARTITION BY toYYYYMM(date)
+    ORDER BY (tenant_id, date, action, domain);
+{{- end }}

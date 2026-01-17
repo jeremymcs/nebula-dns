@@ -1,9 +1,5 @@
-/**
- * Nebula DNS - Enterprise DNS Security Platform
- * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- *
- * Auth Service Unit Tests
- */
+// Nebula DNS - Auth Service Unit Tests
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
@@ -11,7 +7,8 @@ import { ConfigService } from '@nestjs/config';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { UnauthorizedException, BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { AuthService } from './auth.service';
+import { AuthService, LoginContext } from './auth.service';
+import { SessionService } from './session.service';
 import { User } from '../users/entities/user.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
 import { PartnerUser } from '../partners/entities/partner-user.entity';
@@ -70,6 +67,38 @@ describe('AuthService', () => {
     verifyMfaCode: jest.fn().mockResolvedValue(true),
   };
 
+  const mockSessionService = {
+    createSession: jest.fn().mockResolvedValue({
+      sessionId: 'session-123',
+      userId: 'user-123',
+      tenantId: 'tenant-123',
+      tokenJti: 'jti-123',
+      deviceInfo: { browser: 'Chrome', os: 'Windows', device: 'Desktop' },
+      ipAddress: '127.0.0.1',
+      createdAt: new Date().toISOString(),
+      lastActivity: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    }),
+    getSessions: jest.fn().mockResolvedValue([]),
+    revokeSession: jest.fn().mockResolvedValue(undefined),
+    revokeAllSessions: jest.fn().mockResolvedValue(0),
+    isTokenBlacklisted: jest.fn().mockResolvedValue(false),
+    blacklistToken: jest.fn().mockResolvedValue(undefined),
+    updateSessionActivity: jest.fn().mockResolvedValue(undefined),
+    parseDeviceInfo: jest.fn().mockReturnValue({
+      userAgent: 'Mozilla/5.0',
+      browser: 'Chrome',
+      os: 'Windows',
+      device: 'Desktop',
+      isMobile: false,
+    }),
+  };
+
+  const mockLoginContext: LoginContext = {
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0',
+    ipAddress: '192.168.1.100',
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -97,6 +126,10 @@ describe('AuthService', () => {
         {
           provide: MfaService,
           useValue: mockMfaService,
+        },
+        {
+          provide: SessionService,
+          useValue: mockSessionService,
         },
       ],
     }).compile();
@@ -385,6 +418,149 @@ describe('AuthService', () => {
       const result = await service.validateUser('invalid-id', 'invalid-tenant');
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe('session management', () => {
+    it('should create session on login with context', async () => {
+      const password = 'ValidP@ssw0rd!';
+      const hashedPassword = await bcrypt.hash(password, 12);
+
+      mockUserRepository.findOne.mockResolvedValue({
+        ...mockUser,
+        passwordHash: hashedPassword,
+      });
+      mockUserRepository.update.mockResolvedValue({});
+      mockMfaService.isMfaEnabled.mockResolvedValue(false);
+
+      const result = await service.login(
+        { email: 'test@example.com', password },
+        mockLoginContext,
+      );
+
+      // Verify login succeeded
+      expect('accessToken' in result).toBe(true);
+
+      // Wait for any remaining async operations
+      await new Promise((resolve) => setImmediate(resolve));
+
+      // Session should be created with device info
+      expect(mockSessionService.parseDeviceInfo).toHaveBeenCalledWith(
+        mockLoginContext.userAgent,
+      );
+      expect(mockSessionService.createSession).toHaveBeenCalledWith(
+        mockUser.id,
+        mockUser.tenantId,
+        expect.any(String), // JTI
+        expect.any(Object), // DeviceInfo
+        mockLoginContext.ipAddress,
+      );
+    });
+
+    it('should get sessions for user', async () => {
+      const mockSessions = [
+        {
+          id: 'session-1',
+          device: 'Desktop',
+          browser: 'Chrome',
+          os: 'Windows',
+          location: 'Unknown',
+          ipAddress: '192.168.1.1',
+          lastActive: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          isCurrent: true,
+        },
+      ];
+      mockSessionService.getSessions.mockResolvedValue(mockSessions);
+      mockUserRepository.findOne.mockResolvedValue(mockUser);
+
+      const result = await service.getSessions(mockUser.id, 'current-jti');
+
+      expect(result.data).toEqual(mockSessions);
+      expect(mockSessionService.getSessions).toHaveBeenCalledWith(
+        mockUser.id,
+        'current-jti',
+      );
+    });
+
+    it('should revoke session', async () => {
+      await service.revokeSession(
+        mockUser.id,
+        'session-to-revoke',
+        'current-jti',
+      );
+
+      expect(mockSessionService.revokeSession).toHaveBeenCalledWith(
+        mockUser.id,
+        'session-to-revoke',
+        'current-jti',
+      );
+    });
+
+    it('should revoke all sessions', async () => {
+      mockSessionService.revokeAllSessions.mockResolvedValue(3);
+
+      const result = await service.revokeAllSessions(
+        mockUser.id,
+        'current-jti',
+      );
+
+      expect(result).toBe(3);
+      expect(mockSessionService.revokeAllSessions).toHaveBeenCalledWith(
+        mockUser.id,
+        'current-jti',
+      );
+    });
+
+    it('should check token blacklist', async () => {
+      mockSessionService.isTokenBlacklisted.mockResolvedValue(true);
+
+      const result = await service.isTokenBlacklisted('some-jti');
+
+      expect(result).toBe(true);
+      expect(mockSessionService.isTokenBlacklisted).toHaveBeenCalledWith(
+        'some-jti',
+      );
+    });
+
+    it('should blacklist token on logout', async () => {
+      await service.logout(mockUser.id, 'jti-to-blacklist');
+
+      expect(mockSessionService.blacklistToken).toHaveBeenCalledWith(
+        'jti-to-blacklist',
+      );
+    });
+  });
+
+  describe('refreshToken with session', () => {
+    it('should reject blacklisted refresh token', async () => {
+      mockJwtService.verify.mockReturnValue({
+        sub: mockUser.id,
+        type: 'refresh',
+        jti: 'blacklisted-jti',
+      });
+      mockSessionService.isTokenBlacklisted.mockResolvedValue(true);
+
+      await expect(service.refreshToken('blacklisted-token')).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+
+    it('should update session activity on refresh', async () => {
+      mockJwtService.verify.mockReturnValue({
+        sub: mockUser.id,
+        type: 'refresh',
+        jti: 'valid-jti',
+      });
+      mockSessionService.isTokenBlacklisted.mockResolvedValue(false);
+      mockUserRepository.findOne.mockResolvedValue(mockUser);
+
+      await service.refreshToken('valid-refresh-token');
+
+      expect(mockSessionService.updateSessionActivity).toHaveBeenCalledWith(
+        mockUser.id,
+        'valid-jti',
+      );
     });
   });
 });

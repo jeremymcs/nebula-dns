@@ -1,0 +1,15 @@
+# Nebula DNS - Jobs Kustomization
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - db-migration-job.yaml
+  - clickhouse-init-job.yaml
+
+commonLabels:
+  app.kubernetes.io/part-of: nebula-dns
+  app.kubernetes.io/managed-by: kustomize
+
+namespace: nebula-dns

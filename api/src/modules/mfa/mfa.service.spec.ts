@@ -1,6 +1,7 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * MFA Service Unit Tests
+ * Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
  */
 
 import { Test, TestingModule } from '@nestjs/testing';
@@ -41,8 +42,14 @@ describe('MfaService', () => {
   };
 
   const mockConfigService = {
-    get: jest.fn().mockReturnValue('test-encryption-key'),
+    get: jest.fn().mockReturnValue('test-encryption-key-minimum-32-bytes-long'),
   };
+
+  // Set test encryption keys in environment before tests run
+  beforeAll(() => {
+    process.env.MFA_ENCRYPTION_KEY =
+      'test-encryption-key-minimum-32-bytes-long';
+  });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

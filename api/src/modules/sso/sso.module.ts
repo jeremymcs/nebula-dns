@@ -1,3 +1,6 @@
+// Nebula DNS - SSO Module
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
@@ -7,6 +10,7 @@ import { SsoController } from './sso.controller';
 import { SsoConfiguration } from './entities/sso-configuration.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
 import { User } from '../users/entities/user.entity';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
   imports: [
@@ -21,6 +25,7 @@ import { User } from '../users/entities/user.entity';
         },
       }),
     }),
+    RedisModule,
   ],
   controllers: [SsoController],
   providers: [SsoService],

@@ -1,3 +1,8 @@
+// Nebula DNS - SIEM Service
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+//
+// SIEM integration service with AES-256-GCM encryption for credentials
+
 import {
   Injectable,
   NotFoundException,
@@ -23,40 +28,110 @@ import {
   SiemTestResultDto,
   SiemIntegrationResponseDto,
 } from './dto/siem.dto';
+import { getEncryptionKey } from '../../config/encryption.config';
+import {
+  encrypt,
+  decrypt,
+  deriveKey,
+  detectEncryptionFormat,
+  EncryptionError,
+} from '../../common/utils/encryption.util';
 
 @Injectable()
 export class SiemService {
   private readonly logger = new Logger(SiemService.name);
-  private readonly encryptionKey: string;
-  private readonly encryptionAlgorithm = 'aes-256-cbc';
+  private readonly encryptionKey: Buffer;
+  private readonly legacyEncryptionKey: Buffer;
 
   constructor(
     @InjectRepository(SiemIntegration)
     private siemRepository: Repository<SiemIntegration>,
   ) {
-    this.encryptionKey =
-      process.env.SIEM_ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex');
+    // Use centralized encryption key management with GCM key derivation
+    const key = getEncryptionKey('SIEM_ENCRYPTION_KEY');
+    this.encryptionKey = deriveKey(key, 'siem-gcm-salt');
+
+    // Keep legacy key for backward compatibility during migration
+    // Legacy SIEM used a hex key from sha256 hash
+    if (/^[0-9a-fA-F]{64}$/.test(key)) {
+      this.legacyEncryptionKey = Buffer.from(key, 'hex');
+    } else {
+      this.legacyEncryptionKey = crypto
+        .createHash('sha256')
+        .update(key)
+        .digest();
+    }
   }
 
-  // Encrypt sensitive configuration
-  private encrypt(text: string): string {
-    const iv = crypto.randomBytes(16);
-    const key = Buffer.from(this.encryptionKey, 'hex');
-    const cipher = crypto.createCipheriv(this.encryptionAlgorithm, key, iv);
-    let encrypted = cipher.update(text, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    return iv.toString('hex') + ':' + encrypted;
+  // Encrypt using AES-256-GCM
+  private encryptSecret(text: string): string {
+    return encrypt(text, this.encryptionKey);
   }
 
-  // Decrypt sensitive configuration
-  private decrypt(encryptedText: string): string {
+  // Decrypt with legacy CBC support for backward compatibility
+  private decryptSecret(encryptedText: string): string {
+    try {
+      const formatInfo = detectEncryptionFormat(encryptedText);
+
+      if (formatInfo.isLegacy) {
+        this.logger.warn(
+          'Detected legacy CBC encryption format in SIEM credential - consider running migration',
+        );
+        return this.decryptLegacyCBC(encryptedText);
+      }
+
+      return decrypt(encryptedText, this.encryptionKey);
+    } catch (error) {
+      this.logger.error('SIEM credential decryption failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        context: 'SiemService.decryptSecret',
+        isLegacy:
+          error instanceof EncryptionError ? error.isLegacyFormat : false,
+      });
+      throw new BadRequestException(
+        'Unable to decrypt SIEM configuration. Please contact support.',
+      );
+    }
+  }
+
+  // Decrypt legacy CBC-encrypted data
+  private decryptLegacyCBC(encryptedText: string): string {
     const [ivHex, encrypted] = encryptedText.split(':');
     const iv = Buffer.from(ivHex, 'hex');
-    const key = Buffer.from(this.encryptionKey, 'hex');
-    const decipher = crypto.createDecipheriv(this.encryptionAlgorithm, key, iv);
+    const decipher = crypto.createDecipheriv(
+      'aes-256-cbc',
+      this.legacyEncryptionKey,
+      iv,
+    );
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;
+  }
+
+  // Re-encrypt legacy data to GCM format (opportunistic migration)
+  private async reEncryptConfigIfLegacy(
+    integration: SiemIntegration,
+    configField: string,
+    decryptedValue: string,
+    encryptedValue: string,
+  ): Promise<void> {
+    const formatInfo = detectEncryptionFormat(encryptedValue);
+
+    if (formatInfo.isLegacy) {
+      try {
+        integration.configEncrypted[configField] =
+          this.encryptSecret(decryptedValue);
+        await this.siemRepository.save(integration);
+        this.logger.log(
+          `SIEM: Migrated integration ${integration.id} ${configField} to GCM encryption`,
+        );
+      } catch (error) {
+        this.logger.warn(
+          `SIEM: Failed to migrate integration ${integration.id} ${configField} to GCM encryption`,
+          error instanceof Error ? error.message : 'Unknown error',
+        );
+      }
+    }
   }
 
   // ==================== SPLUNK ====================
@@ -66,8 +141,8 @@ export class SiemService {
     dto: CreateSplunkIntegrationDto,
   ): Promise<SiemIntegration> {
     const configEncrypted = {
-      hecUrl: this.encrypt(dto.hecUrl),
-      hecToken: this.encrypt(dto.hecToken),
+      hecUrl: this.encryptSecret(dto.hecUrl),
+      hecToken: this.encryptSecret(dto.hecToken),
       index: dto.index || 'main',
       sourceType: dto.sourceType || 'nebuladns:logs',
     };
@@ -92,8 +167,8 @@ export class SiemService {
     dto: CreateElasticIntegrationDto,
   ): Promise<SiemIntegration> {
     const configEncrypted = {
-      url: this.encrypt(dto.url),
-      apiKey: this.encrypt(dto.apiKey),
+      url: this.encryptSecret(dto.url),
+      apiKey: this.encryptSecret(dto.apiKey),
       indexPattern: dto.indexPattern || 'nebuladns-logs',
     };
 
@@ -116,8 +191,8 @@ export class SiemService {
     dto: CreateSentinelIntegrationDto,
   ): Promise<SiemIntegration> {
     const configEncrypted = {
-      workspaceId: this.encrypt(dto.workspaceId),
-      sharedKey: this.encrypt(dto.sharedKey),
+      workspaceId: this.encryptSecret(dto.workspaceId),
+      sharedKey: this.encryptSecret(dto.sharedKey),
       logType: dto.logType || 'Nebula DNS_Logs',
     };
 
@@ -193,34 +268,35 @@ export class SiemService {
       integration.includeAllowed = dto.includeAllowed;
     if (dto.minSeverity) integration.minSeverity = dto.minSeverity;
 
-    // If config is provided, encrypt sensitive fields based on type
+    // If config is provided, encrypt sensitive fields based on type using GCM
     if (dto.config) {
       const newConfig = { ...integration.configEncrypted };
 
       switch (integration.integrationType) {
         case 'splunk':
           if (dto.config.hecUrl)
-            newConfig.hecUrl = this.encrypt(dto.config.hecUrl);
+            newConfig.hecUrl = this.encryptSecret(dto.config.hecUrl);
           if (dto.config.hecToken)
-            newConfig.hecToken = this.encrypt(dto.config.hecToken);
+            newConfig.hecToken = this.encryptSecret(dto.config.hecToken);
           if (dto.config.index) newConfig.index = dto.config.index;
           if (dto.config.sourceType)
             newConfig.sourceType = dto.config.sourceType;
           break;
 
         case 'elastic':
-          if (dto.config.url) newConfig.url = this.encrypt(dto.config.url);
+          if (dto.config.url)
+            newConfig.url = this.encryptSecret(dto.config.url);
           if (dto.config.apiKey)
-            newConfig.apiKey = this.encrypt(dto.config.apiKey);
+            newConfig.apiKey = this.encryptSecret(dto.config.apiKey);
           if (dto.config.indexPattern)
             newConfig.indexPattern = dto.config.indexPattern;
           break;
 
         case 'sentinel':
           if (dto.config.workspaceId)
-            newConfig.workspaceId = this.encrypt(dto.config.workspaceId);
+            newConfig.workspaceId = this.encryptSecret(dto.config.workspaceId);
           if (dto.config.sharedKey)
-            newConfig.sharedKey = this.encrypt(dto.config.sharedKey);
+            newConfig.sharedKey = this.encryptSecret(dto.config.sharedKey);
           if (dto.config.logType) newConfig.logType = dto.config.logType;
           break;
 
@@ -289,8 +365,25 @@ export class SiemService {
   ): Promise<SiemTestResultDto> {
     const startTime = Date.now();
     try {
-      const hecUrl = this.decrypt(integration.configEncrypted.hecUrl);
-      const hecToken = this.decrypt(integration.configEncrypted.hecToken);
+      const hecUrlEncrypted = integration.configEncrypted.hecUrl;
+      const hecTokenEncrypted = integration.configEncrypted.hecToken;
+
+      const hecUrl = this.decryptSecret(hecUrlEncrypted);
+      const hecToken = this.decryptSecret(hecTokenEncrypted);
+
+      // Opportunistically re-encrypt if legacy format
+      await this.reEncryptConfigIfLegacy(
+        integration,
+        'hecUrl',
+        hecUrl,
+        hecUrlEncrypted,
+      );
+      await this.reEncryptConfigIfLegacy(
+        integration,
+        'hecToken',
+        hecToken,
+        hecTokenEncrypted,
+      );
 
       // Send a test event to Splunk HEC
       const testEvent = {
@@ -328,8 +421,20 @@ export class SiemService {
   ): Promise<SiemTestResultDto> {
     const startTime = Date.now();
     try {
-      const url = this.decrypt(integration.configEncrypted.url);
-      const apiKey = this.decrypt(integration.configEncrypted.apiKey);
+      const urlEncrypted = integration.configEncrypted.url;
+      const apiKeyEncrypted = integration.configEncrypted.apiKey;
+
+      const url = this.decryptSecret(urlEncrypted);
+      const apiKey = this.decryptSecret(apiKeyEncrypted);
+
+      // Opportunistically re-encrypt if legacy format
+      await this.reEncryptConfigIfLegacy(integration, 'url', url, urlEncrypted);
+      await this.reEncryptConfigIfLegacy(
+        integration,
+        'apiKey',
+        apiKey,
+        apiKeyEncrypted,
+      );
 
       // Test cluster health endpoint
       await this.httpGet(`${url}/_cluster/health`, {
@@ -355,8 +460,26 @@ export class SiemService {
   ): Promise<SiemTestResultDto> {
     const startTime = Date.now();
     try {
-      const workspaceId = this.decrypt(integration.configEncrypted.workspaceId);
-      const sharedKey = this.decrypt(integration.configEncrypted.sharedKey);
+      const workspaceIdEncrypted = integration.configEncrypted.workspaceId;
+      const sharedKeyEncrypted = integration.configEncrypted.sharedKey;
+
+      const workspaceId = this.decryptSecret(workspaceIdEncrypted);
+      const sharedKey = this.decryptSecret(sharedKeyEncrypted);
+
+      // Opportunistically re-encrypt if legacy format
+      await this.reEncryptConfigIfLegacy(
+        integration,
+        'workspaceId',
+        workspaceId,
+        workspaceIdEncrypted,
+      );
+      await this.reEncryptConfigIfLegacy(
+        integration,
+        'sharedKey',
+        sharedKey,
+        sharedKeyEncrypted,
+      );
+
       const logType = integration.configEncrypted.logType || 'Nebula DNS_Test';
 
       // Send a test log entry
@@ -496,8 +619,8 @@ export class SiemService {
     integration: SiemIntegration,
     logs: any[],
   ): Promise<void> {
-    const hecUrl = this.decrypt(integration.configEncrypted.hecUrl);
-    const hecToken = this.decrypt(integration.configEncrypted.hecToken);
+    const hecUrl = this.decryptSecret(integration.configEncrypted.hecUrl);
+    const hecToken = this.decryptSecret(integration.configEncrypted.hecToken);
     const index = integration.configEncrypted.index || 'main';
     const sourceType =
       integration.configEncrypted.sourceType || 'nebuladns:logs';
@@ -521,8 +644,8 @@ export class SiemService {
     integration: SiemIntegration,
     logs: any[],
   ): Promise<void> {
-    const url = this.decrypt(integration.configEncrypted.url);
-    const apiKey = this.decrypt(integration.configEncrypted.apiKey);
+    const url = this.decryptSecret(integration.configEncrypted.url);
+    const apiKey = this.decryptSecret(integration.configEncrypted.apiKey);
     const indexPattern =
       integration.configEncrypted.indexPattern || 'nebuladns-logs';
 
@@ -548,8 +671,10 @@ export class SiemService {
     integration: SiemIntegration,
     logs: any[],
   ): Promise<void> {
-    const workspaceId = this.decrypt(integration.configEncrypted.workspaceId);
-    const sharedKey = this.decrypt(integration.configEncrypted.sharedKey);
+    const workspaceId = this.decryptSecret(
+      integration.configEncrypted.workspaceId,
+    );
+    const sharedKey = this.decryptSecret(integration.configEncrypted.sharedKey);
     const logType = integration.configEncrypted.logType || 'Nebula DNS_Logs';
 
     const body = JSON.stringify(logs);

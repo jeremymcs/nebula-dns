@@ -1,0 +1,43 @@
+# Nebula DNS - CodeQL Configuration
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+name: "Nebula DNS CodeQL Config"
+
+# Disable default queries to use custom query suites
+disable-default-queries: false
+
+# Query suites to run
+queries:
+  - uses: security-and-quality
+  - uses: security-extended
+
+# Paths to exclude from analysis
+paths-ignore:
+  - '**/node_modules/**'
+  - '**/dist/**'
+  - '**/build/**'
+  - '**/coverage/**'
+  - '**/*.test.ts'
+  - '**/*.test.js'
+  - '**/*.spec.ts'
+  - '**/*.spec.js'
+  - '**/test/**'
+  - '**/tests/**'
+  - '**/__tests__/**'
+  - '**/vendor/**'
+  - '**/*.min.js'
+  - '**/*.bundle.js'
+
+# Paths to include (override ignores if needed)
+paths:
+  - api/src
+  - ui/src
+  - ui/app
+  - policy-svc/internal
+  - policy-svc/cmd
+
+# Additional configuration
+packs:
+  - codeql/javascript-queries
+  - codeql/typescript-queries
+  - codeql/go-queries

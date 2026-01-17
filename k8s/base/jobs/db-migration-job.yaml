@@ -1,0 +1,160 @@
+# Nebula DNS - Database Migration Job
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+#
+# This Job runs TypeORM migrations before API deployment.
+# It is designed to run as a Helm pre-upgrade hook to ensure
+# database schema is updated before the new API version starts.
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migration
+  namespace: nebula-dns
+  labels:
+    app: db-migration
+    app.kubernetes.io/name: db-migration
+    app.kubernetes.io/component: database
+  annotations:
+    # Helm hooks for automatic execution
+    helm.sh/hook: pre-upgrade,pre-install
+    helm.sh/hook-weight: "-5"
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  # Retry up to 3 times if migration fails
+  backoffLimit: 3
+
+  # Clean up completed job after 5 minutes
+  ttlSecondsAfterFinished: 300
+
+  # Allow 10 minutes for migrations to complete
+  activeDeadlineSeconds: 600
+
+  template:
+    metadata:
+      labels:
+        app: db-migration
+        sidecar.istio.io/inject: "false"  # Disable service mesh for job
+    spec:
+      restartPolicy: Never
+
+      serviceAccountName: db-migration
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      # Wait for PostgreSQL to be ready before running migrations
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            - 'sh'
+            - '-c'
+            - |
+              echo "Waiting for PostgreSQL to be ready..."
+              until nc -z postgres 5432; do
+                echo "PostgreSQL is unavailable - sleeping"
+                sleep 2
+              done
+              echo "PostgreSQL is up - proceeding with migrations"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+
+      containers:
+        - name: migration
+          image: ghcr.io/nebuladns/api:latest
+          imagePullPolicy: IfNotPresent
+
+          # Run TypeORM migration command
+          command:
+            - 'npm'
+            - 'run'
+            - 'migration:run'
+
+          # Environment variables from secrets
+          envFrom:
+            - secretRef:
+                name: api-secrets
+
+          env:
+            - name: NODE_ENV
+              value: production
+
+            - name: LOG_LEVEL
+              value: info
+
+            # Ensure migrations run with proper database connection
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: api-secrets
+                  key: database-url
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+
+          # Add writable temp directory for npm operations
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: cache
+              mountPath: /app/.npm
+
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: cache
+          emptyDir: {}
+---
+# Service Account for migration job
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: db-migration
+  namespace: nebula-dns
+  labels:
+    app.kubernetes.io/name: db-migration
+---
+# Role for migration job (minimal permissions)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: db-migration
+  namespace: nebula-dns
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["api-secrets"]
+    verbs: ["get"]
+---
+# Role binding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: db-migration
+  namespace: nebula-dns
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: db-migration
+subjects:
+  - kind: ServiceAccount
+    name: db-migration
+    namespace: nebula-dns
