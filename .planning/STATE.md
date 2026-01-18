@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-17)
 
 **Core value:** Enable ops team to handle support escalations quickly through tenant impersonation
-**Current focus:** Phase 7 complete (MSP Onboarding)
+**Current focus:** Phase 8 (Billing Operations) - Plan 01 complete
 
 ## Current Position
 
-Phase: 7 of 8 (MSP Onboarding)
-Plan: 2 of 2 executed in current phase
-Status: Phase complete
-Last activity: 2026-01-18 - Completed 07-02-PLAN.md (MSP Onboarding Endpoint)
+Phase: 8 of 8 (Billing Operations)
+Plan: 1 of 2 executed in current phase
+Status: In progress
+Last activity: 2026-01-18 - Completed 08-01-PLAN.md (Billing DTOs and Service Layer)
 
-Progress: [█████████░] 93%
+Progress: [█████████░] 94%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
+- Total plans completed: 15
 - Average duration: 4.5 min
-- Total execution time: 64 min
+- Total execution time: 70 min
 
 **By Phase:**
 
@@ -34,9 +34,10 @@ Progress: [█████████░] 93%
 | 05-msp-drill-down | 2/2 | 6 min | 3 min |
 | 06-system-health | 2/2 | 11 min | 5.5 min |
 | 07-msp-onboarding | 2/2 | 11 min | 5.5 min |
+| 08-billing-operations | 1/2 | 6 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-02 (3min), 06-01 (6min), 06-02 (5min), 07-01 (5min), 07-02 (6min)
+- Last 5 plans: 06-01 (6min), 06-02 (5min), 07-01 (5min), 07-02 (6min), 08-01 (6min)
 - Trend: Consistent execution times around 5-6 min
 
 *Updated after each plan completion*
@@ -95,6 +96,10 @@ Recent decisions affecting current work:
 - [07-02]: Email sent after transaction commits for reliability
 - [07-02]: Don't fail on email error - tenant creation is primary success
 - [07-02]: tempPassword removed from response DTO (security)
+- [08-01]: Use limit+1 pattern for hasMore detection in invoice pagination
+- [08-01]: Negate credit amount (-Math.abs) when calling Stripe balance transaction
+- [08-01]: Stream PDF via axios with pipe to response
+- [08-01]: Combine data from local DB, Stripe, trials, and grace period services
 
 ### Pending Todos
 
@@ -104,28 +109,25 @@ None.
 
 None.
 
-## Phase 7 Complete
+## Phase 8 In Progress
 
-MSP Onboarding phase complete:
+Billing Operations phase - Plan 01 complete:
 
-**Plan 01 - MSP Onboarding DTOs and Service (Complete):**
-- CreateMspTenantDto with validation for name, slug, emails, limits
-- MspTenantCreatedResponseDto with tenant and admin user details
-- generateUniqueSlug for automatic slug creation with collision handling
-- createMspTenant transactional method with queryRunner
-- 12 unit tests for all scenarios
+**Plan 01 - Billing DTOs and Service Layer (Complete):**
+- 11 billing DTOs with validation (subscription, invoice, credit, tier, extension)
+- PaymentsService extended with 6 Stripe operations
+- AdminBillingService with subscription status and invoice methods
+- 9 unit tests for service layer
 
-**Plan 02 - MSP Onboarding Endpoint (Complete):**
-- POST /admin/msp/tenants endpoint with AdminAuthGuard
-- sendMspWelcomeEmail method with HTML/text templates
-- EmailService integration for welcome emails
-- Swagger documentation with all response codes
-- 9 controller tests
+**Plan 02 - Billing Controller Endpoints (Pending):**
+- Controller endpoints for billing operations
+- Module integration and registration
+- Swagger documentation
 
 ## Session Continuity
 
-Last session: 2026-01-18T13:30:00Z
-Stopped at: Completed 07-02-PLAN.md
+Last session: 2026-01-18T14:06:00Z
+Stopped at: Completed 08-01-PLAN.md
 Resume file: None
 
-Next: Phase 8 (if defined)
+Next: Execute 08-02-PLAN.md (Billing Controller Endpoints)
