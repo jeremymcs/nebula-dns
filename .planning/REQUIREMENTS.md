@@ -9,7 +9,7 @@ Requirements for the admin dashboard backend API.
 
 ### Tenant Impersonation
 
-- [ ] **IMP-01**: Admin can search for a tenant by name, ID, or email
+- [x] **IMP-01**: Admin can search for a tenant by name, ID, or email ✓
 - [ ] **IMP-02**: Admin can start impersonation session for any tenant
 - [ ] **IMP-03**: Impersonation grants full tenant admin access to dashboard
 - [ ] **IMP-04**: Admin can end impersonation and return to admin dashboard
@@ -76,7 +76,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| IMP-01 | Phase 2 | Pending |
+| IMP-01 | Phase 2 | Complete |
 | IMP-02 | Phase 3 | Pending |
 | IMP-03 | Phase 3 | Pending |
 | IMP-04 | Phase 3 | Pending |
@@ -107,4 +107,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-17*
-*Last updated: 2026-01-17 after roadmap creation*
+*Last updated: 2026-01-17 after Phase 2 complete*
