@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-17)
 
 **Core value:** Enable ops team to handle support escalations quickly through tenant impersonation
-**Current focus:** Phase 5 - MSP Drill-down (Plan 01 complete)
+**Current focus:** Phase 5 - MSP Drill-down (Complete)
 
 ## Current Position
 
 Phase: 5 of 8 (MSP Drill-down)
-Plan: 1 of 2 executed in current phase
-Status: In progress
-Last activity: 2026-01-18 - Completed 05-01-PLAN.md (MSP Detail Endpoints)
+Plan: 2 of 2 executed in current phase
+Status: Phase complete
+Last activity: 2026-01-18 - Completed 05-02-PLAN.md (MSP Usage Metrics)
 
-Progress: [███████░░░] 62%
+Progress: [███████░░░] 69%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: 5 min
-- Total execution time: 34 min
+- Total plans completed: 9
+- Average duration: 4 min
+- Total execution time: 37 min
 
 **By Phase:**
 
@@ -31,11 +31,11 @@ Progress: [███████░░░] 62%
 | 02-tenant-search | 1/1 | 6 min | 6 min |
 | 03-impersonation-core | 2/2 | 10 min | 5 min |
 | 04-msp-listing | 2/2 | 7 min | 3.5 min |
-| 05-msp-drill-down | 1/2 | 3 min | 3 min |
+| 05-msp-drill-down | 2/2 | 6 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (8min), 03-02 (2min), 04-01 (4min), 04-02 (3min), 05-01 (3min)
-- Trend: Consistent execution times around 3-4 min
+- Last 5 plans: 03-02 (2min), 04-01 (4min), 04-02 (3min), 05-01 (3min), 05-02 (3min)
+- Trend: Consistent execution times around 3 min
 
 *Updated after each plan completion*
 
@@ -76,6 +76,10 @@ Recent decisions affecting current work:
 - [05-01]: verifyMspTenant helper for MSP tier validation (reusable)
 - [05-01]: ParseUUIDPipe validates mspId at controller level
 - [05-01]: Routes placed before impersonate to avoid conflicts
+- [05-02]: Aggregate usage per-client with getSummaryStats iteration
+- [05-02]: Fetch per-client usage in parallel with Promise.all
+- [05-02]: Log warning but continue if individual client stats fail
+- [05-02]: blockRate computed as (blocked/total)*100 with 1 decimal precision
 
 ### Pending Todos
 
@@ -85,26 +89,28 @@ None.
 
 None.
 
-## Phase 5 Progress
+## Phase 5 Complete
 
-MSP Drill-down phase in progress:
+MSP Drill-down phase complete:
 
-**Plan 01 - MSP Detail Endpoints (Complete):**
+**Plan 01 - MSP Detail Endpoints:**
 - GET /admin/msp/tenants/:mspId for MSP detail with counts
 - GET /admin/msp/tenants/:mspId/clients for client listing
 - verifyMspTenant helper for MSP tier validation
 - ParseUUIDPipe for UUID parameter validation
 - Per-client location/user counts via LEFT JOIN
 
-**Plan 02 - Client Detail and Actions (Pending):**
-- Client detail endpoint with extended information
-- Impersonation from client list context
-- Additional drill-down capabilities
+**Plan 02 - MSP Usage Metrics:**
+- MspUsageMetricsDto with aggregated metrics
+- Aggregated usage in MSP detail response
+- Per-client usage metrics in client listing
+- Period parameter for time range control (24h, 7d, 30d, 90d)
+- isMockData flag for ClickHouse availability indication
 
 ## Session Continuity
 
-Last session: 2026-01-18T02:46:47Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-01-18T02:50:57Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
 
-Next: Continue Phase 5 with Plan 02 (Client Detail and Actions)
+Next: Proceed to Phase 6 (to be determined from ROADMAP.md)
