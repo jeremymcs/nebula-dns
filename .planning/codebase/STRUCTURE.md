@@ -1,6 +1,6 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-01-17
+**Analysis Date:** 2026-01-18
 
 ## Directory Layout
 
@@ -13,7 +13,7 @@ nebula-dns/
 │   │   ├── common/         # Shared utilities, guards, decorators
 │   │   ├── config/         # Configuration loaders
 │   │   ├── database/       # Migrations and seeds
-│   │   └── modules/        # Feature modules (auth, policies, etc.)
+│   │   └── modules/        # Feature modules (auth, policies, admin, etc.)
 │   ├── test/               # E2E tests
 │   └── Dockerfile
 ├── ui/                     # Next.js Frontend (Dashboard)
@@ -60,18 +60,60 @@ nebula-dns/
 - Purpose: Feature-based module organization
 - Contains: 45+ NestJS modules, each with controller, service, entities, DTOs
 - Key modules:
-  - `auth/` - Authentication, JWT, sessions, MFA verification
+  - `admin/` - **Internal admin system with separate auth** (see detailed breakdown below)
+  - `auth/` - Tenant authentication, JWT, sessions, MFA verification
   - `users/` - User CRUD, role management
-  - `tenants/` - Tenant settings, tier management
+  - `tenants/` - Tenant settings, tier management, MSP hierarchy
   - `policies/` - Policy CRUD, versioning, compilation
   - `locations/` - Network locations, IP ranges, tokens
   - `lists/` - Custom allow/block lists with entries
   - `reports/` - ClickHouse analytics, query logs
-  - `msp/` - MSP client management, templates
+  - `msp/` - MSP templates, client management
+  - `msp-clients/` - MSP client CRUD operations
   - `msp-billing/` - MSP billing, query bundles
   - `subscriptions/` - Stripe integration
+  - `trials/` - Trial extensions
+  - `subscription-lapse/` - Grace period handling
+  - `subscription-plans/` - Tier limits
   - `webhooks/` - Event notifications
   - `siem/` - SIEM integration (Splunk, Elastic)
+  - `family/` - Family member management
+
+**api/src/modules/admin/ (Separate Auth System):**
+- Purpose: Internal administrator operations isolated from tenant auth
+- Structure:
+  ```
+  admin/
+  ├── admin.module.ts           # Module definition
+  ├── admin.controller.ts       # All /api/admin/* endpoints
+  ├── admin.service.ts          # Auth, search, MSP onboarding, impersonation
+  ├── admin.service.spec.ts     # Service tests
+  ├── admin.controller.spec.ts  # Controller tests
+  ├── admin-session.service.ts  # Redis session management
+  ├── admin-health.service.ts   # System health checks
+  ├── admin-health.service.spec.ts
+  ├── admin-billing.service.ts  # Credits, tier changes, extensions
+  ├── admin-billing.service.spec.ts
+  ├── strategies/
+  │   └── admin-jwt.strategy.ts # Named 'admin-jwt' passport strategy
+  ├── guards/
+  │   └── admin-auth.guard.ts   # Uses admin-jwt strategy
+  ├── entities/
+  │   ├── admin.entity.ts       # Admin user (not tenant-scoped)
+  │   └── admin-mfa.entity.ts   # Admin MFA config
+  └── dto/
+      ├── admin-login.dto.ts
+      ├── admin-response.dto.ts
+      ├── admin-jwt-payload.dto.ts
+      ├── tenant-search.dto.ts
+      ├── msp-listing.dto.ts
+      ├── msp-detail.dto.ts
+      ├── msp-onboarding.dto.ts
+      ├── impersonation.dto.ts
+      ├── system-health.dto.ts
+      └── billing.dto.ts
+  ```
+- **Key:** Uses ADMIN_JWT_SECRET, issuer 'nebula-admin', 8-hour sessions
 
 **api/src/common/:**
 - Purpose: Shared code across all modules
@@ -85,6 +127,7 @@ nebula-dns/
   - `dto/` - Shared DTOs
   - `logger/` - Logging configuration
   - `sentry/` - Error tracking
+  - `services/` - Shared services
 
 **api/src/database/:**
 - Purpose: Database migrations and seed data
@@ -96,37 +139,56 @@ nebula-dns/
 - Purpose: Next.js App Router pages
 - Contains:
   - `dashboard/` - Main dashboard pages (policies, locations, reports, etc.)
+  - `dashboard/clients/` - MSP client management
+  - `dashboard/msp/` - MSP-specific features
+  - `dashboard/settings/` - Settings pages including family, white-label
+  - `dashboard/billing/` - Billing page
   - `(public)/` - Public pages (landing, signup, pricing)
   - `invite/` - Invitation acceptance flows
   - `mission-control/` - Admin control center
 - Structure: `page.tsx` for pages, `layout.tsx` for layouts
+- **Partner pages removed:** No more `/partner/*` routes
 
 **ui/src/components/:**
 - Purpose: Reusable React components
 - Contains:
-  - `layout/` - DashboardLayout, Sidebar, TopNav
-  - `dashboard/` - Dashboard-specific components
+  - `layout/` - DashboardLayout, Sidebar, TopNav, MissionControlSidebar
+  - `dashboard/` - Dashboard-specific components, UsageWidget
   - `ui/` - Generic UI components
   - `auth/` - Login, signup forms
   - `msp/` - MSP-specific components
-  - `family/` - Family mode components
+  - `family/` - Family member components
   - `billing/` - Billing and subscription components
+  - `banners/` - Notification banners
+  - `trials/` - Trial components
+  - `home/` - Home page components
+- **PartnerLayout removed:** Partner system deprecated
 
 **ui/src/hooks/:**
 - Purpose: Custom React hooks
 - Key hooks:
-  - `useApi.ts` - API request wrapper
+  - `useApi.ts` - API request wrapper (large file, 24k+ lines)
   - `useTierFeatures.tsx` - Tier-based feature access
   - `useSubscriptionStatus.ts` - Subscription state
   - `useMspClients.ts` - MSP client management
+  - `useClientContext.ts` - MSP client context switching
+  - `useFamily.ts` - Family member operations
+  - `useTrial.ts` - Trial state
+  - `useUsageStats.ts` - Usage statistics
+
+**ui/src/contexts/:**
+- Purpose: React Context providers
+- Key contexts:
+  - `AuthContext.tsx` - Authentication, tier info, MSP info
+- **PartnerBrandingContext removed:** Partner system deprecated
 
 **policy-svc/internal/:**
 - Purpose: Go internal packages (not exported)
 - Contains:
-  - `cache/cache.go` - PolicyCache with Redis + in-memory
-  - `handlers/handlers.go` - HTTP endpoint handlers
+  - `cache/cache.go` - PolicyCache with Redis + in-memory, subscription status checks
+  - `handlers/handlers.go` - HTTP endpoint handlers including subscription check
   - `models/models.go` - Request/response structures
-  - `policy/` - Evaluation algorithm
+  - `policy/service.go` - Evaluation algorithm
   - `clickhouse/` - Query logging
   - `metrics/` - Prometheus metrics
 
@@ -134,6 +196,7 @@ nebula-dns/
 
 **Entry Points:**
 - `api/src/main.ts`: NestJS bootstrap, Swagger setup
+- `api/src/modules/admin/admin.controller.ts`: Admin API entry (separate auth)
 - `policy-svc/cmd/main.go`: Go policy service entry
 - `report-svc/cmd/main.go`: Go report worker entry
 - `ui/src/app/layout.tsx`: Next.js root layout
@@ -147,9 +210,16 @@ nebula-dns/
 
 **Core Business Logic:**
 - `api/src/modules/policies/policy-compiler.service.ts`: Compiles policies for cache
-- `api/src/modules/auth/auth.service.ts`: Authentication, JWT, sessions
+- `api/src/modules/auth/auth.service.ts`: Tenant authentication, JWT, sessions
+- `api/src/modules/admin/admin.service.ts`: Admin auth, MSP onboarding, impersonation
+- `api/src/modules/admin/admin-billing.service.ts`: Admin billing operations
 - `policy-svc/internal/cache/cache.go`: Policy cache with pub/sub
 - `policy-svc/internal/handlers/handlers.go`: DNS policy evaluation endpoint
+
+**Tenant/MSP Hierarchy:**
+- `api/src/modules/tenants/entities/tenant.entity.ts`: Tenant with self-referential `managedByMspId`
+- `api/src/modules/msp-clients/msp-clients.service.ts`: MSP client CRUD
+- `api/src/modules/auth/auth.service.ts`: `getManagedOrganizations()`, `switchTenant()`
 
 **Database Schema:**
 - `api/src/modules/*/entities/*.entity.ts`: TypeORM entity definitions
@@ -165,7 +235,7 @@ nebula-dns/
 
 **Files:**
 - API entities: `kebab-case.entity.ts` (e.g., `policy-version.entity.ts`)
-- API services: `kebab-case.service.ts` (e.g., `auth.service.ts`)
+- API services: `kebab-case.service.ts` (e.g., `auth.service.ts`, `admin-billing.service.ts`)
 - API controllers: `kebab-case.controller.ts`
 - API modules: `kebab-case.module.ts`
 - API DTOs: `kebab-case.dto.ts`
@@ -175,7 +245,7 @@ nebula-dns/
 - Go files: `snake_case.go` or `single_word.go`
 
 **Directories:**
-- API modules: `kebab-case/` (e.g., `block-pages/`)
+- API modules: `kebab-case/` (e.g., `block-pages/`, `msp-clients/`)
 - UI routes: `kebab-case/` or `[param]/` for dynamic
 - Go packages: `single_word/` (e.g., `handlers/`, `cache/`)
 
@@ -188,6 +258,15 @@ nebula-dns/
 - Add DTOs: `dto/{feature}.dto.ts`
 - Register in `api/src/app.module.ts`
 - Tests: `{feature}.service.spec.ts`, `{feature}.controller.spec.ts`
+
+**New Admin Endpoint:**
+- Add method to `api/src/modules/admin/admin.controller.ts`
+- Add business logic to appropriate service:
+  - `admin.service.ts` for auth, search, MSP operations
+  - `admin-billing.service.ts` for billing operations
+  - `admin-health.service.ts` for health/monitoring
+- Add DTO to `api/src/modules/admin/dto/`
+- Use `@UseGuards(AdminAuthGuard)` for protection
 
 **New API Endpoint on Existing Module:**
 - Add method to controller in `api/src/modules/{module}/{module}.controller.ts`
@@ -203,7 +282,7 @@ nebula-dns/
 - Shared component: `ui/src/components/ui/{ComponentName}.tsx`
 - Feature component: `ui/src/components/{feature}/{ComponentName}.tsx`
 
-**New API Hook:**
+**New UI Hook:**
 - Add to `ui/src/hooks/{useHookName}.ts`
 - Export from `ui/src/hooks/index.ts`
 
@@ -250,6 +329,16 @@ nebula-dns/
 - Generated: No
 - Committed: Yes
 
+## Removed/Deprecated
+
+**Partner System (Removed):**
+- `api/src/modules/partners/` - Deleted
+- `ui/src/app/partner/` - Deleted
+- `ui/src/components/layout/PartnerLayout.tsx` - Deleted
+- `ui/src/contexts/PartnerBrandingContext.tsx` - Deleted
+- **Replaced by:** MSP tier system with self-referential tenant hierarchy
+- **Migration guide:** `docs/msp-migration-guide.md`
+
 ---
 
-*Structure analysis: 2026-01-17*
+*Structure analysis: 2026-01-18*

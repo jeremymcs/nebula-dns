@@ -1,6 +1,6 @@
 # External Integrations
 
-**Analysis Date:** 2026-01-17
+**Analysis Date:** 2026-01-18
 
 ## APIs & External Services
 
@@ -14,6 +14,28 @@
   - Billing portal for customer management
   - Webhook handling for subscription events
   - 14-day trial support
+
+**Admin Billing Operations (Stripe Extension):**
+- Implementation: `api/src/modules/admin/admin-billing.service.ts`
+- Admin-specific Stripe operations (separate from tenant self-service):
+  - **Credit Application:** Creates negative balance transactions via `stripe.customers.createBalanceTransaction()`
+    - Maximum credit: $10,000 per transaction
+    - Warning threshold: $500 (logged, not blocked)
+    - Audit logged with `billing_credit_applied` action
+  - **Tier Changes:** Updates subscription price via `stripe.subscriptions.update()`
+    - Supports immediate (with proration) or end-of-period timing
+    - Price IDs from env: `STRIPE_PRICE_{HOME|ENTERPRISE|MSP}_{MONTHLY|YEARLY}`
+    - Audit logged with `billing_tier_changed` action
+  - **Trial Extension:** Extends trial via `stripe.subscriptions.update({ trial_end: ... })`
+    - Requires active trial subscription in Stripe
+    - Optional email notification to tenant
+  - **Grace Period Extension:** Local DB operation (not Stripe API)
+    - Uses `SubscriptionLapseService.extendGracePeriod()`
+  - **Invoice Listing:** `stripe.invoices.list({ customer: ... })`
+    - Paginated with cursor support
+  - **Invoice PDF Streaming:** Fetches PDF via axios from `invoice.invoice_pdf` URL
+    - Validates invoice ownership before streaming
+
 - Webhook secret: `STRIPE_WEBHOOK_SECRET`
 - Price IDs configured per plan: `STRIPE_PRICE_*_MONTHLY/YEARLY`
 
@@ -59,22 +81,75 @@
 - Connection: `REDIS_URL` env var
 - Client: ioredis 5.3.2
 - Implementation: `api/src/modules/redis/redis.service.ts`
+
+**Redis Key Namespace Separation:**
+
+| Namespace | Purpose | Implementation | TTL |
+|-----------|---------|----------------|-----|
+| **Tenant Sessions** | User session tracking | `api/src/modules/auth/session.service.ts` | 7 days |
+| `session:{user_id}:{session_id}` | Individual session data (JSON) | SessionService | 7 days |
+| `session:user:{user_id}` | Set of user's active session IDs | SessionService | 7 days |
+| `session:blacklist:{jti}` | Revoked token JTIs | SessionService | 7 days |
+| **Admin Sessions** | Admin authentication sessions | `api/src/modules/admin/admin-session.service.ts` | 8 hours |
+| `admin:session:{admin_id}:{session_id}` | Individual admin session data | AdminSessionService | 8 hours |
+| `admin:session:admin:{admin_id}` | Set of admin's active session IDs | AdminSessionService | 8 hours |
+| `admin:session:blacklist:{jti}` | Revoked admin token JTIs | AdminSessionService | 8 hours |
+| **Other Keys** | | | |
+| `policy:{tenant_id}` | Cached policy data | PolicyService | - |
+| `ratelimit:{tenant_id}:{location_id}` | Rate limit buckets | - | Window |
+| `pkce:{state}` | OIDC PKCE code verifiers | SsoService | 5 min |
+| `webhook_ratelimit:{tenant_id}:{webhook_id}` | Webhook rate limiting | WebhooksService | 60 sec |
+
+**Admin Session Configuration:**
+```typescript
+// api/src/modules/admin/admin-session.service.ts
+ADMIN_MAX_SESSIONS = 5           // Max concurrent sessions per admin
+ADMIN_SESSION_TTL_SECONDS = 28800 // 8 hours (workday)
+ADMIN_BLACKLIST_TTL_SECONDS = 28800 // Match session TTL
+```
+
 - Channels:
   - `nebula:invalidate` - Policy cache invalidation
   - `webhook_events` - Webhook delivery events
-- Key patterns:
-  - `policy:{tenant_id}` - Cached policy data
-  - `ratelimit:{tenant_id}:{location_id}` - Rate limit buckets
-  - `pkce:{state}` - OIDC PKCE code verifiers (5 min TTL)
-  - `session:{session_id}` - User sessions
 
 **ClickHouse 24.1:**
 - Purpose: Analytics and DNS query logging (append-only, high volume)
 - Connection: `CLICKHOUSE_HOST`, `CLICKHOUSE_PORT`, `CLICKHOUSE_DATABASE`
 - Client: `@clickhouse/client` 0.2.6
-- Implementation: `api/src/modules/reports/reports.service.ts`
+- Implementation: `api/src/modules/clickhouse/clickhouse.service.ts`
 - Tables: `dns_queries` with materialized views for aggregations
 - Retention: Configurable (default 90 days in Helm values)
+
+**ClickHouse Admin Usage Metrics:**
+- Implementation: `api/src/modules/admin/admin-health.service.ts`
+- Aggregates query volume across all tenants for admin dashboards
+- Queries:
+  - **Error Rates:** Counts errors in 1h/24h windows
+    ```sql
+    -- Planned query (currently returns connection status proxy)
+    SELECT count() as total,
+           countIf(reason LIKE '%error%' OR reason = 'policy_error') as errors
+    FROM nebula_dns.query_logs
+    WHERE timestamp >= now() - INTERVAL {period}
+    ```
+  - **Query Volume:** Total/blocked/allowed counts
+    ```sql
+    -- Planned query
+    SELECT count() as total,
+           countIf(action = 'block') as blocked,
+           countIf(action = 'allow') as allowed
+    FROM nebula_dns.query_logs
+    WHERE timestamp >= now() - INTERVAL {period}
+    ```
+  - **Recent Errors:** Last N error entries for troubleshooting
+    ```sql
+    -- Planned query
+    SELECT timestamp, domain, reason, client_ip, tenant_id
+    FROM nebula_dns.query_logs
+    WHERE reason LIKE '%error%' OR reason = 'policy_error'
+    ORDER BY timestamp DESC LIMIT {limit}
+    ```
+- Fallback: Mock data when ClickHouse unavailable (marked with `isMockData: true`)
 
 **File Storage:**
 - Local filesystem only (no S3/GCS integration)
@@ -83,7 +158,7 @@
 **Caching:**
 - Redis for all caching needs
 - Policy cache with pub/sub invalidation
-- Session storage
+- Session storage (tenant and admin namespaces)
 
 ## Authentication & Identity
 
@@ -94,12 +169,21 @@
 - Refresh tokens: `JWT_REFRESH_SECRET`, expires in `JWT_REFRESH_EXPIRES_IN` (default 7d)
 - Session management via Redis
 
+**Admin Auth:**
+- Separate admin JWT namespace
+- Implementation: `api/src/modules/admin/`
+- Session TTL: 8 hours (vs 7 days for tenant users)
+- Max sessions: 5 per admin (vs 10 for tenant users)
+- Uses separate Redis key prefix (`admin:session:*`)
+- Guard: `AdminAuthGuard` (distinct from `JwtAuthGuard`)
+
 **MFA:**
 - TOTP-based (Google Authenticator compatible)
-- Implementation: `api/src/modules/mfa/`
-- SDK: `otplib` 12.0.1
-- QR code generation: `qrcode` 1.5.3
+- Implementation: `api/src/modules/mfa/mfa.service.ts`
+- Custom TOTP implementation (no external library)
+- QR code URL format: `otpauth://totp/{issuer}:{email}?secret={secret}&issuer={issuer}`
 - Encryption: AES-256-GCM for TOTP secrets
+- Backup codes: 10 codes, bcrypt hashed
 
 **SSO Providers:**
 - SAML 2.0 support
@@ -130,7 +214,10 @@
 **Health Checks:**
 - API: `GET /health`
 - Policy Service: `GET /health`
-- Report Service: `GET /health`
+- Admin System Health: `GET /api/admin/system/health`
+  - Checks: policy-svc, dnsdist, unbound
+  - Storage: ClickHouse, Redis
+  - Error rates and query volume
 
 ## CI/CD & Deployment
 
@@ -178,12 +265,31 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 SENDGRID_API_KEY=SG....
 SENTRY_DSN=https://...@sentry.io/...
 
+# Stripe Price IDs (admin tier changes)
+STRIPE_PRICE_HOME_MONTHLY=price_...
+STRIPE_PRICE_HOME_YEARLY=price_...
+STRIPE_PRICE_ENTERPRISE_MONTHLY=price_...
+STRIPE_PRICE_ENTERPRISE_YEARLY=price_...
+STRIPE_PRICE_MSP_MONTHLY=price_...
+STRIPE_PRICE_MSP_YEARLY=price_...
+
 # ClickHouse
 CLICKHOUSE_HOST=clickhouse
 CLICKHOUSE_PORT=8123
 CLICKHOUSE_DATABASE=nebula_dns
 CLICKHOUSE_USER=nebula
 CLICKHOUSE_PASSWORD=<password>
+
+# Admin Sessions (optional)
+ADMIN_MAX_SESSIONS=5
+ADMIN_SESSION_TTL_SECONDS=28800
+ADMIN_BLACKLIST_TTL_SECONDS=28800
+
+# DNS Health Checks
+POLICY_SVC_URL=http://policy-svc:8080
+DNSDIST_URL=http://dnsdist:8083
+UNBOUND_HOST=unbound
+UNBOUND_PORT=5354
 ```
 
 **Secrets location:**
@@ -208,7 +314,8 @@ CLICKHOUSE_PASSWORD=<password>
   - HMAC-SHA256 signature verification
   - Idempotency keys (X-Idempotency-Key header)
   - Retry logic: 3 attempts with backoff (1s, 5s, 30s)
-  - Rate limiting per tenant
+  - Rate limiting per tenant (Redis key: `webhook_ratelimit:{tenant_id}:{webhook_id}`)
+  - Secret rotation with grace period (both old and new secrets valid)
   - Events: policy.created, policy.updated, threat.detected, etc.
 
 ## SIEM Integrations
@@ -224,6 +331,7 @@ CLICKHOUSE_PASSWORD=<password>
 **Credential Storage:**
 - AES-256-GCM encrypted in PostgreSQL
 - Encryption key: `SIEM_ENCRYPTION_KEY`
+- Legacy CBC support with opportunistic migration to GCM
 
 ## DNS Infrastructure
 
@@ -231,18 +339,22 @@ CLICKHOUSE_PASSWORD=<password>
 - Purpose: DNS load balancer, DoT/DoH termination, tenant ID extraction
 - Config: `config/dnsdist/dnsdist.conf`
 - Ports: 853 (DoT), 443 (DoH)
+- Health check: HTTP endpoint at port 8083
 
 **Unbound:**
 - Purpose: Recursive DNS resolver
 - Config: `config/unbound/unbound.conf`
-- Port: 53
+- Port: 5354 (internal), 53 (external)
+- Health check: DNS resolution test (google.com)
 
 **Policy Service (Go):**
 - Purpose: O(1) policy evaluation, query logging
+- Implementation: `policy-svc/`
 - Redis pub/sub for cache invalidation
 - ClickHouse for query logging
 - Fail-open mode: `FAIL_MODE` env var
+- Health check: HTTP endpoint at port 8080
 
 ---
 
-*Integration audit: 2026-01-17*
+*Integration audit: 2026-01-18*
