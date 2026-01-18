@@ -1,19 +1,33 @@
 // Nebula DNS - Admin Controller Tests
-// Tests for admin authentication and MSP onboarding endpoints
+// Tests for admin authentication, MSP onboarding, and billing extension endpoints
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  ConflictException,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { AdminHealthService } from './admin-health.service';
+import { AdminBillingService } from './admin-billing.service';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
-import { CreateMspTenantDto, MspTenantCreatedResponseDto } from './dto/msp-onboarding.dto';
+import {
+  CreateMspTenantDto,
+  MspTenantCreatedResponseDto,
+} from './dto/msp-onboarding.dto';
+import {
+  ExtendTrialDto,
+  ExtendGracePeriodDto,
+  ExtensionResponseDto,
+} from './dto/billing.dto';
 
 describe('AdminController', () => {
   let controller: AdminController;
   let adminService: jest.Mocked<AdminService>;
+  let adminBillingService: jest.Mocked<AdminBillingService>;
 
   const mockAdminUser = {
     adminId: 'admin-uuid-1234',
@@ -67,6 +81,16 @@ describe('AdminController', () => {
     getQueryVolume: jest.fn(),
   };
 
+  const mockAdminBillingService = {
+    getSubscriptionStatus: jest.fn(),
+    listInvoices: jest.fn(),
+    streamInvoicePdf: jest.fn(),
+    applyCredit: jest.fn(),
+    changeTier: jest.fn(),
+    extendTrial: jest.fn(),
+    extendGracePeriod: jest.fn(),
+  };
+
   // Mock AdminAuthGuard to always pass
   const mockAdminAuthGuard = {
     canActivate: jest.fn().mockReturnValue(true),
@@ -84,6 +108,10 @@ describe('AdminController', () => {
           provide: AdminHealthService,
           useValue: mockAdminHealthService,
         },
+        {
+          provide: AdminBillingService,
+          useValue: mockAdminBillingService,
+        },
       ],
     })
       .overrideGuard(AdminAuthGuard)
@@ -92,6 +120,7 @@ describe('AdminController', () => {
 
     controller = module.get<AdminController>(AdminController);
     adminService = module.get(AdminService);
+    adminBillingService = module.get(AdminBillingService);
 
     jest.clearAllMocks();
   });
@@ -107,7 +136,9 @@ describe('AdminController', () => {
     };
 
     it('should create MSP tenant successfully', async () => {
-      mockAdminService.createMspTenant.mockResolvedValue(mockMspCreatedResponse);
+      mockAdminService.createMspTenant.mockResolvedValue(
+        mockMspCreatedResponse,
+      );
 
       const result = await controller.createMspTenant(validDto, mockRequest);
 
@@ -119,7 +150,9 @@ describe('AdminController', () => {
     });
 
     it('should pass admin ID from request user', async () => {
-      mockAdminService.createMspTenant.mockResolvedValue(mockMspCreatedResponse);
+      mockAdminService.createMspTenant.mockResolvedValue(
+        mockMspCreatedResponse,
+      );
 
       await controller.createMspTenant(validDto, mockRequest);
 
@@ -225,6 +258,144 @@ describe('AdminController', () => {
       expect(result.welcomeEmailSent).toBe(false);
       // Should still succeed even if email failed
       expect(result.id).toBeDefined();
+    });
+  });
+
+  describe('extendTrial', () => {
+    const tenantId = 'tenant-uuid-1234';
+    const validDto: ExtendTrialDto = {
+      days: 7,
+      reason: 'Customer needs more time to evaluate',
+      notifyTenant: true,
+    };
+
+    const mockExtensionResponse: ExtensionResponseDto = {
+      newEndDate: '2026-02-08T00:00:00.000Z',
+      daysAdded: 7,
+      notificationSent: true,
+      message: 'Trial extended by 7 days. New end date: 2/8/2026',
+    };
+
+    it('should extend trial successfully', async () => {
+      mockAdminBillingService.extendTrial.mockResolvedValue(
+        mockExtensionResponse,
+      );
+
+      const result = await controller.extendTrial(
+        tenantId,
+        validDto,
+        mockRequest,
+      );
+
+      expect(result).toEqual(mockExtensionResponse);
+      expect(mockAdminBillingService.extendTrial).toHaveBeenCalledWith(
+        tenantId,
+        validDto,
+        mockAdminUser.adminId,
+      );
+    });
+
+    it('should pass admin ID from request user', async () => {
+      mockAdminBillingService.extendTrial.mockResolvedValue(
+        mockExtensionResponse,
+      );
+
+      await controller.extendTrial(tenantId, validDto, mockRequest);
+
+      expect(mockAdminBillingService.extendTrial).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        'admin-uuid-1234',
+      );
+    });
+
+    it('should throw NotFoundException for missing tenant', async () => {
+      mockAdminBillingService.extendTrial.mockRejectedValue(
+        new NotFoundException('Tenant not found'),
+      );
+
+      await expect(
+        controller.extendTrial(tenantId, validDto, mockRequest),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BadRequestException when no active trial', async () => {
+      mockAdminBillingService.extendTrial.mockRejectedValue(
+        new BadRequestException('Tenant does not have an active trial'),
+      );
+
+      await expect(
+        controller.extendTrial(tenantId, validDto, mockRequest),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('extendGracePeriod', () => {
+    const tenantId = 'tenant-uuid-1234';
+    const validDto: ExtendGracePeriodDto = {
+      days: 14,
+      reason: 'Customer payment processing delay',
+      notifyTenant: true,
+    };
+
+    const mockExtensionResponse: ExtensionResponseDto = {
+      newEndDate: '2026-02-15T00:00:00.000Z',
+      daysAdded: 14,
+      notificationSent: true,
+      message: 'Grace period extended by 14 days. New end date: 2/15/2026',
+    };
+
+    it('should extend grace period successfully', async () => {
+      mockAdminBillingService.extendGracePeriod.mockResolvedValue(
+        mockExtensionResponse,
+      );
+
+      const result = await controller.extendGracePeriod(
+        tenantId,
+        validDto,
+        mockRequest,
+      );
+
+      expect(result).toEqual(mockExtensionResponse);
+      expect(mockAdminBillingService.extendGracePeriod).toHaveBeenCalledWith(
+        tenantId,
+        validDto,
+        mockAdminUser.adminId,
+      );
+    });
+
+    it('should pass admin ID from request user', async () => {
+      mockAdminBillingService.extendGracePeriod.mockResolvedValue(
+        mockExtensionResponse,
+      );
+
+      await controller.extendGracePeriod(tenantId, validDto, mockRequest);
+
+      expect(mockAdminBillingService.extendGracePeriod).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        'admin-uuid-1234',
+      );
+    });
+
+    it('should throw NotFoundException for missing tenant', async () => {
+      mockAdminBillingService.extendGracePeriod.mockRejectedValue(
+        new NotFoundException('Tenant not found'),
+      );
+
+      await expect(
+        controller.extendGracePeriod(tenantId, validDto, mockRequest),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BadRequestException when not in grace period', async () => {
+      mockAdminBillingService.extendGracePeriod.mockRejectedValue(
+        new BadRequestException('Tenant is not in grace period'),
+      );
+
+      await expect(
+        controller.extendGracePeriod(tenantId, validDto, mockRequest),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });
