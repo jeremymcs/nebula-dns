@@ -78,11 +78,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Admin sees their session status (logged in user) in the header
   3. Admin can click logout and is returned to login page
   4. Admin is automatically redirected to login when session expires or on protected routes
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 09-01: TBD
-- [ ] 09-02: TBD
+- [ ] 09-01-PLAN.md — Auth context and admin login page
+- [ ] 09-02-PLAN.md — Session UI, logout, and route protection
 
 ### Phase 10: Payment Methods Backend
 **Goal**: API endpoints exist for managing tenant payment methods
@@ -203,7 +203,7 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16
 | 6. System Health | v1.0 | 2/2 | Complete | 2026-01-18 |
 | 7. MSP Onboarding | v1.0 | 2/2 | Complete | 2026-01-18 |
 | 8. Billing Operations | v1.0 | 3/3 | Complete | 2026-01-18 |
-| 9. Admin Auth UI | v1.1 | 0/2 | Not started | - |
+| 9. Admin Auth UI | v1.1 | 0/2 | Planned | - |
 | 10. Payment Methods Backend | v1.1 | 0/1 | Not started | - |
 | 11. MSP Listing UI | v1.1 | 0/2 | Not started | - |
 | 12. MSP Detail UI | v1.1 | 0/2 | Not started | - |
