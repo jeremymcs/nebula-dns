@@ -56,6 +56,53 @@ export interface ScheduledReportEmailData {
   attachmentContentType?: string;
 }
 
+export interface FamilyInviteEmailData {
+  to: string;
+  familyName: string;
+  inviterName: string;
+  inviterEmail: string;
+  inviteUrl: string;
+  expiresAt: Date;
+}
+
+export interface MspWelcomeEmailData {
+  to: string;
+  adminName: string;
+  mspName: string;
+  tempPassword: string;
+  loginUrl: string;
+}
+
+// US-028: Grace Period Email Data Interfaces
+export interface GracePeriodNotificationData {
+  to: string;
+  companyName: string;
+  daysRemaining: number;
+  updatePaymentUrl: string;
+}
+
+export interface GracePeriodDailyReminderData {
+  to: string;
+  companyName: string;
+  daysRemaining: number;
+  clientCount: number;
+  updatePaymentUrl: string;
+}
+
+export interface ClientGracePeriodNotificationData {
+  to: string;
+  clientName: string;
+  mspName: string;
+  mspContactEmail?: string;
+  daysRemaining: number;
+}
+
+export interface SuspensionNotificationData {
+  to: string;
+  companyName: string;
+  updatePaymentUrl: string;
+}
+
 @Injectable()
 export class EmailService implements OnModuleInit {
   private readonly logger = new Logger(EmailService.name);
@@ -433,6 +480,352 @@ If you didn't sign up for this account, please ignore this email.
     }
 
     return this.sendEmail(data.to, subject, htmlContent);
+  }
+
+  // US-028: Grace Period Notification Email
+  async sendGracePeriodNotification(
+    data: GracePeriodNotificationData,
+  ): Promise<boolean> {
+    const subject = `Action Required: Your subscription is past due - ${data.daysRemaining} days remaining`;
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Subscription Grace Period</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: #fef3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 30px;">
+    <h2 style="color: #856404; margin-top: 0;">Subscription Payment Required</h2>
+
+    <p>Your payment for <strong>${data.companyName}</strong>'s Nebula DNS subscription is past due.</p>
+
+    <div style="background: white; border-radius: 8px; padding: 20px; margin: 25px 0; border: 1px solid #ffc107; text-align: center;">
+      <div style="font-size: 48px; font-weight: bold; color: #dc3545;">${data.daysRemaining}</div>
+      <div style="font-size: 14px; color: #6c757d;">days remaining</div>
+    </div>
+
+    <p style="color: #856404;">If payment is not received within <strong>${data.daysRemaining} days</strong>, your account and all managed client accounts will be suspended.</p>
+
+    <p style="color: #856404;">When suspended:</p>
+    <ul style="color: #856404;">
+      <li>DNS resolution will be blocked for all networks</li>
+      <li>Your clients will see a service suspended message</li>
+      <li>All policy enforcement will stop</li>
+    </ul>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${data.updatePaymentUrl}" style="background: #dc3545; color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+        Update Payment Now
+      </a>
+    </div>
+
+    <p style="font-size: 14px; color: #6b7280;">
+      If you believe this is an error or need assistance, please contact our support team.
+    </p>
+  </div>
+</body>
+</html>`;
+
+    return this.sendEmail(data.to, subject, htmlContent);
+  }
+
+  // US-028: Grace Period Daily Reminder Email for MSPs
+  async sendGracePeriodDailyReminder(
+    data: GracePeriodDailyReminderData,
+  ): Promise<boolean> {
+    const subject = `Reminder: ${data.daysRemaining} days until service suspension - ${data.companyName}`;
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Grace Period Reminder</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 30px;">
+    <h2 style="color: #856404; margin-top: 0;">Daily Reminder: Payment Required</h2>
+
+    <p>This is your daily reminder that <strong>${data.companyName}</strong>'s subscription payment is overdue.</p>
+
+    <div style="display: flex; justify-content: space-around; margin: 25px 0;">
+      <div style="background: white; border-radius: 8px; padding: 20px; text-align: center; border: 1px solid #ffc107; flex: 1; margin: 0 10px;">
+        <div style="font-size: 36px; font-weight: bold; color: #dc3545;">${data.daysRemaining}</div>
+        <div style="font-size: 12px; color: #6c757d;">Days Remaining</div>
+      </div>
+      <div style="background: white; border-radius: 8px; padding: 20px; text-align: center; border: 1px solid #ffc107; flex: 1; margin: 0 10px;">
+        <div style="font-size: 36px; font-weight: bold; color: #495057;">${data.clientCount}</div>
+        <div style="font-size: 12px; color: #6c757d;">Clients Affected</div>
+      </div>
+    </div>
+
+    <p style="color: #856404;"><strong>Important:</strong> When the grace period ends, DNS protection will be disabled for all ${data.clientCount} client organizations.</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${data.updatePaymentUrl}" style="background: #28a745; color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+        Update Payment Method
+      </a>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid #ffc107; margin: 25px 0;">
+
+    <p style="font-size: 12px; color: #6b7280; text-align: center;">
+      This is an automated reminder from Nebula DNS.
+    </p>
+  </div>
+</body>
+</html>`;
+
+    return this.sendEmail(data.to, subject, htmlContent);
+  }
+
+  // US-028: Client Grace Period Notification
+  async sendClientGracePeriodNotification(
+    data: ClientGracePeriodNotificationData,
+  ): Promise<boolean> {
+    const subject = `Notice: DNS service ending in ${data.daysRemaining} days - ${data.clientName}`;
+
+    const contactSection = data.mspContactEmail
+      ? `<p style="font-size: 14px; color: #495057;">Contact your service provider: <a href="mailto:${data.mspContactEmail}" style="color: #007bff;">${data.mspContactEmail}</a></p>`
+      : '';
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Service Notice</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 30px;">
+    <h2 style="color: #856404; margin-top: 0;">Important Service Notice</h2>
+
+    <p>This is a notice regarding your DNS security service for <strong>${data.clientName}</strong>.</p>
+
+    <div style="background: white; border-radius: 8px; padding: 20px; margin: 25px 0; border: 1px solid #ffc107;">
+      <p style="margin: 0; font-size: 16px; color: #495057;">
+        Your managed service provider <strong>${data.mspName}</strong> has a billing issue that may affect your service.
+      </p>
+      <p style="margin: 15px 0 0 0; font-size: 24px; font-weight: bold; color: #dc3545; text-align: center;">
+        Service ending in ${data.daysRemaining} days
+      </p>
+    </div>
+
+    <p style="color: #856404;">If this issue is not resolved, your DNS security protection will be suspended. Please contact your service provider for more information.</p>
+
+    ${contactSection}
+
+    <hr style="border: none; border-top: 1px solid #ffc107; margin: 25px 0;">
+
+    <p style="font-size: 12px; color: #6b7280; text-align: center;">
+      This notice was sent by Nebula DNS on behalf of ${data.mspName}.
+    </p>
+  </div>
+</body>
+</html>`;
+
+    return this.sendEmail(data.to, subject, htmlContent);
+  }
+
+  // US-028: Suspension Notification
+  async sendSuspensionNotification(
+    data: SuspensionNotificationData,
+  ): Promise<boolean> {
+    const subject = `Service Suspended: ${data.companyName}`;
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Service Suspended</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 10px; padding: 30px;">
+    <h2 style="color: #721c24; margin-top: 0;">Service Suspended</h2>
+
+    <p>Your Nebula DNS subscription for <strong>${data.companyName}</strong> has been suspended due to non-payment.</p>
+
+    <div style="background: white; border-radius: 8px; padding: 20px; margin: 25px 0; border: 1px solid #f5c6cb;">
+      <h4 style="color: #721c24; margin-top: 0;">What this means:</h4>
+      <ul style="color: #721c24; margin: 0; padding-left: 20px;">
+        <li>DNS resolution is blocked for all networks</li>
+        <li>All client organizations are suspended</li>
+        <li>Users will see a "service suspended" message</li>
+        <li>No DNS queries will be processed</li>
+      </ul>
+    </div>
+
+    <p style="color: #721c24;">To restore service immediately, please update your payment information:</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${data.updatePaymentUrl}" style="background: #28a745; color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+        Restore Service Now
+      </a>
+    </div>
+
+    <p style="font-size: 14px; color: #6b7280;">
+      Service will be restored immediately upon successful payment. If you need assistance, please contact our support team.
+    </p>
+  </div>
+</body>
+</html>`;
+
+    return this.sendEmail(data.to, subject, htmlContent);
+  }
+
+  async sendFamilyInviteEmail(data: FamilyInviteEmailData): Promise<boolean> {
+    const subject = `You've been invited to join ${data.familyName} on Nebula DNS`;
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Family Invitation</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+    <h1 style="color: white; margin: 0; font-size: 24px;">You're Invited!</h1>
+  </div>
+
+  <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
+    <p style="font-size: 16px;"><strong>${data.inviterName}</strong> has invited you to join the <strong>${data.familyName}</strong> family on Nebula DNS.</p>
+
+    <p style="font-size: 16px;">As a family member, you'll be able to:</p>
+    <ul style="font-size: 14px; color: #4b5563;">
+      <li>View the family dashboard and protection status</li>
+      <li>See current filtering policies</li>
+      <li>Manage safe search settings for your devices</li>
+    </ul>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${data.inviteUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+        Accept Invitation
+      </a>
+    </div>
+
+    <p style="font-size: 14px; color: #6b7280;">
+      This invitation will expire in 7 days.
+    </p>
+
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
+
+    <p style="font-size: 12px; color: #6b7280; text-align: center;">
+      If you didn't expect this invitation, you can safely ignore this email.
+    </p>
+  </div>
+</body>
+</html>`;
+
+    return this.sendEmail(data.to, subject, htmlContent);
+  }
+
+  async sendMspWelcomeEmail(data: MspWelcomeEmailData): Promise<boolean> {
+    const subject = 'Welcome to Nebula DNS - Your MSP Account is Ready';
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Nebula DNS</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+    <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to Nebula DNS!</h1>
+    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Your MSP Account is Ready</p>
+  </div>
+
+  <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
+    <p style="font-size: 16px;">Hi ${data.adminName},</p>
+
+    <p style="font-size: 16px;">
+      Your MSP account for <strong>${data.mspName}</strong> has been created and is ready to use.
+      You can now manage DNS security for all your client organizations from a single dashboard.
+    </p>
+
+    <div style="background: white; border-radius: 8px; padding: 20px; margin: 25px 0; border: 1px solid #e5e7eb;">
+      <h3 style="color: #667eea; margin-top: 0;">Your Login Credentials</h3>
+      <p style="margin: 10px 0;">
+        <strong>Email:</strong> ${data.to}
+      </p>
+      <p style="margin: 10px 0;">
+        <strong>Temporary Password:</strong>
+        <code style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-family: monospace;">${data.tempPassword}</code>
+      </p>
+      <p style="margin: 15px 0 0 0; font-size: 14px; color: #dc2626; font-weight: 500;">
+        You will be required to change this password on first login.
+      </p>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${data.loginUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+        Log In to Your Dashboard
+      </a>
+    </div>
+
+    <div style="background: white; border-radius: 8px; padding: 20px; margin: 25px 0; border: 1px solid #e5e7eb;">
+      <h3 style="color: #667eea; margin-top: 0;">Getting Started</h3>
+      <ol style="padding-left: 20px; margin: 0;">
+        <li style="margin-bottom: 10px;">Log in and change your password</li>
+        <li style="margin-bottom: 10px;">Configure your MSP profile and branding</li>
+        <li style="margin-bottom: 10px;">Create your first client organization</li>
+        <li style="margin-bottom: 10px;">Set up policy templates for easy client deployment</li>
+      </ol>
+    </div>
+
+    <div style="background: #eff6ff; border-radius: 8px; padding: 15px; margin: 20px 0;">
+      <p style="margin: 0; font-size: 14px; color: #1e40af;">
+        <strong>Need help?</strong> Visit our documentation at <a href="${this.docsUrl}" style="color: #1e40af;">${this.docsUrl}</a>
+        or contact our support team for assistance.
+      </p>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
+
+    <p style="font-size: 14px; color: #6b7280; text-align: center;">
+      <strong>Keep this email secure</strong> - do not share your temporary password.<br>
+      This email was sent by Nebula DNS.
+    </p>
+  </div>
+</body>
+</html>`;
+
+    const textContent = `
+Welcome to Nebula DNS - Your MSP Account is Ready
+
+Hi ${data.adminName},
+
+Your MSP account for ${data.mspName} has been created and is ready to use.
+You can now manage DNS security for all your client organizations from a single dashboard.
+
+Your Login Credentials
+----------------------
+Email: ${data.to}
+Temporary Password: ${data.tempPassword}
+
+IMPORTANT: You will be required to change this password on first login.
+
+Log in to your dashboard: ${data.loginUrl}
+
+Getting Started
+---------------
+1. Log in and change your password
+2. Configure your MSP profile and branding
+3. Create your first client organization
+4. Set up policy templates for easy client deployment
+
+Need help? Visit our documentation at ${this.docsUrl}
+
+Keep this email secure - do not share your temporary password.
+This email was sent by Nebula DNS.
+`;
+
+    return this.sendEmail(data.to, subject, htmlContent, textContent);
   }
 
   private async sendEmailWithAttachment(
