@@ -58,7 +58,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Milestone Goal:** Complete frontend integration so ops team can use Mission Control end-to-end without CLI or direct API calls.
 
-- [ ] **Phase 9: Admin Auth UI** - Login page, session management, protected routes
+- [x] **Phase 9: Admin Auth UI** - Login page, session management, protected routes
 - [ ] **Phase 10: Payment Methods Backend** - New API endpoints for payment method management
 - [ ] **Phase 11: MSP Listing UI** - Paginated MSP table with search and navigation
 - [ ] **Phase 12: MSP Detail UI** - Client list, usage metrics, action buttons
@@ -81,8 +81,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 09-01-PLAN.md — Auth context and admin login page
-- [ ] 09-02-PLAN.md — Session UI, logout, and route protection
+- [x] 09-01-PLAN.md — Auth context and admin login page
+- [x] 09-02-PLAN.md — Session UI, logout, and route protection
 
 ### Phase 10: Payment Methods Backend
 **Goal**: API endpoints exist for managing tenant payment methods
@@ -203,7 +203,7 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16
 | 6. System Health | v1.0 | 2/2 | Complete | 2026-01-18 |
 | 7. MSP Onboarding | v1.0 | 2/2 | Complete | 2026-01-18 |
 | 8. Billing Operations | v1.0 | 3/3 | Complete | 2026-01-18 |
-| 9. Admin Auth UI | v1.1 | 0/2 | Planned | - |
+| 9. Admin Auth UI | v1.1 | 2/2 | Complete | 2026-01-18 |
 | 10. Payment Methods Backend | v1.1 | 0/1 | Not started | - |
 | 11. MSP Listing UI | v1.1 | 0/2 | Not started | - |
 | 12. MSP Detail UI | v1.1 | 0/2 | Not started | - |

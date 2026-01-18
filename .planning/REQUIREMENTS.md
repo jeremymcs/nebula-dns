@@ -9,10 +9,10 @@ Requirements for Mission Control frontend integration. Each maps to roadmap phas
 
 ### Admin Authentication UI
 
-- [ ] **AUTH-01**: Admin can log in with email and password
-- [ ] **AUTH-02**: Admin sees current session status in header
-- [ ] **AUTH-03**: Admin can log out and session is terminated
-- [ ] **AUTH-04**: Admin is redirected to login when session expires
+- [x] **AUTH-01**: Admin can log in with email and password
+- [x] **AUTH-02**: Admin sees current session status in header
+- [x] **AUTH-03**: Admin can log out and session is terminated
+- [x] **AUTH-04**: Admin is redirected to login when session expires
 
 ### MSP Onboarding
 
@@ -106,10 +106,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 9 | Pending |
-| AUTH-02 | Phase 9 | Pending |
-| AUTH-03 | Phase 9 | Pending |
-| AUTH-04 | Phase 9 | Pending |
+| AUTH-01 | Phase 9 | Complete |
+| AUTH-02 | Phase 9 | Complete |
+| AUTH-03 | Phase 9 | Complete |
+| AUTH-04 | Phase 9 | Complete |
 | ONBOARD-01 | Phase 16 | Pending |
 | ONBOARD-02 | Phase 16 | Pending |
 | ONBOARD-03 | Phase 16 | Pending |
