@@ -37,6 +37,10 @@ import {
   TenantSearchResponseDto,
 } from './dto/tenant-search.dto';
 import {
+  MspListingQueryDto,
+  MspListingResponseDto,
+} from './dto/msp-listing.dto';
+import {
   StartImpersonationResponseDto,
   EndImpersonationResponseDto,
 } from './dto/impersonation.dto';
@@ -124,6 +128,34 @@ export class AdminController {
     @Query() query: TenantSearchQueryDto,
   ): Promise<TenantSearchResponseDto> {
     return this.adminService.searchTenants(query);
+  }
+
+  /**
+   * List all MSP tenants
+   * Returns paginated list of MSP-tier tenants with client counts
+   */
+  @Get('msp/tenants')
+  @UseGuards(AdminAuthGuard)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'List MSP tenants',
+    description:
+      'List all MSP-tier tenants with client organization counts. ' +
+      'Returns paginated results ordered by name.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of MSP tenants with pagination',
+    type: MspListingResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Admin authentication required',
+  })
+  async listMspTenants(
+    @Query() query: MspListingQueryDto,
+  ): Promise<MspListingResponseDto> {
+    return this.adminService.listMspTenants(query);
   }
 
   /**
