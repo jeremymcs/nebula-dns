@@ -14,6 +14,7 @@ import { AdminService } from './admin.service';
 import { AdminSessionService } from './admin-session.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { ClickHouseService } from '../clickhouse/clickhouse.service';
+import { EmailService } from '../email/email.service';
 import { Admin } from './entities/admin.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
 import { Location } from '../locations/entities/location.entity';
@@ -203,6 +204,12 @@ describe('AdminService', () => {
             isUsingMockData: jest.fn().mockReturnValue(false),
           },
         },
+        {
+          provide: EmailService,
+          useValue: {
+            sendMspWelcomeEmail: jest.fn().mockResolvedValue(true),
+          },
+        },
       ],
     }).compile();
 
@@ -276,12 +283,11 @@ describe('AdminService', () => {
         status: 'active',
         tier: 'msp',
         adminEmail: 'admin@acme.com',
-        welcomeEmailSent: false,
+        welcomeEmailSent: true, // Email service mocked to return true
       });
       expect(result.id).toBeDefined();
       expect(result.adminUserId).toBeDefined();
-      expect(result.tempPassword).toBeDefined();
-      expect(result.tempPassword).toHaveLength(32); // 16 bytes = 32 hex chars
+      // tempPassword is no longer in response (security - sent only via email)
     });
 
     it('should throw ConflictException for duplicate email', async () => {
