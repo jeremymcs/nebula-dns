@@ -14,15 +14,50 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  TenantStatus,
-  TenantTier,
-} from '../../tenants/entities/tenant.entity';
+import { TenantStatus, TenantTier } from '../../tenants/entities/tenant.entity';
 
 /**
- * Time period for usage metrics (future use)
+ * Time period for usage metrics
  */
 export type MetricPeriod = '24h' | '7d' | '30d' | '90d';
+
+/**
+ * MSP Usage Metrics DTO
+ *
+ * Aggregated usage metrics across all clients managed by an MSP.
+ * Sourced from ClickHouse analytics data.
+ */
+export class MspUsageMetricsDto {
+  @ApiProperty({ description: 'Total DNS queries in period', example: 2547893 })
+  totalQueries: number;
+
+  @ApiProperty({ description: 'Blocked queries in period', example: 127394 })
+  blockedQueries: number;
+
+  @ApiProperty({ description: 'Threats blocked in period', example: 12453 })
+  threatsBlocked: number;
+
+  @ApiProperty({ description: 'Block rate percentage', example: 5.0 })
+  blockRate: number;
+
+  @ApiProperty({
+    description: 'Period start date (ISO)',
+    example: '2026-01-01T00:00:00.000Z',
+  })
+  periodStart: string;
+
+  @ApiProperty({
+    description: 'Period end date (ISO)',
+    example: '2026-01-31T23:59:59.999Z',
+  })
+  periodEnd: string;
+
+  @ApiProperty({
+    description: 'Whether using mock data (ClickHouse unavailable)',
+    example: false,
+  })
+  isMockData: boolean;
+}
 
 /**
  * MSP Detail Query DTO
@@ -104,6 +139,12 @@ export class MspDetailResponseDto {
     example: '2024-01-15T09:30:00.000Z',
   })
   createdAt: string;
+
+  @ApiProperty({
+    description: 'Usage metrics for the requested period',
+    type: MspUsageMetricsDto,
+  })
+  usage: MspUsageMetricsDto;
 }
 
 /**
@@ -155,6 +196,17 @@ export class MspClientListQueryDto {
   @IsOptional()
   @IsString({ message: 'Cursor must be a string' })
   cursor?: string;
+
+  @ApiPropertyOptional({
+    enum: ['24h', '7d', '30d', '90d'],
+    description: 'Period for usage metrics',
+    default: '30d',
+  })
+  @IsOptional()
+  @IsEnum(['24h', '7d', '30d', '90d'], {
+    message: 'Period must be one of: 24h, 7d, 30d, 90d',
+  })
+  period?: MetricPeriod = '30d';
 }
 
 /**
@@ -206,6 +258,18 @@ export class MspClientDto {
     example: 23,
   })
   userCount: number;
+
+  @ApiProperty({
+    description: 'Total DNS queries in period',
+    example: 154892,
+  })
+  totalQueries: number;
+
+  @ApiProperty({
+    description: 'Blocked queries in period',
+    example: 7744,
+  })
+  blockedQueries: number;
 
   @ApiProperty({
     description: 'Client tenant creation date',
