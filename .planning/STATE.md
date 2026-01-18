@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-17)
 
 **Core value:** Enable ops team to handle support escalations quickly through tenant impersonation
-**Current focus:** Phase 4 complete - MSP Listing
+**Current focus:** Phase 5 - MSP Drill-down (Plan 01 complete)
 
 ## Current Position
 
-Phase: 4 of 8 (MSP Listing) - COMPLETE
-Plan: 2 of 2 executed in current phase
-Status: Phase complete
-Last activity: 2026-01-18 - Completed 04-02-PLAN.md (MSP Backend APIs)
+Phase: 5 of 8 (MSP Drill-down)
+Plan: 1 of 2 executed in current phase
+Status: In progress
+Last activity: 2026-01-18 - Completed 05-01-PLAN.md (MSP Detail Endpoints)
 
-Progress: [██████░░░░] 54%
+Progress: [███████░░░] 62%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
+- Total plans completed: 8
 - Average duration: 5 min
-- Total execution time: 31 min
+- Total execution time: 34 min
 
 **By Phase:**
 
@@ -31,10 +31,11 @@ Progress: [██████░░░░] 54%
 | 02-tenant-search | 1/1 | 6 min | 6 min |
 | 03-impersonation-core | 2/2 | 10 min | 5 min |
 | 04-msp-listing | 2/2 | 7 min | 3.5 min |
+| 05-msp-drill-down | 1/2 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (6min), 03-01 (8min), 03-02 (2min), 04-01 (4min), 04-02 (3min)
-- Trend: Consistent execution times around 3-6 min
+- Last 5 plans: 03-01 (8min), 03-02 (2min), 04-01 (4min), 04-02 (3min), 05-01 (3min)
+- Trend: Consistent execution times around 3-4 min
 
 *Updated after each plan completion*
 
@@ -72,6 +73,9 @@ Recent decisions affecting current work:
 - [04-02]: Reuse detectQueryType for UUID vs name search detection
 - [04-02]: MinLength(2) for search queries to prevent overly broad searches
 - [04-02]: Total count reflects filtered results, not all MSPs
+- [05-01]: verifyMspTenant helper for MSP tier validation (reusable)
+- [05-01]: ParseUUIDPipe validates mspId at controller level
+- [05-01]: Routes placed before impersonate to avoid conflicts
 
 ### Pending Todos
 
@@ -81,26 +85,26 @@ None.
 
 None.
 
-## Phase 4 Complete
+## Phase 5 Progress
 
-MSP Listing phase complete:
+MSP Drill-down phase in progress:
 
-**Plan 01 - MSP Tenant Listing (Complete):**
-- GET /admin/msp/tenants endpoint with AdminAuthGuard
-- Client count via LEFT JOIN with managed_by_msp_id
-- Cursor-based pagination consistent with tenant search
-- DTOs: MspListingQueryDto, MspTenantDto, MspListingResponseDto
+**Plan 01 - MSP Detail Endpoints (Complete):**
+- GET /admin/msp/tenants/:mspId for MSP detail with counts
+- GET /admin/msp/tenants/:mspId/clients for client listing
+- verifyMspTenant helper for MSP tier validation
+- ParseUUIDPipe for UUID parameter validation
+- Per-client location/user counts via LEFT JOIN
 
-**Plan 02 - MSP Backend APIs (Complete):**
-- Search by name (ILIKE partial) or UUID (exact)
-- Filter by status (active/suspended/cancelled)
-- Combined search + filter support
-- Pagination total reflects filtered count
+**Plan 02 - Client Detail and Actions (Pending):**
+- Client detail endpoint with extended information
+- Impersonation from client list context
+- Additional drill-down capabilities
 
 ## Session Continuity
 
-Last session: 2026-01-18T02:23:00Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-01-18T02:46:47Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
 
-Next: Begin Phase 5 (MSP Impersonation)
+Next: Continue Phase 5 with Plan 02 (Client Detail and Actions)
