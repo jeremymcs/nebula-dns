@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-18)
 ## Current Position
 
 Phase: 9 of 16 (Admin Auth UI)
-Plan: 0 of 2 in current phase
-Status: Ready to plan
-Last activity: 2026-01-18 - Started v1.1 milestone, created roadmap
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-01-18 - Completed 09-01-PLAN.md (Admin Auth Context & Login)
 
-Progress: [##########----------] 50% (v1 complete, v1.1 starting)
+Progress: [##########=#--------] 53% (v1 complete, v1.1 plan 1 of 16)
 
 ## Performance Metrics
 
@@ -36,18 +36,18 @@ Progress: [##########----------] 50% (v1 complete, v1.1 starting)
 | 07-msp-onboarding | 2/2 | 11 min | 5.5 min |
 | 08-billing-operations | 3/3 | 14 min | 4.7 min |
 
-**v1.1 Phases (Planned):**
+**v1.1 Phases:**
 
 | Phase | Plans | Status |
 |-------|-------|--------|
-| 09-admin-auth-ui | 2 | Not started |
-| 10-payment-methods-backend | 1 | Not started |
-| 11-msp-listing-ui | 2 | Not started |
-| 12-msp-detail-ui | 2 | Not started |
-| 13-tenant-search-impersonation-ui | 2 | Not started |
-| 14-billing-portal-ui | 3 | Not started |
-| 15-system-health-ui | 2 | Not started |
-| 16-msp-onboarding-wizard | 2 | Not started |
+| 09-admin-auth-ui | 1/2 | In progress |
+| 10-payment-methods-backend | 0/1 | Not started |
+| 11-msp-listing-ui | 0/2 | Not started |
+| 12-msp-detail-ui | 0/2 | Not started |
+| 13-tenant-search-impersonation-ui | 0/2 | Not started |
+| 14-billing-portal-ui | 0/3 | Not started |
+| 15-system-health-ui | 0/2 | Not started |
+| 16-msp-onboarding-wizard | 0/2 | Not started |
 
 *Updated after each plan completion*
 
@@ -64,6 +64,9 @@ Recent decisions affecting current work:
 - [v1.1 Roadmap]: Auth UI first as foundation for all other features
 - [v1.1 Roadmap]: Payment methods backend (Phase 10) before billing portal UI (Phase 14)
 - [v1.1 Roadmap]: MSP Onboarding Wizard last (Phase 16) to build with full context
+- [09-01]: No "Remember me" checkbox on admin login (security best practice)
+- [09-01]: Use separate localStorage keys (admin_token, admin_user, admin_session_expiry)
+- [09-01]: No token refresh for 8-hour admin tokens
 
 ### Pending Todos
 
@@ -89,8 +92,8 @@ All 8 phases of v1 backend API complete:
 
 ## Session Continuity
 
-Last session: 2026-01-18
-Stopped at: Created v1.1 roadmap
+Last session: 2026-01-18 22:18 UTC
+Stopped at: Completed 09-01-PLAN.md
 Resume file: None
 
-Next: `/gsd:plan-phase 9` to plan Admin Auth UI
+Next: Execute 09-02-PLAN.md (Admin Session UI)
