@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-17)
 
 **Core value:** Enable ops team to handle support escalations quickly through tenant impersonation
-**Current focus:** Phase 3 In Progress - Plan 01 complete
+**Current focus:** Phase 3 Complete - Ready for Phase 4
 
 ## Current Position
 
-Phase: 3 of 8 (Impersonation Core)
-Plan: 1 of 2 executed in current phase
-Status: In progress
-Last activity: 2026-01-17 - Completed 03-01-PLAN.md (Impersonation Session Management)
+Phase: 3 of 8 (Impersonation Core) - COMPLETE
+Plan: 2 of 2 executed in current phase
+Status: Phase complete
+Last activity: 2026-01-18 - Completed 03-02-PLAN.md (JWT Strategy Impersonation Support)
 
-Progress: [████░░░░░░] 33%
+Progress: [████░░░░░░] 38%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 6 min
-- Total execution time: 22 min
+- Total plans completed: 5
+- Average duration: 5 min
+- Total execution time: 24 min
 
 **By Phase:**
 
@@ -29,11 +29,11 @@ Progress: [████░░░░░░] 33%
 |-------|-------|-------|----------|
 | 01-admin-auth-foundation | 2/2 | 8 min | 4 min |
 | 02-tenant-search | 1/1 | 6 min | 6 min |
-| 03-impersonation-core | 1/2 | 8 min | 8 min |
+| 03-impersonation-core | 2/2 | 10 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4min), 01-02 (4min), 02-01 (6min), 03-01 (8min)
-- Trend: Slight increase as complexity grows
+- Last 5 plans: 01-01 (4min), 01-02 (4min), 02-01 (6min), 03-01 (8min), 03-02 (2min)
+- Trend: Plan 03-02 was fast (minimal changes needed)
 
 *Updated after each plan completion*
 
@@ -62,6 +62,9 @@ Recent decisions affecting current work:
 - [03-01]: 1-hour expiry for impersonation tokens (shorter than admin 8h)
 - [03-01]: endImpersonation accepts impersonation token directly (no AdminAuthGuard)
 - [03-01]: Route /impersonate/end before /impersonate/:tenantId to prevent conflicts
+- [03-02]: Impersonation tokens check admin blacklist directly via RedisService
+- [03-02]: Impersonation tokens skip user database lookup (admin is synthetic user)
+- [03-02]: isImpersonation flag added to ALL request.user objects
 
 ### Pending Todos
 
@@ -71,21 +74,28 @@ None.
 
 None.
 
-## Phase 3 Plan 01 Summary
+## Phase 3 Complete Summary
 
-Impersonation Session Management complete with:
+Impersonation Core phase complete with full end-to-end functionality:
+
+**Plan 01 - Impersonation Session Management:**
 - POST /admin/impersonate/:tenantId endpoint (requires AdminAuthGuard)
 - POST /admin/impersonate/end endpoint (accepts impersonation token)
 - Tenant-scoped JWT generation with impersonation claims
-- Impersonation tokens signed with JWT_SECRET (enables tenant dashboard access)
 - 1-hour token expiry for security
 - Full audit logging (admin_impersonation_start, admin_impersonation_end)
-- StartImpersonationResponseDto and EndImpersonationResponseDto
+
+**Plan 02 - JWT Strategy Impersonation Support:**
+- JwtStrategy detects impersonation tokens via impersonatingAdminId claim
+- Impersonation tokens check admin:session:blacklist: prefix
+- Impersonation tokens skip user database lookup
+- request.user includes isImpersonation flag for all tokens
+- request.user includes admin attribution for impersonation
 
 ## Session Continuity
 
-Last session: 2026-01-17T20:08:00Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-01-18T02:01:42Z
+Stopped at: Completed 03-02-PLAN.md (Phase 3 complete)
 Resume file: None
 
-Next: Plan 03-02 (Impersonation Indicator UI)
+Next: Phase 4 (Audit Logging Expansion)
