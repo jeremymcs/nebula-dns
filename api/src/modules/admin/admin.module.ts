@@ -13,16 +13,22 @@ import { AdminMfa } from './entities/admin-mfa.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
 import { Location } from '../locations/entities/location.entity';
 import { User } from '../users/entities/user.entity';
+import { Subscription } from '../subscriptions/entities/subscription.entity';
 import { AdminJwtStrategy } from './strategies/admin-jwt.strategy';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { AdminService } from './admin.service';
 import { AdminSessionService } from './admin-session.service';
 import { AdminHealthService } from './admin-health.service';
+import { AdminBillingService } from './admin-billing.service';
 import { AdminController } from './admin.controller';
 import { RedisModule } from '../redis/redis.module';
 import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 import { ClickHouseModule } from '../clickhouse/clickhouse.module';
 import { EmailModule } from '../email/email.module';
+import { PaymentsModule } from '../payments/payments.module';
+import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
+import { TrialsModule } from '../trials/trials.module';
+import { SubscriptionLapseModule } from '../subscription-lapse/subscription-lapse.module';
 
 /**
  * Admin Module
@@ -62,7 +68,14 @@ import { EmailModule } from '../email/email.module';
     }),
 
     // TypeORM entities for admin users and related entities for MSP drill-down
-    TypeOrmModule.forFeature([Admin, AdminMfa, Tenant, Location, User]),
+    TypeOrmModule.forFeature([
+      Admin,
+      AdminMfa,
+      Tenant,
+      Location,
+      User,
+      Subscription,
+    ]),
 
     // Redis for session management (blacklist, session tracking)
     RedisModule,
@@ -75,6 +88,12 @@ import { EmailModule } from '../email/email.module';
 
     // Email for MSP welcome notifications
     EmailModule,
+
+    // Billing-related modules for admin billing operations
+    PaymentsModule,
+    SubscriptionsModule,
+    TrialsModule,
+    SubscriptionLapseModule,
   ],
 
   // Admin API endpoints
@@ -85,11 +104,18 @@ import { EmailModule } from '../email/email.module';
     AdminService,
     AdminSessionService,
     AdminHealthService,
+    AdminBillingService,
     AdminJwtStrategy,
     AdminAuthGuard,
   ],
 
   // Export service and guard for use by other modules
-  exports: [AdminService, AdminHealthService, AdminAuthGuard, JwtModule],
+  exports: [
+    AdminService,
+    AdminHealthService,
+    AdminBillingService,
+    AdminAuthGuard,
+    JwtModule,
+  ],
 })
 export class AdminModule {}

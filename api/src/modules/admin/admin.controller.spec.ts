@@ -22,6 +22,12 @@ import {
   ExtendTrialDto,
   ExtendGracePeriodDto,
   ExtensionResponseDto,
+  SubscriptionStatusResponseDto,
+  InvoiceListResponseDto,
+  ApplyCreditDto,
+  CreditAppliedResponseDto,
+  ChangeTierDto,
+  TierChangeResponseDto,
 } from './dto/billing.dto';
 
 describe('AdminController', () => {
@@ -395,6 +401,187 @@ describe('AdminController', () => {
 
       await expect(
         controller.extendGracePeriod(tenantId, validDto, mockRequest),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('getSubscriptionStatus', () => {
+    const tenantId = 'tenant-uuid-1234';
+
+    const mockSubscriptionStatus: SubscriptionStatusResponseDto = {
+      tenantId: 'tenant-uuid-1234',
+      tenantName: 'Test Tenant',
+      tier: 'enterprise',
+      status: 'active',
+      billingCycle: 'monthly',
+      stripeCustomerId: 'cus_test123',
+      stripeCustomerLink: 'https://dashboard.stripe.com/customers/cus_test123',
+      billingEmail: 'billing@test.com',
+      cancelAtPeriodEnd: false,
+    };
+
+    it('should return subscription status', async () => {
+      mockAdminBillingService.getSubscriptionStatus.mockResolvedValue(
+        mockSubscriptionStatus,
+      );
+
+      const result = await controller.getSubscriptionStatus(tenantId);
+
+      expect(result).toEqual(mockSubscriptionStatus);
+      expect(
+        mockAdminBillingService.getSubscriptionStatus,
+      ).toHaveBeenCalledWith(tenantId);
+    });
+
+    it('should throw NotFoundException for missing tenant', async () => {
+      mockAdminBillingService.getSubscriptionStatus.mockRejectedValue(
+        new NotFoundException('Tenant not found'),
+      );
+
+      await expect(controller.getSubscriptionStatus(tenantId)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('listInvoices', () => {
+    const tenantId = 'tenant-uuid-1234';
+
+    const mockInvoiceResponse: InvoiceListResponseDto = {
+      data: [
+        {
+          id: 'in_test1',
+          number: 'INV-001',
+          status: 'paid',
+          amountDue: 9900,
+          amountPaid: 9900,
+          currency: 'usd',
+          created: '2026-01-01T00:00:00.000Z',
+          hasPdf: true,
+        },
+      ],
+      pagination: {
+        cursor: null,
+        hasMore: false,
+      },
+    };
+
+    it('should return invoices with pagination', async () => {
+      mockAdminBillingService.listInvoices.mockResolvedValue(
+        mockInvoiceResponse,
+      );
+
+      const result = await controller.listInvoices(tenantId, { limit: 20 });
+
+      expect(result).toEqual(mockInvoiceResponse);
+      expect(mockAdminBillingService.listInvoices).toHaveBeenCalledWith(
+        tenantId,
+        { limit: 20 },
+      );
+    });
+  });
+
+  describe('applyCredit', () => {
+    const tenantId = 'tenant-uuid-1234';
+    const creditDto: ApplyCreditDto = {
+      amountCents: 1500,
+      reason: 'Customer support credit',
+    };
+
+    const mockCreditResponse: CreditAppliedResponseDto = {
+      transactionId: 'txn_abc123',
+      newBalance: -1500,
+      amountApplied: 1500,
+      message: 'Successfully applied $15.00 credit to Test Tenant',
+    };
+
+    it('should apply credit successfully', async () => {
+      mockAdminBillingService.applyCredit.mockResolvedValue(mockCreditResponse);
+
+      const result = await controller.applyCredit(
+        tenantId,
+        creditDto,
+        mockRequest,
+      );
+
+      expect(result).toEqual(mockCreditResponse);
+      expect(mockAdminBillingService.applyCredit).toHaveBeenCalledWith(
+        tenantId,
+        creditDto,
+        mockAdminUser.adminId,
+      );
+    });
+
+    it('should throw NotFoundException for missing tenant', async () => {
+      mockAdminBillingService.applyCredit.mockRejectedValue(
+        new NotFoundException('Tenant not found'),
+      );
+
+      await expect(
+        controller.applyCredit(tenantId, creditDto, mockRequest),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BadRequestException for tenant without billing', async () => {
+      mockAdminBillingService.applyCredit.mockRejectedValue(
+        new BadRequestException('Tenant does not have billing configured'),
+      );
+
+      await expect(
+        controller.applyCredit(tenantId, creditDto, mockRequest),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('changeTier', () => {
+    const tenantId = 'tenant-uuid-1234';
+    const tierDto: ChangeTierDto = {
+      newTier: 'msp',
+      timing: 'immediate',
+      reason: 'Upgrading to MSP tier',
+    };
+
+    const mockTierResponse: TierChangeResponseDto = {
+      previousTier: 'enterprise',
+      newTier: 'msp',
+      effectiveAt: '2026-01-18T00:00:00.000Z',
+      message: 'Successfully changed tier from enterprise to msp',
+    };
+
+    it('should change tier successfully', async () => {
+      mockAdminBillingService.changeTier.mockResolvedValue(mockTierResponse);
+
+      const result = await controller.changeTier(
+        tenantId,
+        tierDto,
+        mockRequest,
+      );
+
+      expect(result).toEqual(mockTierResponse);
+      expect(mockAdminBillingService.changeTier).toHaveBeenCalledWith(
+        tenantId,
+        tierDto,
+        mockAdminUser.adminId,
+      );
+    });
+
+    it('should throw NotFoundException for missing tenant', async () => {
+      mockAdminBillingService.changeTier.mockRejectedValue(
+        new NotFoundException('Tenant not found'),
+      );
+
+      await expect(
+        controller.changeTier(tenantId, tierDto, mockRequest),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BadRequestException for missing subscription', async () => {
+      mockAdminBillingService.changeTier.mockRejectedValue(
+        new BadRequestException('Tenant does not have an active subscription'),
+      );
+
+      await expect(
+        controller.changeTier(tenantId, tierDto, mockRequest),
       ).rejects.toThrow(BadRequestException);
     });
   });

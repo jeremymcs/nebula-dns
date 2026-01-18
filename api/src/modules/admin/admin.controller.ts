@@ -817,7 +817,8 @@ export class AdminController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Tenant does not have an active trial or no Stripe subscription',
+    description:
+      'Tenant does not have an active trial or no Stripe subscription',
   })
   @ApiResponse({
     status: 404,
