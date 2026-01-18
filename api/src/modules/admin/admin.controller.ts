@@ -15,12 +15,14 @@ import {
   UnauthorizedException,
   Req,
   Ip,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiParam,
 } from '@nestjs/swagger';
 import { Request } from 'express';
 
@@ -40,6 +42,12 @@ import {
   MspListingQueryDto,
   MspListingResponseDto,
 } from './dto/msp-listing.dto';
+import {
+  MspDetailQueryDto,
+  MspDetailResponseDto,
+  MspClientListQueryDto,
+  MspClientListResponseDto,
+} from './dto/msp-detail.dto';
 import {
   StartImpersonationResponseDto,
   EndImpersonationResponseDto,
@@ -156,6 +164,72 @@ export class AdminController {
     @Query() query: MspListingQueryDto,
   ): Promise<MspListingResponseDto> {
     return this.adminService.listMspTenants(query);
+  }
+
+  /**
+   * Get MSP tenant details
+   * Returns detailed information including client, location, and user counts
+   */
+  @Get('msp/tenants/:mspId')
+  @UseGuards(AdminAuthGuard)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Get MSP tenant details',
+    description:
+      'Get detailed information about an MSP including client, location, and user counts.',
+  })
+  @ApiParam({ name: 'mspId', description: 'MSP tenant UUID', type: 'string' })
+  @ApiResponse({
+    status: 200,
+    type: MspDetailResponseDto,
+    description: 'MSP details retrieved',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Tenant is not an MSP',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tenant not found',
+  })
+  async getMspDetail(
+    @Param('mspId', ParseUUIDPipe) mspId: string,
+    @Query() query: MspDetailQueryDto,
+  ): Promise<MspDetailResponseDto> {
+    return this.adminService.getMspDetail(mspId, query);
+  }
+
+  /**
+   * List MSP client organizations
+   * Returns paginated list of all clients managed by an MSP
+   */
+  @Get('msp/tenants/:mspId/clients')
+  @UseGuards(AdminAuthGuard)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'List MSP client organizations',
+    description:
+      'List all client organizations managed by an MSP with location and user counts.',
+  })
+  @ApiParam({ name: 'mspId', description: 'MSP tenant UUID', type: 'string' })
+  @ApiResponse({
+    status: 200,
+    type: MspClientListResponseDto,
+    description: 'Client list retrieved',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Tenant is not an MSP',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tenant not found',
+  })
+  async getMspClients(
+    @Param('mspId', ParseUUIDPipe) mspId: string,
+    @Query() query: MspClientListQueryDto,
+  ): Promise<MspClientListResponseDto> {
+    return this.adminService.getMspClients(mspId, query);
   }
 
   /**
