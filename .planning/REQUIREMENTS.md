@@ -106,53 +106,53 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | TBD | Pending |
-| AUTH-02 | TBD | Pending |
-| AUTH-03 | TBD | Pending |
-| AUTH-04 | TBD | Pending |
-| ONBOARD-01 | TBD | Pending |
-| ONBOARD-02 | TBD | Pending |
-| ONBOARD-03 | TBD | Pending |
-| ONBOARD-04 | TBD | Pending |
-| ONBOARD-05 | TBD | Pending |
-| ONBOARD-06 | TBD | Pending |
-| LIST-01 | TBD | Pending |
-| LIST-02 | TBD | Pending |
-| LIST-03 | TBD | Pending |
-| LIST-04 | TBD | Pending |
-| LIST-05 | TBD | Pending |
-| DETAIL-01 | TBD | Pending |
-| DETAIL-02 | TBD | Pending |
-| DETAIL-03 | TBD | Pending |
-| DETAIL-04 | TBD | Pending |
-| DETAIL-05 | TBD | Pending |
-| IMP-01 | TBD | Pending |
-| IMP-02 | TBD | Pending |
-| IMP-03 | TBD | Pending |
-| IMP-04 | TBD | Pending |
-| IMP-05 | TBD | Pending |
-| BILL-01 | TBD | Pending |
-| BILL-02 | TBD | Pending |
-| BILL-03 | TBD | Pending |
-| BILL-04 | TBD | Pending |
-| BILL-05 | TBD | Pending |
-| BILL-06 | TBD | Pending |
-| PAY-01 | TBD | Pending |
-| PAY-02 | TBD | Pending |
-| PAY-03 | TBD | Pending |
-| PAY-04 | TBD | Pending |
-| PAY-05 | TBD | Pending |
-| PAY-06 | TBD | Pending |
-| HEALTH-01 | TBD | Pending |
-| HEALTH-02 | TBD | Pending |
-| HEALTH-03 | TBD | Pending |
-| HEALTH-04 | TBD | Pending |
+| AUTH-01 | Phase 9 | Pending |
+| AUTH-02 | Phase 9 | Pending |
+| AUTH-03 | Phase 9 | Pending |
+| AUTH-04 | Phase 9 | Pending |
+| ONBOARD-01 | Phase 16 | Pending |
+| ONBOARD-02 | Phase 16 | Pending |
+| ONBOARD-03 | Phase 16 | Pending |
+| ONBOARD-04 | Phase 16 | Pending |
+| ONBOARD-05 | Phase 16 | Pending |
+| ONBOARD-06 | Phase 16 | Pending |
+| LIST-01 | Phase 11 | Pending |
+| LIST-02 | Phase 11 | Pending |
+| LIST-03 | Phase 11 | Pending |
+| LIST-04 | Phase 11 | Pending |
+| LIST-05 | Phase 11 | Pending |
+| DETAIL-01 | Phase 12 | Pending |
+| DETAIL-02 | Phase 12 | Pending |
+| DETAIL-03 | Phase 12 | Pending |
+| DETAIL-04 | Phase 12 | Pending |
+| DETAIL-05 | Phase 12 | Pending |
+| IMP-01 | Phase 13 | Pending |
+| IMP-02 | Phase 13 | Pending |
+| IMP-03 | Phase 13 | Pending |
+| IMP-04 | Phase 13 | Pending |
+| IMP-05 | Phase 13 | Pending |
+| BILL-01 | Phase 14 | Pending |
+| BILL-02 | Phase 14 | Pending |
+| BILL-03 | Phase 14 | Pending |
+| BILL-04 | Phase 14 | Pending |
+| BILL-05 | Phase 14 | Pending |
+| BILL-06 | Phase 14 | Pending |
+| PAY-01 | Phase 10 | Pending |
+| PAY-02 | Phase 10 | Pending |
+| PAY-03 | Phase 10 | Pending |
+| PAY-04 | Phase 14 | Pending |
+| PAY-05 | Phase 14 | Pending |
+| PAY-06 | Phase 14 | Pending |
+| HEALTH-01 | Phase 15 | Pending |
+| HEALTH-02 | Phase 15 | Pending |
+| HEALTH-03 | Phase 15 | Pending |
+| HEALTH-04 | Phase 15 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 35 total
-- Mapped to phases: 0
-- Unmapped: 35
+- Mapped to phases: 35
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-18*
-*Last updated: 2026-01-18 after initial definition*
+*Last updated: 2026-01-18 after roadmap creation*
