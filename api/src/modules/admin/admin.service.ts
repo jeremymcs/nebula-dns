@@ -2,11 +2,7 @@
 // Handles admin login, logout, and credential validation
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-import {
-  Injectable,
-  UnauthorizedException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -15,12 +11,15 @@ import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 
 import { Admin } from './entities/admin.entity';
+import { Tenant } from '../tenants/entities/tenant.entity';
 import { AdminLoginDto } from './dto/admin-login.dto';
 import { AdminLoginResponseDto } from './dto/admin-response.dto';
 import {
-  AdminSessionService,
-  AdminDeviceInfo,
-} from './admin-session.service';
+  TenantSearchQueryDto,
+  TenantSearchResponseDto,
+  TenantSearchResultDto,
+} from './dto/tenant-search.dto';
+import { AdminSessionService, AdminDeviceInfo } from './admin-session.service';
 
 /**
  * Request context for admin login operations
@@ -49,6 +48,8 @@ export class AdminService {
   constructor(
     @InjectRepository(Admin)
     private readonly adminRepository: Repository<Admin>,
+    @InjectRepository(Tenant)
+    private readonly tenantRepository: Repository<Tenant>,
     private readonly jwtService: JwtService,
     private readonly adminSessionService: AdminSessionService,
     private readonly configService: ConfigService,
@@ -158,7 +159,10 @@ export class AdminService {
   /**
    * Revoke all sessions for an admin except current
    */
-  async revokeAllSessions(adminId: string, currentJti?: string): Promise<number> {
+  async revokeAllSessions(
+    adminId: string,
+    currentJti?: string,
+  ): Promise<number> {
     return this.adminSessionService.revokeAllSessions(adminId, currentJti);
   }
 
@@ -239,6 +243,185 @@ export class AdminService {
         name: admin.name,
         status: admin.status,
         mfaSetupComplete: admin.mfaSetupComplete,
+      },
+    };
+  }
+
+  // ============================================
+  // Tenant Search Methods
+  // ============================================
+
+  /**
+   * Search tenants by ID, email, or name
+   * Auto-detects query type based on format
+   */
+  async searchTenants(
+    query: TenantSearchQueryDto,
+  ): Promise<TenantSearchResponseDto> {
+    const searchTerm = query.q.trim();
+    const limit = query.limit ?? 20;
+    const offset = query.cursor ? parseInt(query.cursor, 10) : 0;
+    const queryType = this.detectQueryType(searchTerm);
+
+    this.logger.debug(
+      `Tenant search: query="${searchTerm}", type=${queryType}, limit=${limit}, offset=${offset}`,
+    );
+
+    switch (queryType) {
+      case 'id':
+        return this.searchByTenantId(searchTerm);
+      case 'email':
+        return this.searchByEmail(searchTerm, limit, offset);
+      case 'name':
+      default:
+        return this.searchByName(searchTerm, limit, offset);
+    }
+  }
+
+  /**
+   * Detect query type based on format
+   * - UUID v4: tenant ID search
+   * - Email pattern: user email search
+   * - Otherwise: name search
+   */
+  private detectQueryType(query: string): 'id' | 'email' | 'name' {
+    // UUID v4 pattern
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (uuidRegex.test(query)) {
+      return 'id';
+    }
+
+    // Email pattern
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (emailRegex.test(query)) {
+      return 'email';
+    }
+
+    return 'name';
+  }
+
+  /**
+   * Map tenant entity to search result DTO
+   */
+  private toSearchResult(
+    tenant: Tenant,
+    matchedEmail?: string,
+  ): TenantSearchResultDto {
+    return {
+      id: tenant.id,
+      name: tenant.name,
+      status: tenant.status,
+      tier: tenant.tier,
+      ...(matchedEmail && { matchedEmail }),
+    };
+  }
+
+  /**
+   * Search by exact tenant ID (UUID)
+   */
+  private async searchByTenantId(id: string): Promise<TenantSearchResponseDto> {
+    const tenant = await this.tenantRepository.findOne({
+      where: { id },
+      select: ['id', 'name', 'status', 'tier'],
+    });
+
+    return {
+      data: tenant ? [this.toSearchResult(tenant)] : [],
+      pagination: {
+        cursor: null,
+        hasMore: false,
+        total: tenant ? 1 : 0,
+      },
+    };
+  }
+
+  /**
+   * Search tenants by user email
+   * Joins users table and matches case-insensitively
+   */
+  private async searchByEmail(
+    email: string,
+    limit: number,
+    offset: number,
+  ): Promise<TenantSearchResponseDto> {
+    const normalizedEmail = email.toLowerCase();
+
+    // Get total count
+    const totalQuery = this.tenantRepository
+      .createQueryBuilder('tenant')
+      .leftJoin('tenant.users', 'user')
+      .where('LOWER(user.email) = :email', { email: normalizedEmail });
+
+    const total = await totalQuery.getCount();
+
+    // Get paginated results
+    const results = await this.tenantRepository
+      .createQueryBuilder('tenant')
+      .leftJoin('tenant.users', 'user')
+      .select(['tenant.id', 'tenant.name', 'tenant.status', 'tenant.tier'])
+      .addSelect('user.email', 'matchedEmail')
+      .where('LOWER(user.email) = :email', { email: normalizedEmail })
+      .orderBy('tenant.name', 'ASC')
+      .skip(offset)
+      .take(limit + 1)
+      .getRawMany();
+
+    const hasMore = results.length > limit;
+    const data = results.slice(0, limit).map((row) => ({
+      id: row.tenant_id,
+      name: row.tenant_name,
+      status: row.tenant_status,
+      tier: row.tenant_tier,
+      matchedEmail: row.matchedEmail,
+    }));
+
+    return {
+      data,
+      pagination: {
+        cursor: hasMore ? String(offset + limit) : null,
+        hasMore,
+        total,
+      },
+    };
+  }
+
+  /**
+   * Search tenants by name (partial, case-insensitive)
+   */
+  private async searchByName(
+    name: string,
+    limit: number,
+    offset: number,
+  ): Promise<TenantSearchResponseDto> {
+    // Get total count
+    const totalQuery = this.tenantRepository
+      .createQueryBuilder('tenant')
+      .where('tenant.name ILIKE :search', { search: `%${name}%` });
+
+    const total = await totalQuery.getCount();
+
+    // Get paginated results
+    const results = await this.tenantRepository
+      .createQueryBuilder('tenant')
+      .select(['tenant.id', 'tenant.name', 'tenant.status', 'tenant.tier'])
+      .where('tenant.name ILIKE :search', { search: `%${name}%` })
+      .orderBy('tenant.name', 'ASC')
+      .skip(offset)
+      .take(limit + 1)
+      .getMany();
+
+    const hasMore = results.length > limit;
+    const data = results
+      .slice(0, limit)
+      .map((tenant) => this.toSearchResult(tenant));
+
+    return {
+      data,
+      pagination: {
+        cursor: hasMore ? String(offset + limit) : null,
+        hasMore,
+        total,
       },
     };
   }

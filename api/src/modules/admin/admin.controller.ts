@@ -7,6 +7,7 @@ import {
   Post,
   Get,
   Body,
+  Query,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -29,6 +30,10 @@ import {
   AdminMessageResponseDto,
   RevokeSessionsResponseDto,
 } from './dto/admin-response.dto';
+import {
+  TenantSearchQueryDto,
+  TenantSearchResponseDto,
+} from './dto/tenant-search.dto';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { AdminUser } from './dto/admin-jwt-payload.dto';
 
@@ -81,6 +86,38 @@ export class AdminController {
       ipAddress: this.getClientIp(req, ip),
     };
     return this.adminService.login(loginDto, context);
+  }
+
+  /**
+   * Search tenants
+   * Auto-detects query type (UUID, email, or name)
+   */
+  @Get('tenants/search')
+  @UseGuards(AdminAuthGuard)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Search tenants',
+    description:
+      'Search tenants by ID, email, or name. Auto-detects query type based on format. ' +
+      'UUID returns exact match, email joins users table, name uses partial matching.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Search results with pagination',
+    type: TenantSearchResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Query too short or invalid',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Admin authentication required',
+  })
+  async searchTenants(
+    @Query() query: TenantSearchQueryDto,
+  ): Promise<TenantSearchResponseDto> {
+    return this.adminService.searchTenants(query);
   }
 
   /**
@@ -183,7 +220,9 @@ export class AdminController {
     status: 401,
     description: 'Admin authentication required',
   })
-  async revokeAllSessions(@Req() req: Request): Promise<RevokeSessionsResponseDto> {
+  async revokeAllSessions(
+    @Req() req: Request,
+  ): Promise<RevokeSessionsResponseDto> {
     const user = req.user as AdminUser;
     const revokedCount = await this.adminService.revokeAllSessions(
       user.adminId,
