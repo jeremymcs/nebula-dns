@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-17)
 
 **Core value:** Enable ops team to handle support escalations quickly through tenant impersonation
-**Current focus:** Phase 3 Planned - Ready for Execution
+**Current focus:** Phase 3 In Progress - Plan 01 complete
 
 ## Current Position
 
-Phase: 3 of 8 (Impersonation Core) - PLANNED
-Plan: 0 of 2 executed in current phase
-Status: Phase planned, ready for execution
-Last activity: 2026-01-17 - Phase 3 planning complete (2 plans in 2 waves)
+Phase: 3 of 8 (Impersonation Core)
+Plan: 1 of 2 executed in current phase
+Status: In progress
+Last activity: 2026-01-17 - Completed 03-01-PLAN.md (Impersonation Session Management)
 
-Progress: [███░░░░░░░] 25%
+Progress: [████░░░░░░] 33%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 5 min
-- Total execution time: 14 min
+- Total plans completed: 4
+- Average duration: 6 min
+- Total execution time: 22 min
 
 **By Phase:**
 
@@ -29,10 +29,11 @@ Progress: [███░░░░░░░] 25%
 |-------|-------|-------|----------|
 | 01-admin-auth-foundation | 2/2 | 8 min | 4 min |
 | 02-tenant-search | 1/1 | 6 min | 6 min |
+| 03-impersonation-core | 1/2 | 8 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4min), 01-02 (4min), 02-01 (6min)
-- Trend: Consistent ~5min per plan
+- Last 5 plans: 01-01 (4min), 01-02 (4min), 02-01 (6min), 03-01 (8min)
+- Trend: Slight increase as complexity grows
 
 *Updated after each plan completion*
 
@@ -57,6 +58,10 @@ Recent decisions affecting current work:
 - [02-01]: Query type auto-detection: UUID regex for ID, email regex for email, else name
 - [02-01]: Offset-based cursor pagination (cursor = string offset)
 - [02-01]: ILIKE for case-insensitive name search, LOWER() for email search
+- [03-01]: Impersonation tokens use JWT_SECRET (tenant) not ADMIN_JWT_SECRET
+- [03-01]: 1-hour expiry for impersonation tokens (shorter than admin 8h)
+- [03-01]: endImpersonation accepts impersonation token directly (no AdminAuthGuard)
+- [03-01]: Route /impersonate/end before /impersonate/:tenantId to prevent conflicts
 
 ### Pending Todos
 
@@ -66,21 +71,21 @@ None.
 
 None.
 
-## Phase 2 Completion Summary
+## Phase 3 Plan 01 Summary
 
-Tenant Search complete with:
-- GET /admin/tenants/search endpoint protected by AdminAuthGuard
-- Auto-detection of query type (UUID, email, or name)
-- UUID search: exact match or empty array
-- Email search: joins users table with case-insensitive match
-- Name search: ILIKE for partial case-insensitive matching
-- Cursor-based pagination with hasMore and total count
-- Full Swagger documentation
+Impersonation Session Management complete with:
+- POST /admin/impersonate/:tenantId endpoint (requires AdminAuthGuard)
+- POST /admin/impersonate/end endpoint (accepts impersonation token)
+- Tenant-scoped JWT generation with impersonation claims
+- Impersonation tokens signed with JWT_SECRET (enables tenant dashboard access)
+- 1-hour token expiry for security
+- Full audit logging (admin_impersonation_start, admin_impersonation_end)
+- StartImpersonationResponseDto and EndImpersonationResponseDto
 
 ## Session Continuity
 
-Last session: 2026-01-17T19:35:00Z
-Stopped at: Phase 3 planning complete
+Last session: 2026-01-17T20:08:00Z
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None
 
-Next: Phase 3 execution (`/gsd:execute-phase 3`)
+Next: Plan 03-02 (Impersonation Indicator UI)
