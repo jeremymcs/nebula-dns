@@ -2,7 +2,13 @@
 // Handles admin login, logout, and credential validation
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+  NotFoundException,
+  Logger,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -19,7 +25,14 @@ import {
   TenantSearchResponseDto,
   TenantSearchResultDto,
 } from './dto/tenant-search.dto';
+import {
+  StartImpersonationResponseDto,
+  EndImpersonationResponseDto,
+} from './dto/impersonation.dto';
 import { AdminSessionService, AdminDeviceInfo } from './admin-session.service';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { AuditAction, AuditResourceType } from '../audit-logs/entities/audit-log.entity';
+import { AdminUser } from './dto/admin-jwt-payload.dto';
 
 /**
  * Request context for admin login operations
@@ -53,6 +66,7 @@ export class AdminService {
     private readonly jwtService: JwtService,
     private readonly adminSessionService: AdminSessionService,
     private readonly configService: ConfigService,
+    private readonly auditLogsService: AuditLogsService,
   ) {
     // Lockout configuration
     this.maxFailedAttempts = this.configService.get<number>(
@@ -423,6 +437,141 @@ export class AdminService {
         hasMore,
         total,
       },
+    };
+  }
+
+  // ============================================
+  // Impersonation Methods
+  // ============================================
+
+  /**
+   * Start impersonation of a tenant
+   * Generates a tenant-scoped JWT token with impersonation claims
+   */
+  async startImpersonation(
+    adminUser: AdminUser,
+    tenantId: string,
+    ipAddress?: string,
+  ): Promise<StartImpersonationResponseDto> {
+    // 1. Verify tenant exists
+    const tenant = await this.tenantRepository.findOne({
+      where: { id: tenantId },
+    });
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
+    }
+
+    // 2. Generate impersonation token with tenant JWT_SECRET
+    const jti = uuidv4();
+    const now = Math.floor(Date.now() / 1000);
+
+    const payload = {
+      sub: adminUser.adminId, // Admin ID as subject
+      email: adminUser.email,
+      tenantId: tenant.id, // Target tenant context
+      role: 'admin', // Full tenant admin access
+      jti,
+      mfaVerified: true, // Admin already MFA verified
+      // Impersonation-specific claims
+      impersonatingAdminId: adminUser.adminId,
+      impersonatingAdminEmail: adminUser.email,
+      impersonationStartTime: now,
+    };
+
+    // Sign with tenant secret (JWT_SECRET, NOT ADMIN_JWT_SECRET)
+    // Use 1-hour expiry for impersonation (shorter than admin's 8h)
+    const accessToken = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('JWT_SECRET'),
+      expiresIn: '1h',
+      issuer: 'nebula-dns', // Tenant issuer, not nebula-admin
+    });
+
+    // 3. Audit log the start event
+    await this.auditLogsService.log({
+      tenantId: tenant.id,
+      userId: null, // No tenant user - it's an admin action
+      action: 'admin_impersonation_start' as AuditAction,
+      resourceType: 'tenant' as AuditResourceType,
+      resourceId: tenant.id,
+      resourceName: tenant.name,
+      ipAddress: ipAddress || null,
+      metadata: {
+        adminId: adminUser.adminId,
+        adminEmail: adminUser.email,
+        tenantName: tenant.name,
+        tenantTier: tenant.tier,
+      },
+    });
+
+    this.logger.log(
+      `Admin ${adminUser.email} started impersonating tenant ${tenant.name} (${tenant.id})`,
+    );
+
+    return {
+      accessToken,
+      tenantId: tenant.id,
+      tenantName: tenant.name,
+      tenantTier: tenant.tier,
+      expiresIn: 3600, // 1 hour in seconds
+    };
+  }
+
+  /**
+   * End impersonation session
+   * Verifies the impersonation token, blacklists it, and logs the end event
+   */
+  async endImpersonation(
+    impersonationToken: string,
+    ipAddress?: string,
+  ): Promise<EndImpersonationResponseDto> {
+    // 1. Verify and decode the impersonation token
+    let payload: any;
+    try {
+      payload = this.jwtService.verify(impersonationToken, {
+        secret: this.configService.get<string>('JWT_SECRET'),
+      });
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired impersonation token');
+    }
+
+    // 2. Validate it's an impersonation token (has impersonatingAdminId claim)
+    if (!payload.impersonatingAdminId) {
+      throw new BadRequestException('Not an impersonation token');
+    }
+
+    // 3. Blacklist the token using session service
+    await this.adminSessionService.blacklistToken(payload.jti);
+
+    // 4. Calculate session duration
+    const startTime = payload.impersonationStartTime || 0;
+    const endTime = Math.floor(Date.now() / 1000);
+    const durationSeconds = endTime - startTime;
+
+    // 5. Audit log the end event
+    await this.auditLogsService.log({
+      tenantId: payload.tenantId,
+      userId: null,
+      action: 'admin_impersonation_end' as AuditAction,
+      resourceType: 'tenant' as AuditResourceType,
+      resourceId: payload.tenantId,
+      ipAddress: ipAddress || null,
+      metadata: {
+        adminId: payload.impersonatingAdminId,
+        adminEmail: payload.impersonatingAdminEmail,
+        durationSeconds,
+        startTime: new Date(startTime * 1000).toISOString(),
+        endTime: new Date(endTime * 1000).toISOString(),
+      },
+    });
+
+    this.logger.log(
+      `Admin ${payload.impersonatingAdminEmail} ended impersonation of tenant ${payload.tenantId} after ${durationSeconds}s`,
+    );
+
+    return {
+      message: 'Impersonation session ended',
+      durationSeconds,
     };
   }
 }
