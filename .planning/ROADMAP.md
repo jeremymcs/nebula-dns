@@ -47,10 +47,10 @@ Plans:
   2. Admin can search tenants by exact tenant ID
   3. Admin can search tenants by admin user email
   4. Search returns tenant details including status and tier
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 02-01: Tenant search endpoint with name/ID/email support
+- [ ] 02-01-PLAN.md — Tenant search endpoint with auto-detection (name/ID/email)
 
 ### Phase 3: Impersonation Core
 **Goal**: Admin can access any tenant's dashboard as if they were the tenant admin
@@ -161,7 +161,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Admin Auth Foundation | 2/2 | ✓ Complete | 2026-01-18 |
-| 2. Tenant Search | 0/1 | Not started | - |
+| 2. Tenant Search | 0/1 | Planned | - |
 | 3. Impersonation Core | 0/3 | Not started | - |
 | 4. MSP Listing | 0/2 | Not started | - |
 | 5. MSP Drill-down | 0/3 | Not started | - |
@@ -171,4 +171,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 ---
 *Created: 2026-01-17*
-*Last updated: 2026-01-18 after Phase 1 execution complete*
+*Last updated: 2026-01-18 after Phase 2 planning*
