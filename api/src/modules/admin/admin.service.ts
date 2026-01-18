@@ -18,6 +18,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { Admin } from './entities/admin.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
+import { Location } from '../locations/entities/location.entity';
+import { User } from '../users/entities/user.entity';
 import { AdminLoginDto } from './dto/admin-login.dto';
 import { AdminLoginResponseDto } from './dto/admin-response.dto';
 import {
@@ -29,6 +31,12 @@ import {
   MspListingQueryDto,
   MspListingResponseDto,
 } from './dto/msp-listing.dto';
+import {
+  MspDetailQueryDto,
+  MspDetailResponseDto,
+  MspClientListQueryDto,
+  MspClientListResponseDto,
+} from './dto/msp-detail.dto';
 import {
   StartImpersonationResponseDto,
   EndImpersonationResponseDto,
@@ -70,6 +78,10 @@ export class AdminService {
     private readonly adminRepository: Repository<Admin>,
     @InjectRepository(Tenant)
     private readonly tenantRepository: Repository<Tenant>,
+    @InjectRepository(Location)
+    private readonly locationRepository: Repository<Location>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly adminSessionService: AdminSessionService,
     private readonly configService: ConfigService,
@@ -542,6 +554,169 @@ export class AdminService {
       status: row.status,
       clientCount: parseInt(row.clientCount, 10) || 0,
       contactEmail: row.contactEmail || undefined,
+    }));
+
+    return {
+      data,
+      pagination: {
+        cursor: hasMore ? String(offset + limit) : null,
+        hasMore,
+        total,
+      },
+    };
+  }
+
+  // ============================================
+  // MSP Detail Methods
+  // ============================================
+
+  /**
+   * Verify that a tenant exists and is an MSP
+   * Returns the tenant if valid, throws appropriate exceptions otherwise
+   */
+  private async verifyMspTenant(mspId: string): Promise<Tenant> {
+    const tenant = await this.tenantRepository.findOne({
+      where: { id: mspId },
+    });
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
+    }
+
+    if (tenant.tier !== 'msp') {
+      throw new BadRequestException('Tenant is not an MSP');
+    }
+
+    return tenant;
+  }
+
+  /**
+   * Get detailed information about an MSP tenant
+   * Includes aggregated counts of clients, locations, and users
+   */
+  async getMspDetail(
+    mspId: string,
+    query: MspDetailQueryDto,
+  ): Promise<MspDetailResponseDto> {
+    // Verify the tenant exists and is an MSP
+    const msp = await this.verifyMspTenant(mspId);
+
+    // Count clients managed by this MSP
+    const clientCount = await this.tenantRepository.count({
+      where: { managedByMspId: mspId },
+    });
+
+    // Count locations across all managed clients
+    // Using subquery to get all tenant IDs managed by this MSP
+    const locationCount = await this.locationRepository
+      .createQueryBuilder('location')
+      .innerJoin('location.tenant', 'tenant')
+      .where('tenant.managed_by_msp_id = :mspId', { mspId })
+      .getCount();
+
+    // Count users across all managed clients
+    const userCount = await this.userRepository
+      .createQueryBuilder('user')
+      .innerJoin('user.tenant', 'tenant')
+      .where('tenant.managed_by_msp_id = :mspId', { mspId })
+      .getCount();
+
+    this.logger.debug(
+      `MSP detail for ${msp.name}: clients=${clientCount}, locations=${locationCount}, users=${userCount}`,
+    );
+
+    return {
+      id: msp.id,
+      name: msp.name,
+      status: msp.status,
+      contactEmail: msp.contactEmail || undefined,
+      tier: 'msp',
+      clientCount,
+      locationCount,
+      userCount,
+      createdAt: msp.createdAt.toISOString(),
+    };
+  }
+
+  /**
+   * List all client organizations managed by an MSP
+   * Supports search, status filtering, and pagination
+   */
+  async getMspClients(
+    mspId: string,
+    query: MspClientListQueryDto,
+  ): Promise<MspClientListResponseDto> {
+    // Verify the tenant exists and is an MSP
+    await this.verifyMspTenant(mspId);
+
+    const limit = query.limit ?? 20;
+    const offset = query.cursor ? parseInt(query.cursor, 10) : 0;
+
+    // Build query with location/user counts using LEFT JOINs
+    const queryBuilder = this.tenantRepository
+      .createQueryBuilder('client')
+      .leftJoin('client.locations', 'location')
+      .leftJoin('client.users', 'user')
+      .select([
+        'client.id AS id',
+        'client.name AS name',
+        'client.status AS status',
+        'client.tier AS tier',
+        'client.contact_email AS "contactEmail"',
+        'client.created_at AS "createdAt"',
+      ])
+      .addSelect('COUNT(DISTINCT location.id)', 'locationCount')
+      .addSelect('COUNT(DISTINCT user.id)', 'userCount')
+      .where('client.managed_by_msp_id = :mspId', { mspId })
+      .groupBy('client.id');
+
+    // Clone query builder for count before applying filters
+    const countQueryBuilder = this.tenantRepository
+      .createQueryBuilder('client')
+      .where('client.managed_by_msp_id = :mspId', { mspId });
+
+    // Apply search filter if provided (name partial match)
+    if (query.q) {
+      const searchTerm = query.q.trim();
+      queryBuilder.andWhere('client.name ILIKE :search', {
+        search: `%${searchTerm}%`,
+      });
+      countQueryBuilder.andWhere('client.name ILIKE :search', {
+        search: `%${searchTerm}%`,
+      });
+    }
+
+    // Apply status filter if provided
+    if (query.status) {
+      queryBuilder.andWhere('client.status = :status', {
+        status: query.status,
+      });
+      countQueryBuilder.andWhere('client.status = :status', {
+        status: query.status,
+      });
+    }
+
+    // Get total count with same filters
+    const total = await countQueryBuilder.getCount();
+
+    // Apply ordering and pagination
+    queryBuilder
+      .orderBy('client.name', 'ASC')
+      .offset(offset)
+      .limit(limit + 1);
+
+    const rawResults = await queryBuilder.getRawMany();
+
+    const hasMore = rawResults.length > limit;
+    const data = rawResults.slice(0, limit).map((row) => ({
+      id: row.id,
+      name: row.name,
+      status: row.status,
+      tier: row.tier,
+      contactEmail: row.contactEmail || undefined,
+      locationCount: parseInt(row.locationCount, 10) || 0,
+      userCount: parseInt(row.userCount, 10) || 0,
+      createdAt: new Date(row.createdAt).toISOString(),
     }));
 
     return {
