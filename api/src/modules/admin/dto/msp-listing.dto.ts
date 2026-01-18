@@ -2,7 +2,16 @@
 // DTOs for admin MSP listing functionality
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-import { IsOptional, IsInt, Min, Max, IsString } from 'class-validator';
+import {
+  IsOptional,
+  IsInt,
+  Min,
+  Max,
+  IsString,
+  IsEnum,
+  MinLength,
+  MaxLength,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TenantStatus } from '../../tenants/entities/tenant.entity';
@@ -10,9 +19,32 @@ import { TenantStatus } from '../../tenants/entities/tenant.entity';
 /**
  * MSP Listing Query DTO
  *
- * Query parameters for listing MSP tenants with pagination.
+ * Query parameters for listing MSP tenants with pagination,
+ * search, and status filtering.
  */
 export class MspListingQueryDto {
+  @ApiPropertyOptional({
+    description: 'Search by MSP name (partial) or ID (UUID)',
+    example: 'acme',
+    minLength: 2,
+    maxLength: 255,
+  })
+  @IsOptional()
+  @IsString({ message: 'Search query must be a string' })
+  @MinLength(2, { message: 'Search query must be at least 2 characters' })
+  @MaxLength(255, { message: 'Search query must not exceed 255 characters' })
+  q?: string;
+
+  @ApiPropertyOptional({
+    enum: ['active', 'suspended', 'cancelled'],
+    description: 'Filter by MSP tenant status',
+  })
+  @IsOptional()
+  @IsEnum(['active', 'suspended', 'cancelled'], {
+    message: 'Status must be one of: active, suspended, cancelled',
+  })
+  status?: TenantStatus;
+
   @ApiPropertyOptional({
     description: 'Maximum number of results to return',
     default: 20,
