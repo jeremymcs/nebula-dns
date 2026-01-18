@@ -6,6 +6,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
+import { RedisService } from '../redis/redis.service';
 
 export interface JwtPayload {
   sub: string;
@@ -29,6 +30,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private readonly configService: ConfigService,
     private readonly authService: AuthService,
+    private readonly redisService: RedisService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -40,12 +42,41 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: JwtPayload) {
     // Check if token JTI is blacklisted (session revoked)
     if (payload.jti) {
-      const isBlacklisted = await this.authService.isTokenBlacklisted(
-        payload.jti,
-      );
+      let isBlacklisted: boolean;
+
+      if (payload.impersonatingAdminId) {
+        // Impersonation token - check admin session blacklist
+        const blacklistKey = `admin:session:blacklist:${payload.jti}`;
+        const result = await this.redisService.get(blacklistKey);
+        isBlacklisted = result !== null;
+      } else {
+        // Normal token - check tenant session blacklist
+        isBlacklisted = await this.authService.isTokenBlacklisted(payload.jti);
+      }
+
       if (isBlacklisted) {
         throw new UnauthorizedException('Session has been revoked');
       }
+    }
+
+    // Handle impersonation tokens - admin acts as synthetic user
+    // When impersonating, the admin is NOT a real user in the database
+    if (payload.impersonatingAdminId) {
+      // Return synthetic user object for impersonation
+      // No database lookup needed - admin is impersonating
+      return {
+        id: payload.sub, // Admin's ID
+        email: payload.email, // Admin's email
+        tenantId: payload.tenantId, // Target tenant
+        role: payload.role, // 'admin' for full tenant access
+        jti: payload.jti,
+        mfaVerified: payload.mfaVerified || true,
+        // Impersonation context for audit attribution
+        isImpersonation: true,
+        impersonatingAdminId: payload.impersonatingAdminId,
+        impersonatingAdminEmail: payload.impersonatingAdminEmail,
+        impersonationStartTime: payload.impersonationStartTime,
+      };
     }
 
     // For MSP context switch tokens, validate user against MSP parent tenant
@@ -72,6 +103,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       mspParentTenantId: payload.mspParentTenantId,
       mspUserId: payload.mspUserId,
       tier: payload.tier,
+      // Impersonation context (not set for normal users)
+      isImpersonation: false,
     };
   }
 }
