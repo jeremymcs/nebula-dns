@@ -44,7 +44,11 @@ export type AuditAction =
   | 'template_applied'
   | 'template_rollback'
   | 'admin_impersonation_start'
-  | 'admin_impersonation_end';
+  | 'admin_impersonation_end'
+  | 'billing_credit_applied'
+  | 'billing_tier_changed'
+  | 'billing_trial_extended'
+  | 'billing_grace_extended';
 
 export type AuditResourceType =
   | 'user'
