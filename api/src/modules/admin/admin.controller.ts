@@ -8,9 +8,11 @@ import {
   Get,
   Body,
   Query,
+  Param,
   HttpCode,
   HttpStatus,
   UseGuards,
+  UnauthorizedException,
   Req,
   Ip,
 } from '@nestjs/common';
@@ -34,6 +36,10 @@ import {
   TenantSearchQueryDto,
   TenantSearchResponseDto,
 } from './dto/tenant-search.dto';
+import {
+  StartImpersonationResponseDto,
+  EndImpersonationResponseDto,
+} from './dto/impersonation.dto';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { AdminUser } from './dto/admin-jwt-payload.dto';
 
@@ -118,6 +124,87 @@ export class AdminController {
     @Query() query: TenantSearchQueryDto,
   ): Promise<TenantSearchResponseDto> {
     return this.adminService.searchTenants(query);
+  }
+
+  /**
+   * End impersonation session
+   * Blacklists the impersonation token and logs the end event
+   * NOTE: This route must be before /impersonate/:tenantId to avoid route conflicts
+   */
+  @Post('impersonate/end')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth() // Uses the impersonation token (tenant JWT), not admin JWT
+  @ApiOperation({
+    summary: 'End impersonation session',
+    description:
+      'End the current impersonation session by blacklisting the impersonation token. ' +
+      'The admin should then use their original admin token to continue. ' +
+      'Returns the duration of the impersonation session.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Impersonation session ended',
+    type: EndImpersonationResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Not an impersonation token',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Invalid or expired token',
+  })
+  async endImpersonation(
+    @Req() req: Request,
+    @Ip() ip: string,
+  ): Promise<EndImpersonationResponseDto> {
+    // Extract token from Authorization header
+    const authHeader = req.headers['authorization'];
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException('No token provided');
+    }
+    const token = authHeader.replace('Bearer ', '');
+    return this.adminService.endImpersonation(token, this.getClientIp(req, ip));
+  }
+
+  /**
+   * Start impersonation session
+   * Generates a tenant-scoped JWT for accessing tenant dashboard
+   */
+  @Post('impersonate/:tenantId')
+  @UseGuards(AdminAuthGuard)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Start impersonation session',
+    description:
+      "Generate a JWT token to access the target tenant's dashboard as admin. " +
+      'The token is scoped to the tenant and grants full admin access. ' +
+      'Impersonation sessions are limited to 1 hour and are fully audit-logged.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Impersonation token generated successfully',
+    type: StartImpersonationResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tenant not found',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Admin authentication required',
+  })
+  async startImpersonation(
+    @Param('tenantId') tenantId: string,
+    @Req() req: Request,
+    @Ip() ip: string,
+  ): Promise<StartImpersonationResponseDto> {
+    const adminUser = req.user as AdminUser;
+    return this.adminService.startImpersonation(
+      adminUser,
+      tenantId,
+      this.getClientIp(req, ip),
+    );
   }
 
   /**
