@@ -32,11 +32,11 @@ Requirements for the admin dashboard backend API.
 
 ### Billing Operations
 
-- [ ] **BIL-01**: Admin can view subscription status for any tenant
-- [ ] **BIL-02**: Admin can view invoice history for any tenant
-- [ ] **BIL-03**: Admin can apply credit/adjustment to tenant account
-- [ ] **BIL-04**: Admin can manually change subscription tier
-- [ ] **BIL-05**: Admin can extend trial or grace period
+- [x] **BIL-01**: Admin can view subscription status for any tenant ✓
+- [x] **BIL-02**: Admin can view invoice history for any tenant ✓
+- [x] **BIL-03**: Admin can apply credit/adjustment to tenant account ✓
+- [x] **BIL-04**: Admin can manually change subscription tier ✓
+- [x] **BIL-05**: Admin can extend trial or grace period ✓
 
 ### System Health
 
@@ -90,11 +90,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ONB-02 | Phase 7 | Complete |
 | ONB-03 | Phase 7 | Complete |
 | ONB-04 | Phase 7 | Complete |
-| BIL-01 | Phase 8 | Pending |
-| BIL-02 | Phase 8 | Pending |
-| BIL-03 | Phase 8 | Pending |
-| BIL-04 | Phase 8 | Pending |
-| BIL-05 | Phase 8 | Pending |
+| BIL-01 | Phase 8 | Complete |
+| BIL-02 | Phase 8 | Complete |
+| BIL-03 | Phase 8 | Complete |
+| BIL-04 | Phase 8 | Complete |
+| BIL-05 | Phase 8 | Complete |
 | SYS-01 | Phase 6 | Complete |
 | SYS-02 | Phase 6 | Complete |
 | SYS-03 | Phase 6 | Complete |
@@ -107,4 +107,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-17*
-*Last updated: 2026-01-18 after Phase 7 complete*
+*Last updated: 2026-01-18 after Phase 8 complete — ALL v1 REQUIREMENTS COMPLETE*
