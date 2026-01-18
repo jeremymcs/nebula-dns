@@ -14,6 +14,7 @@ import {
   UseGuards,
   UnauthorizedException,
   Req,
+  Res,
   Ip,
   ParseUUIDPipe,
   DefaultValuePipe,
@@ -27,10 +28,11 @@ import {
   ApiParam,
   ApiQuery,
 } from '@nestjs/swagger';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 
 import { AdminService, AdminLoginContext } from './admin.service';
 import { AdminHealthService } from './admin-health.service';
+import { AdminBillingService } from './admin-billing.service';
 import { AdminLoginDto } from './dto/admin-login.dto';
 import {
   AdminLoginResponseDto,
@@ -65,6 +67,18 @@ import {
   QueryVolumeDto,
   RecentErrorDto,
 } from './dto/system-health.dto';
+import {
+  SubscriptionStatusResponseDto,
+  InvoiceListQueryDto,
+  InvoiceListResponseDto,
+  ApplyCreditDto,
+  CreditAppliedResponseDto,
+  ChangeTierDto,
+  TierChangeResponseDto,
+  ExtendTrialDto,
+  ExtendGracePeriodDto,
+  ExtensionResponseDto,
+} from './dto/billing.dto';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { AdminUser } from './dto/admin-jwt-payload.dto';
 
@@ -83,6 +97,7 @@ export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     private readonly adminHealthService: AdminHealthService,
+    private readonly adminBillingService: AdminBillingService,
   ) {}
 
   /**
@@ -583,6 +598,291 @@ export class AdminController {
     @Query('period') period: '1h' | '24h' = '24h',
   ): Promise<QueryVolumeDto> {
     return this.adminHealthService.getQueryVolume(period);
+  }
+
+  // ===== Billing Endpoints =====
+
+  /**
+   * Get tenant subscription status
+   * Returns comprehensive billing information including Stripe data
+   */
+  @Get('tenants/:tenantId/billing/subscription')
+  @UseGuards(AdminAuthGuard)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Get tenant subscription status',
+    description:
+      'Returns comprehensive subscription status including Stripe customer data, ' +
+      'trial status, grace period info, and payment method details.',
+  })
+  @ApiParam({ name: 'tenantId', description: 'Tenant UUID', type: 'string' })
+  @ApiResponse({
+    status: 200,
+    description: 'Subscription status retrieved',
+    type: SubscriptionStatusResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tenant not found',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Admin authentication required',
+  })
+  async getSubscriptionStatus(
+    @Param('tenantId', ParseUUIDPipe) tenantId: string,
+  ): Promise<SubscriptionStatusResponseDto> {
+    return this.adminBillingService.getSubscriptionStatus(tenantId);
+  }
+
+  /**
+   * List tenant invoices
+   * Returns paginated list of Stripe invoices
+   */
+  @Get('tenants/:tenantId/billing/invoices')
+  @UseGuards(AdminAuthGuard)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'List tenant invoices',
+    description:
+      'Returns paginated list of Stripe invoices for the tenant. ' +
+      'Includes payment status, amounts, and PDF availability.',
+  })
+  @ApiParam({ name: 'tenantId', description: 'Tenant UUID', type: 'string' })
+  @ApiResponse({
+    status: 200,
+    description: 'Invoices retrieved',
+    type: InvoiceListResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tenant not found',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Admin authentication required',
+  })
+  async listInvoices(
+    @Param('tenantId', ParseUUIDPipe) tenantId: string,
+    @Query() query: InvoiceListQueryDto,
+  ): Promise<InvoiceListResponseDto> {
+    return this.adminBillingService.listInvoices(tenantId, query);
+  }
+
+  /**
+   * Download invoice PDF
+   * Streams the PDF from Stripe with ownership validation
+   */
+  @Get('tenants/:tenantId/billing/invoices/:invoiceId/pdf')
+  @UseGuards(AdminAuthGuard)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Download invoice PDF',
+    description:
+      'Streams the invoice PDF from Stripe. Validates that the invoice ' +
+      'belongs to the specified tenant before serving.',
+  })
+  @ApiParam({ name: 'tenantId', description: 'Tenant UUID', type: 'string' })
+  @ApiParam({
+    name: 'invoiceId',
+    description: 'Stripe invoice ID',
+    type: 'string',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'PDF stream',
+    content: { 'application/pdf': {} },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Invoice not found or no billing info',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Admin authentication required',
+  })
+  async downloadInvoicePdf(
+    @Param('tenantId', ParseUUIDPipe) tenantId: string,
+    @Param('invoiceId') invoiceId: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    return this.adminBillingService.streamInvoicePdf(tenantId, invoiceId, res);
+  }
+
+  /**
+   * Apply credit to tenant account
+   * Creates a Stripe balance transaction (credit)
+   */
+  @Post('tenants/:tenantId/billing/credits')
+  @UseGuards(AdminAuthGuard)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Apply credit to tenant account',
+    description:
+      "Applies a credit to the tenant's Stripe account balance. " +
+      'Credits reduce the amount due on the next invoice. ' +
+      'Maximum credit per transaction is $10,000.',
+  })
+  @ApiParam({ name: 'tenantId', description: 'Tenant UUID', type: 'string' })
+  @ApiResponse({
+    status: 201,
+    description: 'Credit applied successfully',
+    type: CreditAppliedResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation error or no billing configured',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tenant not found',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Admin authentication required',
+  })
+  async applyCredit(
+    @Param('tenantId', ParseUUIDPipe) tenantId: string,
+    @Body() dto: ApplyCreditDto,
+    @Req() req: Request,
+  ): Promise<CreditAppliedResponseDto> {
+    const admin = req.user as AdminUser;
+    return this.adminBillingService.applyCredit(tenantId, dto, admin.adminId);
+  }
+
+  /**
+   * Change tenant subscription tier
+   * Updates subscription in Stripe and local database
+   */
+  @Post('tenants/:tenantId/billing/tier')
+  @UseGuards(AdminAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Change tenant subscription tier',
+    description:
+      "Changes the tenant's subscription tier. Can be applied immediately " +
+      '(with proration) or at the end of the current billing period.',
+  })
+  @ApiParam({ name: 'tenantId', description: 'Tenant UUID', type: 'string' })
+  @ApiResponse({
+    status: 200,
+    description: 'Tier change successful',
+    type: TierChangeResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation error or no subscription',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tenant not found',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Admin authentication required',
+  })
+  async changeTier(
+    @Param('tenantId', ParseUUIDPipe) tenantId: string,
+    @Body() dto: ChangeTierDto,
+    @Req() req: Request,
+  ): Promise<TierChangeResponseDto> {
+    const admin = req.user as AdminUser;
+    return this.adminBillingService.changeTier(tenantId, dto, admin.adminId);
+  }
+
+  /**
+   * Extend tenant trial period
+   * Extends an active trial via Stripe subscription update
+   */
+  @Post('tenants/:tenantId/billing/trial/extend')
+  @UseGuards(AdminAuthGuard)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Extend tenant trial period',
+    description:
+      'Extend an active trial for the specified number of days. ' +
+      'Requires the tenant to have an active trial subscription in Stripe. ' +
+      'Optionally sends a notification email to the tenant.',
+  })
+  @ApiParam({
+    name: 'tenantId',
+    description: 'Tenant UUID',
+    type: 'string',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Trial extended successfully',
+    type: ExtensionResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Tenant does not have an active trial or no Stripe subscription',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tenant not found',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Admin authentication required',
+  })
+  async extendTrial(
+    @Param('tenantId', ParseUUIDPipe) tenantId: string,
+    @Body() dto: ExtendTrialDto,
+    @Req() req: Request,
+  ): Promise<ExtensionResponseDto> {
+    const admin = req.user as AdminUser;
+    return this.adminBillingService.extendTrial(tenantId, dto, admin.adminId);
+  }
+
+  /**
+   * Extend tenant grace period
+   * Extends the grace period for a tenant in subscription lapse
+   */
+  @Post('tenants/:tenantId/billing/grace/extend')
+  @UseGuards(AdminAuthGuard)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Extend tenant grace period',
+    description:
+      'Extend the grace period for a tenant whose subscription has lapsed. ' +
+      'Only applicable when the tenant is currently in grace period status. ' +
+      'Optionally sends a notification email to the tenant.',
+  })
+  @ApiParam({
+    name: 'tenantId',
+    description: 'Tenant UUID',
+    type: 'string',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Grace period extended successfully',
+    type: ExtensionResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Tenant is not in grace period',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tenant not found',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Admin authentication required',
+  })
+  async extendGracePeriod(
+    @Param('tenantId', ParseUUIDPipe) tenantId: string,
+    @Body() dto: ExtendGracePeriodDto,
+    @Req() req: Request,
+  ): Promise<ExtensionResponseDto> {
+    const admin = req.user as AdminUser;
+    return this.adminBillingService.extendGracePeriod(
+      tenantId,
+      dto,
+      admin.adminId,
+    );
   }
 
   /**
