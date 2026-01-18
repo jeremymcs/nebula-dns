@@ -454,6 +454,7 @@ export class AdminService {
   /**
    * List all MSP tenants with client counts
    * Uses LEFT JOIN to count managed clients per MSP
+   * Supports optional search (by name/UUID) and status filtering
    */
   async listMspTenants(
     query: MspListingQueryDto,
@@ -477,17 +478,62 @@ export class AdminService {
       .groupBy('msp.id')
       .addGroupBy('msp.name')
       .addGroupBy('msp.status')
-      .addGroupBy('msp.contact_email')
+      .addGroupBy('msp.contact_email');
+
+    // Apply status filter if provided
+    if (query.status) {
+      queryBuilder.andWhere('msp.status = :status', { status: query.status });
+    }
+
+    // Apply search filter if provided (name or UUID)
+    if (query.q) {
+      const searchTerm = query.q.trim();
+      const queryType = this.detectQueryType(searchTerm);
+
+      if (queryType === 'id') {
+        // Exact UUID match
+        queryBuilder.andWhere('msp.id = :id', { id: searchTerm });
+      } else {
+        // Name partial match (case-insensitive)
+        queryBuilder.andWhere('msp.name ILIKE :search', {
+          search: `%${searchTerm}%`,
+        });
+      }
+    }
+
+    // Apply ordering and pagination
+    queryBuilder
       .orderBy('msp.name', 'ASC')
       .offset(offset)
       .limit(limit + 1);
 
     const rawResults = await queryBuilder.getRawMany();
 
-    // Get total count of MSPs (separate query for efficiency)
-    const total = await this.tenantRepository.count({
-      where: { tier: 'msp' as any },
-    });
+    // Get total count with same filters applied
+    const countQueryBuilder = this.tenantRepository
+      .createQueryBuilder('msp')
+      .where('msp.tier = :tier', { tier: 'msp' });
+
+    if (query.status) {
+      countQueryBuilder.andWhere('msp.status = :status', {
+        status: query.status,
+      });
+    }
+
+    if (query.q) {
+      const searchTerm = query.q.trim();
+      const queryType = this.detectQueryType(searchTerm);
+
+      if (queryType === 'id') {
+        countQueryBuilder.andWhere('msp.id = :id', { id: searchTerm });
+      } else {
+        countQueryBuilder.andWhere('msp.name ILIKE :search', {
+          search: `%${searchTerm}%`,
+        });
+      }
+    }
+
+    const total = await countQueryBuilder.getCount();
 
     const hasMore = rawResults.length > limit;
     const data = rawResults.slice(0, limit).map((row) => ({
