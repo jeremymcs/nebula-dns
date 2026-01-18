@@ -590,4 +590,245 @@ describe('AdminBillingService', () => {
       ).rejects.toThrow(NotFoundException);
     });
   });
+
+  describe('extendTrial', () => {
+    const adminId = 'admin-123';
+    const trialExtendDto = {
+      days: 7,
+      reason: 'Customer needs more evaluation time',
+      notifyTenant: true,
+    };
+
+    beforeEach(() => {
+      // Add extendTrialPeriod to paymentsService mock
+      (paymentsService as any).extendTrialPeriod = jest.fn();
+    });
+
+    it('should extend trial successfully with notification', async () => {
+      const trialEnd = new Date('2026-02-01');
+      const newTrialEnd = new Date('2026-02-08');
+
+      tenantRepository.findOne.mockResolvedValue(mockTenant);
+      trialsService.getTrialStatus.mockResolvedValue({
+        hasActiveTrial: true,
+        trialTier: 'msp',
+        originalTier: 'enterprise',
+        endsAt: trialEnd,
+        daysRemaining: 14,
+        status: 'active',
+        availableTrials: [],
+      });
+      subscriptionsService.getSubscription.mockResolvedValue(
+        mockSubscription as any,
+      );
+      (paymentsService as any).extendTrialPeriod.mockResolvedValue({
+        trial_end: Math.floor(newTrialEnd.getTime() / 1000),
+      });
+      auditLogsService.log.mockResolvedValue({} as any);
+
+      const result = await service.extendTrial(
+        'tenant-123',
+        trialExtendDto,
+        adminId,
+      );
+
+      expect(result.daysAdded).toBe(7);
+      expect(result.notificationSent).toBe(true);
+      expect(result.message).toContain('7 days');
+
+      // Verify Stripe was called
+      expect((paymentsService as any).extendTrialPeriod).toHaveBeenCalledWith(
+        'sub_test123',
+        7,
+      );
+
+      // Verify audit log
+      expect(auditLogsService.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tenantId: 'tenant-123',
+          action: 'billing_trial_extended',
+          metadata: expect.objectContaining({
+            adminId,
+            daysAdded: 7,
+            notificationSent: true,
+          }),
+        }),
+      );
+    });
+
+    it('should extend trial without notification when notifyTenant is false', async () => {
+      const trialEnd = new Date('2026-02-01');
+      const newTrialEnd = new Date('2026-02-08');
+
+      tenantRepository.findOne.mockResolvedValue(mockTenant);
+      trialsService.getTrialStatus.mockResolvedValue({
+        hasActiveTrial: true,
+        trialTier: 'msp',
+        originalTier: 'enterprise',
+        endsAt: trialEnd,
+        daysRemaining: 14,
+        status: 'active',
+        availableTrials: [],
+      });
+      subscriptionsService.getSubscription.mockResolvedValue(
+        mockSubscription as any,
+      );
+      (paymentsService as any).extendTrialPeriod.mockResolvedValue({
+        trial_end: Math.floor(newTrialEnd.getTime() / 1000),
+      });
+      auditLogsService.log.mockResolvedValue({} as any);
+
+      const result = await service.extendTrial(
+        'tenant-123',
+        { ...trialExtendDto, notifyTenant: false },
+        adminId,
+      );
+
+      expect(result.notificationSent).toBe(false);
+    });
+
+    it('should throw BadRequestException for tenant without active trial', async () => {
+      tenantRepository.findOne.mockResolvedValue(mockTenant);
+      trialsService.getTrialStatus.mockResolvedValue({
+        hasActiveTrial: false,
+        availableTrials: ['msp'],
+      });
+
+      await expect(
+        service.extendTrial('tenant-123', trialExtendDto, adminId),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException for tenant without Stripe subscription', async () => {
+      tenantRepository.findOne.mockResolvedValue(mockTenant);
+      trialsService.getTrialStatus.mockResolvedValue({
+        hasActiveTrial: true,
+        trialTier: 'msp',
+        originalTier: 'enterprise',
+        endsAt: new Date(),
+        daysRemaining: 14,
+        status: 'active',
+        availableTrials: [],
+      });
+      subscriptionsService.getSubscription.mockResolvedValue({
+        ...mockSubscription,
+        stripeSubscriptionId: null,
+      } as any);
+
+      await expect(
+        service.extendTrial('tenant-123', trialExtendDto, adminId),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw NotFoundException for missing tenant', async () => {
+      tenantRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.extendTrial('non-existent', trialExtendDto, adminId),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('extendGracePeriod', () => {
+    const adminId = 'admin-123';
+    const graceExtendDto = {
+      days: 7,
+      reason: 'Customer payment processing delay',
+      notifyTenant: true,
+    };
+
+    beforeEach(() => {
+      // Add extendGracePeriod to subscriptionLapseService mock
+      (subscriptionLapseService as any).extendGracePeriod = jest.fn();
+    });
+
+    it('should extend grace period successfully with notification', async () => {
+      tenantRepository.findOne.mockResolvedValue(mockTenant);
+      subscriptionLapseService.getGracePeriodInfo.mockResolvedValue({
+        tenantId: 'tenant-123',
+        tenantName: 'Test Tenant',
+        subscriptionStatus: 'grace',
+        graceStartDate: new Date(),
+        daysRemaining: 10,
+      });
+      (subscriptionLapseService as any).extendGracePeriod.mockResolvedValue(
+        undefined,
+      );
+      auditLogsService.log.mockResolvedValue({} as any);
+
+      const result = await service.extendGracePeriod(
+        'tenant-123',
+        graceExtendDto,
+        adminId,
+      );
+
+      expect(result.daysAdded).toBe(7);
+      expect(result.notificationSent).toBe(true);
+      expect(result.message).toContain('7 days');
+
+      // Verify subscription lapse service was called
+      expect(
+        (subscriptionLapseService as any).extendGracePeriod,
+      ).toHaveBeenCalledWith('tenant-123', 7, adminId);
+
+      // Verify audit log
+      expect(auditLogsService.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tenantId: 'tenant-123',
+          action: 'billing_grace_extended',
+          metadata: expect.objectContaining({
+            adminId,
+            daysAdded: 7,
+            notificationSent: true,
+          }),
+        }),
+      );
+    });
+
+    it('should extend grace period without notification when notifyTenant is false', async () => {
+      tenantRepository.findOne.mockResolvedValue(mockTenant);
+      subscriptionLapseService.getGracePeriodInfo.mockResolvedValue({
+        tenantId: 'tenant-123',
+        tenantName: 'Test Tenant',
+        subscriptionStatus: 'grace',
+        graceStartDate: new Date(),
+        daysRemaining: 10,
+      });
+      (subscriptionLapseService as any).extendGracePeriod.mockResolvedValue(
+        undefined,
+      );
+      auditLogsService.log.mockResolvedValue({} as any);
+
+      const result = await service.extendGracePeriod(
+        'tenant-123',
+        { ...graceExtendDto, notifyTenant: false },
+        adminId,
+      );
+
+      expect(result.notificationSent).toBe(false);
+    });
+
+    it('should throw BadRequestException for tenant not in grace period', async () => {
+      tenantRepository.findOne.mockResolvedValue(mockTenant);
+      subscriptionLapseService.getGracePeriodInfo.mockResolvedValue({
+        tenantId: 'tenant-123',
+        tenantName: 'Test Tenant',
+        subscriptionStatus: 'active',
+        graceStartDate: null,
+        daysRemaining: null,
+      });
+
+      await expect(
+        service.extendGracePeriod('tenant-123', graceExtendDto, adminId),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw NotFoundException for missing tenant', async () => {
+      tenantRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.extendGracePeriod('non-existent', graceExtendDto, adminId),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
 });
