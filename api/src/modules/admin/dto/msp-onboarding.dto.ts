@@ -189,11 +189,4 @@ export class MspTenantCreatedResponseDto {
     example: '2026-01-18T12:00:00.000Z',
   })
   createdAt: string;
-
-  /**
-   * Temporary password for the admin user.
-   * Internal use only - used by email service to send welcome email.
-   * Excluded from Swagger documentation.
-   */
-  tempPassword?: string;
 }
