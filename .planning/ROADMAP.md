@@ -74,15 +74,15 @@ Plans:
 **Requirements**: VIS-01, VIS-05
 **Success Criteria** (what must be TRUE):
   1. Admin can list all MSP tenants in the system
-  2. List shows status (active, suspended, trial) for each MSP
+  2. List shows status (active, suspended, cancelled) for each MSP
   3. List shows client organization count per MSP
   4. Admin can search MSPs by name or ID
   5. Admin can filter MSPs by status
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: MSP listing endpoint with pagination
-- [ ] 04-02: MSP search and filter capabilities
+- [ ] 04-01-PLAN.md — MSP listing endpoint with pagination and client count aggregation
+- [ ] 04-02-PLAN.md — MSP search and filter capabilities
 
 ### Phase 5: MSP Drill-down
 **Goal**: Admin can see detailed MSP information including all client organizations and usage
@@ -162,7 +162,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 1. Admin Auth Foundation | 2/2 | ✓ Complete | 2026-01-18 |
 | 2. Tenant Search | 1/1 | ✓ Complete | 2026-01-17 |
 | 3. Impersonation Core | 2/2 | ✓ Complete | 2026-01-18 |
-| 4. MSP Listing | 0/2 | Not started | - |
+| 4. MSP Listing | 0/2 | Planned | - |
 | 5. MSP Drill-down | 0/3 | Not started | - |
 | 6. System Health | 0/4 | Not started | - |
 | 7. MSP Onboarding | 0/3 | Not started | - |
@@ -170,4 +170,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 ---
 *Created: 2026-01-17*
-*Last updated: 2026-01-18 after Phase 3 execution complete*
+*Last updated: 2026-01-18 after Phase 4 planning complete*
