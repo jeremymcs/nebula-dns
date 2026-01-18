@@ -12,7 +12,7 @@ This roadmap delivers the backend API for the internal admin dashboard, enabling
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Admin Auth Foundation** - Separate auth system for admin endpoints
+- [x] **Phase 1: Admin Auth Foundation** - Separate auth system for admin endpoints ✓
 - [ ] **Phase 2: Tenant Search** - Find tenants by name, ID, or email
 - [ ] **Phase 3: Impersonation Core** - Start/end impersonation sessions with audit logging
 - [ ] **Phase 4: MSP Listing** - View all MSPs with status, client count, and search
@@ -35,8 +35,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Admin module scaffolding, entity, migration, strategy, and auth guard
-- [ ] 01-02-PLAN.md — Admin authentication endpoints and session management
+- [x] 01-01-PLAN.md — Admin module scaffolding, entity, migration, strategy, and auth guard ✓
+- [x] 01-02-PLAN.md — Admin authentication endpoints and session management ✓
 
 ### Phase 2: Tenant Search
 **Goal**: Admin can quickly find any tenant in the system
@@ -160,7 +160,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Admin Auth Foundation | 0/2 | Planned | - |
+| 1. Admin Auth Foundation | 2/2 | ✓ Complete | 2026-01-18 |
 | 2. Tenant Search | 0/1 | Not started | - |
 | 3. Impersonation Core | 0/3 | Not started | - |
 | 4. MSP Listing | 0/2 | Not started | - |
@@ -171,4 +171,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 ---
 *Created: 2026-01-17*
-*Last updated: 2026-01-17 after Phase 1 planning*
+*Last updated: 2026-01-18 after Phase 1 execution complete*
