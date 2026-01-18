@@ -57,6 +57,7 @@ import {
   AuditResourceType,
 } from '../audit-logs/entities/audit-log.entity';
 import { AdminUser } from './dto/admin-jwt-payload.dto';
+import { EmailService } from '../email/email.service';
 
 /**
  * Request context for admin login operations
@@ -97,6 +98,7 @@ export class AdminService {
     private readonly configService: ConfigService,
     private readonly auditLogsService: AuditLogsService,
     private readonly clickhouseService: ClickHouseService,
+    private readonly emailService: EmailService,
   ) {
     // Lockout configuration
     this.maxFailedAttempts = this.configService.get<number>(
@@ -1113,7 +1115,29 @@ export class AdminService {
       await queryRunner.release();
     }
 
-    // 8. Return response with temp password (for email service in Plan 02)
+    // 8. Send welcome email after transaction commits
+    const loginUrl = this.configService.get<string>(
+      'APP_URL',
+      'https://app.nebuladns.com',
+    );
+    let welcomeEmailSent = false;
+
+    try {
+      welcomeEmailSent = await this.emailService.sendMspWelcomeEmail({
+        to: savedUser.email,
+        adminName: savedUser.name,
+        mspName: savedTenant.name,
+        tempPassword,
+        loginUrl: `${loginUrl}/login`,
+      });
+    } catch (error) {
+      this.logger.warn(
+        `Failed to send MSP welcome email: ${(error as Error).message}`,
+      );
+      // Don't fail the operation if email fails
+    }
+
+    // 9. Return response (tempPassword excluded from response)
     return {
       id: savedTenant.id,
       name: savedTenant.name,
@@ -1122,11 +1146,10 @@ export class AdminService {
       tier: 'msp',
       adminUserId: savedUser.id,
       adminEmail: savedUser.email,
-      welcomeEmailSent: false, // Email sent in Plan 02
+      welcomeEmailSent,
       locationLimit: savedTenant.locationLimit,
       clientLimit: savedTenant.clientLimit,
       createdAt: savedTenant.createdAt.toISOString(),
-      tempPassword, // Internal use only - for welcome email
     };
   }
 }

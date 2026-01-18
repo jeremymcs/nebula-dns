@@ -22,6 +22,7 @@ import { AdminController } from './admin.controller';
 import { RedisModule } from '../redis/redis.module';
 import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 import { ClickHouseModule } from '../clickhouse/clickhouse.module';
+import { EmailModule } from '../email/email.module';
 
 /**
  * Admin Module
@@ -71,6 +72,9 @@ import { ClickHouseModule } from '../clickhouse/clickhouse.module';
 
     // ClickHouse for usage metrics aggregation
     ClickHouseModule,
+
+    // Email for MSP welcome notifications
+    EmailModule,
   ],
 
   // Admin API endpoints
