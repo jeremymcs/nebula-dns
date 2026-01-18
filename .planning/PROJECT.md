@@ -2,11 +2,23 @@
 
 ## What This Is
 
-An internal operations dashboard for the Nebula DNS team to manage MSP accounts and their clients. The UI (mission-control) already exists but lacks backend API endpoints. This milestone completes the admin dashboard by building the required API layer.
+An internal operations dashboard for the Nebula DNS team to manage MSP accounts and their clients. The backend API (v1) is complete. This milestone completes the frontend integration so ops can use the dashboard end-to-end.
 
 ## Core Value
 
-Enable the ops team to handle support escalations quickly through tenant impersonation — reducing time-to-resolution for MSP customer issues.
+Enable the ops team to manage MSPs entirely through the UI — onboarding, billing, usage monitoring — without CLI or direct API calls.
+
+## Current Milestone: v1.1 — Mission Control Frontend
+
+**Goal:** Complete frontend integration with v1 API so ops team has a fully usable dashboard.
+
+**Target features:**
+- Full MSP onboarding wizard (company info → admin user → initial config → confirmation)
+- Complete billing portal (subscriptions, invoices, credits, tier changes, payment methods)
+- MSP listing and drill-down UI with usage metrics
+- Tenant search and impersonation flow
+- System health dashboard
+- Admin authentication UI (login, session management)
 
 ## Current State
 
@@ -24,13 +36,24 @@ See [MILESTONES.md](MILESTONES.md) for details.
 
 ## Requirements
 
-### Shipped (v1)
+### Shipped (v1 Backend)
 
-- ✓ Tenant impersonation — ops can access any tenant as admin to troubleshoot
-- ✓ MSP/Client visibility — list all MSPs, drill into clients, view usage/status
-- ✓ MSP onboarding — create new MSP accounts with initial configuration
-- ✓ Billing operations — view/adjust subscriptions, apply credits, see invoices
-- ✓ System health monitoring — DNS service status, error rates, alerts
+- ✓ Tenant impersonation API — search, start/end sessions with audit logging
+- ✓ MSP/Client visibility API — list MSPs, drill into clients, usage metrics
+- ✓ MSP onboarding API — create accounts with initial configuration
+- ✓ Billing operations API — subscriptions, credits, tier changes, trial extensions
+- ✓ System health API — DNS status, error rates, metrics
+
+### Active (v1.1 Frontend)
+
+- [ ] Admin auth UI — login page, session management, logout
+- [ ] MSP onboarding wizard — multi-step form with validation
+- [ ] MSP listing page — table with search, pagination, client counts
+- [ ] MSP detail/drill-down — client list, usage charts, actions
+- [ ] Tenant search & impersonation — search bar, impersonate button, session indicator
+- [ ] Billing portal — subscription status, invoices, credits, tier changes
+- [ ] Payment method management — add/update cards (NEW backend endpoints needed)
+- [ ] System health dashboard — service status, error rates, metrics charts
 
 ### Future (v2)
 
@@ -49,15 +72,20 @@ See [MILESTONES.md](MILESTONES.md) for details.
 **Technical environment:**
 - NestJS API with TypeORM/PostgreSQL
 - Next.js UI with App Router
-- Mission Control UI exists at `ui/src/app/mission-control/`
-- MSP modules exist: `api/src/modules/msp/`, `api/src/modules/msp-billing/`, `api/src/modules/msp-clients/`
-- Admin module: `api/src/modules/admin/`
+- Mission Control UI (partial) at `ui/src/app/mission-control/`
+- Admin API module: `api/src/modules/admin/`
+- MSP modules: `api/src/modules/msp/`, `api/src/modules/msp-billing/`, `api/src/modules/msp-clients/`
 - Audit logging already captures actions for compliance
 
 **Current state:**
-- v1 complete with 23 requirements, 19 API endpoints
+- v1 backend complete: 23 requirements, 19 API endpoints
+- Mission Control UI has partial pages needing completion + API wiring
 - Small ops team (2-5 people) will use this
-- Support escalations can now be handled through the dashboard
+- Primary workflow: MSP management (onboard → billing → usage monitoring)
+
+**UI patterns:**
+- Follow existing tenant dashboard conventions
+- Match component patterns from `ui/src/components/dashboard/`
 
 ## Constraints
 
@@ -73,6 +101,9 @@ See [MILESTONES.md](MILESTONES.md) for details.
 | No role separation initially | Small team, complexity not justified yet | ✓ Deferred to v2 |
 | Backend-first approach | UI exists, API is the blocker | ✓ Complete |
 | Separate admin JWT | Security isolation from tenant tokens | ✓ Implemented |
+| Follow tenant dashboard patterns | Consistency, faster development, familiar UX | — Pending |
+| Full onboarding wizard | Multi-step better for complex MSP setup | — Pending |
+| Build payment method endpoints | Full billing control needed in admin dashboard | — Pending |
 
 ---
-*Last updated: 2026-01-18 after v1 milestone shipped*
+*Last updated: 2026-01-18 after v1.1 milestone started*
