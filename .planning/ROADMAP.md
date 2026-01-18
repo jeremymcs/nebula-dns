@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Tenant Search** - Find tenants by name, ID, or email ✓
 - [x] **Phase 3: Impersonation Core** - Start/end impersonation sessions with audit logging ✓
 - [x] **Phase 4: MSP Listing** - View all MSPs with status, client count, and search ✓
-- [ ] **Phase 5: MSP Drill-down** - View MSP client organizations and usage metrics
+- [x] **Phase 5: MSP Drill-down** - View MSP client organizations and usage metrics ✓
 - [ ] **Phase 6: System Health** - DNS service status, error rates, and connection health
 - [ ] **Phase 7: MSP Onboarding** - Create new MSP accounts with initial configuration
 - [ ] **Phase 8: Billing Operations** - View and manage tenant billing
@@ -96,8 +96,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — MSP detail endpoint and client organizations listing
-- [ ] 05-02-PLAN.md — Usage metrics aggregation via ClickHouse
+- [x] 05-01-PLAN.md — MSP detail endpoint and client organizations listing ✓
+- [x] 05-02-PLAN.md — Usage metrics aggregation via ClickHouse ✓
 
 ### Phase 6: System Health
 **Goal**: Admin can monitor system health and identify issues
@@ -162,11 +162,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 2. Tenant Search | 1/1 | ✓ Complete | 2026-01-17 |
 | 3. Impersonation Core | 2/2 | ✓ Complete | 2026-01-18 |
 | 4. MSP Listing | 2/2 | ✓ Complete | 2026-01-17 |
-| 5. MSP Drill-down | 0/2 | Not started | - |
+| 5. MSP Drill-down | 2/2 | ✓ Complete | 2026-01-17 |
 | 6. System Health | 0/4 | Not started | - |
 | 7. MSP Onboarding | 0/3 | Not started | - |
 | 8. Billing Operations | 0/3 | Not started | - |
 
 ---
 *Created: 2026-01-17*
-*Last updated: 2026-01-18 after Phase 5 planning complete*
+*Last updated: 2026-01-17 after Phase 5 execution complete*

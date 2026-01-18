@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-01-17)
 
 **Core value:** Enable ops team to handle support escalations quickly through tenant impersonation
-**Current focus:** Phase 5 - MSP Drill-down (Complete)
+**Current focus:** Phase 5 complete — ready for Phase 6 (System Health)
 
 ## Current Position
 
@@ -113,4 +113,4 @@ Last session: 2026-01-18T02:50:57Z
 Stopped at: Completed 05-02-PLAN.md
 Resume file: None
 
-Next: Proceed to Phase 6 (to be determined from ROADMAP.md)
+Next: Phase 6 (System Health) - DNS service status, error rates, and connection health
