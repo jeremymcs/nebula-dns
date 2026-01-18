@@ -25,10 +25,10 @@ Requirements for the admin dashboard backend API.
 
 ### MSP Onboarding
 
-- [ ] **ONB-01**: Admin can create new MSP tenant account
-- [ ] **ONB-02**: Admin can set initial MSP configuration (tier, limits)
-- [ ] **ONB-03**: Admin can create initial admin user for MSP
-- [ ] **ONB-04**: MSP receives welcome email with login credentials
+- [x] **ONB-01**: Admin can create new MSP tenant account ✓
+- [x] **ONB-02**: Admin can set initial MSP configuration (tier, limits) ✓
+- [x] **ONB-03**: Admin can create initial admin user for MSP ✓
+- [x] **ONB-04**: MSP receives welcome email with login credentials ✓
 
 ### Billing Operations
 
@@ -86,10 +86,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VIS-03 | Phase 5 | Complete |
 | VIS-04 | Phase 5 | Complete |
 | VIS-05 | Phase 4 | Complete |
-| ONB-01 | Phase 7 | Pending |
-| ONB-02 | Phase 7 | Pending |
-| ONB-03 | Phase 7 | Pending |
-| ONB-04 | Phase 7 | Pending |
+| ONB-01 | Phase 7 | Complete |
+| ONB-02 | Phase 7 | Complete |
+| ONB-03 | Phase 7 | Complete |
+| ONB-04 | Phase 7 | Complete |
 | BIL-01 | Phase 8 | Pending |
 | BIL-02 | Phase 8 | Pending |
 | BIL-03 | Phase 8 | Pending |
@@ -107,4 +107,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-17*
-*Last updated: 2026-01-18 after Phase 6 complete*
+*Last updated: 2026-01-18 after Phase 7 complete*
