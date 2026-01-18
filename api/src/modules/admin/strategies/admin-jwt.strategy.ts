@@ -2,11 +2,17 @@
 // Named passport strategy for admin authentication
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { AdminJwtPayload, AdminUser } from '../dto/admin-jwt-payload.dto';
+import { AdminService } from '../admin.service';
 
 /**
  * Admin JWT Strategy - Named 'admin-jwt'
@@ -15,12 +21,17 @@ import { AdminJwtPayload, AdminUser } from '../dto/admin-jwt-payload.dto';
  * - Uses ADMIN_JWT_SECRET (not JWT_SECRET)
  * - Validates issuer claim 'nebula-admin'
  * - Returns AdminUser object (not User)
+ * - Checks token blacklist via AdminService
  *
  * All admin routes should use AdminAuthGuard which wraps this strategy.
  */
 @Injectable()
 export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    @Inject(forwardRef(() => AdminService))
+    private readonly adminService: AdminService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -44,11 +55,21 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
     }
 
     // Check if token JTI is blacklisted (session revoked)
-    // Note: This is currently stubbed. AdminService.isTokenBlacklisted will be
-    // implemented in plan 02 (01-02-PLAN.md) and injected here.
-    const isBlacklisted = await this.isTokenBlacklisted(payload.jti);
+    const isBlacklisted = await this.adminService.isTokenBlacklisted(
+      payload.jti,
+    );
     if (isBlacklisted) {
       throw new UnauthorizedException('Session has been revoked');
+    }
+
+    // Verify admin still exists and is active
+    const admin = await this.adminService.findById(payload.sub);
+    if (!admin) {
+      throw new UnauthorizedException('Admin not found');
+    }
+
+    if (admin.status === 'suspended') {
+      throw new UnauthorizedException('Admin account is suspended');
     }
 
     // Return admin user object to be attached to request.user
@@ -59,20 +80,5 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
       mfaVerified: payload.mfaVerified,
       jti: payload.jti,
     };
-  }
-
-  /**
-   * Check if a token JTI is blacklisted
-   *
-   * Stub implementation - will be replaced with AdminService.isTokenBlacklisted
-   * in plan 02 when AdminService is implemented.
-   *
-   * @param jti - The JWT ID to check
-   * @returns true if blacklisted, false otherwise
-   */
-  private async isTokenBlacklisted(_jti: string): Promise<boolean> {
-    // TODO: Implement via AdminService in plan 02
-    // This stub allows the strategy to work before AdminService exists
-    return false;
   }
 }

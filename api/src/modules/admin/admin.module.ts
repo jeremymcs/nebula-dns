@@ -12,6 +12,9 @@ import { Admin } from './entities/admin.entity';
 import { AdminMfa } from './entities/admin-mfa.entity';
 import { AdminJwtStrategy } from './strategies/admin-jwt.strategy';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
+import { AdminService } from './admin.service';
+import { AdminSessionService } from './admin-session.service';
+import { AdminController } from './admin.controller';
 import { RedisModule } from '../redis/redis.module';
 
 /**
@@ -25,15 +28,13 @@ import { RedisModule } from '../redis/redis.module';
  * - 8-hour session duration (workday sessions)
  * - Tokens have issuer 'nebula-admin' to distinguish from tenant tokens
  *
- * Current plan (01-01) implements:
- * - Admin and AdminMfa entities
- * - AdminJwtStrategy for token validation
+ * Components:
+ * - Admin and AdminMfa entities (non-tenant-scoped)
+ * - AdminJwtStrategy for token validation with blacklist checking
  * - AdminAuthGuard for route protection
- *
- * Plan 02 (01-02) will add:
  * - AdminService for authentication logic
- * - AdminController for login/logout/MFA endpoints
- * - AdminSessionService for session management
+ * - AdminSessionService for Redis session management
+ * - AdminController for login/logout/profile endpoints
  */
 @Module({
   imports: [
@@ -60,13 +61,18 @@ import { RedisModule } from '../redis/redis.module';
     RedisModule,
   ],
 
-  // Controllers will be added in plan 02
-  controllers: [],
+  // Admin API endpoints
+  controllers: [AdminController],
 
-  // Providers include strategy for token validation
-  providers: [AdminJwtStrategy, AdminAuthGuard],
+  // Services and strategy
+  providers: [
+    AdminService,
+    AdminSessionService,
+    AdminJwtStrategy,
+    AdminAuthGuard,
+  ],
 
-  // Exports will be expanded in plan 02 when AdminService is added
-  exports: [AdminAuthGuard, JwtModule],
+  // Export service and guard for use by other modules
+  exports: [AdminService, AdminAuthGuard, JwtModule],
 })
 export class AdminModule {}
