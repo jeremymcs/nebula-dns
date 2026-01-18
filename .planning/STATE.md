@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-17)
 
 **Core value:** Enable ops team to handle support escalations quickly through tenant impersonation
-**Current focus:** Phase 5 complete — ready for Phase 6 (System Health)
+**Current focus:** Phase 6 in progress (System Health)
 
 ## Current Position
 
-Phase: 5 of 8 (MSP Drill-down)
-Plan: 2 of 2 executed in current phase
-Status: Phase complete
-Last activity: 2026-01-18 - Completed 05-02-PLAN.md (MSP Usage Metrics)
+Phase: 6 of 8 (System Health)
+Plan: 1 of 2 executed in current phase
+Status: In progress
+Last activity: 2026-01-18 - Completed 06-01-PLAN.md (Health DTOs and Service)
 
-Progress: [███████░░░] 69%
+Progress: [███████░░░] 77%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: 4 min
-- Total execution time: 37 min
+- Total plans completed: 10
+- Average duration: 4.3 min
+- Total execution time: 43 min
 
 **By Phase:**
 
@@ -32,10 +32,11 @@ Progress: [███████░░░] 69%
 | 03-impersonation-core | 2/2 | 10 min | 5 min |
 | 04-msp-listing | 2/2 | 7 min | 3.5 min |
 | 05-msp-drill-down | 2/2 | 6 min | 3 min |
+| 06-system-health | 1/2 | 6 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-02 (2min), 04-01 (4min), 04-02 (3min), 05-01 (3min), 05-02 (3min)
-- Trend: Consistent execution times around 3 min
+- Last 5 plans: 04-01 (4min), 04-02 (3min), 05-01 (3min), 05-02 (3min), 06-01 (6min)
+- Trend: Consistent execution times around 4 min
 
 *Updated after each plan completion*
 
@@ -80,6 +81,10 @@ Recent decisions affecting current work:
 - [05-02]: Fetch per-client usage in parallel with Promise.all
 - [05-02]: Log warning but continue if individual client stats fail
 - [05-02]: blockRate computed as (blocked/total)*100 with 1 decimal precision
+- [06-01]: Native fetch instead of @nestjs/axios - avoids new dependency
+- [06-01]: DNS Resolver for unbound health check - remote-control disabled
+- [06-01]: Promise.allSettled for parallel health checks
+- [06-01]: Mock data fallbacks when ClickHouse unavailable
 
 ### Pending Todos
 
@@ -89,28 +94,28 @@ None.
 
 None.
 
-## Phase 5 Complete
+## Phase 6 In Progress
 
-MSP Drill-down phase complete:
+System Health phase started:
 
-**Plan 01 - MSP Detail Endpoints:**
-- GET /admin/msp/tenants/:mspId for MSP detail with counts
-- GET /admin/msp/tenants/:mspId/clients for client listing
-- verifyMspTenant helper for MSP tier validation
-- ParseUUIDPipe for UUID parameter validation
-- Per-client location/user counts via LEFT JOIN
+**Plan 01 - Health DTOs and Service (Complete):**
+- SystemHealthResponseDto combining all health data
+- ServiceStatusDto for policy-svc, dnsdist, unbound
+- ErrorRatesDto for 1h/24h error windows
+- StorageStatusDto for Redis/ClickHouse status
+- AdminHealthService with 8 aggregation methods
+- External service probes with timeouts
+- Mock data fallbacks for ClickHouse unavailability
 
-**Plan 02 - MSP Usage Metrics:**
-- MspUsageMetricsDto with aggregated metrics
-- Aggregated usage in MSP detail response
-- Per-client usage metrics in client listing
-- Period parameter for time range control (24h, 7d, 30d, 90d)
-- isMockData flag for ClickHouse availability indication
+**Plan 02 - Health Endpoints (Next):**
+- GET /admin/health for system status
+- GET /admin/health/errors for recent errors
+- Swagger documentation
 
 ## Session Continuity
 
-Last session: 2026-01-18T02:50:57Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-01-18T03:28:00Z
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None
 
-Next: Phase 6 (System Health) - DNS service status, error rates, and connection health
+Next: Plan 02 (Health Endpoints) - Controller routes for system health API
