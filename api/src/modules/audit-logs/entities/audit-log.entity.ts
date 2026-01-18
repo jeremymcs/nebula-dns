@@ -29,7 +29,22 @@ export type AuditAction =
   | 'api_key_create'
   | 'api_key_revoke'
   | 'export'
-  | 'import';
+  | 'import'
+  | 'msp_context_switch'
+  | 'subscription_grace_period_started'
+  | 'subscription_suspended'
+  | 'subscription_restored'
+  | 'grace_period_extended'
+  | 'trial_started'
+  | 'trial_converted'
+  | 'trial_expired'
+  | 'family_invite_sent'
+  | 'family_invite_accepted'
+  | 'family_member_removed'
+  | 'template_applied'
+  | 'template_rollback'
+  | 'admin_impersonation_start'
+  | 'admin_impersonation_end';
 
 export type AuditResourceType =
   | 'user'
