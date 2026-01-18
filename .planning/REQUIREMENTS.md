@@ -18,9 +18,9 @@ Requirements for the admin dashboard backend API.
 ### MSP/Client Visibility
 
 - [x] **VIS-01**: Admin can list all MSP tenants with status and client count ✓
-- [ ] **VIS-02**: Admin can drill into MSP to see all client organizations
-- [ ] **VIS-03**: Admin can view usage metrics per MSP (queries, locations, users)
-- [ ] **VIS-04**: Admin can view usage metrics per client organization
+- [x] **VIS-02**: Admin can drill into MSP to see all client organizations ✓
+- [x] **VIS-03**: Admin can view usage metrics per MSP (queries, locations, users) ✓
+- [x] **VIS-04**: Admin can view usage metrics per client organization ✓
 - [x] **VIS-05**: Admin can search/filter MSPs and clients ✓
 
 ### MSP Onboarding
@@ -82,9 +82,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IMP-04 | Phase 3 | Complete |
 | IMP-05 | Phase 3 | Complete |
 | VIS-01 | Phase 4 | Complete |
-| VIS-02 | Phase 5 | Pending |
-| VIS-03 | Phase 5 | Pending |
-| VIS-04 | Phase 5 | Pending |
+| VIS-02 | Phase 5 | Complete |
+| VIS-03 | Phase 5 | Complete |
+| VIS-04 | Phase 5 | Complete |
 | VIS-05 | Phase 4 | Complete |
 | ONB-01 | Phase 7 | Pending |
 | ONB-02 | Phase 7 | Pending |
@@ -107,4 +107,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-17*
-*Last updated: 2026-01-17 after Phase 4 complete*
+*Last updated: 2026-01-17 after Phase 5 complete*
