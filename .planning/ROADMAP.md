@@ -109,13 +109,11 @@ Plans:
   3. Admin can view recent error log entries
   4. Admin can view aggregate query volume across all tenants
   5. Admin can view ClickHouse and Redis connection status
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 06-01: DNS service health check endpoint
-- [ ] 06-02: Error rate and recent errors endpoint
-- [ ] 06-03: Aggregate query volume endpoint
-- [ ] 06-04: Storage connection status endpoint
+- [ ] 06-01-PLAN.md — System health DTOs and AdminHealthService infrastructure
+- [ ] 06-02-PLAN.md — System health controller endpoints and tests
 
 ### Phase 7: MSP Onboarding
 **Goal**: Admin can create new MSP accounts without manual database work
@@ -163,10 +161,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 3. Impersonation Core | 2/2 | ✓ Complete | 2026-01-18 |
 | 4. MSP Listing | 2/2 | ✓ Complete | 2026-01-17 |
 | 5. MSP Drill-down | 2/2 | ✓ Complete | 2026-01-17 |
-| 6. System Health | 0/4 | Not started | - |
+| 6. System Health | 0/2 | Planned | - |
 | 7. MSP Onboarding | 0/3 | Not started | - |
 | 8. Billing Operations | 0/3 | Not started | - |
 
 ---
 *Created: 2026-01-17*
-*Last updated: 2026-01-17 after Phase 5 execution complete*
+*Last updated: 2026-01-17 after Phase 6 planning complete*
