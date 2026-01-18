@@ -1,8 +1,59 @@
 # Codebase Concerns
 
-**Analysis Date:** 2026-01-17
+**Analysis Date:** 2026-01-18
 
 ## Tech Debt
+
+**Partner System Remnants in UI (NEW):**
+- Issue: Legacy partner portal references remain after system removal
+- Files:
+  - `ui/src/app/mission-control/layout.tsx:39,58,64` - redirects to `/partner/dashboard`, "partner admin" text
+  - `ui/src/components/layout/DashboardLayout.tsx:120,165,171` - same partner portal references
+  - `ui/src/contexts/AuthContext.tsx:36` - `partnerId: string | null` in MspInfo interface
+  - `ui/e2e/navigation.spec.ts:20-24` - tests for `/partners/login` route that no longer exists
+- Impact: Confusing UX if impersonation mode tries to return to non-existent partner portal; broken tests
+- Fix approach: Replace `/partner/dashboard` with `/dashboard` or admin portal URL; remove `partnerId` from MspInfo; update/remove partner E2E tests
+
+**Partner Terminology in Block Pages (NEW):**
+- Issue: Block pages service still references "partner branding" in code and tests
+- Files:
+  - `api/src/modules/block-pages/block-pages.service.ts:150-181` - `partnerBranding` parameter
+  - `api/src/modules/block-pages/block-pages.service.spec.ts:379-403` - partner branding tests
+- Impact: Confusing code; should use "MSP branding" or "tenant branding" terminology
+- Fix approach: Rename `partnerBranding` to `mspBranding` or `customBranding`; update tests
+
+**Legacy Partner Column in MSP Billing Entities (NEW):**
+- Issue: MSP billing entities still use `partner_id` column name mapped to MSP tenants
+- Files:
+  - `api/src/modules/msp-billing/entities/msp-subscription.entity.ts:33-35`
+  - `api/src/modules/msp-billing/entities/msp-purchase.entity.ts:31-32`
+  - `api/src/modules/msp-billing/entities/msp-usage.entity.ts:29-30`
+  - `api/src/modules/msp-billing/entities/msp-invoice.entity.ts:30-31`
+  - `api/src/modules/msp/entities/msp-template.entity.ts:33-34`
+- Impact: Semantic confusion; new developers may be confused about "partner" vs "MSP tenant"
+- Fix approach: Database migration to rename `partner_id` to `msp_tenant_id`; update entity column mappings
+
+**Demo/Placeholder Code in MSP Billing Controller (NEW - HIGH PRIORITY):**
+- Issue: Production code uses hardcoded demo partner ID as fallback
+- Files: `api/src/modules/msp-billing/msp-billing.controller.ts:186-189`
+  ```typescript
+  private getPartnerId(user: AuthUser): string {
+    // For now, use a demo partner ID. In production, this would come from the user's JWT
+    return user.partnerId || '550e8400-e29b-41d4-a716-446655440010';
+  }
+  ```
+- Impact: Security risk - unauthorized access to demo MSP data; incorrect billing attribution
+- Fix approach: Throw UnauthorizedException if partnerId is not available; require proper JWT claims
+
+**Test Files Reference Non-Existent Partner System (NEW):**
+- Issue: Multiple test files still use `partnerId: 'partner-123'` test data
+- Files:
+  - `api/src/modules/limits/limits.service.integration.spec.ts:316,346,358`
+  - `api/src/modules/limits/limits.service.spec.ts:378,428,514`
+  - `api/src/modules/msp-clients/msp-clients.service.integration.spec.ts` (20+ references)
+  - `api/src/modules/auth/auth.controller.spec.ts:519,561`
+- Impact: Tests pass but use deprecated terminology; confusing for future maintenance
+- Fix approach: Update test data to use `mspTenantId` terminology
 
 **Excessive Use of `any` Type:**
 - Issue: Over 150+ instances of `any` type usage across the API codebase, undermining TypeScript's type safety
@@ -15,11 +66,12 @@
 - Files:
   - `api/src/modules/msp/msp-templates.service.ts` (1361 lines)
   - `api/src/modules/sso/sso.service.ts` (1221 lines)
+  - `api/src/modules/admin/admin.service.ts` (1155 lines) - NEW
   - `api/src/modules/reports/reports.service.ts` (1107 lines)
   - `api/src/modules/webhooks/webhooks.service.ts` (1081 lines)
   - `api/src/modules/clickhouse/clickhouse.service.ts` (990 lines)
 - Impact: Difficult to test, understand, and maintain; high coupling
-- Fix approach: Extract domain-specific logic into separate services (e.g., SamlService, OidcService from SsoService)
+- Fix approach: Extract domain-specific logic into separate services (e.g., `AdminImpersonationService`, `AdminSearchService` from AdminService)
 
 **Circular Dependencies via forwardRef:**
 - Issue: Multiple modules use `forwardRef` to resolve circular dependencies
@@ -28,14 +80,9 @@
   - `api/src/modules/auth/auth.module.ts`
   - `api/src/modules/locations/locations.module.ts`
   - `api/src/modules/msp-clients/msp-clients.module.ts`
+  - `api/src/modules/admin/strategies/admin-jwt.strategy.ts` (forwardRef for AdminService) - NEW
 - Impact: Potential initialization issues, harder to reason about module loading order
 - Fix approach: Refactor to use event-based communication or extract shared logic to common modules
-
-**Deprecated Secrets Config Still Present:**
-- Issue: Old secrets configuration module marked deprecated but still in codebase
-- Files: `api/src/config/secrets.config.ts` (entire file marked @deprecated)
-- Impact: Confusing for developers, potential for using wrong implementation
-- Fix approach: Remove deprecated file after verifying all usages migrated to `@/modules/secrets`
 
 **Mock Data Fallback in Production Code:**
 - Issue: Reports service generates mock heatmap data when ClickHouse returns empty
@@ -44,6 +91,14 @@
 - Fix approach: Return empty data or explicit "no data" indicator instead of mock data
 
 ## Known Bugs
+
+**Impersonation Exit Redirects to Deleted Partner Portal (NEW - HIGH PRIORITY):**
+- Symptoms: Clicking "Return to Partner Portal" redirects to `/partner/dashboard` which does not exist
+- Files:
+  - `ui/src/app/mission-control/layout.tsx:39`
+  - `ui/src/components/layout/DashboardLayout.tsx:120`
+- Trigger: Admin ends impersonation session via UI
+- Workaround: Manually navigate to admin portal or dashboard
 
 **Swagger Docs Endpoint Skipped in Tests:**
 - Symptoms: Test explicitly skipped for `/api/docs` endpoint
@@ -61,6 +116,35 @@
 
 ## Security Considerations
 
+**Admin Impersonation Token Generation (NEW):**
+- Risk: Impersonation tokens are signed with tenant JWT_SECRET, allowing potential confusion with regular user tokens
+- Files:
+  - `api/src/modules/admin/admin.service.ts:897-903` - generates impersonation token
+  - `api/src/modules/auth/jwt.strategy.ts:42-80` - validates tokens including impersonation
+- Current mitigation:
+  - Impersonation tokens include `impersonatingAdminId` claim to identify them
+  - JwtStrategy checks for this claim and handles separately
+  - 1-hour expiry (shorter than regular 8h admin tokens)
+  - Full audit logging of start/end events
+- Recommendations:
+  - Consider separate issuer claim for impersonation tokens
+  - Add rate limiting on impersonation starts per admin
+  - Add monitoring alerts for unusually long impersonation sessions
+
+**Admin MFA Not Enforced (NEW):**
+- Risk: Admin accounts can authenticate without MFA if not set up
+- Files: `api/src/modules/admin/admin.service.ts:117-163` - login flow
+- Current mitigation: `mfaSetupComplete` tracked but not enforced
+- Recommendations: Require MFA setup on first admin login; block admin operations until MFA enabled
+
+**Impersonation Token Blacklist Shared with Regular Sessions (NEW):**
+- Risk: Impersonation tokens use admin session blacklist in Redis
+- Files:
+  - `api/src/modules/admin/admin.service.ts:959` - uses `adminSessionService.blacklistToken`
+  - `api/src/modules/auth/jwt.strategy.ts:47-51` - checks admin blacklist for impersonation tokens
+- Current mitigation: Separate Redis key prefix `admin:session:blacklist:`
+- Recommendations: Document this behavior clearly; consider separate namespace
+
 **Development Encryption Key Fallback:**
 - Risk: Insecure test keys generated when encryption keys not configured in development
 - Files: `api/src/config/encryption.config.ts` (lines 210-213)
@@ -73,18 +157,6 @@
 - Current mitigation: None apparent
 - Recommendations: Use httpOnly cookies for token storage, implement token rotation
 
-**Missing Database Indexes on Tenant Scoped Queries:**
-- Risk: Slow queries as data grows, especially on tenant_id lookups
-- Files: Multiple entity files - only 18 explicit indexes found across 44 entities
-- Current mitigation: Some indexes exist on MSP-related entities
-- Recommendations: Add composite indexes on (tenant_id, created_at) and (tenant_id, status) for commonly queried tables
-
-**Hardcoded Test Credentials in Helpers:**
-- Risk: Credentials visible in source control
-- Files: `tests/e2e/dns/test-helpers.ts` (line 330 - default password 'nebula')
-- Current mitigation: Only used in test environment
-- Recommendations: Load test credentials from environment variables
-
 **CORS Configured as Wildcard by Default:**
 - Risk: Allows any origin to make requests in development
 - Files: `api/src/config/configuration.ts` (line 262 - default '*')
@@ -92,6 +164,12 @@
 - Recommendations: Remove wildcard default; require explicit origin configuration
 
 ## Performance Bottlenecks
+
+**MSP Client Usage Queries Run Sequentially (NEW):**
+- Problem: `getMspClients` fetches usage metrics for each client in parallel but still O(n) ClickHouse queries
+- Files: `api/src/modules/admin/admin.service.ts:829-846`
+- Cause: Each client triggers a separate ClickHouse query
+- Improvement path: Batch query all client IDs in single ClickHouse query; use caching for repeated calls
 
 **ClickHouse Reconnection Blocking:**
 - Problem: Schema initialization blocks on module init if ClickHouse unavailable
@@ -115,13 +193,19 @@
 - Cause: Intervals created but onModuleDestroy cleanup may be incomplete
 - Improvement path: Track all intervals and clear in lifecycle hooks
 
-**Multiple Console.log Statements in Production Code:**
-- Problem: Console statements in scripts and some integration tests add overhead
-- Files: `api/src/scripts/backup-partner-data.ts` (30+ console.log calls), migration scripts
-- Cause: Scripts written for manual execution
-- Improvement path: Use proper Logger service; replace console calls in production code
-
 ## Fragile Areas
+
+**Admin Module (NEW):**
+- Files: `api/src/modules/admin/admin.service.ts`, `api/src/modules/admin/admin.module.ts`
+- Why fragile: 1155 lines handling auth, impersonation, tenant search, MSP onboarding; imports many modules
+- Safe modification: Add new admin features through separate sub-services; maintain separate JWT validation
+- Test coverage: Good coverage (4 spec files) but some use `as any` type assertions extensively
+
+**MSP Billing Controller Partner ID Extraction (NEW):**
+- Files: `api/src/modules/msp-billing/msp-billing.controller.ts:186-189`
+- Why fragile: Relies on `user.partnerId` from JWT which may not be populated correctly; fallback to demo ID
+- Safe modification: Ensure JWT token generation includes proper MSP tenant ID; remove demo fallback
+- Test coverage: Needs integration tests verifying JWT claim population
 
 **MSP Templates Service:**
 - Files: `api/src/modules/msp/msp-templates.service.ts`
@@ -135,12 +219,6 @@
 - Safe modification: Use read-lock for reads, write-lock for writes; consider atomic operations
 - Test coverage: Limited - needs concurrency testing
 
-**Authentication Flow with MFA:**
-- Files: `api/src/modules/auth/auth.service.ts`, `api/src/modules/mfa/mfa.service.ts`
-- Why fragile: Complex state machine with temp tokens, session creation, and MFA verification; forwardRef dependency
-- Safe modification: Add state machine tests; document all possible auth states
-- Test coverage: `auth.service.spec.ts` exists but MFA integration paths need more coverage
-
 **Subscription Lapse Workflow:**
 - Files: `api/src/modules/subscription-lapse/subscription-lapse.service.ts`
 - Why fragile: 578 lines handling grace periods, suspension, notifications; affects DNS resolution via policy service
@@ -149,15 +227,15 @@
 
 ## Scaling Limits
 
+**ClickHouse Aggregation for MSP Usage (NEW):**
+- Current capacity: Works for MSPs with <100 clients
+- Limit: O(n) queries where n = number of clients
+- Scaling path: Pre-aggregate daily usage in scheduled job; use materialized views
+
 **Redis Connection Pooling:**
 - Current capacity: Default connection settings
 - Limit: Unknown - no explicit pool configuration found
 - Scaling path: Add connection pool configuration in Redis module; monitor connection counts
-
-**ClickHouse Query Pagination:**
-- Current capacity: Cursor-based pagination implemented
-- Limit: Large result sets may timeout
-- Scaling path: Add query timeout configuration; implement streaming for large exports
 
 **Webhook Delivery Queue:**
 - Current capacity: In-memory retry with delays
@@ -165,6 +243,16 @@
 - Scaling path: Move to Redis-backed queue with Bull/BullMQ; add circuit breaker
 
 ## Dependencies at Risk
+
+**Partner Migration Scripts Still Present (NEW):**
+- Risk: Migration scripts reference deprecated partner tables that may be dropped
+- Files:
+  - `api/src/scripts/migrations/migrate-partners-to-msp.ts`
+  - `api/src/scripts/migrations/migrate-partner-users.ts`
+  - `api/src/scripts/backup-partner-data.ts`
+  - `api/src/database/migrations/1711000000000-DropPartnerTables.ts`
+- Impact: Scripts may fail if run after partner tables are dropped
+- Migration plan: Mark scripts as deprecated; add pre-run checks for table existence
 
 **SendGrid Integration:**
 - Risk: Single email provider dependency
@@ -178,6 +266,16 @@
 
 ## Missing Critical Features
 
+**Admin Session Service Missing Dedicated Spec File (NEW):**
+- Problem: `admin-session.service.ts` (16KB) has no dedicated spec file
+- Files: `api/src/modules/admin/admin-session.service.ts`
+- Blocks: Confident refactoring of session management code
+- Note: Session logic may be tested indirectly through `admin.service.spec.ts`
+
+**No Admin MFA Enforcement (NEW):**
+- Problem: Admin users can operate without MFA
+- Blocks: Compliance requirements (SOC2, etc.)
+
 **Rate Limiting on Policy Service:**
 - Problem: Go policy service has no built-in rate limiting
 - Blocks: DoS protection for DNS evaluation endpoint
@@ -188,11 +286,25 @@
 - Blocks: Compliance requirements; database growth management
 - Files: `api/src/modules/audit-logs/audit-logs.service.ts`
 
-**API Versioning Strategy:**
-- Problem: All endpoints under `/api/v1/` but no v2 migration path documented
-- Blocks: Breaking changes in future releases
-
 ## Test Coverage Gaps
+
+**Admin Module Type Safety (NEW):**
+- What's not tested: Type assertions (`as any`) in spec files mask potential runtime errors
+- Files: `api/src/modules/admin/admin-billing.service.spec.ts` (40+ `as any` casts)
+- Risk: Type mismatches won't be caught at test time
+- Priority: Medium
+
+**UI Partner Portal Removal (NEW - HIGH PRIORITY):**
+- What's not tested: E2E tests reference deleted `/partners/login` route
+- Files: `ui/e2e/navigation.spec.ts:20-24`
+- Risk: Test suite includes tests for non-existent features; tests will fail
+- Priority: High
+
+**Impersonation End-to-End Flow (NEW):**
+- What's not tested: Full admin impersonation flow from login to exit
+- Files: Admin controller tests exist but no E2E covering full flow
+- Risk: Integration issues between admin and tenant auth systems
+- Priority: Medium
 
 **UI E2E Tests Heavily Skipped:**
 - What's not tested: 50+ tests using `test.skip()` across UI E2E suite
@@ -205,18 +317,6 @@
 - Risk: UI regressions go undetected; new features may break existing flows
 - Priority: High
 
-**Missing Service Tests:**
-- What's not tested: Several services lack comprehensive unit tests
-- Files: Check coverage for `email.service.ts`, `doh.service.ts`, `threat-feeds.service.ts`
-- Risk: Email template changes, DoH resolution, threat feed parsing untested
-- Priority: Medium
-
-**No Load Testing in CI:**
-- What's not tested: Performance regression detection
-- Files: `scripts/load-testing/*.js` exist but not integrated into CI
-- Risk: Performance degradation goes unnoticed until production
-- Priority: Medium
-
 **Policy Service Go Tests:**
 - What's not tested: Limited test coverage in policy-svc
 - Files: `policy-svc/internal/` - sparse test files
@@ -225,4 +325,4 @@
 
 ---
 
-*Concerns audit: 2026-01-17*
+*Concerns audit: 2026-01-18*
