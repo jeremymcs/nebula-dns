@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-17)
 
 **Core value:** Enable ops team to handle support escalations quickly through tenant impersonation
-**Current focus:** Phase 3 Verified Complete - Ready for Phase 4
+**Current focus:** Phase 4 in progress - MSP Listing
 
 ## Current Position
 
-Phase: 3 of 8 (Impersonation Core) - COMPLETE
-Plan: 2 of 2 executed in current phase
-Status: Phase complete
-Last activity: 2026-01-18 - Completed 03-02-PLAN.md (JWT Strategy Impersonation Support)
+Phase: 4 of 8 (MSP Listing)
+Plan: 1 of 2 executed in current phase
+Status: In progress
+Last activity: 2026-01-18 - Completed 04-01-PLAN.md (MSP Tenant Listing)
 
-Progress: [████░░░░░░] 38%
+Progress: [█████░░░░░] 46%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 6
 - Average duration: 5 min
-- Total execution time: 24 min
+- Total execution time: 28 min
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [████░░░░░░] 38%
 | 01-admin-auth-foundation | 2/2 | 8 min | 4 min |
 | 02-tenant-search | 1/1 | 6 min | 6 min |
 | 03-impersonation-core | 2/2 | 10 min | 5 min |
+| 04-msp-listing | 1/2 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4min), 01-02 (4min), 02-01 (6min), 03-01 (8min), 03-02 (2min)
-- Trend: Plan 03-02 was fast (minimal changes needed)
+- Last 5 plans: 01-02 (4min), 02-01 (6min), 03-01 (8min), 03-02 (2min), 04-01 (4min)
+- Trend: Consistent execution times around 4-6 min
 
 *Updated after each plan completion*
 
@@ -65,6 +66,9 @@ Recent decisions affecting current work:
 - [03-02]: Impersonation tokens check admin blacklist directly via RedisService
 - [03-02]: Impersonation tokens skip user database lookup (admin is synthetic user)
 - [03-02]: isImpersonation flag added to ALL request.user objects
+- [04-01]: Use managed_by_msp_id self-join to count clients per MSP
+- [04-01]: Return clientCount as number (parsed from COUNT aggregation)
+- [04-01]: Consistent pagination structure with tenant search endpoint
 
 ### Pending Todos
 
@@ -74,28 +78,23 @@ None.
 
 None.
 
-## Phase 3 Complete Summary
+## Phase 4 Progress
 
-Impersonation Core phase complete with full end-to-end functionality:
+MSP Listing phase in progress:
 
-**Plan 01 - Impersonation Session Management:**
-- POST /admin/impersonate/:tenantId endpoint (requires AdminAuthGuard)
-- POST /admin/impersonate/end endpoint (accepts impersonation token)
-- Tenant-scoped JWT generation with impersonation claims
-- 1-hour token expiry for security
-- Full audit logging (admin_impersonation_start, admin_impersonation_end)
+**Plan 01 - MSP Tenant Listing (Complete):**
+- GET /admin/msp/tenants endpoint with AdminAuthGuard
+- Client count via LEFT JOIN with managed_by_msp_id
+- Cursor-based pagination consistent with tenant search
+- DTOs: MspListingQueryDto, MspTenantDto, MspListingResponseDto
 
-**Plan 02 - JWT Strategy Impersonation Support:**
-- JwtStrategy detects impersonation tokens via impersonatingAdminId claim
-- Impersonation tokens check admin:session:blacklist: prefix
-- Impersonation tokens skip user database lookup
-- request.user includes isImpersonation flag for all tokens
-- request.user includes admin attribution for impersonation
+**Plan 02 - MSP Client Detail (Pending):**
+- Not yet started
 
 ## Session Continuity
 
-Last session: 2026-01-18T02:01:42Z
-Stopped at: Completed 03-02-PLAN.md (Phase 3 complete)
+Last session: 2026-01-18T02:14:00Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None
 
-Next: Phase 4 (MSP Listing) - `/gsd:discuss-phase 4`
+Next: Continue with 04-02-PLAN.md (MSP Client Detail)
