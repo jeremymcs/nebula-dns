@@ -17,6 +17,7 @@ import { AdminJwtStrategy } from './strategies/admin-jwt.strategy';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { AdminService } from './admin.service';
 import { AdminSessionService } from './admin-session.service';
+import { AdminHealthService } from './admin-health.service';
 import { AdminController } from './admin.controller';
 import { RedisModule } from '../redis/redis.module';
 import { AuditLogsModule } from '../audit-logs/audit-logs.module';
@@ -79,11 +80,12 @@ import { ClickHouseModule } from '../clickhouse/clickhouse.module';
   providers: [
     AdminService,
     AdminSessionService,
+    AdminHealthService,
     AdminJwtStrategy,
     AdminAuthGuard,
   ],
 
   // Export service and guard for use by other modules
-  exports: [AdminService, AdminAuthGuard, JwtModule],
+  exports: [AdminService, AdminHealthService, AdminAuthGuard, JwtModule],
 })
 export class AdminModule {}
