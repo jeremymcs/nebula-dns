@@ -7,13 +7,15 @@ import {
   UnauthorizedException,
   BadRequestException,
   NotFoundException,
+  ConflictException,
   Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 
 import { Admin } from './entities/admin.entity';
@@ -31,6 +33,10 @@ import {
   MspListingQueryDto,
   MspListingResponseDto,
 } from './dto/msp-listing.dto';
+import {
+  CreateMspTenantDto,
+  MspTenantCreatedResponseDto,
+} from './dto/msp-onboarding.dto';
 import {
   MspDetailQueryDto,
   MspDetailResponseDto,
@@ -85,6 +91,7 @@ export class AdminService {
     private readonly locationRepository: Repository<Location>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly dataSource: DataSource,
     private readonly jwtService: JwtService,
     private readonly adminSessionService: AdminSessionService,
     private readonly configService: ConfigService,
@@ -978,6 +985,148 @@ export class AdminService {
     return {
       message: 'Impersonation session ended',
       durationSeconds,
+    };
+  }
+
+  // ============================================
+  // MSP Onboarding Methods
+  // ============================================
+
+  /**
+   * Generate a unique URL-friendly slug from tenant name
+   * Appends counter suffix if slug already exists
+   */
+  private async generateUniqueSlug(name: string): Promise<string> {
+    const baseSlug = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
+    let slug = baseSlug;
+    let counter = 1;
+    while (await this.tenantRepository.findOne({ where: { slug } })) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+    return slug;
+  }
+
+  /**
+   * Create a new MSP tenant with initial admin user
+   * Creates tenant and user atomically in a transaction
+   *
+   * @param dto - MSP tenant creation data
+   * @param createdByAdminId - ID of the admin creating the MSP
+   * @returns Created tenant and user details with temporary password
+   * @throws ConflictException if admin email already exists
+   */
+  async createMspTenant(
+    dto: CreateMspTenantDto,
+    createdByAdminId: string,
+  ): Promise<MspTenantCreatedResponseDto> {
+    // 1. Check email uniqueness first (before transaction)
+    const normalizedEmail = dto.adminEmail.toLowerCase();
+    const existingUser = await this.userRepository.findOne({
+      where: { email: normalizedEmail },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('Email address already in use');
+    }
+
+    // 2. Generate unique slug (use provided or derive from name)
+    const slug = dto.slug || (await this.generateUniqueSlug(dto.name));
+
+    // Verify provided slug is unique if explicitly provided
+    if (dto.slug) {
+      const existingTenant = await this.tenantRepository.findOne({
+        where: { slug: dto.slug },
+      });
+      if (existingTenant) {
+        throw new ConflictException('Slug already in use');
+      }
+    }
+
+    // 3. Start transaction
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    let savedTenant: Tenant;
+    let savedUser: User;
+    let tempPassword: string;
+
+    try {
+      // 4. Create tenant entity
+      const tenant = queryRunner.manager.create(Tenant, {
+        name: dto.name,
+        slug,
+        status: 'active',
+        tier: 'msp',
+        plan: 'enterprise', // MSPs get enterprise plan
+        contactEmail: dto.contactEmail || normalizedEmail,
+        contactPhone: dto.contactPhone || null,
+        locationLimit: dto.locationLimit ?? null,
+        clientLimit: dto.clientLimit ?? null,
+        subscriptionStatus: 'active',
+        managedByMspId: null, // MSP is not managed by another MSP
+        settings: {
+          timezone: 'UTC',
+          blockPageEnabled: true,
+          mspDisplayName: dto.name,
+        },
+      });
+
+      savedTenant = await queryRunner.manager.save(tenant);
+
+      // 5. Create admin user entity
+      tempPassword = crypto.randomBytes(16).toString('hex');
+      const passwordHash = await bcrypt.hash(tempPassword, 12);
+
+      const user = queryRunner.manager.create(User, {
+        tenantId: savedTenant.id,
+        email: normalizedEmail,
+        name: dto.adminName || `${dto.name} Admin`,
+        passwordHash,
+        role: 'owner',
+        status: 'pending', // Requires password change on first login
+      });
+
+      savedUser = await queryRunner.manager.save(user);
+
+      // 6. Commit transaction
+      await queryRunner.commitTransaction();
+
+      // 7. Log success
+      this.logger.log(
+        `Admin ${createdByAdminId} created MSP tenant ${savedTenant.id} (${savedTenant.name})`,
+      );
+    } catch (error) {
+      // Rollback transaction on error
+      await queryRunner.rollbackTransaction();
+      this.logger.error(
+        `Failed to create MSP tenant: ${(error as Error).message}`,
+      );
+      throw error;
+    } finally {
+      // Release query runner
+      await queryRunner.release();
+    }
+
+    // 8. Return response with temp password (for email service in Plan 02)
+    return {
+      id: savedTenant.id,
+      name: savedTenant.name,
+      slug: savedTenant.slug,
+      status: 'active',
+      tier: 'msp',
+      adminUserId: savedUser.id,
+      adminEmail: savedUser.email,
+      welcomeEmailSent: false, // Email sent in Plan 02
+      locationLimit: savedTenant.locationLimit,
+      clientLimit: savedTenant.clientLimit,
+      createdAt: savedTenant.createdAt.toISOString(),
+      tempPassword, // Internal use only - for welcome email
     };
   }
 }
