@@ -93,12 +93,11 @@ Plans:
   2. Admin can view usage metrics per MSP (queries, locations, users)
   3. Admin can view usage metrics per client organization
   4. Usage metrics show current period and historical data
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: MSP client organizations endpoint
-- [ ] 05-02: MSP usage metrics aggregation
-- [ ] 05-03: Client organization usage metrics
+- [ ] 05-01-PLAN.md — MSP detail endpoint and client organizations listing
+- [ ] 05-02-PLAN.md — Usage metrics aggregation via ClickHouse
 
 ### Phase 6: System Health
 **Goal**: Admin can monitor system health and identify issues
@@ -163,11 +162,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 2. Tenant Search | 1/1 | ✓ Complete | 2026-01-17 |
 | 3. Impersonation Core | 2/2 | ✓ Complete | 2026-01-18 |
 | 4. MSP Listing | 2/2 | ✓ Complete | 2026-01-17 |
-| 5. MSP Drill-down | 0/3 | Not started | - |
+| 5. MSP Drill-down | 0/2 | Not started | - |
 | 6. System Health | 0/4 | Not started | - |
 | 7. MSP Onboarding | 0/3 | Not started | - |
 | 8. Billing Operations | 0/3 | Not started | - |
 
 ---
 *Created: 2026-01-17*
-*Last updated: 2026-01-17 after Phase 4 execution complete*
+*Last updated: 2026-01-18 after Phase 5 planning complete*
