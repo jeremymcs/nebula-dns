@@ -26,12 +26,19 @@ import {
   TenantSearchResultDto,
 } from './dto/tenant-search.dto';
 import {
+  MspListingQueryDto,
+  MspListingResponseDto,
+} from './dto/msp-listing.dto';
+import {
   StartImpersonationResponseDto,
   EndImpersonationResponseDto,
 } from './dto/impersonation.dto';
 import { AdminSessionService, AdminDeviceInfo } from './admin-session.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
-import { AuditAction, AuditResourceType } from '../audit-logs/entities/audit-log.entity';
+import {
+  AuditAction,
+  AuditResourceType,
+} from '../audit-logs/entities/audit-log.entity';
 import { AdminUser } from './dto/admin-jwt-payload.dto';
 
 /**
@@ -429,6 +436,67 @@ export class AdminService {
     const data = results
       .slice(0, limit)
       .map((tenant) => this.toSearchResult(tenant));
+
+    return {
+      data,
+      pagination: {
+        cursor: hasMore ? String(offset + limit) : null,
+        hasMore,
+        total,
+      },
+    };
+  }
+
+  // ============================================
+  // MSP Listing Methods
+  // ============================================
+
+  /**
+   * List all MSP tenants with client counts
+   * Uses LEFT JOIN to count managed clients per MSP
+   */
+  async listMspTenants(
+    query: MspListingQueryDto,
+  ): Promise<MspListingResponseDto> {
+    const limit = query.limit ?? 20;
+    const offset = query.cursor ? parseInt(query.cursor, 10) : 0;
+
+    // Build query with client count aggregation using self-join
+    // tenant.managed_by_msp_id references another tenant with tier='msp'
+    const queryBuilder = this.tenantRepository
+      .createQueryBuilder('msp')
+      .leftJoin(Tenant, 'client', 'client.managed_by_msp_id = msp.id')
+      .select([
+        'msp.id AS id',
+        'msp.name AS name',
+        'msp.status AS status',
+        'msp.contact_email AS "contactEmail"',
+      ])
+      .addSelect('COUNT(DISTINCT client.id)', 'clientCount')
+      .where('msp.tier = :tier', { tier: 'msp' })
+      .groupBy('msp.id')
+      .addGroupBy('msp.name')
+      .addGroupBy('msp.status')
+      .addGroupBy('msp.contact_email')
+      .orderBy('msp.name', 'ASC')
+      .offset(offset)
+      .limit(limit + 1);
+
+    const rawResults = await queryBuilder.getRawMany();
+
+    // Get total count of MSPs (separate query for efficiency)
+    const total = await this.tenantRepository.count({
+      where: { tier: 'msp' as any },
+    });
+
+    const hasMore = rawResults.length > limit;
+    const data = rawResults.slice(0, limit).map((row) => ({
+      id: row.id,
+      name: row.name,
+      status: row.status,
+      clientCount: parseInt(row.clientCount, 10) || 0,
+      contactEmail: row.contactEmail || undefined,
+    }));
 
     return {
       data,
