@@ -11,6 +11,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Admin } from './entities/admin.entity';
 import { AdminMfa } from './entities/admin-mfa.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
+import { Location } from '../locations/entities/location.entity';
+import { User } from '../users/entities/user.entity';
 import { AdminJwtStrategy } from './strategies/admin-jwt.strategy';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { AdminService } from './admin.service';
@@ -56,8 +58,8 @@ import { AuditLogsModule } from '../audit-logs/audit-logs.module';
       }),
     }),
 
-    // TypeORM entities for admin users
-    TypeOrmModule.forFeature([Admin, AdminMfa, Tenant]),
+    // TypeORM entities for admin users and related entities for MSP drill-down
+    TypeOrmModule.forFeature([Admin, AdminMfa, Tenant, Location, User]),
 
     // Redis for session management (blacklist, session tracking)
     RedisModule,
