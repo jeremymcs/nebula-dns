@@ -16,6 +16,8 @@ import {
   Req,
   Ip,
   ParseUUIDPipe,
+  DefaultValuePipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -23,10 +25,12 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { Request } from 'express';
 
 import { AdminService, AdminLoginContext } from './admin.service';
+import { AdminHealthService } from './admin-health.service';
 import { AdminLoginDto } from './dto/admin-login.dto';
 import {
   AdminLoginResponseDto,
@@ -52,6 +56,11 @@ import {
   StartImpersonationResponseDto,
   EndImpersonationResponseDto,
 } from './dto/impersonation.dto';
+import {
+  SystemHealthResponseDto,
+  QueryVolumeDto,
+  RecentErrorDto,
+} from './dto/system-health.dto';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { AdminUser } from './dto/admin-jwt-payload.dto';
 
@@ -67,7 +76,10 @@ import { AdminUser } from './dto/admin-jwt-payload.dto';
 @ApiTags('Admin')
 @Controller('admin')
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly adminHealthService: AdminHealthService,
+  ) {}
 
   /**
    * Admin login
@@ -425,6 +437,109 @@ export class AdminController {
       revokedCount,
       message: `Successfully revoked ${revokedCount} session(s)`,
     };
+  }
+
+  // ===== System Health Endpoints =====
+
+  /**
+   * Get combined system health status
+   * Returns DNS services, storage connections, error rates, and query volume
+   */
+  @Get('system/health')
+  @UseGuards(AdminAuthGuard)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Get system health status',
+    description:
+      'Returns combined health status of DNS services, storage connections, error rates, and query volume.',
+  })
+  @ApiQuery({
+    name: 'period',
+    required: false,
+    enum: ['1h', '24h'],
+    description: 'Time period for error rates and query volume (default 24h)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'System health status',
+    type: SystemHealthResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Admin authentication required',
+  })
+  async getSystemHealth(
+    @Query('period') period: '1h' | '24h' = '24h',
+  ): Promise<SystemHealthResponseDto> {
+    return this.adminHealthService.getSystemHealth(period);
+  }
+
+  /**
+   * Get recent error entries
+   * Returns DNS query errors from ClickHouse logs
+   */
+  @Get('system/errors')
+  @UseGuards(AdminAuthGuard)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Get recent error entries',
+    description:
+      'Returns recent DNS query errors from the log. Limit defaults to 20.',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Maximum entries to return (default 20, max 100)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Recent error entries',
+    type: [RecentErrorDto],
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Admin authentication required',
+  })
+  async getRecentErrors(
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ): Promise<RecentErrorDto[]> {
+    // Enforce maximum limit
+    const safeLimit = Math.min(Math.max(limit, 1), 100);
+    return this.adminHealthService.getRecentErrors(safeLimit);
+  }
+
+  /**
+   * Get aggregate query volume
+   * Returns total query counts across all tenants
+   */
+  @Get('system/query-volume')
+  @UseGuards(AdminAuthGuard)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Get aggregate query volume',
+    description:
+      'Returns total query counts across all tenants for specified period.',
+  })
+  @ApiQuery({
+    name: 'period',
+    required: false,
+    enum: ['1h', '24h'],
+    description: 'Time period (default 24h)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Aggregate query volume',
+    type: QueryVolumeDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Admin authentication required',
+  })
+  async getQueryVolume(
+    @Query('period') period: '1h' | '24h' = '24h',
+  ): Promise<QueryVolumeDto> {
+    return this.adminHealthService.getQueryVolume(period);
   }
 
   /**
