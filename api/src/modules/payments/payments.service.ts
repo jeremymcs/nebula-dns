@@ -5,7 +5,13 @@
  * Stripe Payment Service
  */
 
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 
@@ -313,6 +319,261 @@ export class PaymentsService {
     } catch (error) {
       this.logger.error('Failed to get/create customer', error);
       throw new BadRequestException('Failed to process customer');
+    }
+  }
+
+  // ===========================================
+  // Admin Billing Operations (08-01)
+  // ===========================================
+
+  /**
+   * List invoices for a customer with pagination
+   * Uses limit + 1 pattern to detect if more results exist
+   */
+  async listInvoices(
+    customerId: string,
+    options: { limit?: number; startingAfter?: string } = {},
+  ): Promise<{ invoices: Stripe.Invoice[]; hasMore: boolean }> {
+    if (!this.stripe) {
+      throw new BadRequestException('Payment system not configured');
+    }
+
+    const limit = options.limit || 20;
+    const params: Stripe.InvoiceListParams = {
+      customer: customerId,
+      limit: limit + 1, // Fetch one extra to check hasMore
+    };
+
+    if (options.startingAfter) {
+      params.starting_after = options.startingAfter;
+    }
+
+    try {
+      const result = await this.stripe.invoices.list(params);
+      const hasMore = result.data.length > limit;
+
+      return {
+        invoices: result.data.slice(0, limit),
+        hasMore,
+      };
+    } catch (error) {
+      this.logger.error(`Failed to list invoices for ${customerId}`, error);
+      throw new BadRequestException('Failed to list invoices');
+    }
+  }
+
+  /**
+   * Get invoice PDF URL with customer ownership validation
+   * Verifies the invoice belongs to the expected customer before returning
+   */
+  async getInvoicePdfWithValidation(
+    invoiceId: string,
+    expectedCustomerId: string,
+  ): Promise<{ url: string; invoice: Stripe.Invoice }> {
+    if (!this.stripe) {
+      throw new BadRequestException('Payment system not configured');
+    }
+
+    try {
+      const invoice = await this.stripe.invoices.retrieve(invoiceId);
+
+      // Verify invoice belongs to expected customer
+      if (invoice.customer !== expectedCustomerId) {
+        throw new ForbiddenException(
+          'Invoice does not belong to this customer',
+        );
+      }
+
+      if (!invoice.invoice_pdf) {
+        throw new NotFoundException('Invoice PDF not available');
+      }
+
+      return { url: invoice.invoice_pdf, invoice };
+    } catch (error) {
+      if (
+        error instanceof ForbiddenException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+      this.logger.error(`Failed to get invoice PDF for ${invoiceId}`, error);
+      throw new BadRequestException('Failed to retrieve invoice');
+    }
+  }
+
+  /**
+   * Get default payment method for a customer
+   * Returns the customer's default payment method or null if not set
+   */
+  async getDefaultPaymentMethod(
+    customerId: string,
+  ): Promise<Stripe.PaymentMethod | null> {
+    if (!this.stripe) {
+      return null;
+    }
+
+    try {
+      const customer = await this.stripe.customers.retrieve(customerId);
+
+      // Handle deleted customer
+      if ((customer as Stripe.DeletedCustomer).deleted) {
+        return null;
+      }
+
+      const defaultPmId = (customer as Stripe.Customer).invoice_settings
+        ?.default_payment_method;
+      if (!defaultPmId || typeof defaultPmId !== 'string') {
+        return null;
+      }
+
+      return this.stripe.paymentMethods.retrieve(defaultPmId);
+    } catch (error) {
+      this.logger.warn(
+        `Failed to get payment method for ${customerId}: ${(error as Error).message}`,
+      );
+      return null;
+    }
+  }
+
+  /**
+   * Apply credit to customer balance
+   * Amount is negated (credit reduces next invoice)
+   * Positive input = credit for customer
+   */
+  async applyCredit(
+    customerId: string,
+    amountCents: number,
+    description: string,
+    metadata?: Record<string, string>,
+  ): Promise<Stripe.CustomerBalanceTransaction> {
+    if (!this.stripe) {
+      throw new BadRequestException('Payment system not configured');
+    }
+
+    try {
+      // Stripe convention: negative = credit for customer
+      const transaction =
+        await this.stripe.customers.createBalanceTransaction(customerId, {
+          amount: -Math.abs(amountCents), // Ensure negative for credit
+          currency: 'usd',
+          description,
+          metadata,
+        });
+
+      this.logger.log(
+        `Applied credit of ${amountCents} cents to customer ${customerId}`,
+      );
+
+      return transaction;
+    } catch (error) {
+      this.logger.error(`Failed to apply credit to ${customerId}`, error);
+      throw new BadRequestException('Failed to apply credit');
+    }
+  }
+
+  /**
+   * Update subscription to new price/plan
+   * Supports immediate change (with proration) or end-of-period change
+   */
+  async changeSubscriptionPlan(
+    subscriptionId: string,
+    newPriceId: string,
+    timing: 'immediate' | 'end_of_period',
+  ): Promise<Stripe.Subscription> {
+    if (!this.stripe) {
+      throw new BadRequestException('Payment system not configured');
+    }
+
+    try {
+      const subscription =
+        await this.stripe.subscriptions.retrieve(subscriptionId);
+      const subscriptionItemId = subscription.items.data[0]?.id;
+
+      if (!subscriptionItemId) {
+        throw new BadRequestException('Subscription has no items');
+      }
+
+      const updateParams: Stripe.SubscriptionUpdateParams = {
+        items: [
+          {
+            id: subscriptionItemId,
+            price: newPriceId,
+          },
+        ],
+        proration_behavior:
+          timing === 'immediate' ? 'always_invoice' : 'none',
+      };
+
+      const updated = await this.stripe.subscriptions.update(
+        subscriptionId,
+        updateParams,
+      );
+
+      this.logger.log(
+        `Subscription ${subscriptionId} plan changed to ${newPriceId} (${timing})`,
+      );
+
+      return updated;
+    } catch (error) {
+      this.logger.error(
+        `Failed to change subscription plan for ${subscriptionId}`,
+        error,
+      );
+      throw new BadRequestException('Failed to change subscription plan');
+    }
+  }
+
+  /**
+   * Extend trial period for a subscription
+   * Only works for subscriptions currently in trialing status
+   * Validates trial won't exceed Stripe's 730-day maximum
+   */
+  async extendTrialPeriod(
+    subscriptionId: string,
+    additionalDays: number,
+  ): Promise<Stripe.Subscription> {
+    if (!this.stripe) {
+      throw new BadRequestException('Payment system not configured');
+    }
+
+    try {
+      const subscription =
+        await this.stripe.subscriptions.retrieve(subscriptionId);
+
+      if (subscription.status !== 'trialing') {
+        throw new BadRequestException('Subscription is not on trial');
+      }
+
+      const currentTrialEnd =
+        subscription.trial_end || Math.floor(Date.now() / 1000);
+      const newTrialEnd =
+        currentTrialEnd + additionalDays * 24 * 60 * 60;
+
+      // Stripe limits trial to 730 days from creation
+      const maxTrialEnd =
+        Math.floor(Date.now() / 1000) + 730 * 24 * 60 * 60;
+      if (newTrialEnd > maxTrialEnd) {
+        throw new BadRequestException('Trial cannot exceed 730 days total');
+      }
+
+      const updated = await this.stripe.subscriptions.update(subscriptionId, {
+        trial_end: newTrialEnd,
+      });
+
+      this.logger.log(
+        `Extended trial for subscription ${subscriptionId} by ${additionalDays} days`,
+      );
+
+      return updated;
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      this.logger.error(
+        `Failed to extend trial for ${subscriptionId}`,
+        error,
+      );
+      throw new BadRequestException('Failed to extend trial period');
     }
   }
 }
