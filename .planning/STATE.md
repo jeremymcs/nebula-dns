@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-18)
 
 **Core value:** Enable ops team to manage MSPs entirely through the UI — onboarding, billing, usage monitoring — without CLI or direct API calls.
-**Current focus:** Phase 9 (Admin Auth UI)
+**Current focus:** Phase 10 (Payment Methods Backend)
 
 ## Current Position
 
-Phase: 9 of 16 (Admin Auth UI)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-01-18 - Completed 09-01-PLAN.md (Admin Auth Context & Login)
+Phase: 10 of 16 (Payment Methods Backend)
+Plan: 0 of 1 in current phase
+Status: Phase 9 complete, ready for Phase 10
+Last activity: 2026-01-18 - Completed 09-02-PLAN.md (Admin Session UI)
 
-Progress: [##########=#--------] 53% (v1 complete, v1.1 plan 1 of 16)
+Progress: [###########=--------] 56% (v1 complete, v1.1 plan 2 of 16)
 
 ## Performance Metrics
 
@@ -40,7 +40,7 @@ Progress: [##########=#--------] 53% (v1 complete, v1.1 plan 1 of 16)
 
 | Phase | Plans | Status |
 |-------|-------|--------|
-| 09-admin-auth-ui | 1/2 | In progress |
+| 09-admin-auth-ui | 2/2 | Complete |
 | 10-payment-methods-backend | 0/1 | Not started |
 | 11-msp-listing-ui | 0/2 | Not started |
 | 12-msp-detail-ui | 0/2 | Not started |
@@ -67,6 +67,9 @@ Recent decisions affecting current work:
 - [09-01]: No "Remember me" checkbox on admin login (security best practice)
 - [09-01]: Use separate localStorage keys (admin_token, admin_user, admin_session_expiry)
 - [09-01]: No token refresh for 8-hour admin tokens
+- [09-02]: Direct logout without confirmation dialog
+- [09-02]: "Stay Logged In" opens login in new tab to preserve work state
+- [09-02]: 30-second interval for session expiry checks
 
 ### Pending Todos
 
@@ -90,10 +93,21 @@ All 8 phases of v1 backend API complete:
 
 **Total:** 17 plans, 23 requirements, 19 API endpoints
 
+## v1.1 Progress Summary
+
+Phase 09-admin-auth-ui complete:
+- Admin API helpers and auth context
+- Admin login page with split-screen design
+- Admin header with session indicator and logout
+- Session expiry warning modal (5 minutes before)
+- Protected route handling for Mission Control
+
+**Total:** 2 plans complete
+
 ## Session Continuity
 
-Last session: 2026-01-18 22:18 UTC
-Stopped at: Completed 09-01-PLAN.md
+Last session: 2026-01-18 22:24 UTC
+Stopped at: Completed 09-02-PLAN.md
 Resume file: None
 
-Next: Execute 09-02-PLAN.md (Admin Session UI)
+Next: Execute Phase 10 (Payment Methods Backend)
