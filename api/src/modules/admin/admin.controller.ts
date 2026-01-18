@@ -57,6 +57,10 @@ import {
   EndImpersonationResponseDto,
 } from './dto/impersonation.dto';
 import {
+  CreateMspTenantDto,
+  MspTenantCreatedResponseDto,
+} from './dto/msp-onboarding.dto';
+import {
   SystemHealthResponseDto,
   QueryVolumeDto,
   RecentErrorDto,
@@ -148,6 +152,45 @@ export class AdminController {
     @Query() query: TenantSearchQueryDto,
   ): Promise<TenantSearchResponseDto> {
     return this.adminService.searchTenants(query);
+  }
+
+  /**
+   * Create new MSP tenant
+   * Creates MSP account with initial admin user and sends welcome email
+   */
+  @Post('msp/tenants')
+  @UseGuards(AdminAuthGuard)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Create new MSP tenant',
+    description:
+      'Creates a new MSP tenant account with initial admin user. ' +
+      'Sends welcome email with temporary password to the admin. ' +
+      'The new MSP appears in MSP listing immediately.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'MSP tenant created successfully',
+    type: MspTenantCreatedResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation error',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Email already in use',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Admin authentication required',
+  })
+  async createMspTenant(
+    @Body() dto: CreateMspTenantDto,
+    @Req() req: Request,
+  ): Promise<MspTenantCreatedResponseDto> {
+    const admin = req.user as AdminUser;
+    return this.adminService.createMspTenant(dto, admin.adminId);
   }
 
   /**
