@@ -17,6 +17,7 @@ import { AdminService } from './admin.service';
 import { AdminSessionService } from './admin-session.service';
 import { AdminController } from './admin.controller';
 import { RedisModule } from '../redis/redis.module';
+import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 
 /**
  * Admin Module
@@ -60,6 +61,9 @@ import { RedisModule } from '../redis/redis.module';
 
     // Redis for session management (blacklist, session tracking)
     RedisModule,
+
+    // Audit logs for impersonation tracking
+    AuditLogsModule,
   ],
 
   // Admin API endpoints
