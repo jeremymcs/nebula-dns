@@ -62,12 +62,11 @@ Plans:
   3. Admin can end impersonation and return to admin dashboard
   4. All impersonation start/end events are audit-logged with admin identity
   5. Audit log captures which tenant, which admin, start time, and end time
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: Impersonation session management (start/end)
-- [ ] 03-02: Impersonation token generation with tenant admin scope
-- [ ] 03-03: Audit logging integration for impersonation events
+- [ ] 03-01-PLAN.md — Impersonation DTOs, service methods, and controller endpoints
+- [ ] 03-02-PLAN.md — JwtStrategy impersonation awareness and blacklist integration
 
 ### Phase 4: MSP Listing
 **Goal**: Admin can see all MSP tenants at a glance
@@ -162,7 +161,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 |-------|----------------|--------|-----------|
 | 1. Admin Auth Foundation | 2/2 | ✓ Complete | 2026-01-18 |
 | 2. Tenant Search | 1/1 | ✓ Complete | 2026-01-17 |
-| 3. Impersonation Core | 0/3 | Not started | - |
+| 3. Impersonation Core | 0/2 | Planning complete | - |
 | 4. MSP Listing | 0/2 | Not started | - |
 | 5. MSP Drill-down | 0/3 | Not started | - |
 | 6. System Health | 0/4 | Not started | - |
@@ -171,4 +170,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 ---
 *Created: 2026-01-17*
-*Last updated: 2026-01-17 after Phase 2 complete*
+*Last updated: 2026-01-17 after Phase 3 planning complete*
