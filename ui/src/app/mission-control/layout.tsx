@@ -1,82 +1,164 @@
 /**
- * Nebula DNS - Enterprise DNS Security Platform
- * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
+ * Nebula DNS - Mission Control Layout
+ * Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
  *
- * Mission Control Layout - Full-screen immersive layout
+ * Protected layout for Mission Control admin portal.
+ * Uses AdminAuthContext for authentication and route protection.
+ * Includes session expiry warning modal.
  */
 
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { TopNav } from '@/components/layout/TopNav'
-import { MobileNav } from '@/components/layout/MobileNav'
+import { useEffect, useState, useCallback } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import { FullPageLoading } from '@/components/LoadingSpinner'
-import { useAuth } from '@/contexts/AuthContext'
-import { ArrowsRightLeftIcon } from '@heroicons/react/24/outline'
-import { CommandBarProvider } from '@/components/command-bar'
-import { OrionFAB } from '@/components/orion'
+import { useAdminAuth } from '@/contexts/AdminAuthContext'
+import { AdminHeader } from '@/components/mission-control/AdminHeader'
+import { SessionWarningModal } from '@/components/mission-control/SessionWarningModal'
+
+// Session warning appears 5 minutes before expiry
+const SESSION_WARNING_MINUTES = 5
+// Check session status every 30 seconds
+const SESSION_CHECK_INTERVAL = 30 * 1000
 
 export default function MissionControlLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const { user, loading } = useAuth()
+  const { admin, loading, logout, isAuthenticated, sessionExpiresAt } = useAdminAuth()
   const router = useRouter()
-  const [isImpersonating, setIsImpersonating] = useState(false)
+  const pathname = usePathname()
 
+  // Session warning modal state
+  const [showWarningModal, setShowWarningModal] = useState(false)
+  const [minutesRemaining, setMinutesRemaining] = useState(SESSION_WARNING_MINUTES)
+  const [warningDismissed, setWarningDismissed] = useState(false)
+
+  // Check if we're on the login page
+  const isLoginPage = pathname === '/mission-control/login'
+
+  /**
+   * Handle "Stay Logged In" - opens login in new tab
+   * User can re-authenticate without losing current state
+   */
+  const handleStayLoggedIn = useCallback(() => {
+    window.open('/mission-control/login', '_blank')
+    setWarningDismissed(true)
+    setShowWarningModal(false)
+  }, [])
+
+  /**
+   * Handle "Log Out Now" - immediate logout
+   */
+  const handleLogout = useCallback(() => {
+    setShowWarningModal(false)
+    logout()
+  }, [logout])
+
+  /**
+   * Session expiry check effect
+   * Runs every 30 seconds to check if session is about to expire
+   */
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/')
+    if (!sessionExpiresAt || !isAuthenticated || isLoginPage) {
+      return
     }
-    setIsImpersonating(localStorage.getItem('impersonating') === 'true')
-  }, [loading, user, router])
 
-  const exitImpersonation = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('impersonating')
-    window.location.href = '/partner/dashboard'
-  }
+    const checkSession = () => {
+      const now = new Date()
+      const expiresAt = new Date(sessionExpiresAt)
+      const msRemaining = expiresAt.getTime() - now.getTime()
+      const minsRemaining = Math.ceil(msRemaining / (60 * 1000))
 
+      // Update minutes remaining
+      setMinutesRemaining(Math.max(0, minsRemaining))
+
+      // Show warning if 5 minutes or less and not already dismissed
+      if (minsRemaining <= SESSION_WARNING_MINUTES && minsRemaining > 0 && !warningDismissed) {
+        setShowWarningModal(true)
+      }
+
+      // If session expired, logout
+      if (msRemaining <= 0) {
+        logout()
+      }
+    }
+
+    // Initial check
+    checkSession()
+
+    // Set up interval
+    const interval = setInterval(checkSession, SESSION_CHECK_INTERVAL)
+
+    return () => clearInterval(interval)
+  }, [sessionExpiresAt, isAuthenticated, isLoginPage, warningDismissed, logout])
+
+  /**
+   * Reset warning dismissed state when session changes
+   * (e.g., when user re-authenticates in new tab)
+   */
+  useEffect(() => {
+    if (sessionExpiresAt) {
+      const now = new Date()
+      const expiresAt = new Date(sessionExpiresAt)
+      const minsRemaining = Math.ceil((expiresAt.getTime() - now.getTime()) / (60 * 1000))
+
+      // If session has more than warning threshold, reset dismissed state
+      if (minsRemaining > SESSION_WARNING_MINUTES) {
+        setWarningDismissed(false)
+      }
+    }
+  }, [sessionExpiresAt])
+
+  /**
+   * Route protection effect
+   * Redirects unauthenticated users to login with return URL
+   */
+  useEffect(() => {
+    if (!loading && !isAuthenticated && !isLoginPage && pathname?.startsWith('/mission-control')) {
+      const returnUrl = encodeURIComponent(pathname)
+      router.push(`/mission-control/login?returnUrl=${returnUrl}`)
+    }
+  }, [loading, isAuthenticated, isLoginPage, pathname, router])
+
+  // Show loading state while checking auth
   if (loading) {
     return <FullPageLoading />
   }
 
-  if (!user) {
+  // For login page, render without header
+  if (isLoginPage) {
+    return (
+      <div className="min-h-screen bg-space-50 dark:bg-space-950">
+        {children}
+      </div>
+    )
+  }
+
+  // For protected routes, show loading if not authenticated (will redirect)
+  if (!isAuthenticated) {
     return <FullPageLoading />
   }
 
   return (
-    <CommandBarProvider>
-      <div className="min-h-screen bg-space-50 dark:bg-space-950">
-        {/* Impersonation Banner */}
-        {isImpersonating && (
-          <div className="bg-amber-500 text-white px-4 py-2 flex items-center justify-between">
-            <span className="text-sm font-medium">
-              <ArrowsRightLeftIcon className="h-4 w-4 inline mr-2" />
-              You are viewing this organization as a partner admin
-            </span>
-            <button
-              onClick={exitImpersonation}
-              className="text-sm bg-white/20 hover:bg-white/30 px-3 py-1 rounded transition-colors"
-            >
-              Return to Partner Portal
-            </button>
-          </div>
-        )}
-        <TopNav />
+    <div className="min-h-screen bg-space-50 dark:bg-space-950">
+      {/* Session Warning Modal */}
+      <SessionWarningModal
+        isOpen={showWarningModal}
+        onClose={() => setShowWarningModal(false)}
+        minutesRemaining={minutesRemaining}
+        onStayLoggedIn={handleStayLoggedIn}
+        onLogout={handleLogout}
+      />
 
-        {/* Full-screen content area - no max-width or padding constraints */}
-        <main className="pb-20 lg:pb-0">
-          {children}
-        </main>
+      {/* Admin Header */}
+      <AdminHeader />
 
-        <MobileNav />
-
-        {/* Orion AI Assistant FAB */}
-        <OrionFAB />
-      </div>
-    </CommandBarProvider>
+      {/* Main Content */}
+      <main className="pb-20 lg:pb-0">
+        {children}
+      </main>
+    </div>
   )
 }
