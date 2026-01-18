@@ -141,12 +141,12 @@ Plans:
   3. Admin can apply credit/adjustment to tenant account
   4. Admin can manually change subscription tier
   5. Admin can extend trial or grace period
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 08-01: Subscription status and invoice history endpoint
-- [ ] 08-02: Credit/adjustment application endpoint
-- [ ] 08-03: Subscription tier and trial management endpoints
+- [ ] 08-01-PLAN.md — Billing DTOs, PaymentsService extensions, AdminBillingService foundation
+- [ ] 08-02-PLAN.md — Credit/adjustment and tier change operations with audit logging
+- [ ] 08-03-PLAN.md — Trial and grace period extension operations
 
 ## Progress
 
@@ -162,8 +162,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 5. MSP Drill-down | 2/2 | ✓ Complete | 2026-01-17 |
 | 6. System Health | 2/2 | ✓ Complete | 2026-01-18 |
 | 7. MSP Onboarding | 2/2 | ✓ Complete | 2026-01-18 |
-| 8. Billing Operations | 0/3 | Not started | - |
+| 8. Billing Operations | 0/3 | Planned | - |
 
 ---
 *Created: 2026-01-17*
-*Last updated: 2026-01-18 after Phase 7 execution complete*
+*Last updated: 2026-01-18 after Phase 8 planning complete*
