@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-17)
 
 **Core value:** Enable ops team to handle support escalations quickly through tenant impersonation
-**Current focus:** Phase 6 in progress (System Health)
+**Current focus:** Phase 6 complete (System Health)
 
 ## Current Position
 
 Phase: 6 of 8 (System Health)
-Plan: 1 of 2 executed in current phase
-Status: In progress
-Last activity: 2026-01-18 - Completed 06-01-PLAN.md (Health DTOs and Service)
+Plan: 2 of 2 executed in current phase
+Status: Phase complete
+Last activity: 2026-01-18 - Completed 06-02-PLAN.md (Health Endpoints)
 
-Progress: [███████░░░] 77%
+Progress: [████████░░] 85%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
-- Average duration: 4.3 min
-- Total execution time: 43 min
+- Total plans completed: 11
+- Average duration: 4.4 min
+- Total execution time: 48 min
 
 **By Phase:**
 
@@ -32,10 +32,10 @@ Progress: [███████░░░] 77%
 | 03-impersonation-core | 2/2 | 10 min | 5 min |
 | 04-msp-listing | 2/2 | 7 min | 3.5 min |
 | 05-msp-drill-down | 2/2 | 6 min | 3 min |
-| 06-system-health | 1/2 | 6 min | 6 min |
+| 06-system-health | 2/2 | 11 min | 5.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-01 (4min), 04-02 (3min), 05-01 (3min), 05-02 (3min), 06-01 (6min)
+- Last 5 plans: 04-02 (3min), 05-01 (3min), 05-02 (3min), 06-01 (6min), 06-02 (5min)
 - Trend: Consistent execution times around 4 min
 
 *Updated after each plan completion*
@@ -85,6 +85,8 @@ Recent decisions affecting current work:
 - [06-01]: DNS Resolver for unbound health check - remote-control disabled
 - [06-01]: Promise.allSettled for parallel health checks
 - [06-01]: Mock data fallbacks when ClickHouse unavailable
+- [06-02]: Limit parameter enforces max 100 via Math.min for safety
+- [06-02]: Period defaults to 24h for broader system visibility
 
 ### Pending Todos
 
@@ -94,9 +96,9 @@ None.
 
 None.
 
-## Phase 6 In Progress
+## Phase 6 Complete
 
-System Health phase started:
+System Health phase complete:
 
 **Plan 01 - Health DTOs and Service (Complete):**
 - SystemHealthResponseDto combining all health data
@@ -107,15 +109,17 @@ System Health phase started:
 - External service probes with timeouts
 - Mock data fallbacks for ClickHouse unavailability
 
-**Plan 02 - Health Endpoints (Next):**
-- GET /admin/health for system status
-- GET /admin/health/errors for recent errors
-- Swagger documentation
+**Plan 02 - Health Endpoints (Complete):**
+- GET /admin/system/health for combined system status
+- GET /admin/system/errors for recent DNS query errors
+- GET /admin/system/query-volume for aggregate query counts
+- Swagger documentation with ApiQuery, ApiResponse decorators
+- 34 unit tests for AdminHealthService
 
 ## Session Continuity
 
-Last session: 2026-01-18T03:28:00Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-01-18T03:35:00Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None
 
-Next: Plan 02 (Health Endpoints) - Controller routes for system health API
+Next: Phase 7 or Phase 8 (Audit Logs or Alert Thresholds)
