@@ -20,6 +20,7 @@ import { AdminSessionService } from './admin-session.service';
 import { AdminController } from './admin.controller';
 import { RedisModule } from '../redis/redis.module';
 import { AuditLogsModule } from '../audit-logs/audit-logs.module';
+import { ClickHouseModule } from '../clickhouse/clickhouse.module';
 
 /**
  * Admin Module
@@ -66,6 +67,9 @@ import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 
     // Audit logs for impersonation tracking
     AuditLogsModule,
+
+    // ClickHouse for usage metrics aggregation
+    ClickHouseModule,
   ],
 
   // Admin API endpoints

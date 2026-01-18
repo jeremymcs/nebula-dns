@@ -36,7 +36,10 @@ import {
   MspDetailResponseDto,
   MspClientListQueryDto,
   MspClientListResponseDto,
+  MspUsageMetricsDto,
+  MetricPeriod,
 } from './dto/msp-detail.dto';
+import { ClickHouseService } from '../clickhouse/clickhouse.service';
 import {
   StartImpersonationResponseDto,
   EndImpersonationResponseDto,
@@ -86,6 +89,7 @@ export class AdminService {
     private readonly adminSessionService: AdminSessionService,
     private readonly configService: ConfigService,
     private readonly auditLogsService: AuditLogsService,
+    private readonly clickhouseService: ClickHouseService,
   ) {
     // Lockout configuration
     this.maxFailedAttempts = this.configService.get<number>(
@@ -591,8 +595,107 @@ export class AdminService {
   }
 
   /**
+   * Convert period string to start/end dates
+   */
+  private getPeriodDates(period: string): { startDate: Date; endDate: Date } {
+    const now = new Date();
+    let startDate: Date;
+
+    switch (period) {
+      case '24h':
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        break;
+      case '7d':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case '90d':
+        startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        break;
+      case '30d':
+      default:
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    }
+
+    return { startDate, endDate: now };
+  }
+
+  /**
+   * Aggregate usage metrics across all clients managed by an MSP
+   * Fetches stats from ClickHouse and sums across all client tenants
+   */
+  private async aggregateUsageForMsp(
+    mspId: string,
+    period: MetricPeriod = '30d',
+  ): Promise<MspUsageMetricsDto> {
+    // Get all client tenant IDs
+    const clients = await this.tenantRepository.find({
+      where: { managedByMspId: mspId },
+      select: ['id'],
+    });
+
+    const { startDate, endDate } = this.getPeriodDates(period);
+    const isMockData = this.clickhouseService.isUsingMockData();
+
+    let totalQueries = 0;
+    let blockedQueries = 0;
+    let threatsBlocked = 0;
+
+    // Aggregate across all clients
+    for (const client of clients) {
+      try {
+        const stats = await this.clickhouseService.getSummaryStats(
+          client.id,
+          period,
+        );
+        totalQueries += Number(stats.totalQueries) || 0;
+        blockedQueries += Number(stats.blockedQueries) || 0;
+        threatsBlocked += Number(stats.threatsBlocked) || 0;
+      } catch (error) {
+        this.logger.warn(
+          `Failed to get stats for client ${client.id}: ${(error as Error).message}`,
+        );
+      }
+    }
+
+    return {
+      totalQueries,
+      blockedQueries,
+      threatsBlocked,
+      blockRate:
+        totalQueries > 0
+          ? Math.round((blockedQueries / totalQueries) * 1000) / 10
+          : 0,
+      periodStart: startDate.toISOString(),
+      periodEnd: endDate.toISOString(),
+      isMockData,
+    };
+  }
+
+  /**
+   * Get usage metrics for a single client tenant
+   */
+  private async getClientUsage(
+    tenantId: string,
+    period: MetricPeriod = '30d',
+  ): Promise<{ totalQueries: number; blockedQueries: number }> {
+    try {
+      const stats = await this.clickhouseService.getSummaryStats(
+        tenantId,
+        period,
+      );
+      return {
+        totalQueries: Number(stats.totalQueries) || 0,
+        blockedQueries: Number(stats.blockedQueries) || 0,
+      };
+    } catch (error) {
+      this.logger.warn(`Failed to get usage for tenant ${tenantId}`);
+      return { totalQueries: 0, blockedQueries: 0 };
+    }
+  }
+
+  /**
    * Get detailed information about an MSP tenant
-   * Includes aggregated counts of clients, locations, and users
+   * Includes aggregated counts of clients, locations, users, and usage metrics
    */
   async getMspDetail(
     mspId: string,
@@ -621,8 +724,11 @@ export class AdminService {
       .where('tenant.managed_by_msp_id = :mspId', { mspId })
       .getCount();
 
+    // Aggregate usage metrics from ClickHouse
+    const usage = await this.aggregateUsageForMsp(mspId, query.period || '30d');
+
     this.logger.debug(
-      `MSP detail for ${msp.name}: clients=${clientCount}, locations=${locationCount}, users=${userCount}`,
+      `MSP detail for ${msp.name}: clients=${clientCount}, locations=${locationCount}, users=${userCount}, queries=${usage.totalQueries}`,
     );
 
     return {
@@ -635,12 +741,13 @@ export class AdminService {
       locationCount,
       userCount,
       createdAt: msp.createdAt.toISOString(),
+      usage,
     };
   }
 
   /**
    * List all client organizations managed by an MSP
-   * Supports search, status filtering, and pagination
+   * Supports search, status filtering, pagination, and per-client usage metrics
    */
   async getMspClients(
     mspId: string,
@@ -651,6 +758,7 @@ export class AdminService {
 
     const limit = query.limit ?? 20;
     const offset = query.cursor ? parseInt(query.cursor, 10) : 0;
+    const period = query.period || '30d';
 
     // Build query with location/user counts using LEFT JOINs
     const queryBuilder = this.tenantRepository
@@ -708,19 +816,28 @@ export class AdminService {
     const rawResults = await queryBuilder.getRawMany();
 
     const hasMore = rawResults.length > limit;
-    const data = rawResults.slice(0, limit).map((row) => ({
-      id: row.id,
-      name: row.name,
-      status: row.status,
-      tier: row.tier,
-      contactEmail: row.contactEmail || undefined,
-      locationCount: parseInt(row.locationCount, 10) || 0,
-      userCount: parseInt(row.userCount, 10) || 0,
-      createdAt: new Date(row.createdAt).toISOString(),
-    }));
+
+    // Fetch usage metrics for each client in parallel
+    const clients = await Promise.all(
+      rawResults.slice(0, limit).map(async (row) => {
+        const usage = await this.getClientUsage(row.id, period);
+        return {
+          id: row.id,
+          name: row.name,
+          status: row.status,
+          tier: row.tier,
+          contactEmail: row.contactEmail || undefined,
+          locationCount: parseInt(row.locationCount, 10) || 0,
+          userCount: parseInt(row.userCount, 10) || 0,
+          totalQueries: usage.totalQueries,
+          blockedQueries: usage.blockedQueries,
+          createdAt: new Date(row.createdAt).toISOString(),
+        };
+      }),
+    );
 
     return {
-      data,
+      data: clients,
       pagination: {
         cursor: hasMore ? String(offset + limit) : null,
         hasMore,
