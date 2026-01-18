@@ -40,10 +40,10 @@ Requirements for the admin dashboard backend API.
 
 ### System Health
 
-- [ ] **SYS-01**: Admin can view DNS service status (policy-svc, dnsdist, unbound)
-- [ ] **SYS-02**: Admin can view error rates and recent errors
-- [ ] **SYS-03**: Admin can view aggregate query volume across all tenants
-- [ ] **SYS-04**: Admin can view ClickHouse and Redis connection status
+- [x] **SYS-01**: Admin can view DNS service status (policy-svc, dnsdist, unbound) ✓
+- [x] **SYS-02**: Admin can view error rates and recent errors ✓
+- [x] **SYS-03**: Admin can view aggregate query volume across all tenants ✓
+- [x] **SYS-04**: Admin can view ClickHouse and Redis connection status ✓
 
 ## v2 Requirements
 
@@ -95,10 +95,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BIL-03 | Phase 8 | Pending |
 | BIL-04 | Phase 8 | Pending |
 | BIL-05 | Phase 8 | Pending |
-| SYS-01 | Phase 6 | Pending |
-| SYS-02 | Phase 6 | Pending |
-| SYS-03 | Phase 6 | Pending |
-| SYS-04 | Phase 6 | Pending |
+| SYS-01 | Phase 6 | Complete |
+| SYS-02 | Phase 6 | Complete |
+| SYS-03 | Phase 6 | Complete |
+| SYS-04 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 23 total
@@ -107,4 +107,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-17*
-*Last updated: 2026-01-17 after Phase 5 complete*
+*Last updated: 2026-01-18 after Phase 6 complete*
