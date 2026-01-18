@@ -10,10 +10,10 @@ Requirements for the admin dashboard backend API.
 ### Tenant Impersonation
 
 - [x] **IMP-01**: Admin can search for a tenant by name, ID, or email ✓
-- [ ] **IMP-02**: Admin can start impersonation session for any tenant
-- [ ] **IMP-03**: Impersonation grants full tenant admin access to dashboard
-- [ ] **IMP-04**: Admin can end impersonation and return to admin dashboard
-- [ ] **IMP-05**: All impersonation sessions are audit-logged (who, when, which tenant)
+- [x] **IMP-02**: Admin can start impersonation session for any tenant ✓
+- [x] **IMP-03**: Impersonation grants full tenant admin access to dashboard ✓
+- [x] **IMP-04**: Admin can end impersonation and return to admin dashboard ✓
+- [x] **IMP-05**: All impersonation sessions are audit-logged (who, when, which tenant) ✓
 
 ### MSP/Client Visibility
 
@@ -77,10 +77,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | IMP-01 | Phase 2 | Complete |
-| IMP-02 | Phase 3 | Pending |
-| IMP-03 | Phase 3 | Pending |
-| IMP-04 | Phase 3 | Pending |
-| IMP-05 | Phase 3 | Pending |
+| IMP-02 | Phase 3 | Complete |
+| IMP-03 | Phase 3 | Complete |
+| IMP-04 | Phase 3 | Complete |
+| IMP-05 | Phase 3 | Complete |
 | VIS-01 | Phase 4 | Pending |
 | VIS-02 | Phase 5 | Pending |
 | VIS-03 | Phase 5 | Pending |
@@ -107,4 +107,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-17*
-*Last updated: 2026-01-17 after Phase 2 complete*
+*Last updated: 2026-01-18 after Phase 3 complete*

@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Admin Auth Foundation** - Separate auth system for admin endpoints ✓
 - [x] **Phase 2: Tenant Search** - Find tenants by name, ID, or email ✓
-- [ ] **Phase 3: Impersonation Core** - Start/end impersonation sessions with audit logging
+- [x] **Phase 3: Impersonation Core** - Start/end impersonation sessions with audit logging ✓
 - [ ] **Phase 4: MSP Listing** - View all MSPs with status, client count, and search
 - [ ] **Phase 5: MSP Drill-down** - View MSP client organizations and usage metrics
 - [ ] **Phase 6: System Health** - DNS service status, error rates, and connection health
@@ -65,8 +65,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Impersonation DTOs, service methods, and controller endpoints
-- [ ] 03-02-PLAN.md — JwtStrategy impersonation awareness and blacklist integration
+- [x] 03-01-PLAN.md — Impersonation DTOs, service methods, and controller endpoints ✓
+- [x] 03-02-PLAN.md — JwtStrategy impersonation awareness and blacklist integration ✓
 
 ### Phase 4: MSP Listing
 **Goal**: Admin can see all MSP tenants at a glance
@@ -161,7 +161,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 |-------|----------------|--------|-----------|
 | 1. Admin Auth Foundation | 2/2 | ✓ Complete | 2026-01-18 |
 | 2. Tenant Search | 1/1 | ✓ Complete | 2026-01-17 |
-| 3. Impersonation Core | 0/2 | Planning complete | - |
+| 3. Impersonation Core | 2/2 | ✓ Complete | 2026-01-18 |
 | 4. MSP Listing | 0/2 | Not started | - |
 | 5. MSP Drill-down | 0/3 | Not started | - |
 | 6. System Health | 0/4 | Not started | - |
@@ -170,4 +170,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 ---
 *Created: 2026-01-17*
-*Last updated: 2026-01-17 after Phase 3 planning complete*
+*Last updated: 2026-01-18 after Phase 3 execution complete*
