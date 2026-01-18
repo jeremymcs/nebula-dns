@@ -125,12 +125,11 @@ Plans:
   3. Admin can create an initial admin user for the MSP
   4. MSP receives welcome email with login credentials
   5. New MSP appears in MSP listing immediately
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 07-01: MSP tenant creation endpoint
-- [ ] 07-02: Initial MSP configuration and admin user creation
-- [ ] 07-03: Welcome email integration
+- [ ] 07-01-PLAN.md — MSP onboarding DTOs and transactional tenant+user creation service
+- [ ] 07-02-PLAN.md — MSP creation endpoint and welcome email integration
 
 ### Phase 8: Billing Operations
 **Goal**: Admin can view and manage tenant billing
@@ -162,9 +161,9 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 4. MSP Listing | 2/2 | ✓ Complete | 2026-01-17 |
 | 5. MSP Drill-down | 2/2 | ✓ Complete | 2026-01-17 |
 | 6. System Health | 2/2 | ✓ Complete | 2026-01-18 |
-| 7. MSP Onboarding | 0/3 | Not started | - |
+| 7. MSP Onboarding | 0/2 | Not started | - |
 | 8. Billing Operations | 0/3 | Not started | - |
 
 ---
 *Created: 2026-01-17*
-*Last updated: 2026-01-18 after Phase 6 execution complete*
+*Last updated: 2026-01-18 after Phase 7 planning complete*
