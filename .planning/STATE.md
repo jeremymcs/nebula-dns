@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-18)
 
 **Core value:** Enable ops team to manage MSPs entirely through the UI — onboarding, billing, usage monitoring — without CLI or direct API calls.
-**Current focus:** Phase 11 (MSP Listing UI)
+**Current focus:** Phase 12 (MSP Detail UI)
 
 ## Current Position
 
-Phase: 11 of 16 (MSP Listing UI)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-01-19 - Completed 11-01-PLAN.md (Admin API hooks + MSP listing page)
+Phase: 11 of 16 (MSP Listing UI) - COMPLETE
+Plan: 2 of 2 in phase - COMPLETE
+Status: Phase complete
+Last activity: 2026-01-19 - Completed 11-02-PLAN.md (MSP listing interactions)
 
-Progress: [#############-------] 65% (v1 complete, v1.1 plan 4 of 16)
+Progress: [##############------] 70% (v1 complete, v1.1 plan 5 of 16)
 
 ## Performance Metrics
 
@@ -42,7 +42,7 @@ Progress: [#############-------] 65% (v1 complete, v1.1 plan 4 of 16)
 |-------|-------|--------|
 | 09-admin-auth-ui | 2/2 | Complete |
 | 10-payment-methods-backend | 1/1 | Complete |
-| 11-msp-listing-ui | 1/2 | In progress |
+| 11-msp-listing-ui | 2/2 | Complete |
 | 12-msp-detail-ui | 0/2 | Not started |
 | 13-tenant-search-impersonation-ui | 0/2 | Not started |
 | 14-billing-portal-ui | 0/3 | Not started |
@@ -76,6 +76,9 @@ Recent decisions affecting current work:
 - [10-01]: Cards only for Phase 10 (bank accounts can be added later)
 - [11-01]: Separate useAdminApi.ts file for admin hooks (cleaner separation from tenant useApi.ts)
 - [11-01]: Admin pages use admin_token localStorage key for authentication
+- [11-02]: IntersectionObserver with sentinel element for infinite scroll (efficient, no scroll listeners)
+- [11-02]: URL state sync with router.replace for bookmarkable filter state
+- [11-02]: Navigation links visible on md+ screens with active state highlighting
 
 ### Pending Todos
 
@@ -114,17 +117,21 @@ Phase 10-payment-methods-backend complete:
 - Four new API endpoints under /admin/tenants/:tenantId/billing/payment-methods/*
 - Protection logic for default/only payment method deletion
 
-Phase 11-msp-listing-ui plan 01 complete:
+Phase 11-msp-listing-ui complete:
 - Admin-specific SWR hooks with adminFetcher using admin_token
 - useAdminMspList hook with search/status/pagination parameters
 - MSP listing page at /mission-control/msps with search, filter, table
+- Infinite scroll with IntersectionObserver and cursor-based pagination
+- URL state for bookmarkable search/filter
+- Row actions with View Details and Impersonate options
+- Header navigation with Dashboard and MSPs links
 
-**Total:** 4 plans complete
+**Total:** 5 plans complete
 
 ## Session Continuity
 
-Last session: 2026-01-19 01:11 UTC
-Stopped at: Completed 11-01-PLAN.md
+Last session: 2026-01-19 02:12 UTC
+Stopped at: Completed 11-02-PLAN.md
 Resume file: None
 
-Next: Execute 11-02-PLAN.md (MSP row actions and detail navigation)
+Next: Execute Phase 12 (MSP Detail UI)
