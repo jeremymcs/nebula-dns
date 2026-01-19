@@ -58,9 +58,9 @@ Requirements for Mission Control frontend integration. Each maps to roadmap phas
 
 ### Payment Methods (NEW Backend Required)
 
-- [ ] **PAY-01**: Backend endpoint to list tenant payment methods
-- [ ] **PAY-02**: Backend endpoint to add payment method (via Stripe)
-- [ ] **PAY-03**: Backend endpoint to set default payment method
+- [x] **PAY-01**: Backend endpoint to list tenant payment methods
+- [x] **PAY-02**: Backend endpoint to add payment method (via Stripe)
+- [x] **PAY-03**: Backend endpoint to set default payment method
 - [ ] **PAY-04**: Admin can view tenant's payment methods in UI
 - [ ] **PAY-05**: Admin can add payment method for tenant
 - [ ] **PAY-06**: Admin can set default payment method for tenant
@@ -137,9 +137,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BILL-04 | Phase 14 | Pending |
 | BILL-05 | Phase 14 | Pending |
 | BILL-06 | Phase 14 | Pending |
-| PAY-01 | Phase 10 | Pending |
-| PAY-02 | Phase 10 | Pending |
-| PAY-03 | Phase 10 | Pending |
+| PAY-01 | Phase 10 | Complete |
+| PAY-02 | Phase 10 | Complete |
+| PAY-03 | Phase 10 | Complete |
 | PAY-04 | Phase 14 | Pending |
 | PAY-05 | Phase 14 | Pending |
 | PAY-06 | Phase 14 | Pending |
