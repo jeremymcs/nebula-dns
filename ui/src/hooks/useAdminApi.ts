@@ -251,3 +251,57 @@ export function useAdminMspClients(mspId: string, params?: UseAdminMspClientsPar
 
   return useSWR<MspClientListResponse>(endpoint, adminFetcher, defaultConfig)
 }
+
+// ============================================
+// Tenant Search Types
+// ============================================
+
+export interface TenantSearchResult {
+  id: string
+  name: string
+  status: 'active' | 'suspended' | 'cancelled'
+  tier: 'home' | 'enterprise' | 'msp'
+  matchedEmail?: string
+}
+
+export interface TenantSearchPagination {
+  cursor: string | null
+  hasMore: boolean
+  total: number
+}
+
+export interface TenantSearchResponse {
+  data: TenantSearchResult[]
+  pagination: TenantSearchPagination
+}
+
+// ============================================
+// Tenant Search Hooks
+// ============================================
+
+/**
+ * Search tenants by name, email, or ID
+ * Only fetches when query is at least 2 characters
+ * @param query - Search query string
+ * @param limit - Maximum results (default 8)
+ * @returns SWR response with search results
+ */
+export function useAdminTenantSearch(query: string, limit: number = 8) {
+  const searchParams = new URLSearchParams()
+  searchParams.set('q', query)
+  searchParams.set('limit', limit.toString())
+  const queryString = searchParams.toString()
+
+  // Only fetch if query is at least 2 characters
+  const endpoint = query.length >= 2 ? `/admin/tenants/search?${queryString}` : null
+
+  return useSWR<TenantSearchResponse>(
+    endpoint,
+    adminFetcher,
+    {
+      ...defaultConfig,
+      revalidateOnFocus: false,
+      keepPreviousData: false,
+    }
+  )
+}
