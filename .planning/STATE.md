@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-18)
 
 ## Current Position
 
-Phase: 12 of 16 (MSP Detail UI) - COMPLETE
-Plan: 2 of 2 in phase - COMPLETE
-Status: Phase complete
-Last activity: 2026-01-19 - Completed 12-02-PLAN.md (client list + usage charts)
+Phase: 13 of 16 (Tenant Search and Impersonation UI)
+Plan: 1 of 2 in phase - COMPLETE
+Status: In progress
+Last activity: 2026-01-19 - Completed 13-01-PLAN.md (tenant search dropdown)
 
-Progress: [################----] 80% (v1 complete, v1.1 plan 7 of 16)
+Progress: [#################---] 85% (v1 complete, v1.1 plan 8 of 16)
 
 ## Performance Metrics
 
@@ -44,7 +44,7 @@ Progress: [################----] 80% (v1 complete, v1.1 plan 7 of 16)
 | 10-payment-methods-backend | 1/1 | Complete |
 | 11-msp-listing-ui | 2/2 | Complete |
 | 12-msp-detail-ui | 2/2 | Complete |
-| 13-tenant-search-impersonation-ui | 0/2 | Not started |
+| 13-tenant-search-impersonation-ui | 1/2 | In progress |
 | 14-billing-portal-ui | 0/3 | Not started |
 | 15-system-health-ui | 0/2 | Not started |
 | 16-msp-onboarding-wizard | 0/2 | Not started |
@@ -84,6 +84,9 @@ Recent decisions affecting current work:
 - [12-01]: View Billing placeholder toast until Phase 14
 - [12-02]: Period toggle affects both MSP detail fetch and client list fetch
 - [12-02]: Mock chart data generated from aggregate usage metrics
+- [13-01]: 300ms debounce delay for search input (balances responsiveness with API load)
+- [13-01]: Minimum 2 characters required before tenant search triggers
+- [13-01]: Full page reload on impersonation (window.location.href) to reset app state
 
 ### Pending Todos
 
@@ -141,12 +144,18 @@ Phase 12-msp-detail-ui complete:
 - Period toggle (24h/7d/30d) affecting charts and client queries
 - View Billing and Impersonate action buttons
 
-**Total:** 7 plans complete
+Phase 13-tenant-search-impersonation-ui in progress (1/2 plans complete):
+- useDebounce generic hook for debouncing values
+- useAdminTenantSearch SWR hook for tenant search API
+- TenantSearchDropdown spotlight-style search component
+- Search integrated into AdminHeader on desktop
+
+**Total:** 8 plans complete
 
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: Completed 12-02-PLAN.md
+Stopped at: Completed 13-01-PLAN.md
 Resume file: None
 
-Next: Execute Phase 13 (Tenant Search and Impersonation UI)
+Next: Execute 13-02-PLAN.md (Impersonation banner and session management)
