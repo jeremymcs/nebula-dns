@@ -104,3 +104,91 @@ export function useAdminMspList(params?: UseAdminMspListParams) {
     defaultConfig
   )
 }
+
+// ============================================
+// MSP Detail Types
+// ============================================
+
+export interface MspUsageMetrics {
+  totalQueries: number
+  blockedQueries: number
+  threatsBlocked: number
+  blockRate: number
+  periodStart: string
+  periodEnd: string
+  isMockData: boolean
+}
+
+export interface MspDetailResponse {
+  id: string
+  name: string
+  status: 'active' | 'suspended' | 'cancelled'
+  contactEmail?: string
+  tier: 'msp'
+  clientCount: number
+  locationCount: number
+  userCount: number
+  createdAt: string
+  usage: MspUsageMetrics
+}
+
+// ============================================
+// MSP Detail Hooks
+// ============================================
+
+export interface UseAdminMspDetailParams {
+  period?: '24h' | '7d' | '30d' | '90d'
+}
+
+/**
+ * Fetch detailed information about a specific MSP tenant
+ * @param mspId - MSP tenant UUID
+ * @param params - Optional query parameters including period for usage metrics
+ * @returns SWR response with MSP detail data
+ */
+export function useAdminMspDetail(mspId: string, params?: UseAdminMspDetailParams) {
+  const searchParams = new URLSearchParams()
+  if (params?.period) searchParams.set('period', params.period)
+  const query = searchParams.toString()
+  const endpoint = `/admin/msp/tenants/${mspId}${query ? `?${query}` : ''}`
+
+  return useSWR<MspDetailResponse>(endpoint, adminFetcher, defaultConfig)
+}
+
+// ============================================
+// Impersonation Types and Functions
+// ============================================
+
+export interface StartImpersonationResponse {
+  accessToken: string
+  tenantId: string
+  tenantName: string
+  tenantTier: 'home' | 'enterprise' | 'msp'
+  expiresIn: number
+}
+
+/**
+ * Start an impersonation session for a target tenant
+ * @param tenantId - Target tenant UUID to impersonate
+ * @returns Impersonation token and tenant information
+ * @throws Error if not authenticated or impersonation fails
+ */
+export async function startImpersonation(tenantId: string): Promise<StartImpersonationResponse> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
+  if (!token) throw new Error('Admin authentication required')
+
+  const res = await fetch(`${API_URL}/admin/impersonate/${tenantId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ message: 'Impersonation failed' }))
+    throw new Error(error.message || `Request failed (${res.status})`)
+  }
+
+  return res.json()
+}
