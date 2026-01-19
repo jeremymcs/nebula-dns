@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-18)
 
 **Core value:** Enable ops team to manage MSPs entirely through the UI — onboarding, billing, usage monitoring — without CLI or direct API calls.
-**Current focus:** Phase 10 (Payment Methods Backend)
+**Current focus:** Phase 11 (MSP Listing UI)
 
 ## Current Position
 
-Phase: 10 of 16 (Payment Methods Backend)
-Plan: 0 of 1 in current phase
-Status: Phase 9 complete, ready for Phase 10
-Last activity: 2026-01-18 - Completed 09-02-PLAN.md (Admin Session UI)
+Phase: 10 of 16 (Payment Methods Backend) - COMPLETE
+Plan: 1 of 1 in current phase
+Status: Phase 10 complete, ready for Phase 11
+Last activity: 2026-01-19 - Completed 10-01-PLAN.md (Payment Methods Backend)
 
-Progress: [###########=--------] 56% (v1 complete, v1.1 plan 2 of 16)
+Progress: [############--------] 60% (v1 complete, v1.1 plan 3 of 16)
 
 ## Performance Metrics
 
@@ -41,7 +41,7 @@ Progress: [###########=--------] 56% (v1 complete, v1.1 plan 2 of 16)
 | Phase | Plans | Status |
 |-------|-------|--------|
 | 09-admin-auth-ui | 2/2 | Complete |
-| 10-payment-methods-backend | 0/1 | Not started |
+| 10-payment-methods-backend | 1/1 | Complete |
 | 11-msp-listing-ui | 0/2 | Not started |
 | 12-msp-detail-ui | 0/2 | Not started |
 | 13-tenant-search-impersonation-ui | 0/2 | Not started |
@@ -70,6 +70,10 @@ Recent decisions affecting current work:
 - [09-02]: Direct logout without confirmation dialog
 - [09-02]: "Stay Logged In" opens login in new tab to preserve work state
 - [09-02]: 30-second interval for session expiry checks
+- [10-01]: Use SetupIntent flow for adding payment methods (Stripe recommended for SCA compliance)
+- [10-01]: Auto-create Stripe customer if tenant has no stripeCustomerId during SetupIntent creation
+- [10-01]: Include DELETE endpoint with protection (cannot delete default or only payment method)
+- [10-01]: Cards only for Phase 10 (bank accounts can be added later)
 
 ### Pending Todos
 
@@ -102,12 +106,18 @@ Phase 09-admin-auth-ui complete:
 - Session expiry warning modal (5 minutes before)
 - Protected route handling for Mission Control
 
-**Total:** 2 plans complete
+Phase 10-payment-methods-backend complete:
+- Five new PaymentsService methods for Stripe PaymentMethod operations
+- Four new AdminBillingService methods with audit logging
+- Four new API endpoints under /admin/tenants/:tenantId/billing/payment-methods/*
+- Protection logic for default/only payment method deletion
+
+**Total:** 3 plans complete
 
 ## Session Continuity
 
-Last session: 2026-01-18 22:24 UTC
-Stopped at: Completed 09-02-PLAN.md
+Last session: 2026-01-19 01:00 UTC
+Stopped at: Completed 10-01-PLAN.md
 Resume file: None
 
-Next: Execute Phase 10 (Payment Methods Backend)
+Next: Execute Phase 11 (MSP Listing UI)
