@@ -105,12 +105,12 @@ Plans:
   1. Admin sees paginated table of MSPs with client count and status columns
   2. Admin can type in search box and see filtered MSP results
   3. Admin can click any MSP row to navigate to its detail page
-  4. Pagination controls work (next/prev, page numbers)
-**Plans**: TBD
+  4. Infinite scroll loads more results when scrolling to bottom
+**Plans**: 2 plans
 
 Plans:
-- [ ] 11-01: TBD
-- [ ] 11-02: TBD
+- [ ] 11-01-PLAN.md — Admin API hooks and MSP listing page foundation
+- [ ] 11-02-PLAN.md — Infinite scroll, row actions, and navigation integration
 
 ### Phase 12: MSP Detail UI
 **Goal**: Admin can view MSP details and drill into clients
