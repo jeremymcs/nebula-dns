@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import clsx from 'clsx'
 import {
   ArrowLeftIcon,
@@ -95,6 +96,7 @@ function StatCardsSkeleton() {
 
 export default function MspDetailPage({ params }: MspDetailPageProps) {
   const mspId = params.id
+  const router = useRouter()
   const { showToast } = useToast()
   const [isImpersonating, setIsImpersonating] = useState(false)
 
@@ -166,10 +168,10 @@ export default function MspDetailPage({ params }: MspDetailPageProps) {
   }
 
   /**
-   * Handle View Billing - placeholder for Phase 14
+   * Handle View Billing - navigate to tenant billing page
    */
   const handleViewBilling = () => {
-    showToast('info', 'Billing details coming in Phase 14')
+    router.push(`/mission-control/tenants/${mspId}/billing`)
   }
 
   /**
@@ -206,11 +208,11 @@ export default function MspDetailPage({ params }: MspDetailPageProps) {
   }
 
   /**
-   * Handle Client Billing - placeholder for Phase 14
+   * Handle Client Billing - navigate to client's billing page
    */
   const handleClientBilling = (clientId: string) => {
-    showToast('info', 'Client billing view coming in Phase 14')
     setActiveMenu(null)
+    router.push(`/mission-control/tenants/${clientId}/billing`)
   }
 
   /**
