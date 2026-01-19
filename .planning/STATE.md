@@ -94,6 +94,10 @@ Recent decisions affecting current work:
 - [14-01]: Billing page uses /tenants/[id]/billing route for both MSPs and clients
 - [14-01]: Alert banners: red for canceled/paused, amber for past_due/grace period
 - [14-01]: Credit balance shown as stat card with inline Add button
+- [14-02]: Blob fetch pattern for PDF download (requires auth header, cannot use window.open)
+- [14-02]: Two-step confirmation for credit application (prevents accidental submissions)
+- [14-02]: Hardcoded tier features in ChangeTierModal (can be made dynamic later)
+- [14-02]: Extend buttons conditionally shown: trial only if active, grace only if exists
 - [14-03]: Use stripePromise lazy-loading from NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 - [14-03]: Card brand colors: Visa=blue, Mastercard=orange, Amex=blue
 - [14-03]: SetupIntent flow for secure Stripe Elements card collection
