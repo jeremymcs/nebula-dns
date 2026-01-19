@@ -25,11 +25,11 @@ Requirements for Mission Control frontend integration. Each maps to roadmap phas
 
 ### MSP Listing
 
-- [ ] **LIST-01**: Admin can view paginated list of all MSPs
-- [ ] **LIST-02**: Admin can search MSPs by name
-- [ ] **LIST-03**: Admin can see client count per MSP in list
-- [ ] **LIST-04**: Admin can see subscription status per MSP in list
-- [ ] **LIST-05**: Admin can click MSP row to navigate to detail view
+- [x] **LIST-01**: Admin can view paginated list of all MSPs
+- [x] **LIST-02**: Admin can search MSPs by name
+- [x] **LIST-03**: Admin can see client count per MSP in list
+- [x] **LIST-04**: Admin can see subscription status per MSP in list
+- [x] **LIST-05**: Admin can click MSP row to navigate to detail view
 
 ### MSP Detail & Drill-Down
 
@@ -116,11 +116,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ONBOARD-04 | Phase 16 | Pending |
 | ONBOARD-05 | Phase 16 | Pending |
 | ONBOARD-06 | Phase 16 | Pending |
-| LIST-01 | Phase 11 | Pending |
-| LIST-02 | Phase 11 | Pending |
-| LIST-03 | Phase 11 | Pending |
-| LIST-04 | Phase 11 | Pending |
-| LIST-05 | Phase 11 | Pending |
+| LIST-01 | Phase 11 | Complete |
+| LIST-02 | Phase 11 | Complete |
+| LIST-03 | Phase 11 | Complete |
+| LIST-04 | Phase 11 | Complete |
+| LIST-05 | Phase 11 | Complete |
 | DETAIL-01 | Phase 12 | Pending |
 | DETAIL-02 | Phase 12 | Pending |
 | DETAIL-03 | Phase 12 | Pending |
