@@ -151,12 +151,12 @@ Plans:
   2. Admin can view invoice history and download invoice PDFs
   3. Admin can apply credits, change tier, extend trial, and extend grace period
   4. Admin can view, add, and set default payment methods for tenant
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 14-01: TBD
-- [ ] 14-02: TBD
-- [ ] 14-03: TBD
+- [ ] 14-01-PLAN.md — Billing hooks and page foundation with subscription status cards
+- [ ] 14-02-PLAN.md — Invoice history table and billing action modals
+- [ ] 14-03-PLAN.md — Payment methods management with Stripe Elements
 
 ### Phase 15: System Health UI
 **Goal**: Admin can monitor DNS infrastructure health
