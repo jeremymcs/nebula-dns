@@ -22,6 +22,7 @@ import {
 import clsx from 'clsx'
 import { useAdminAuth } from '@/contexts/AdminAuthContext'
 import { useTheme } from '@/contexts/ThemeContext'
+import { TenantSearchDropdown } from './TenantSearchDropdown'
 
 /**
  * Get initials from a name string
@@ -92,6 +93,11 @@ export function AdminHeader() {
                 MSPs
               </Link>
             </div>
+          </div>
+
+          {/* Search - Desktop only */}
+          <div className="hidden md:block flex-1 max-w-sm mx-4">
+            <TenantSearchDropdown />
           </div>
 
           {/* Right section */}
