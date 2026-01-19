@@ -62,7 +62,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 10: Payment Methods Backend** - New API endpoints for payment method management
 - [x] **Phase 11: MSP Listing UI** - Paginated MSP table with search and navigation
 - [x] **Phase 12: MSP Detail UI** - Client list, usage metrics, action buttons
-- [ ] **Phase 13: Tenant Search & Impersonation UI** - Search bar, impersonation flow, session indicator
+- [x] **Phase 13: Tenant Search & Impersonation UI** - Search bar, impersonation flow, session indicator
 - [ ] **Phase 14: Billing Portal UI** - Subscription status, invoices, credits, payment methods
 - [ ] **Phase 15: System Health UI** - Service status cards, error rates, metrics charts
 - [ ] **Phase 16: MSP Onboarding Wizard** - Multi-step form with validation and confirmation
@@ -139,8 +139,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 13-01-PLAN.md — Search hook, dropdown component, and header integration
-- [ ] 13-02-PLAN.md — Impersonation banner and session management
+- [x] 13-01-PLAN.md — Search hook, dropdown component, and header integration
+- [x] 13-02-PLAN.md — Impersonation banner and session management
 
 ### Phase 14: Billing Portal UI
 **Goal**: Admin can manage all billing aspects for tenants
@@ -207,7 +207,7 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16
 | 10. Payment Methods Backend | v1.1 | 1/1 | Complete | 2026-01-18 |
 | 11. MSP Listing UI | v1.1 | 2/2 | Complete | 2026-01-18 |
 | 12. MSP Detail UI | v1.1 | 2/2 | Complete | 2026-01-19 |
-| 13. Tenant Search & Impersonation UI | v1.1 | 0/2 | Planned | - |
+| 13. Tenant Search & Impersonation UI | v1.1 | 2/2 | Complete | 2026-01-19 |
 | 14. Billing Portal UI | v1.1 | 0/3 | Not started | - |
 | 15. System Health UI | v1.1 | 0/2 | Not started | - |
 | 16. MSP Onboarding Wizard | v1.1 | 0/2 | Not started | - |
