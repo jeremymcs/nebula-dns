@@ -121,11 +121,11 @@ Plans:
   2. Admin sees list of MSP's clients with basic info
   3. Admin sees usage charts (queries over time, blocked percentage)
   4. Admin can click buttons to navigate to billing or start impersonation
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 12-01: TBD
-- [ ] 12-02: TBD
+- [ ] 12-01-PLAN.md — MSP detail hooks and page foundation with stat cards and actions
+- [ ] 12-02-PLAN.md — Client list table and usage charts with period toggle
 
 ### Phase 13: Tenant Search & Impersonation UI
 **Goal**: Admin can find any tenant and impersonate them
