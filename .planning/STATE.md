@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-18)
 
 **Core value:** Enable ops team to manage MSPs entirely through the UI — onboarding, billing, usage monitoring — without CLI or direct API calls.
-**Current focus:** Phase 15 (System Health UI)
+**Current focus:** Phase 16 (MSP Onboarding Wizard)
 
 ## Current Position
 
-Phase: 15 of 16 (System Health UI) - IN PROGRESS
-Plan: 1 of 2 in phase - COMPLETE
-Status: In progress
-Last activity: 2026-01-19 - Completed 15-01-PLAN.md (hooks and service status cards)
+Phase: 15 of 16 (System Health UI) - COMPLETE
+Plan: 2 of 2 in phase - COMPLETE
+Status: Phase 15 complete, ready for Phase 16
+Last activity: 2026-01-19 - Completed 15-02-PLAN.md (error list, query chart, auto-refresh)
 
-Progress: [###################-] 94% (v1 complete, v1.1 plan 13 of 16)
+Progress: [####################] 97% (v1 complete, v1.1 plan 14 of 16)
 
 ## Performance Metrics
 
@@ -46,7 +46,7 @@ Progress: [###################-] 94% (v1 complete, v1.1 plan 13 of 16)
 | 12-msp-detail-ui | 2/2 | Complete |
 | 13-tenant-search-impersonation-ui | 2/2 | Complete |
 | 14-billing-portal-ui | 3/3 | Complete |
-| 15-system-health-ui | 1/2 | In progress |
+| 15-system-health-ui | 2/2 | Complete |
 | 16-msp-onboarding-wizard | 0/2 | Not started |
 
 *Updated after each plan completion*
@@ -104,6 +104,9 @@ Recent decisions affecting current work:
 - [15-01]: 30-second auto-refresh interval with pause toggle for system health
 - [15-01]: Combine services array and storage object into unified card grid
 - [15-01]: Show quick stats row below service cards for at-a-glance metrics
+- [15-02]: Circular SVG gauge for error rate visualization (no external dependency)
+- [15-02]: Set-based state for collapsible error cards (O(1) lookup, multiple expansion)
+- [15-02]: 1h/24h period toggle (adjusted from 24h/7d to match backend API support)
 
 ### Pending Todos
 
@@ -182,7 +185,7 @@ Phase 14-billing-portal-ui complete:
 - PaymentMethodList with card tiles and action menus
 - AddPaymentMethodModal with SetupIntent flow
 
-Phase 15-system-health-ui in progress (1/2):
+Phase 15-system-health-ui complete:
 - useAdminSystemHealth hook with auto-refresh support
 - useAdminRecentErrors hook with configurable limit
 - System Health page at /mission-control/health
@@ -190,13 +193,18 @@ Phase 15-system-health-ui in progress (1/2):
 - Quick stats row for query volumes and error rates
 - Pause/Resume auto-refresh toggle
 - Health navigation link in AdminHeader
+- Error rate gauges with circular SVG visualization
+- Collapsible recent errors list (up to 25 errors)
+- Query volume area chart with Recharts
+- Period toggle (1h/24h) for chart data
+- Auto-refresh controls with pause-on-hover
 
-**Total:** 13 plans complete
+**Total:** 14 plans complete
 
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: Completed 15-01-PLAN.md
+Stopped at: Completed 15-02-PLAN.md
 Resume file: None
 
-Next: Execute 15-02-PLAN.md (Error Log and Query Charts)
+Next: Execute Phase 16 (MSP Onboarding Wizard) - 16-01-PLAN.md and 16-02-PLAN.md
