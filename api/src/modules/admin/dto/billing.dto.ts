@@ -60,7 +60,9 @@ export class SubscriptionStatusResponseDto {
   @ApiPropertyOptional({ description: 'Payment method last 4 digits' })
   paymentMethodLast4?: string;
 
-  @ApiProperty({ description: 'Whether subscription will cancel at period end' })
+  @ApiProperty({
+    description: 'Whether subscription will cancel at period end',
+  })
   cancelAtPeriodEnd: boolean;
 
   @ApiPropertyOptional({ description: 'Trial end date if on trial' })
@@ -303,6 +305,68 @@ export class ExtensionResponseDto {
 
   @ApiProperty({ description: 'Whether notification was sent' })
   notificationSent: boolean;
+
+  @ApiProperty({ description: 'Success message' })
+  message: string;
+}
+
+// ===========================================
+// Payment Method DTOs
+// ===========================================
+
+export class PaymentMethodDto {
+  @ApiProperty({ description: 'Stripe payment method ID' })
+  id: string;
+
+  @ApiProperty({ description: 'Card brand (visa, mastercard, etc.)' })
+  brand: string;
+
+  @ApiProperty({ description: 'Last 4 digits of card' })
+  last4: string;
+
+  @ApiProperty({ description: 'Expiration month' })
+  expMonth: number;
+
+  @ApiProperty({ description: 'Expiration year' })
+  expYear: number;
+
+  @ApiProperty({ description: 'Whether this is the default payment method' })
+  isDefault: boolean;
+
+  @ApiProperty({ description: 'When the payment method was created (ISO date)' })
+  created: string;
+}
+
+export class PaymentMethodListResponseDto {
+  @ApiProperty({ type: [PaymentMethodDto], description: 'List of payment methods' })
+  data: PaymentMethodDto[];
+
+  @ApiProperty({ description: 'Total count of payment methods' })
+  total: number;
+}
+
+export class CreateSetupIntentResponseDto {
+  @ApiProperty({ description: 'Client secret for Stripe.js SetupIntent confirmation' })
+  clientSecret: string;
+}
+
+export class SetDefaultPaymentMethodDto {
+  @ApiProperty({ description: 'Payment method ID to set as default' })
+  @IsString()
+  paymentMethodId: string;
+}
+
+export class SetDefaultPaymentMethodResponseDto {
+  @ApiProperty({ description: 'The payment method ID that was set as default' })
+  paymentMethodId: string;
+
+  @ApiProperty({ description: 'Success message' })
+  message: string;
+}
+
+export class DeletePaymentMethodResponseDto {
+  @ApiProperty({ description: 'The payment method ID that was deleted' })
+  paymentMethodId: string;
 
   @ApiProperty({ description: 'Success message' })
   message: string;

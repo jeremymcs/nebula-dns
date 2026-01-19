@@ -452,13 +452,15 @@ export class PaymentsService {
 
     try {
       // Stripe convention: negative = credit for customer
-      const transaction =
-        await this.stripe.customers.createBalanceTransaction(customerId, {
+      const transaction = await this.stripe.customers.createBalanceTransaction(
+        customerId,
+        {
           amount: -Math.abs(amountCents), // Ensure negative for credit
           currency: 'usd',
           description,
           metadata,
-        });
+        },
+      );
 
       this.logger.log(
         `Applied credit of ${amountCents} cents to customer ${customerId}`,
@@ -500,8 +502,7 @@ export class PaymentsService {
             price: newPriceId,
           },
         ],
-        proration_behavior:
-          timing === 'immediate' ? 'always_invoice' : 'none',
+        proration_behavior: timing === 'immediate' ? 'always_invoice' : 'none',
       };
 
       const updated = await this.stripe.subscriptions.update(
@@ -546,12 +547,10 @@ export class PaymentsService {
 
       const currentTrialEnd =
         subscription.trial_end || Math.floor(Date.now() / 1000);
-      const newTrialEnd =
-        currentTrialEnd + additionalDays * 24 * 60 * 60;
+      const newTrialEnd = currentTrialEnd + additionalDays * 24 * 60 * 60;
 
       // Stripe limits trial to 730 days from creation
-      const maxTrialEnd =
-        Math.floor(Date.now() / 1000) + 730 * 24 * 60 * 60;
+      const maxTrialEnd = Math.floor(Date.now() / 1000) + 730 * 24 * 60 * 60;
       if (newTrialEnd > maxTrialEnd) {
         throw new BadRequestException('Trial cannot exceed 730 days total');
       }
@@ -569,11 +568,159 @@ export class PaymentsService {
       if (error instanceof BadRequestException) {
         throw error;
       }
+      this.logger.error(`Failed to extend trial for ${subscriptionId}`, error);
+      throw new BadRequestException('Failed to extend trial period');
+    }
+  }
+
+  // ===========================================
+  // Payment Method Operations (Phase 10)
+  // ===========================================
+
+  /**
+   * List all payment methods for a customer
+   * Returns only card-type payment methods
+   */
+  async listPaymentMethods(customerId: string): Promise<Stripe.PaymentMethod[]> {
+    if (!this.stripe) {
+      throw new BadRequestException('Payment system not configured');
+    }
+
+    try {
+      const paymentMethods = await this.stripe.paymentMethods.list({
+        customer: customerId,
+        type: 'card',
+      });
+      return paymentMethods.data;
+    } catch (error) {
+      this.logger.error(`Failed to list payment methods for ${customerId}`, error);
+      throw new BadRequestException('Failed to list payment methods');
+    }
+  }
+
+  /**
+   * Create a SetupIntent for adding a new payment method
+   * Returns client_secret for Stripe.js confirmation
+   */
+  async createSetupIntent(customerId: string): Promise<{ clientSecret: string }> {
+    if (!this.stripe) {
+      throw new BadRequestException('Payment system not configured');
+    }
+
+    try {
+      const setupIntent = await this.stripe.setupIntents.create({
+        customer: customerId,
+        payment_method_types: ['card'],
+        usage: 'off_session',
+      });
+
+      this.logger.log(`Created SetupIntent for customer ${customerId}`);
+
+      return { clientSecret: setupIntent.client_secret || '' };
+    } catch (error) {
+      this.logger.error(`Failed to create SetupIntent for ${customerId}`, error);
+      throw new BadRequestException('Failed to create setup intent');
+    }
+  }
+
+  /**
+   * Set the default payment method for a customer
+   * Updates customer's invoice_settings.default_payment_method
+   */
+  async setDefaultPaymentMethod(
+    customerId: string,
+    paymentMethodId: string,
+  ): Promise<void> {
+    if (!this.stripe) {
+      throw new BadRequestException('Payment system not configured');
+    }
+
+    try {
+      await this.stripe.customers.update(customerId, {
+        invoice_settings: {
+          default_payment_method: paymentMethodId,
+        },
+      });
+
+      this.logger.log(
+        `Set default payment method ${paymentMethodId} for customer ${customerId}`,
+      );
+    } catch (error) {
       this.logger.error(
-        `Failed to extend trial for ${subscriptionId}`,
+        `Failed to set default payment method for ${customerId}`,
         error,
       );
-      throw new BadRequestException('Failed to extend trial period');
+      throw new BadRequestException('Failed to set default payment method');
+    }
+  }
+
+  /**
+   * Detach a payment method from a customer
+   * Removes the payment method from the customer's account
+   */
+  async detachPaymentMethod(paymentMethodId: string): Promise<void> {
+    if (!this.stripe) {
+      throw new BadRequestException('Payment system not configured');
+    }
+
+    try {
+      await this.stripe.paymentMethods.detach(paymentMethodId);
+
+      this.logger.log(`Detached payment method ${paymentMethodId}`);
+    } catch (error) {
+      this.logger.error(
+        `Failed to detach payment method ${paymentMethodId}`,
+        error,
+      );
+      throw new BadRequestException('Failed to remove payment method');
+    }
+  }
+
+  /**
+   * Get a specific payment method with optional ownership validation
+   * Throws ForbiddenException if expectedCustomerId doesn't match
+   */
+  async getPaymentMethod(
+    paymentMethodId: string,
+    expectedCustomerId?: string,
+  ): Promise<Stripe.PaymentMethod> {
+    if (!this.stripe) {
+      throw new BadRequestException('Payment system not configured');
+    }
+
+    try {
+      const paymentMethod =
+        await this.stripe.paymentMethods.retrieve(paymentMethodId);
+
+      // Validate ownership if expected customer provided
+      if (expectedCustomerId && paymentMethod.customer !== expectedCustomerId) {
+        throw new ForbiddenException(
+          'Payment method does not belong to this customer',
+        );
+      }
+
+      return paymentMethod;
+    } catch (error) {
+      if (
+        error instanceof ForbiddenException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+
+      // Check if payment method not found
+      if (
+        (error as any).code === 'resource_missing' ||
+        (error as any).statusCode === 404
+      ) {
+        throw new NotFoundException('Payment method not found');
+      }
+
+      this.logger.error(
+        `Failed to retrieve payment method ${paymentMethodId}`,
+        error,
+      );
+      throw new BadRequestException('Failed to retrieve payment method');
     }
   }
 }
