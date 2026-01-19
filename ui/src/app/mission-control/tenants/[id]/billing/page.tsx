@@ -20,7 +20,9 @@ import {
   ClockIcon,
 } from '@heroicons/react/24/outline'
 import { Card, Badge, Skeleton } from '@/components/ui'
-import { useAdminSubscriptionStatus, SubscriptionStatus } from '@/hooks/useAdminBilling'
+import { useAdminSubscriptionStatus, useAdminPaymentMethods, SubscriptionStatus } from '@/hooks/useAdminBilling'
+import { PaymentMethodList } from '@/components/billing/PaymentMethodList'
+import { AddPaymentMethodModal } from '@/components/billing/AddPaymentMethodModal'
 import { useToast } from '@/components/Toast'
 
 interface BillingPageProps {
@@ -116,7 +118,15 @@ export default function BillingPage({ params }: BillingPageProps) {
   const tenantId = params.id
   const { showToast } = useToast()
 
+  // Modal state
+  const [activeModal, setActiveModal] = useState<'payment' | null>(null)
+
   const { data: subscription, isLoading, error, mutate } = useAdminSubscriptionStatus(tenantId)
+  const {
+    data: paymentMethodsData,
+    isLoading: isLoadingPaymentMethods,
+    mutate: mutatePaymentMethods,
+  } = useAdminPaymentMethods(tenantId)
 
   /**
    * Placeholder for Change Tier action
@@ -545,6 +555,33 @@ export default function BillingPage({ params }: BillingPageProps) {
           </div>
         </Card>
       )}
+
+      {/* Payment Methods Section */}
+      {!isLoading && subscription && (
+        <PaymentMethodList
+          tenantId={tenantId}
+          paymentMethods={paymentMethodsData?.data || []}
+          isLoading={isLoadingPaymentMethods}
+          onAddClick={() => setActiveModal('payment')}
+          onRefresh={() => {
+            mutatePaymentMethods()
+            mutate() // Also refresh subscription to update default payment method last4
+          }}
+        />
+      )}
+
+      {/* Add Payment Method Modal */}
+      <AddPaymentMethodModal
+        isOpen={activeModal === 'payment'}
+        onClose={() => setActiveModal(null)}
+        tenantId={tenantId}
+        tenantName={subscription?.tenantName || 'Tenant'}
+        onSuccess={() => {
+          showToast('success', 'Payment method added successfully')
+          mutatePaymentMethods()
+          mutate() // Refresh subscription data
+        }}
+      />
     </div>
   )
 }
