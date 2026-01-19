@@ -33,11 +33,11 @@ Requirements for Mission Control frontend integration. Each maps to roadmap phas
 
 ### MSP Detail & Drill-Down
 
-- [ ] **DETAIL-01**: Admin can view MSP overview (name, tier, status, created date)
-- [ ] **DETAIL-02**: Admin can view list of MSP's clients
-- [ ] **DETAIL-03**: Admin can see usage metrics (queries, blocked, charts)
-- [ ] **DETAIL-04**: Admin can navigate to billing from MSP detail
-- [ ] **DETAIL-05**: Admin can impersonate MSP tenant from detail view
+- [x] **DETAIL-01**: Admin can view MSP overview (name, tier, status, created date)
+- [x] **DETAIL-02**: Admin can view list of MSP's clients
+- [x] **DETAIL-03**: Admin can see usage metrics (queries, blocked, charts)
+- [x] **DETAIL-04**: Admin can navigate to billing from MSP detail
+- [x] **DETAIL-05**: Admin can impersonate MSP tenant from detail view
 
 ### Tenant Search & Impersonation
 
@@ -121,11 +121,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LIST-03 | Phase 11 | Complete |
 | LIST-04 | Phase 11 | Complete |
 | LIST-05 | Phase 11 | Complete |
-| DETAIL-01 | Phase 12 | Pending |
-| DETAIL-02 | Phase 12 | Pending |
-| DETAIL-03 | Phase 12 | Pending |
-| DETAIL-04 | Phase 12 | Pending |
-| DETAIL-05 | Phase 12 | Pending |
+| DETAIL-01 | Phase 12 | Complete |
+| DETAIL-02 | Phase 12 | Complete |
+| DETAIL-03 | Phase 12 | Complete |
+| DETAIL-04 | Phase 12 | Complete |
+| DETAIL-05 | Phase 12 | Complete |
 | IMP-01 | Phase 13 | Pending |
 | IMP-02 | Phase 13 | Pending |
 | IMP-03 | Phase 13 | Pending |
@@ -155,4 +155,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-18*
-*Last updated: 2026-01-18 after roadmap creation*
+*Last updated: 2026-01-19 after Phase 12 completion*

@@ -61,7 +61,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 9: Admin Auth UI** - Login page, session management, protected routes
 - [x] **Phase 10: Payment Methods Backend** - New API endpoints for payment method management
 - [x] **Phase 11: MSP Listing UI** - Paginated MSP table with search and navigation
-- [ ] **Phase 12: MSP Detail UI** - Client list, usage metrics, action buttons
+- [x] **Phase 12: MSP Detail UI** - Client list, usage metrics, action buttons
 - [ ] **Phase 13: Tenant Search & Impersonation UI** - Search bar, impersonation flow, session indicator
 - [ ] **Phase 14: Billing Portal UI** - Subscription status, invoices, credits, payment methods
 - [ ] **Phase 15: System Health UI** - Service status cards, error rates, metrics charts
@@ -124,8 +124,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 12-01-PLAN.md — MSP detail hooks and page foundation with stat cards and actions
-- [ ] 12-02-PLAN.md — Client list table and usage charts with period toggle
+- [x] 12-01-PLAN.md — MSP detail hooks and page foundation with stat cards and actions
+- [x] 12-02-PLAN.md — Client list table and usage charts with period toggle
 
 ### Phase 13: Tenant Search & Impersonation UI
 **Goal**: Admin can find any tenant and impersonate them
@@ -206,7 +206,7 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16
 | 9. Admin Auth UI | v1.1 | 2/2 | Complete | 2026-01-18 |
 | 10. Payment Methods Backend | v1.1 | 1/1 | Complete | 2026-01-18 |
 | 11. MSP Listing UI | v1.1 | 2/2 | Complete | 2026-01-18 |
-| 12. MSP Detail UI | v1.1 | 0/2 | Not started | - |
+| 12. MSP Detail UI | v1.1 | 2/2 | Complete | 2026-01-19 |
 | 13. Tenant Search & Impersonation UI | v1.1 | 0/2 | Not started | - |
 | 14. Billing Portal UI | v1.1 | 0/3 | Not started | - |
 | 15. System Health UI | v1.1 | 0/2 | Not started | - |
