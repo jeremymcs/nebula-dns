@@ -6,51 +6,68 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TopNav } from './TopNav'
 import { MobileNav } from './MobileNav'
 import { FullPageLoading } from '@/components/LoadingSpinner'
 import { useAuth } from '@/contexts/AuthContext'
-import { ArrowsRightLeftIcon } from '@heroicons/react/24/outline'
 import { CommandBarProvider } from '@/components/command-bar'
 import { OrionFAB } from '@/components/orion'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
-
-// Breadcrumb mapping
-const breadcrumbLabels: Record<string, string> = {
-  dashboard: 'Dashboard',
-  policies: 'Policies',
-  locations: 'Locations',
-  lists: 'Custom Lists',
-  'block-pages': 'Block Pages',
-  agents: 'Agents',
-  logs: 'Query Logs',
-  reports: 'Reports',
-  users: 'Users',
-  settings: 'Settings',
-  security: 'Security',
-  sso: 'SSO',
-  'api-keys': 'API Keys',
-  scheduled: 'Scheduled',
-  onboarding: 'Onboarding',
-  clients: 'Clients',
-  billing: 'Billing',
-}
+// US-027, US-028: Subscription status components
+import { GracePeriodBanner } from '@/components/banners/GracePeriodBanner'
+import { SuspendedBanner } from '@/components/banners/SuspendedBanner'
+import { ImpersonationBanner } from '@/components/banners/ImpersonationBanner'
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus'
+import { useImpersonation } from '@/hooks/useImpersonation'
 
 function Breadcrumbs() {
   const pathname = usePathname()
+  const { tier } = useAuth()
   const segments = pathname?.split('/').filter(Boolean) || []
 
   if (segments.length <= 1) return null
+
+  // Breadcrumb mapping - adjust for tier
+  const getBreadcrumbLabel = (segment: string): string => {
+    const labels: Record<string, string> = {
+      dashboard: 'Dashboard',
+      'mission-control': 'Mission Control',
+      home: 'Home',
+      policies: 'Policies',
+      locations: tier === 'home' ? 'Networks' : 'Locations',
+      lists: 'Custom Lists',
+      'block-pages': 'Block Pages',
+      agents: 'Agents',
+      logs: 'Query Logs',
+      reports: 'Reports',
+      users: 'Users',
+      settings: 'Settings',
+      security: 'Security',
+      sso: 'SSO',
+      'api-keys': 'API Keys',
+      scheduled: 'Scheduled',
+      onboarding: 'Onboarding',
+      clients: 'Clients',
+      billing: 'Billing',
+      family: 'Family Mode',
+      msp: 'MSP',
+      templates: 'Templates',
+      playbooks: 'Playbooks',
+      insights: 'AI Insights',
+      investigate: 'Investigate',
+    }
+    return labels[segment] || segment.charAt(0).toUpperCase() + segment.slice(1)
+  }
 
   return (
     <nav className="flex items-center gap-2 text-sm mb-4">
       {segments.map((segment, index) => {
         const href = '/' + segments.slice(0, index + 1).join('/')
         const isLast = index === segments.length - 1
-        const label = breadcrumbLabels[segment] || segment.charAt(0).toUpperCase() + segment.slice(1)
+        const label = getBreadcrumbLabel(segment)
 
         return (
           <span key={segment} className="flex items-center gap-2">
@@ -85,21 +102,18 @@ export function DashboardLayout({ children, showBreadcrumbs = true }: DashboardL
   const { user, loading } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
-  const [isImpersonating, setIsImpersonating] = useState(false)
+
+  // US-027, US-028: Fetch subscription status for banners
+  const { gracePeriodInfo, subscriptionStatus } = useSubscriptionStatus()
+
+  // Impersonation state management via hook
+  const { impersonationInfo, isImpersonating, endImpersonation } = useImpersonation()
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/')
     }
-    // Check if we're in impersonation mode
-    setIsImpersonating(localStorage.getItem('impersonating') === 'true')
   }, [loading, user, router])
-
-  const exitImpersonation = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('impersonating')
-    window.location.href = '/partner/dashboard'
-  }
 
   if (loading) {
     return <FullPageLoading />
@@ -109,24 +123,41 @@ export function DashboardLayout({ children, showBreadcrumbs = true }: DashboardL
     return <FullPageLoading />
   }
 
+  // US-028: Show full-page suspended state if subscription is suspended
+  if (subscriptionStatus?.status === 'suspended') {
+    return (
+      <SuspendedBanner
+        isFullPage
+        suspendedInfo={{
+          mspName: gracePeriodInfo?.mspName,
+          mspContactEmail: gracePeriodInfo?.mspContactEmail,
+          mspSupportUrl: gracePeriodInfo?.mspSupportUrl,
+        }}
+      />
+    )
+  }
+
   return (
     <ErrorBoundary name="AppLayout" showReload>
       <CommandBarProvider>
         <div className="min-h-screen bg-space-50 dark:bg-space-950">
-          {/* Impersonation Banner */}
-          {isImpersonating && (
-            <div className="bg-amber-500 text-white px-4 py-2 flex items-center justify-between">
-              <span className="text-sm font-medium">
-                <ArrowsRightLeftIcon className="h-4 w-4 inline mr-2" />
-                You are viewing this organization as a partner admin
-              </span>
-              <button
-                onClick={exitImpersonation}
-                className="text-sm bg-white/20 hover:bg-white/30 px-3 py-1 rounded transition-colors"
-              >
-                Return to Partner Portal
-              </button>
-            </div>
+          {/* US-028: Grace Period Warning Banner */}
+          {gracePeriodInfo?.subscriptionStatus === 'grace' && gracePeriodInfo.daysRemaining !== null && (
+            <GracePeriodBanner
+              gracePeriodInfo={{
+                daysRemaining: gracePeriodInfo.daysRemaining,
+                mspName: gracePeriodInfo.mspName,
+                mspContactEmail: gracePeriodInfo.mspContactEmail,
+              }}
+            />
+          )}
+
+          {/* Impersonation Banner - shown when admin is viewing as tenant */}
+          {isImpersonating && impersonationInfo && (
+            <ImpersonationBanner
+              impersonationInfo={impersonationInfo}
+              onEndImpersonation={endImpersonation}
+            />
           )}
 
           <ErrorBoundary name="TopNav">
