@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-18)
 
 **Core value:** Enable ops team to manage MSPs entirely through the UI — onboarding, billing, usage monitoring — without CLI or direct API calls.
-**Current focus:** Phase 14 (Billing Portal UI)
+**Current focus:** Phase 15 (System Health UI)
 
 ## Current Position
 
-Phase: 14 of 16 (Billing Portal UI) - IN PROGRESS
-Plan: 1 of 3 in phase - COMPLETE
-Status: In progress
-Last activity: 2026-01-19 - Completed 14-01-PLAN.md (billing page foundation)
+Phase: 14 of 16 (Billing Portal UI) - COMPLETE
+Plan: 3 of 3 in phase - COMPLETE
+Status: Phase complete
+Last activity: 2026-01-19 - Completed 14-03-PLAN.md (payment method management)
 
-Progress: [##################--] 91% (v1 complete, v1.1 plan 10 of 16)
+Progress: [###################-] 94% (v1 complete, v1.1 plan 12 of 16)
 
 ## Performance Metrics
 
@@ -45,7 +45,7 @@ Progress: [##################--] 91% (v1 complete, v1.1 plan 10 of 16)
 | 11-msp-listing-ui | 2/2 | Complete |
 | 12-msp-detail-ui | 2/2 | Complete |
 | 13-tenant-search-impersonation-ui | 2/2 | Complete |
-| 14-billing-portal-ui | 1/3 | In progress |
+| 14-billing-portal-ui | 3/3 | Complete |
 | 15-system-health-ui | 0/2 | Not started |
 | 16-msp-onboarding-wizard | 0/2 | Not started |
 
@@ -94,6 +94,9 @@ Recent decisions affecting current work:
 - [14-01]: Billing page uses /tenants/[id]/billing route for both MSPs and clients
 - [14-01]: Alert banners: red for canceled/paused, amber for past_due/grace period
 - [14-01]: Credit balance shown as stat card with inline Add button
+- [14-03]: Use stripePromise lazy-loading from NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+- [14-03]: Card brand colors: Visa=blue, Mastercard=orange, Amex=blue
+- [14-03]: SetupIntent flow for secure Stripe Elements card collection
 
 ### Pending Todos
 
@@ -161,19 +164,23 @@ Phase 13-tenant-search-impersonation-ui complete:
 - ImpersonationBanner component with tenant name and tier
 - Banner integrated into DashboardLayout
 
-Phase 14-billing-portal-ui (Plan 01 complete):
+Phase 14-billing-portal-ui complete:
 - useAdminBilling.ts with SWR hooks for billing endpoints
 - Billing page at /mission-control/tenants/[id]/billing
 - Subscription status stat cards (tier, status, cycle, credits)
 - Alert banners for critical billing states
-- View Billing navigation from MSP detail page
+- Invoice history table with expandable rows
+- Billing action modals (tier change, credits, extensions)
+- Stripe Elements integration for payment methods
+- PaymentMethodList with card tiles and action menus
+- AddPaymentMethodModal with SetupIntent flow
 
-**Total:** 10 plans complete
+**Total:** 12 plans complete
 
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: Completed 14-01-PLAN.md
+Stopped at: Completed 14-03-PLAN.md
 Resume file: None
 
-Next: Execute Plan 14-02 (Invoice History and Actions)
+Next: Execute Phase 15 (System Health UI)
