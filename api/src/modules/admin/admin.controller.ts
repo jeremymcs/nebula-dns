@@ -6,6 +6,8 @@ import {
   Controller,
   Post,
   Get,
+  Delete,
+  Patch,
   Body,
   Query,
   Param,
@@ -78,6 +80,11 @@ import {
   ExtendTrialDto,
   ExtendGracePeriodDto,
   ExtensionResponseDto,
+  PaymentMethodListResponseDto,
+  CreateSetupIntentResponseDto,
+  SetDefaultPaymentMethodDto,
+  SetDefaultPaymentMethodResponseDto,
+  DeletePaymentMethodResponseDto,
 } from './dto/billing.dto';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { AdminUser } from './dto/admin-jwt-payload.dto';
@@ -882,6 +889,171 @@ export class AdminController {
     return this.adminBillingService.extendGracePeriod(
       tenantId,
       dto,
+      admin.adminId,
+    );
+  }
+
+  // ===== Payment Method Endpoints =====
+
+  /**
+   * List tenant payment methods
+   * Returns all payment methods attached to tenant's Stripe customer
+   */
+  @Get('tenants/:tenantId/billing/payment-methods')
+  @UseGuards(AdminAuthGuard)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'List tenant payment methods',
+    description:
+      "Returns all payment methods attached to the tenant's Stripe customer. " +
+      'Returns empty list if tenant has no billing setup.',
+  })
+  @ApiParam({ name: 'tenantId', description: 'Tenant UUID', type: 'string' })
+  @ApiResponse({
+    status: 200,
+    description: 'Payment methods retrieved',
+    type: PaymentMethodListResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tenant not found',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Admin authentication required',
+  })
+  async listPaymentMethods(
+    @Param('tenantId', ParseUUIDPipe) tenantId: string,
+  ): Promise<PaymentMethodListResponseDto> {
+    return this.adminBillingService.listPaymentMethods(tenantId);
+  }
+
+  /**
+   * Create SetupIntent for adding payment method
+   * Returns client_secret for Stripe.js to collect card details
+   */
+  @Post('tenants/:tenantId/billing/payment-methods')
+  @UseGuards(AdminAuthGuard)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Create SetupIntent for adding payment method',
+    description:
+      'Returns client_secret for Stripe.js to collect card details. ' +
+      'Payment method is auto-attached to customer on confirmation. ' +
+      'Creates Stripe customer if tenant has none.',
+  })
+  @ApiParam({ name: 'tenantId', description: 'Tenant UUID', type: 'string' })
+  @ApiResponse({
+    status: 201,
+    description: 'SetupIntent created',
+    type: CreateSetupIntentResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tenant not found',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Admin authentication required',
+  })
+  async createSetupIntent(
+    @Param('tenantId', ParseUUIDPipe) tenantId: string,
+    @Req() req: Request,
+  ): Promise<CreateSetupIntentResponseDto> {
+    const admin = req.user as AdminUser;
+    return this.adminBillingService.createSetupIntent(tenantId, admin.adminId);
+  }
+
+  /**
+   * Set default payment method
+   * Sets the specified payment method as default for future invoices
+   */
+  @Patch('tenants/:tenantId/billing/payment-methods/default')
+  @UseGuards(AdminAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Set default payment method',
+    description:
+      'Sets the specified payment method as default for future invoices. ' +
+      'Payment method must belong to the tenant.',
+  })
+  @ApiParam({ name: 'tenantId', description: 'Tenant UUID', type: 'string' })
+  @ApiResponse({
+    status: 200,
+    description: 'Default payment method set',
+    type: SetDefaultPaymentMethodResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation error or payment method not owned by tenant',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tenant or payment method not found',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Admin authentication required',
+  })
+  async setDefaultPaymentMethod(
+    @Param('tenantId', ParseUUIDPipe) tenantId: string,
+    @Body() dto: SetDefaultPaymentMethodDto,
+    @Req() req: Request,
+  ): Promise<SetDefaultPaymentMethodResponseDto> {
+    const admin = req.user as AdminUser;
+    return this.adminBillingService.setDefaultPaymentMethod(
+      tenantId,
+      dto.paymentMethodId,
+      admin.adminId,
+    );
+  }
+
+  /**
+   * Delete payment method
+   * Removes a payment method from tenant's Stripe customer
+   */
+  @Delete('tenants/:tenantId/billing/payment-methods/:paymentMethodId')
+  @UseGuards(AdminAuthGuard)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Delete payment method',
+    description:
+      'Removes a payment method from the tenant. ' +
+      'Cannot delete the default payment method or the only payment method.',
+  })
+  @ApiParam({ name: 'tenantId', description: 'Tenant UUID', type: 'string' })
+  @ApiParam({
+    name: 'paymentMethodId',
+    description: 'Stripe payment method ID',
+    type: 'string',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Payment method deleted',
+    type: DeletePaymentMethodResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Cannot delete default or only payment method',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tenant or payment method not found',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Admin authentication required',
+  })
+  async deletePaymentMethod(
+    @Param('tenantId', ParseUUIDPipe) tenantId: string,
+    @Param('paymentMethodId') paymentMethodId: string,
+    @Req() req: Request,
+  ): Promise<DeletePaymentMethodResponseDto> {
+    const admin = req.user as AdminUser;
+    return this.adminBillingService.deletePaymentMethod(
+      tenantId,
+      paymentMethodId,
       admin.adminId,
     );
   }

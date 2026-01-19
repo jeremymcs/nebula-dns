@@ -33,7 +33,13 @@ import {
   ExtendTrialDto,
   ExtendGracePeriodDto,
   ExtensionResponseDto,
+  PaymentMethodDto,
+  PaymentMethodListResponseDto,
+  CreateSetupIntentResponseDto,
+  SetDefaultPaymentMethodResponseDto,
+  DeletePaymentMethodResponseDto,
 } from './dto/billing.dto';
+import Stripe from 'stripe';
 import { Subscription } from '../subscriptions/entities/subscription.entity';
 import { ConfigService } from '@nestjs/config';
 
@@ -677,5 +683,303 @@ export class AdminBillingService {
       );
       return false;
     }
+  }
+
+  // ===========================================
+  // Payment Method Operations (Phase 10)
+  // ===========================================
+
+  /**
+   * List all payment methods for a tenant
+   * Returns empty list if tenant has no billing setup
+   */
+  async listPaymentMethods(
+    tenantId: string,
+  ): Promise<PaymentMethodListResponseDto> {
+    // 1. Find tenant
+    const tenant = await this.tenantRepository.findOne({
+      where: { id: tenantId },
+    });
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
+    }
+
+    // 2. Get subscription to find Stripe customer ID
+    const subscription =
+      await this.subscriptionsService.getSubscription(tenantId);
+
+    // 3. Return empty if no billing setup
+    if (!subscription?.stripeCustomerId) {
+      return { data: [], total: 0 };
+    }
+
+    // 4. Fetch payment methods from Stripe
+    const paymentMethods = await this.paymentsService.listPaymentMethods(
+      subscription.stripeCustomerId,
+    );
+
+    // 5. Get default payment method ID
+    const defaultPm = await this.paymentsService.getDefaultPaymentMethod(
+      subscription.stripeCustomerId,
+    );
+    const defaultPmId = defaultPm?.id || null;
+
+    // 6. Map to DTOs
+    const data = paymentMethods.map((pm) =>
+      this.mapPaymentMethod(pm, defaultPmId),
+    );
+
+    this.logger.debug(
+      `Listed ${data.length} payment methods for tenant ${tenant.name}`,
+    );
+
+    return { data, total: data.length };
+  }
+
+  /**
+   * Create SetupIntent for adding a payment method
+   * Creates Stripe customer if none exists
+   */
+  async createSetupIntent(
+    tenantId: string,
+    adminId: string,
+  ): Promise<CreateSetupIntentResponseDto> {
+    // 1. Find tenant
+    const tenant = await this.tenantRepository.findOne({
+      where: { id: tenantId },
+    });
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
+    }
+
+    // 2. Get subscription (may or may not exist)
+    const subscription =
+      await this.subscriptionsService.getSubscription(tenantId);
+
+    // 3. Create Stripe customer if none exists
+    let stripeCustomerId = subscription?.stripeCustomerId;
+
+    if (!stripeCustomerId) {
+      stripeCustomerId = await this.paymentsService.getOrCreateCustomer(
+        tenant.contactEmail || `tenant-${tenantId}@nebula.dns`,
+        tenant.name,
+      );
+
+      // Update or create subscription record with stripeCustomerId
+      if (subscription) {
+        await this.subscriptionRepository.update(
+          { tenantId },
+          { stripeCustomerId },
+        );
+      } else {
+        // Create minimal subscription record
+        // Use 'trialing' as initial status for new billing setup
+        await this.subscriptionRepository.save({
+          tenantId,
+          stripeCustomerId,
+          planId: tenant.tier,
+          status: 'trialing' as const,
+          billingCycle: 'monthly' as const,
+        });
+      }
+
+      this.logger.log(
+        `Created Stripe customer ${stripeCustomerId} for tenant ${tenant.name}`,
+      );
+    }
+
+    // 4. Create SetupIntent
+    const result =
+      await this.paymentsService.createSetupIntent(stripeCustomerId);
+
+    // 5. Audit log
+    await this.auditLogsService.log({
+      tenantId,
+      userId: null,
+      action: 'billing_setup_intent_created',
+      resourceType: 'subscription',
+      resourceId: stripeCustomerId,
+      resourceName: tenant.name,
+      newValue: {
+        adminId,
+        action: 'create_setup_intent',
+      },
+    });
+
+    this.logger.log(
+      `Created SetupIntent for tenant ${tenant.name} by admin ${adminId}`,
+    );
+
+    return { clientSecret: result.clientSecret };
+  }
+
+  /**
+   * Set default payment method for a tenant
+   * Validates payment method ownership
+   */
+  async setDefaultPaymentMethod(
+    tenantId: string,
+    paymentMethodId: string,
+    adminId: string,
+  ): Promise<SetDefaultPaymentMethodResponseDto> {
+    // 1. Find tenant
+    const tenant = await this.tenantRepository.findOne({
+      where: { id: tenantId },
+    });
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
+    }
+
+    // 2. Verify billing setup
+    const subscription =
+      await this.subscriptionsService.getSubscription(tenantId);
+
+    if (!subscription?.stripeCustomerId) {
+      throw new BadRequestException('Tenant does not have billing configured');
+    }
+
+    // 3. Verify payment method ownership
+    const pm = await this.paymentsService.getPaymentMethod(
+      paymentMethodId,
+      subscription.stripeCustomerId,
+    );
+
+    // 4. Set as default
+    await this.paymentsService.setDefaultPaymentMethod(
+      subscription.stripeCustomerId,
+      paymentMethodId,
+    );
+
+    // 5. Audit log
+    await this.auditLogsService.log({
+      tenantId,
+      userId: null,
+      action: 'billing_payment_method_default_set',
+      resourceType: 'subscription',
+      resourceId: subscription.stripeCustomerId,
+      resourceName: tenant.name,
+      newValue: {
+        paymentMethodId,
+        last4: pm.card?.last4,
+        brand: pm.card?.brand,
+        adminId,
+      },
+    });
+
+    this.logger.log(
+      `Set default payment method ${paymentMethodId} for tenant ${tenant.name} by admin ${adminId}`,
+    );
+
+    return {
+      paymentMethodId,
+      message: `Successfully set payment method ending in ${pm.card?.last4 || '****'} as default`,
+    };
+  }
+
+  /**
+   * Delete a payment method from a tenant
+   * Cannot delete default or only payment method
+   */
+  async deletePaymentMethod(
+    tenantId: string,
+    paymentMethodId: string,
+    adminId: string,
+  ): Promise<DeletePaymentMethodResponseDto> {
+    // 1. Find tenant
+    const tenant = await this.tenantRepository.findOne({
+      where: { id: tenantId },
+    });
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
+    }
+
+    // 2. Verify billing setup
+    const subscription =
+      await this.subscriptionsService.getSubscription(tenantId);
+
+    if (!subscription?.stripeCustomerId) {
+      throw new BadRequestException('Tenant does not have billing configured');
+    }
+
+    // 3. Get payment method with ownership validation
+    const pm = await this.paymentsService.getPaymentMethod(
+      paymentMethodId,
+      subscription.stripeCustomerId,
+    );
+
+    // 4. Check if this is the default payment method
+    const defaultPm = await this.paymentsService.getDefaultPaymentMethod(
+      subscription.stripeCustomerId,
+    );
+
+    if (defaultPm?.id === paymentMethodId) {
+      throw new BadRequestException(
+        'Cannot delete default payment method. Set another method as default first.',
+      );
+    }
+
+    // 5. Check if this is the only payment method
+    const allPaymentMethods = await this.paymentsService.listPaymentMethods(
+      subscription.stripeCustomerId,
+    );
+
+    if (allPaymentMethods.length === 1) {
+      throw new BadRequestException(
+        'Cannot delete the only payment method on file.',
+      );
+    }
+
+    // 6. Detach payment method
+    await this.paymentsService.detachPaymentMethod(paymentMethodId);
+
+    // 7. Audit log
+    await this.auditLogsService.log({
+      tenantId,
+      userId: null,
+      action: 'billing_payment_method_deleted',
+      resourceType: 'subscription',
+      resourceId: subscription.stripeCustomerId,
+      resourceName: tenant.name,
+      oldValue: {
+        paymentMethodId,
+        last4: pm.card?.last4,
+        brand: pm.card?.brand,
+      },
+      newValue: {
+        adminId,
+        deletedAt: new Date().toISOString(),
+      },
+    });
+
+    this.logger.log(
+      `Deleted payment method ${paymentMethodId} for tenant ${tenant.name} by admin ${adminId}`,
+    );
+
+    return {
+      paymentMethodId,
+      message: `Successfully deleted payment method ending in ${pm.card?.last4 || '****'}`,
+    };
+  }
+
+  /**
+   * Map Stripe PaymentMethod to PaymentMethodDto
+   */
+  private mapPaymentMethod(
+    pm: Stripe.PaymentMethod,
+    defaultPmId: string | null,
+  ): PaymentMethodDto {
+    return {
+      id: pm.id,
+      brand: pm.card?.brand || 'unknown',
+      last4: pm.card?.last4 || '****',
+      expMonth: pm.card?.exp_month || 0,
+      expYear: pm.card?.exp_year || 0,
+      isDefault: pm.id === defaultPmId,
+      created: new Date(pm.created * 1000).toISOString(),
+    };
   }
 }
