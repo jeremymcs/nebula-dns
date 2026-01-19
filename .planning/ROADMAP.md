@@ -167,11 +167,11 @@ Plans:
   2. Admin sees error rate metrics and recent error list
   3. Admin sees aggregate query volume charts
   4. Dashboard data refreshes automatically on interval
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 15-01: TBD
-- [ ] 15-02: TBD
+- [ ] 15-01-PLAN.md — Hooks and service status cards
+- [ ] 15-02-PLAN.md — Error list, query chart, and auto-refresh
 
 ### Phase 16: MSP Onboarding Wizard
 **Goal**: Admin can onboard new MSPs through guided wizard
