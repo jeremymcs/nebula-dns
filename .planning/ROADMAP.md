@@ -136,11 +136,11 @@ Plans:
   2. Admin can click "Impersonate" on a search result to start session
   3. Admin sees clear visual indicator (banner/badge) when in impersonation mode
   4. Admin can click "End Impersonation" to return to admin context
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 13-01: TBD
-- [ ] 13-02: TBD
+- [ ] 13-01-PLAN.md — Search hook, dropdown component, and header integration
+- [ ] 13-02-PLAN.md — Impersonation banner and session management
 
 ### Phase 14: Billing Portal UI
 **Goal**: Admin can manage all billing aspects for tenants
@@ -207,7 +207,7 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16
 | 10. Payment Methods Backend | v1.1 | 1/1 | Complete | 2026-01-18 |
 | 11. MSP Listing UI | v1.1 | 2/2 | Complete | 2026-01-18 |
 | 12. MSP Detail UI | v1.1 | 2/2 | Complete | 2026-01-19 |
-| 13. Tenant Search & Impersonation UI | v1.1 | 0/2 | Not started | - |
+| 13. Tenant Search & Impersonation UI | v1.1 | 0/2 | Planned | - |
 | 14. Billing Portal UI | v1.1 | 0/3 | Not started | - |
 | 15. System Health UI | v1.1 | 0/2 | Not started | - |
 | 16. MSP Onboarding Wizard | v1.1 | 0/2 | Not started | - |
