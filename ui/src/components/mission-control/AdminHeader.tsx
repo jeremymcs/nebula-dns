@@ -10,6 +10,7 @@
 
 import { Fragment } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Menu, Transition } from '@headlessui/react'
 import {
   ArrowRightOnRectangleIcon,
@@ -41,6 +42,7 @@ function getInitials(name: string): string {
 export function AdminHeader() {
   const { admin, logout } = useAdminAuth()
   const { theme, setTheme } = useTheme()
+  const pathname = usePathname()
 
   return (
     <header className="sticky top-0 z-40 w-full">
@@ -64,6 +66,32 @@ export function AdminHeader() {
                 </span>
               </div>
             </Link>
+
+            {/* Navigation Links */}
+            <div className="hidden md:flex items-center gap-1 ml-4 border-l border-space-200 dark:border-space-700 pl-4">
+              <Link
+                href="/mission-control"
+                className={clsx(
+                  'px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                  pathname === '/mission-control'
+                    ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                    : 'text-space-600 dark:text-space-400 hover:bg-space-100 dark:hover:bg-space-800 hover:text-space-900 dark:hover:text-white'
+                )}
+              >
+                Dashboard
+              </Link>
+              <Link
+                href="/mission-control/msps"
+                className={clsx(
+                  'px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                  pathname?.startsWith('/mission-control/msps')
+                    ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                    : 'text-space-600 dark:text-space-400 hover:bg-space-100 dark:hover:bg-space-800 hover:text-space-900 dark:hover:text-white'
+                )}
+              >
+                MSPs
+              </Link>
+            </div>
           </div>
 
           {/* Right section */}
