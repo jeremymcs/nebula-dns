@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-18)
 
 ## Current Position
 
-Phase: 11 of 16 (MSP Listing UI) - COMPLETE
-Plan: 2 of 2 in phase - COMPLETE
-Status: Phase complete
-Last activity: 2026-01-19 - Completed 11-02-PLAN.md (MSP listing interactions)
+Phase: 12 of 16 (MSP Detail UI) - IN PROGRESS
+Plan: 1 of 2 in phase - COMPLETE
+Status: In progress
+Last activity: 2026-01-19 - Completed 12-01-PLAN.md (MSP detail foundation)
 
-Progress: [##############------] 70% (v1 complete, v1.1 plan 5 of 16)
+Progress: [###############-----] 75% (v1 complete, v1.1 plan 6 of 16)
 
 ## Performance Metrics
 
@@ -43,7 +43,7 @@ Progress: [##############------] 70% (v1 complete, v1.1 plan 5 of 16)
 | 09-admin-auth-ui | 2/2 | Complete |
 | 10-payment-methods-backend | 1/1 | Complete |
 | 11-msp-listing-ui | 2/2 | Complete |
-| 12-msp-detail-ui | 0/2 | Not started |
+| 12-msp-detail-ui | 1/2 | In progress |
 | 13-tenant-search-impersonation-ui | 0/2 | Not started |
 | 14-billing-portal-ui | 0/3 | Not started |
 | 15-system-health-ui | 0/2 | Not started |
@@ -79,6 +79,9 @@ Recent decisions affecting current work:
 - [11-02]: IntersectionObserver with sentinel element for infinite scroll (efficient, no scroll listeners)
 - [11-02]: URL state sync with router.replace for bookmarkable filter state
 - [11-02]: Navigation links visible on md+ screens with active state highlighting
+- [12-01]: Direct impersonation without confirmation dialog (per CONTEXT.md)
+- [12-01]: Impersonation storage: impersonation_token, impersonation_info JSON, overwrite token
+- [12-01]: View Billing placeholder toast until Phase 14
 
 ### Pending Todos
 
@@ -126,12 +129,18 @@ Phase 11-msp-listing-ui complete:
 - Row actions with View Details and Impersonate options
 - Header navigation with Dashboard and MSPs links
 
-**Total:** 5 plans complete
+Phase 12-msp-detail-ui plan 01 complete:
+- useAdminMspDetail hook for fetching MSP detail
+- startImpersonation function for initiating impersonation sessions
+- MSP detail page at /mission-control/msps/[id] with stat cards
+- View Billing and Impersonate action buttons
+
+**Total:** 6 plans complete
 
 ## Session Continuity
 
-Last session: 2026-01-19 02:12 UTC
-Stopped at: Completed 11-02-PLAN.md
+Last session: 2026-01-19 03:10 UTC
+Stopped at: Completed 12-01-PLAN.md
 Resume file: None
 
-Next: Execute Phase 12 (MSP Detail UI)
+Next: Execute Phase 12 Plan 02 (client list + usage charts)
