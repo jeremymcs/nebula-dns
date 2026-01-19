@@ -92,6 +92,17 @@ export function AdminHeader() {
               >
                 MSPs
               </Link>
+              <Link
+                href="/mission-control/health"
+                className={clsx(
+                  'px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                  pathname?.startsWith('/mission-control/health')
+                    ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                    : 'text-space-600 dark:text-space-400 hover:bg-space-100 dark:hover:bg-space-800 hover:text-space-900 dark:hover:text-white'
+                )}
+              >
+                Health
+              </Link>
             </div>
           </div>
 
