@@ -64,7 +64,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 12: MSP Detail UI** - Client list, usage metrics, action buttons
 - [x] **Phase 13: Tenant Search & Impersonation UI** - Search bar, impersonation flow, session indicator
 - [x] **Phase 14: Billing Portal UI** - Subscription status, invoices, credits, payment methods
-- [ ] **Phase 15: System Health UI** - Service status cards, error rates, metrics charts
+- [x] **Phase 15: System Health UI** - Service status cards, error rates, metrics charts
 - [ ] **Phase 16: MSP Onboarding Wizard** - Multi-step form with validation and confirmation
 
 ## Phase Details
@@ -170,8 +170,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 15-01-PLAN.md — Hooks and service status cards
-- [ ] 15-02-PLAN.md — Error list, query chart, and auto-refresh
+- [x] 15-01-PLAN.md — Hooks and service status cards
+- [x] 15-02-PLAN.md — Error list, query chart, and auto-refresh
 
 ### Phase 16: MSP Onboarding Wizard
 **Goal**: Admin can onboard new MSPs through guided wizard
@@ -209,7 +209,7 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16
 | 12. MSP Detail UI | v1.1 | 2/2 | Complete | 2026-01-19 |
 | 13. Tenant Search & Impersonation UI | v1.1 | 2/2 | Complete | 2026-01-19 |
 | 14. Billing Portal UI | v1.1 | 3/3 | Complete | 2026-01-19 |
-| 15. System Health UI | v1.1 | 0/2 | Not started | - |
+| 15. System Health UI | v1.1 | 2/2 | Complete | 2026-01-19 |
 | 16. MSP Onboarding Wizard | v1.1 | 0/2 | Not started | - |
 
 ---
