@@ -305,3 +305,124 @@ export function useAdminTenantSearch(query: string, limit: number = 8) {
     }
   )
 }
+
+// ============================================
+// System Health Types
+// ============================================
+
+export type ServiceHealthStatus = 'healthy' | 'degraded' | 'unhealthy'
+
+export interface ServiceStatus {
+  name: string
+  status: ServiceHealthStatus
+  latencyMs?: number
+  error?: string
+  lastChecked: string
+}
+
+export interface StorageStatus {
+  clickhouse: {
+    connected: boolean
+    latencyMs?: number
+    consecutiveFailures: number
+    error?: string
+  }
+  redis: {
+    connected: boolean
+    latencyMs?: number
+    error?: string
+  }
+}
+
+export interface ErrorWindow {
+  errorCount: number
+  totalQueries: number
+  errorRate: number
+}
+
+export interface ErrorRates {
+  lastHour: ErrorWindow
+  last24Hours: ErrorWindow
+  isMockData: boolean
+}
+
+export interface QueryVolume {
+  totalQueries: number
+  blockedQueries: number
+  allowedQueries: number
+  period: '1h' | '24h'
+  isMockData: boolean
+}
+
+export interface SystemHealthResponse {
+  overallStatus: ServiceHealthStatus
+  services: ServiceStatus[]
+  storage: StorageStatus
+  errorRates: ErrorRates
+  queryVolume: QueryVolume
+  timestamp: string
+}
+
+export interface RecentError {
+  timestamp: string
+  domain: string
+  reason: string
+  clientIp: string
+  tenantId: string
+}
+
+// ============================================
+// System Health Hooks
+// ============================================
+
+export interface UseAdminSystemHealthParams {
+  period?: '1h' | '24h'
+  refreshInterval?: number
+  isPaused?: boolean
+}
+
+/**
+ * Fetch system health status with auto-refresh support
+ * @param params - Query parameters for period and refresh behavior
+ * @returns SWR response with system health data
+ */
+export function useAdminSystemHealth(params?: UseAdminSystemHealthParams) {
+  const period = params?.period || '24h'
+  const refreshInterval = params?.refreshInterval ?? 30000
+  const isPaused = params?.isPaused ?? false
+
+  const endpoint = `/admin/system/health?period=${period}`
+
+  return useSWR<SystemHealthResponse>(
+    endpoint,
+    adminFetcher,
+    {
+      ...defaultConfig,
+      refreshInterval: isPaused ? 0 : refreshInterval,
+    }
+  )
+}
+
+/**
+ * Fetch recent errors with auto-refresh support
+ * @param limit - Maximum number of errors to fetch (1-100)
+ * @param refreshInterval - Refresh interval in ms (0 to disable)
+ * @param isPaused - Whether to pause auto-refresh
+ * @returns SWR response with recent errors
+ */
+export function useAdminRecentErrors(
+  limit: number = 25,
+  refreshInterval: number = 30000,
+  isPaused: boolean = false
+) {
+  const endpoint = `/admin/system/errors?limit=${Math.min(Math.max(limit, 1), 100)}`
+
+  return useSWR<RecentError[]>(
+    endpoint,
+    adminFetcher,
+    {
+      ...defaultConfig,
+      refreshInterval: isPaused ? 0 : refreshInterval,
+    }
+  )
+}
