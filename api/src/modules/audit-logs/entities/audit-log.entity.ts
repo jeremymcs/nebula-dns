@@ -48,7 +48,10 @@ export type AuditAction =
   | 'billing_credit_applied'
   | 'billing_tier_changed'
   | 'billing_trial_extended'
-  | 'billing_grace_extended';
+  | 'billing_grace_extended'
+  | 'billing_setup_intent_created'
+  | 'billing_payment_method_default_set'
+  | 'billing_payment_method_deleted';
 
 export type AuditResourceType =
   | 'user'
