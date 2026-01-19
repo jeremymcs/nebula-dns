@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-18)
 
 ## Current Position
 
-Phase: 13 of 16 (Tenant Search and Impersonation UI) - COMPLETE
-Plan: 2 of 2 in phase - COMPLETE
-Status: Phase complete
-Last activity: 2026-01-19 - Completed 13-02-PLAN.md (impersonation banner and session management)
+Phase: 14 of 16 (Billing Portal UI) - IN PROGRESS
+Plan: 1 of 3 in phase - COMPLETE
+Status: In progress
+Last activity: 2026-01-19 - Completed 14-01-PLAN.md (billing page foundation)
 
-Progress: [##################--] 90% (v1 complete, v1.1 plan 9 of 16)
+Progress: [##################--] 91% (v1 complete, v1.1 plan 10 of 16)
 
 ## Performance Metrics
 
@@ -45,7 +45,7 @@ Progress: [##################--] 90% (v1 complete, v1.1 plan 9 of 16)
 | 11-msp-listing-ui | 2/2 | Complete |
 | 12-msp-detail-ui | 2/2 | Complete |
 | 13-tenant-search-impersonation-ui | 2/2 | Complete |
-| 14-billing-portal-ui | 0/3 | Not started |
+| 14-billing-portal-ui | 1/3 | In progress |
 | 15-system-health-ui | 0/2 | Not started |
 | 16-msp-onboarding-wizard | 0/2 | Not started |
 
@@ -90,6 +90,10 @@ Recent decisions affecting current work:
 - [13-02]: Amber banner (bg-amber-500) for high visibility during impersonation
 - [13-02]: Eye icon for 'viewing as' semantic (instead of arrows)
 - [13-02]: No dismiss option on impersonation banner (per CONTEXT.md)
+- [14-01]: Separate useAdminBilling.ts file for billing-specific hooks
+- [14-01]: Billing page uses /tenants/[id]/billing route for both MSPs and clients
+- [14-01]: Alert banners: red for canceled/paused, amber for past_due/grace period
+- [14-01]: Credit balance shown as stat card with inline Add button
 
 ### Pending Todos
 
@@ -157,12 +161,19 @@ Phase 13-tenant-search-impersonation-ui complete:
 - ImpersonationBanner component with tenant name and tier
 - Banner integrated into DashboardLayout
 
-**Total:** 9 plans complete
+Phase 14-billing-portal-ui (Plan 01 complete):
+- useAdminBilling.ts with SWR hooks for billing endpoints
+- Billing page at /mission-control/tenants/[id]/billing
+- Subscription status stat cards (tier, status, cycle, credits)
+- Alert banners for critical billing states
+- View Billing navigation from MSP detail page
+
+**Total:** 10 plans complete
 
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: Completed 13-02-PLAN.md
+Stopped at: Completed 14-01-PLAN.md
 Resume file: None
 
-Next: Execute Phase 14 (Billing Portal UI)
+Next: Execute Plan 14-02 (Invoice History and Actions)
