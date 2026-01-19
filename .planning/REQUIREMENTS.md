@@ -67,10 +67,10 @@ Requirements for Mission Control frontend integration. Each maps to roadmap phas
 
 ### System Health Dashboard
 
-- [ ] **HEALTH-01**: Admin can view DNS service status (up/down/degraded)
-- [ ] **HEALTH-02**: Admin can view error rates and recent errors
-- [ ] **HEALTH-03**: Admin can view aggregate query volume metrics
-- [ ] **HEALTH-04**: Dashboard auto-refreshes health data
+- [x] **HEALTH-01**: Admin can view DNS service status (up/down/degraded)
+- [x] **HEALTH-02**: Admin can view error rates and recent errors
+- [x] **HEALTH-03**: Admin can view aggregate query volume metrics
+- [x] **HEALTH-04**: Dashboard auto-refreshes health data
 
 ## v2 Requirements
 
@@ -143,10 +143,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PAY-04 | Phase 14 | Complete |
 | PAY-05 | Phase 14 | Complete |
 | PAY-06 | Phase 14 | Complete |
-| HEALTH-01 | Phase 15 | Pending |
-| HEALTH-02 | Phase 15 | Pending |
-| HEALTH-03 | Phase 15 | Pending |
-| HEALTH-04 | Phase 15 | Pending |
+| HEALTH-01 | Phase 15 | Complete |
+| HEALTH-02 | Phase 15 | Complete |
+| HEALTH-03 | Phase 15 | Complete |
+| HEALTH-04 | Phase 15 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 35 total
@@ -155,4 +155,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-18*
-*Last updated: 2026-01-19 after Phase 14 completion*
+*Last updated: 2026-01-19 after Phase 15 completion*
