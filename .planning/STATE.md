@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-18)
 
 ## Current Position
 
-Phase: 14 of 16 (Billing Portal UI) - COMPLETE
-Plan: 3 of 3 in phase - COMPLETE
-Status: Phase complete
-Last activity: 2026-01-19 - Completed 14-03-PLAN.md (payment method management)
+Phase: 15 of 16 (System Health UI) - IN PROGRESS
+Plan: 1 of 2 in phase - COMPLETE
+Status: In progress
+Last activity: 2026-01-19 - Completed 15-01-PLAN.md (hooks and service status cards)
 
-Progress: [###################-] 94% (v1 complete, v1.1 plan 12 of 16)
+Progress: [###################-] 94% (v1 complete, v1.1 plan 13 of 16)
 
 ## Performance Metrics
 
@@ -46,7 +46,7 @@ Progress: [###################-] 94% (v1 complete, v1.1 plan 12 of 16)
 | 12-msp-detail-ui | 2/2 | Complete |
 | 13-tenant-search-impersonation-ui | 2/2 | Complete |
 | 14-billing-portal-ui | 3/3 | Complete |
-| 15-system-health-ui | 0/2 | Not started |
+| 15-system-health-ui | 1/2 | In progress |
 | 16-msp-onboarding-wizard | 0/2 | Not started |
 
 *Updated after each plan completion*
@@ -101,6 +101,9 @@ Recent decisions affecting current work:
 - [14-03]: Use stripePromise lazy-loading from NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 - [14-03]: Card brand colors: Visa=blue, Mastercard=orange, Amex=blue
 - [14-03]: SetupIntent flow for secure Stripe Elements card collection
+- [15-01]: 30-second auto-refresh interval with pause toggle for system health
+- [15-01]: Combine services array and storage object into unified card grid
+- [15-01]: Show quick stats row below service cards for at-a-glance metrics
 
 ### Pending Todos
 
@@ -179,12 +182,21 @@ Phase 14-billing-portal-ui complete:
 - PaymentMethodList with card tiles and action menus
 - AddPaymentMethodModal with SetupIntent flow
 
-**Total:** 12 plans complete
+Phase 15-system-health-ui in progress (1/2):
+- useAdminSystemHealth hook with auto-refresh support
+- useAdminRecentErrors hook with configurable limit
+- System Health page at /mission-control/health
+- 5 service status cards with traffic light indicators
+- Quick stats row for query volumes and error rates
+- Pause/Resume auto-refresh toggle
+- Health navigation link in AdminHeader
+
+**Total:** 13 plans complete
 
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: Completed 14-03-PLAN.md
+Stopped at: Completed 15-01-PLAN.md
 Resume file: None
 
-Next: Execute Phase 15 (System Health UI)
+Next: Execute 15-02-PLAN.md (Error Log and Query Charts)
