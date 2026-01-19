@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-18)
 
 **Core value:** Enable ops team to manage MSPs entirely through the UI — onboarding, billing, usage monitoring — without CLI or direct API calls.
-**Current focus:** Phase 12 (MSP Detail UI)
+**Current focus:** Phase 13 (Tenant Search and Impersonation UI)
 
 ## Current Position
 
-Phase: 12 of 16 (MSP Detail UI) - IN PROGRESS
-Plan: 1 of 2 in phase - COMPLETE
-Status: In progress
-Last activity: 2026-01-19 - Completed 12-01-PLAN.md (MSP detail foundation)
+Phase: 12 of 16 (MSP Detail UI) - COMPLETE
+Plan: 2 of 2 in phase - COMPLETE
+Status: Phase complete
+Last activity: 2026-01-19 - Completed 12-02-PLAN.md (client list + usage charts)
 
-Progress: [###############-----] 75% (v1 complete, v1.1 plan 6 of 16)
+Progress: [################----] 80% (v1 complete, v1.1 plan 7 of 16)
 
 ## Performance Metrics
 
@@ -43,7 +43,7 @@ Progress: [###############-----] 75% (v1 complete, v1.1 plan 6 of 16)
 | 09-admin-auth-ui | 2/2 | Complete |
 | 10-payment-methods-backend | 1/1 | Complete |
 | 11-msp-listing-ui | 2/2 | Complete |
-| 12-msp-detail-ui | 1/2 | In progress |
+| 12-msp-detail-ui | 2/2 | Complete |
 | 13-tenant-search-impersonation-ui | 0/2 | Not started |
 | 14-billing-portal-ui | 0/3 | Not started |
 | 15-system-health-ui | 0/2 | Not started |
@@ -82,6 +82,8 @@ Recent decisions affecting current work:
 - [12-01]: Direct impersonation without confirmation dialog (per CONTEXT.md)
 - [12-01]: Impersonation storage: impersonation_token, impersonation_info JSON, overwrite token
 - [12-01]: View Billing placeholder toast until Phase 14
+- [12-02]: Period toggle affects both MSP detail fetch and client list fetch
+- [12-02]: Mock chart data generated from aggregate usage metrics
 
 ### Pending Todos
 
@@ -129,18 +131,22 @@ Phase 11-msp-listing-ui complete:
 - Row actions with View Details and Impersonate options
 - Header navigation with Dashboard and MSPs links
 
-Phase 12-msp-detail-ui plan 01 complete:
-- useAdminMspDetail hook for fetching MSP detail
+Phase 12-msp-detail-ui complete:
+- useAdminMspDetail hook for fetching MSP detail with period param
 - startImpersonation function for initiating impersonation sessions
+- useAdminMspClients hook for fetching MSP's client list
 - MSP detail page at /mission-control/msps/[id] with stat cards
+- Client list table with search, filter, action menus
+- Query Volume and Blocked vs Allowed usage charts
+- Period toggle (24h/7d/30d) affecting charts and client queries
 - View Billing and Impersonate action buttons
 
-**Total:** 6 plans complete
+**Total:** 7 plans complete
 
 ## Session Continuity
 
-Last session: 2026-01-19 03:10 UTC
-Stopped at: Completed 12-01-PLAN.md
+Last session: 2026-01-19
+Stopped at: Completed 12-02-PLAN.md
 Resume file: None
 
-Next: Execute Phase 12 Plan 02 (client list + usage charts)
+Next: Execute Phase 13 (Tenant Search and Impersonation UI)
