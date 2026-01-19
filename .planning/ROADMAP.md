@@ -92,10 +92,10 @@ Plans:
   1. Admin can call GET endpoint to list tenant's payment methods
   2. Admin can call POST endpoint to add payment method via Stripe
   3. Admin can call PATCH endpoint to set default payment method
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 10-01: TBD
+- [ ] 10-01-PLAN.md — Payment method Stripe integration and admin endpoints
 
 ### Phase 11: MSP Listing UI
 **Goal**: Admin can browse and search all MSP accounts
@@ -204,7 +204,7 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16
 | 7. MSP Onboarding | v1.0 | 2/2 | Complete | 2026-01-18 |
 | 8. Billing Operations | v1.0 | 3/3 | Complete | 2026-01-18 |
 | 9. Admin Auth UI | v1.1 | 2/2 | Complete | 2026-01-18 |
-| 10. Payment Methods Backend | v1.1 | 0/1 | Not started | - |
+| 10. Payment Methods Backend | v1.1 | 0/1 | Planned | - |
 | 11. MSP Listing UI | v1.1 | 0/2 | Not started | - |
 | 12. MSP Detail UI | v1.1 | 0/2 | Not started | - |
 | 13. Tenant Search & Impersonation UI | v1.1 | 0/2 | Not started | - |
