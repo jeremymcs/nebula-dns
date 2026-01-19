@@ -41,11 +41,11 @@ Requirements for Mission Control frontend integration. Each maps to roadmap phas
 
 ### Tenant Search & Impersonation
 
-- [ ] **IMP-01**: Admin can search tenants by name, email, or ID
-- [ ] **IMP-02**: Admin sees search results with tenant details
-- [ ] **IMP-03**: Admin can start impersonation session from search results
-- [ ] **IMP-04**: Admin sees visual indicator when in impersonation mode
-- [ ] **IMP-05**: Admin can end impersonation and return to admin context
+- [x] **IMP-01**: Admin can search tenants by name, email, or ID
+- [x] **IMP-02**: Admin sees search results with tenant details
+- [x] **IMP-03**: Admin can start impersonation session from search results
+- [x] **IMP-04**: Admin sees visual indicator when in impersonation mode
+- [x] **IMP-05**: Admin can end impersonation and return to admin context
 
 ### Billing Portal
 
@@ -126,11 +126,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DETAIL-03 | Phase 12 | Complete |
 | DETAIL-04 | Phase 12 | Complete |
 | DETAIL-05 | Phase 12 | Complete |
-| IMP-01 | Phase 13 | Pending |
-| IMP-02 | Phase 13 | Pending |
-| IMP-03 | Phase 13 | Pending |
-| IMP-04 | Phase 13 | Pending |
-| IMP-05 | Phase 13 | Pending |
+| IMP-01 | Phase 13 | Complete |
+| IMP-02 | Phase 13 | Complete |
+| IMP-03 | Phase 13 | Complete |
+| IMP-04 | Phase 13 | Complete |
+| IMP-05 | Phase 13 | Complete |
 | BILL-01 | Phase 14 | Pending |
 | BILL-02 | Phase 14 | Pending |
 | BILL-03 | Phase 14 | Pending |
@@ -155,4 +155,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-18*
-*Last updated: 2026-01-19 after Phase 12 completion*
+*Last updated: 2026-01-19 after Phase 13 completion*
