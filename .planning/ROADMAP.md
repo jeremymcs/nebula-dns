@@ -63,7 +63,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 11: MSP Listing UI** - Paginated MSP table with search and navigation
 - [x] **Phase 12: MSP Detail UI** - Client list, usage metrics, action buttons
 - [x] **Phase 13: Tenant Search & Impersonation UI** - Search bar, impersonation flow, session indicator
-- [ ] **Phase 14: Billing Portal UI** - Subscription status, invoices, credits, payment methods
+- [x] **Phase 14: Billing Portal UI** - Subscription status, invoices, credits, payment methods
 - [ ] **Phase 15: System Health UI** - Service status cards, error rates, metrics charts
 - [ ] **Phase 16: MSP Onboarding Wizard** - Multi-step form with validation and confirmation
 
@@ -154,9 +154,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 14-01-PLAN.md — Billing hooks and page foundation with subscription status cards
-- [ ] 14-02-PLAN.md — Invoice history table and billing action modals
-- [ ] 14-03-PLAN.md — Payment methods management with Stripe Elements
+- [x] 14-01-PLAN.md — Billing hooks and page foundation with subscription status cards
+- [x] 14-02-PLAN.md — Invoice history table and billing action modals
+- [x] 14-03-PLAN.md — Payment methods management with Stripe Elements
 
 ### Phase 15: System Health UI
 **Goal**: Admin can monitor DNS infrastructure health
@@ -208,7 +208,7 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16
 | 11. MSP Listing UI | v1.1 | 2/2 | Complete | 2026-01-18 |
 | 12. MSP Detail UI | v1.1 | 2/2 | Complete | 2026-01-19 |
 | 13. Tenant Search & Impersonation UI | v1.1 | 2/2 | Complete | 2026-01-19 |
-| 14. Billing Portal UI | v1.1 | 0/3 | Not started | - |
+| 14. Billing Portal UI | v1.1 | 3/3 | Complete | 2026-01-19 |
 | 15. System Health UI | v1.1 | 0/2 | Not started | - |
 | 16. MSP Onboarding Wizard | v1.1 | 0/2 | Not started | - |
 

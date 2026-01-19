@@ -49,21 +49,21 @@ Requirements for Mission Control frontend integration. Each maps to roadmap phas
 
 ### Billing Portal
 
-- [ ] **BILL-01**: Admin can view tenant subscription status
-- [ ] **BILL-02**: Admin can view invoice history with download links
-- [ ] **BILL-03**: Admin can apply credits to tenant account
-- [ ] **BILL-04**: Admin can change tenant tier
-- [ ] **BILL-05**: Admin can extend trial period
-- [ ] **BILL-06**: Admin can extend grace period
+- [x] **BILL-01**: Admin can view tenant subscription status
+- [x] **BILL-02**: Admin can view invoice history with download links
+- [x] **BILL-03**: Admin can apply credits to tenant account
+- [x] **BILL-04**: Admin can change tenant tier
+- [x] **BILL-05**: Admin can extend trial period
+- [x] **BILL-06**: Admin can extend grace period
 
 ### Payment Methods (NEW Backend Required)
 
 - [x] **PAY-01**: Backend endpoint to list tenant payment methods
 - [x] **PAY-02**: Backend endpoint to add payment method (via Stripe)
 - [x] **PAY-03**: Backend endpoint to set default payment method
-- [ ] **PAY-04**: Admin can view tenant's payment methods in UI
-- [ ] **PAY-05**: Admin can add payment method for tenant
-- [ ] **PAY-06**: Admin can set default payment method for tenant
+- [x] **PAY-04**: Admin can view tenant's payment methods in UI
+- [x] **PAY-05**: Admin can add payment method for tenant
+- [x] **PAY-06**: Admin can set default payment method for tenant
 
 ### System Health Dashboard
 
@@ -131,18 +131,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IMP-03 | Phase 13 | Complete |
 | IMP-04 | Phase 13 | Complete |
 | IMP-05 | Phase 13 | Complete |
-| BILL-01 | Phase 14 | Pending |
-| BILL-02 | Phase 14 | Pending |
-| BILL-03 | Phase 14 | Pending |
-| BILL-04 | Phase 14 | Pending |
-| BILL-05 | Phase 14 | Pending |
-| BILL-06 | Phase 14 | Pending |
+| BILL-01 | Phase 14 | Complete |
+| BILL-02 | Phase 14 | Complete |
+| BILL-03 | Phase 14 | Complete |
+| BILL-04 | Phase 14 | Complete |
+| BILL-05 | Phase 14 | Complete |
+| BILL-06 | Phase 14 | Complete |
 | PAY-01 | Phase 10 | Complete |
 | PAY-02 | Phase 10 | Complete |
 | PAY-03 | Phase 10 | Complete |
-| PAY-04 | Phase 14 | Pending |
-| PAY-05 | Phase 14 | Pending |
-| PAY-06 | Phase 14 | Pending |
+| PAY-04 | Phase 14 | Complete |
+| PAY-05 | Phase 14 | Complete |
+| PAY-06 | Phase 14 | Complete |
 | HEALTH-01 | Phase 15 | Pending |
 | HEALTH-02 | Phase 15 | Pending |
 | HEALTH-03 | Phase 15 | Pending |
@@ -155,4 +155,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-18*
-*Last updated: 2026-01-19 after Phase 13 completion*
+*Last updated: 2026-01-19 after Phase 14 completion*
