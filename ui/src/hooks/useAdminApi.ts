@@ -192,3 +192,62 @@ export async function startImpersonation(tenantId: string): Promise<StartImperso
 
   return res.json()
 }
+
+// ============================================
+// MSP Client Types
+// ============================================
+
+export interface MspClient {
+  id: string
+  name: string
+  status: 'active' | 'suspended' | 'cancelled'
+  tier: 'home' | 'enterprise' | 'msp'
+  contactEmail?: string
+  locationCount: number
+  userCount: number
+  totalQueries: number
+  blockedQueries: number
+  createdAt: string
+}
+
+export interface MspClientListPagination {
+  cursor: string | null
+  hasMore: boolean
+  total: number
+}
+
+export interface MspClientListResponse {
+  data: MspClient[]
+  pagination: MspClientListPagination
+}
+
+// ============================================
+// MSP Client Hooks
+// ============================================
+
+export interface UseAdminMspClientsParams {
+  q?: string
+  status?: string
+  limit?: number
+  cursor?: string
+  period?: '24h' | '7d' | '30d' | '90d'
+}
+
+/**
+ * Fetch paginated list of clients for a specific MSP tenant
+ * @param mspId - MSP tenant UUID
+ * @param params - Query parameters for search, status filter, period, and pagination
+ * @returns SWR response with client listing data
+ */
+export function useAdminMspClients(mspId: string, params?: UseAdminMspClientsParams) {
+  const searchParams = new URLSearchParams()
+  if (params?.q) searchParams.set('q', params.q)
+  if (params?.status) searchParams.set('status', params.status)
+  if (params?.limit) searchParams.set('limit', params.limit.toString())
+  if (params?.cursor) searchParams.set('cursor', params.cursor)
+  if (params?.period) searchParams.set('period', params.period)
+  const query = searchParams.toString()
+  const endpoint = `/admin/msp/tenants/${mspId}/clients${query ? `?${query}` : ''}`
+
+  return useSWR<MspClientListResponse>(endpoint, adminFetcher, defaultConfig)
+}
