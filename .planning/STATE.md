@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-18)
 
 ## Current Position
 
-Phase: 10 of 16 (Payment Methods Backend) - COMPLETE
-Plan: 1 of 1 in current phase
-Status: Phase 10 complete, ready for Phase 11
-Last activity: 2026-01-19 - Completed 10-01-PLAN.md (Payment Methods Backend)
+Phase: 11 of 16 (MSP Listing UI)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-01-19 - Completed 11-01-PLAN.md (Admin API hooks + MSP listing page)
 
-Progress: [############--------] 60% (v1 complete, v1.1 plan 3 of 16)
+Progress: [#############-------] 65% (v1 complete, v1.1 plan 4 of 16)
 
 ## Performance Metrics
 
@@ -42,7 +42,7 @@ Progress: [############--------] 60% (v1 complete, v1.1 plan 3 of 16)
 |-------|-------|--------|
 | 09-admin-auth-ui | 2/2 | Complete |
 | 10-payment-methods-backend | 1/1 | Complete |
-| 11-msp-listing-ui | 0/2 | Not started |
+| 11-msp-listing-ui | 1/2 | In progress |
 | 12-msp-detail-ui | 0/2 | Not started |
 | 13-tenant-search-impersonation-ui | 0/2 | Not started |
 | 14-billing-portal-ui | 0/3 | Not started |
@@ -74,6 +74,8 @@ Recent decisions affecting current work:
 - [10-01]: Auto-create Stripe customer if tenant has no stripeCustomerId during SetupIntent creation
 - [10-01]: Include DELETE endpoint with protection (cannot delete default or only payment method)
 - [10-01]: Cards only for Phase 10 (bank accounts can be added later)
+- [11-01]: Separate useAdminApi.ts file for admin hooks (cleaner separation from tenant useApi.ts)
+- [11-01]: Admin pages use admin_token localStorage key for authentication
 
 ### Pending Todos
 
@@ -112,12 +114,17 @@ Phase 10-payment-methods-backend complete:
 - Four new API endpoints under /admin/tenants/:tenantId/billing/payment-methods/*
 - Protection logic for default/only payment method deletion
 
-**Total:** 3 plans complete
+Phase 11-msp-listing-ui plan 01 complete:
+- Admin-specific SWR hooks with adminFetcher using admin_token
+- useAdminMspList hook with search/status/pagination parameters
+- MSP listing page at /mission-control/msps with search, filter, table
+
+**Total:** 4 plans complete
 
 ## Session Continuity
 
-Last session: 2026-01-19 01:00 UTC
-Stopped at: Completed 10-01-PLAN.md
+Last session: 2026-01-19 01:11 UTC
+Stopped at: Completed 11-01-PLAN.md
 Resume file: None
 
-Next: Execute Phase 11 (MSP Listing UI)
+Next: Execute 11-02-PLAN.md (MSP row actions and detail navigation)
