@@ -20,14 +20,30 @@ import {
   ClockIcon,
 } from '@heroicons/react/24/outline'
 import { Card, Badge, Skeleton } from '@/components/ui'
-import { useAdminSubscriptionStatus, useAdminPaymentMethods, SubscriptionStatus } from '@/hooks/useAdminBilling'
+import {
+  useAdminSubscriptionStatus,
+  useAdminPaymentMethods,
+  useAdminInvoices,
+  SubscriptionStatus,
+  CreditAppliedResponse,
+  TierChangeResponse,
+  ExtensionResponse,
+} from '@/hooks/useAdminBilling'
 import { PaymentMethodList } from '@/components/billing/PaymentMethodList'
 import { AddPaymentMethodModal } from '@/components/billing/AddPaymentMethodModal'
+import { InvoiceTable } from '@/components/billing/InvoiceTable'
+import { ApplyCreditModal } from '@/components/billing/ApplyCreditModal'
+import { ChangeTierModal } from '@/components/billing/ChangeTierModal'
+import { ExtendTrialModal } from '@/components/billing/ExtendTrialModal'
+import { ExtendGraceModal } from '@/components/billing/ExtendGraceModal'
 import { useToast } from '@/components/Toast'
 
 interface BillingPageProps {
   params: { id: string }
 }
+
+// Modal types
+type ActiveModal = 'payment' | 'credit' | 'tier' | 'trial' | 'grace' | null
 
 /**
  * Get Badge variant based on subscription status
@@ -70,6 +86,14 @@ function formatCurrency(cents: number, currency: string = 'USD'): string {
     style: 'currency',
     currency: currency.toUpperCase(),
   }).format(amount)
+}
+
+/**
+ * Check if trial is still active (not expired)
+ */
+function isTrialActive(trialEnd?: string): boolean {
+  if (!trialEnd) return false
+  return new Date(trialEnd) > new Date()
 }
 
 /**
@@ -119,27 +143,54 @@ export default function BillingPage({ params }: BillingPageProps) {
   const { showToast } = useToast()
 
   // Modal state
-  const [activeModal, setActiveModal] = useState<'payment' | null>(null)
+  const [activeModal, setActiveModal] = useState<ActiveModal>(null)
 
+  // Data fetching
   const { data: subscription, isLoading, error, mutate } = useAdminSubscriptionStatus(tenantId)
   const {
     data: paymentMethodsData,
     isLoading: isLoadingPaymentMethods,
     mutate: mutatePaymentMethods,
   } = useAdminPaymentMethods(tenantId)
+  const { mutate: mutateInvoices } = useAdminInvoices(tenantId)
 
   /**
-   * Placeholder for Change Tier action
+   * Handle successful credit application
    */
-  const handleChangeTier = () => {
-    showToast('info', 'Tier change modal coming in Plan 14-02')
+  const handleCreditSuccess = (response: CreditAppliedResponse) => {
+    showToast('success', `Credit of ${formatCurrency(response.amountApplied)} applied successfully`)
+    mutate() // Refresh subscription data to show new balance
+    setActiveModal(null)
   }
 
   /**
-   * Placeholder for Add Credit action
+   * Handle successful tier change
    */
-  const handleAddCredit = () => {
-    showToast('info', 'Credit application modal coming in Plan 14-02')
+  const handleTierSuccess = (response: TierChangeResponse) => {
+    showToast(
+      'success',
+      `Tier changed from ${response.previousTier} to ${response.newTier}. Effective ${response.effectiveAt === 'immediate' ? 'immediately' : 'at end of billing period'}.`
+    )
+    mutate() // Refresh subscription data
+    setActiveModal(null)
+  }
+
+  /**
+   * Handle successful trial extension
+   */
+  const handleTrialSuccess = (response: ExtensionResponse) => {
+    showToast('success', `Trial extended by ${response.daysAdded} days. New end date: ${formatDate(response.newEndDate)}`)
+    mutate() // Refresh subscription data
+    setActiveModal(null)
+  }
+
+  /**
+   * Handle successful grace period extension
+   */
+  const handleGraceSuccess = (response: ExtensionResponse) => {
+    showToast('success', `Grace period extended by ${response.daysAdded} days. New end date: ${formatDate(response.newEndDate)}`)
+    mutate() // Refresh subscription data
+    setActiveModal(null)
   }
 
   /**
@@ -297,7 +348,7 @@ export default function BillingPage({ params }: BillingPageProps) {
                 : 'text-warning-600 dark:text-warning-400'
             )}
           />
-          <div>
+          <div className="flex-1">
             <p
               className={clsx(
                 'font-medium',
@@ -308,6 +359,15 @@ export default function BillingPage({ params }: BillingPageProps) {
             >
               {getAlertMessage()}
             </p>
+            {/* Extension buttons in alert banner */}
+            {subscription?.gracePeriod && (
+              <button
+                onClick={() => setActiveModal('grace')}
+                className="mt-2 text-sm font-medium text-warning-700 dark:text-warning-300 hover:underline"
+              >
+                Extend Grace Period
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -347,7 +407,7 @@ export default function BillingPage({ params }: BillingPageProps) {
                 </div>
               </div>
               <button
-                onClick={handleChangeTier}
+                onClick={() => setActiveModal('tier')}
                 className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:underline"
               >
                 Change
@@ -418,7 +478,7 @@ export default function BillingPage({ params }: BillingPageProps) {
                 </div>
               </div>
               <button
-                onClick={handleAddCredit}
+                onClick={() => setActiveModal('credit')}
                 className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:underline"
               >
                 Add
@@ -452,61 +512,81 @@ export default function BillingPage({ params }: BillingPageProps) {
 
           {/* Trial End */}
           <Card variant="glass" padding="md">
-            <div className="flex items-center gap-3">
-              <div
-                className={clsx(
-                  'p-2 rounded-lg',
-                  subscription.trialEnd
-                    ? 'bg-primary-100 dark:bg-primary-900/30'
-                    : 'bg-space-100 dark:bg-space-800'
-                )}
-              >
-                <ClockIcon
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div
                   className={clsx(
-                    'h-5 w-5',
+                    'p-2 rounded-lg',
                     subscription.trialEnd
-                      ? 'text-primary-600 dark:text-primary-400'
-                      : 'text-space-400'
+                      ? 'bg-primary-100 dark:bg-primary-900/30'
+                      : 'bg-space-100 dark:bg-space-800'
                   )}
-                />
+                >
+                  <ClockIcon
+                    className={clsx(
+                      'h-5 w-5',
+                      subscription.trialEnd
+                        ? 'text-primary-600 dark:text-primary-400'
+                        : 'text-space-400'
+                    )}
+                  />
+                </div>
+                <div>
+                  <p className="text-xs text-space-500 dark:text-space-400">Trial Ends</p>
+                  <p className="text-sm font-medium text-space-900 dark:text-white">
+                    {subscription.trialEnd ? formatDate(subscription.trialEnd) : 'No trial'}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-space-500 dark:text-space-400">Trial Ends</p>
-                <p className="text-sm font-medium text-space-900 dark:text-white">
-                  {subscription.trialEnd ? formatDate(subscription.trialEnd) : 'No trial'}
-                </p>
-              </div>
+              {isTrialActive(subscription.trialEnd) && (
+                <button
+                  onClick={() => setActiveModal('trial')}
+                  className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:underline"
+                >
+                  Extend
+                </button>
+              )}
             </div>
           </Card>
 
           {/* Grace Period */}
           <Card variant="glass" padding="md">
-            <div className="flex items-center gap-3">
-              <div
-                className={clsx(
-                  'p-2 rounded-lg',
-                  subscription.gracePeriod
-                    ? 'bg-warning-100 dark:bg-warning-900/30'
-                    : 'bg-space-100 dark:bg-space-800'
-                )}
-              >
-                <ExclamationTriangleIcon
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div
                   className={clsx(
-                    'h-5 w-5',
+                    'p-2 rounded-lg',
                     subscription.gracePeriod
-                      ? 'text-warning-600 dark:text-warning-400'
-                      : 'text-space-400'
+                      ? 'bg-warning-100 dark:bg-warning-900/30'
+                      : 'bg-space-100 dark:bg-space-800'
                   )}
-                />
+                >
+                  <ExclamationTriangleIcon
+                    className={clsx(
+                      'h-5 w-5',
+                      subscription.gracePeriod
+                        ? 'text-warning-600 dark:text-warning-400'
+                        : 'text-space-400'
+                    )}
+                  />
+                </div>
+                <div>
+                  <p className="text-xs text-space-500 dark:text-space-400">Grace Period</p>
+                  <p className="text-sm font-medium text-space-900 dark:text-white">
+                    {subscription.gracePeriod
+                      ? `${subscription.gracePeriod.daysRemaining} days remaining`
+                      : 'None'}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-space-500 dark:text-space-400">Grace Period</p>
-                <p className="text-sm font-medium text-space-900 dark:text-white">
-                  {subscription.gracePeriod
-                    ? `${subscription.gracePeriod.daysRemaining} days remaining`
-                    : 'None'}
-                </p>
-              </div>
+              {subscription.gracePeriod && (
+                <button
+                  onClick={() => setActiveModal('grace')}
+                  className="text-xs font-medium text-warning-600 dark:text-warning-400 hover:underline"
+                >
+                  Extend
+                </button>
+              )}
             </div>
           </Card>
         </div>
@@ -556,6 +636,16 @@ export default function BillingPage({ params }: BillingPageProps) {
         </Card>
       )}
 
+      {/* Invoice History Section */}
+      {!isLoading && subscription && subscription.stripeCustomerId && (
+        <div>
+          <h2 className="text-lg font-semibold text-space-900 dark:text-white mb-4">
+            Invoice History
+          </h2>
+          <InvoiceTable tenantId={tenantId} />
+        </div>
+      )}
+
       {/* Payment Methods Section */}
       {!isLoading && subscription && (
         <PaymentMethodList
@@ -570,6 +660,7 @@ export default function BillingPage({ params }: BillingPageProps) {
         />
       )}
 
+      {/* Modals */}
       {/* Add Payment Method Modal */}
       <AddPaymentMethodModal
         isOpen={activeModal === 'payment'}
@@ -581,6 +672,46 @@ export default function BillingPage({ params }: BillingPageProps) {
           mutatePaymentMethods()
           mutate() // Refresh subscription data
         }}
+      />
+
+      {/* Apply Credit Modal */}
+      <ApplyCreditModal
+        isOpen={activeModal === 'credit'}
+        onClose={() => setActiveModal(null)}
+        tenantId={tenantId}
+        tenantName={subscription?.tenantName || 'Tenant'}
+        onSuccess={handleCreditSuccess}
+      />
+
+      {/* Change Tier Modal */}
+      <ChangeTierModal
+        isOpen={activeModal === 'tier'}
+        onClose={() => setActiveModal(null)}
+        tenantId={tenantId}
+        tenantName={subscription?.tenantName || 'Tenant'}
+        currentTier={subscription?.tier || 'home'}
+        onSuccess={handleTierSuccess}
+      />
+
+      {/* Extend Trial Modal */}
+      <ExtendTrialModal
+        isOpen={activeModal === 'trial'}
+        onClose={() => setActiveModal(null)}
+        tenantId={tenantId}
+        tenantName={subscription?.tenantName || 'Tenant'}
+        currentTrialEnd={subscription?.trialEnd}
+        onSuccess={handleTrialSuccess}
+      />
+
+      {/* Extend Grace Period Modal */}
+      <ExtendGraceModal
+        isOpen={activeModal === 'grace'}
+        onClose={() => setActiveModal(null)}
+        tenantId={tenantId}
+        tenantName={subscription?.tenantName || 'Tenant'}
+        currentGraceEnd={subscription?.gracePeriod?.startDate}
+        daysRemaining={subscription?.gracePeriod?.daysRemaining}
+        onSuccess={handleGraceSuccess}
       />
     </div>
   )
