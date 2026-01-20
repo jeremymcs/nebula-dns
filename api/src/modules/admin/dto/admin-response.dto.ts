@@ -4,6 +4,7 @@
 
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AdminStatus } from '../entities/admin.entity';
+import { AdminRole } from '../enums/admin-role.enum';
 
 /**
  * Admin information in login response
@@ -39,6 +40,13 @@ export class AdminInfoDto {
     example: true,
   })
   mfaSetupComplete: boolean;
+
+  @ApiProperty({
+    description: 'Admin role for authorization',
+    enum: ['super_admin', 'admin', 'viewer'],
+    example: 'admin',
+  })
+  role: AdminRole;
 }
 
 /**
@@ -108,6 +116,13 @@ export class AdminProfileResponseDto {
     example: true,
   })
   mfaVerified: boolean;
+
+  @ApiProperty({
+    description: 'Admin role for authorization',
+    enum: ['super_admin', 'admin', 'viewer'],
+    example: 'admin',
+  })
+  role: AdminRole;
 }
 
 /**

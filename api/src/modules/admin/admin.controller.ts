@@ -87,6 +87,9 @@ import {
   DeletePaymentMethodResponseDto,
 } from './dto/billing.dto';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
+import { AdminRolesGuard } from './guards/admin-roles.guard';
+import { AdminRoles } from './decorators/admin-roles.decorator';
+import { AdminRole } from './enums/admin-role.enum';
 import { AdminUser } from './dto/admin-jwt-payload.dto';
 
 /**
@@ -149,7 +152,8 @@ export class AdminController {
    * Auto-detects query type (UUID, email, or name)
    */
   @Get('tenants/search')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Search tenants',
@@ -181,7 +185,8 @@ export class AdminController {
    * Creates MSP account with initial admin user and sends welcome email
    */
   @Post('msp/tenants')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Create new MSP tenant',
@@ -220,7 +225,8 @@ export class AdminController {
    * Returns paginated list of MSP-tier tenants with client counts
    */
   @Get('msp/tenants')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'List MSP tenants',
@@ -248,7 +254,8 @@ export class AdminController {
    * Returns detailed information including client, location, and user counts
    */
   @Get('msp/tenants/:mspId')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Get MSP tenant details',
@@ -281,7 +288,8 @@ export class AdminController {
    * Returns paginated list of all clients managed by an MSP
    */
   @Get('msp/tenants/:mspId/clients')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'List MSP client organizations',
@@ -355,7 +363,8 @@ export class AdminController {
    * Generates a tenant-scoped JWT for accessing tenant dashboard
    */
   @Post('impersonate/:tenantId')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Start impersonation session',
@@ -395,7 +404,8 @@ export class AdminController {
    * Blacklists the current token
    */
   @Post('logout')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
@@ -424,7 +434,8 @@ export class AdminController {
    * Returns admin information from the JWT
    */
   @Get('me')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Get admin profile',
@@ -454,6 +465,7 @@ export class AdminController {
         status: 'active',
         lastLoginAt: null,
         mfaVerified: user.mfaVerified,
+        role: user.role,
       };
     }
 
@@ -464,6 +476,7 @@ export class AdminController {
       status: admin.status,
       lastLoginAt: admin.lastLoginAt,
       mfaVerified: user.mfaVerified,
+      role: admin.role,
     };
   }
 
@@ -472,7 +485,8 @@ export class AdminController {
    * Blacklists all tokens except the current one
    */
   @Post('sessions/revoke-all')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
@@ -511,7 +525,8 @@ export class AdminController {
    * Returns DNS services, storage connections, error rates, and query volume
    */
   @Get('system/health')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Get system health status',
@@ -544,7 +559,8 @@ export class AdminController {
    * Returns DNS query errors from ClickHouse logs
    */
   @Get('system/errors')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Get recent error entries',
@@ -579,7 +595,8 @@ export class AdminController {
    * Returns total query counts across all tenants
    */
   @Get('system/query-volume')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Get aggregate query volume',
@@ -614,7 +631,8 @@ export class AdminController {
    * Returns comprehensive billing information including Stripe data
    */
   @Get('tenants/:tenantId/billing/subscription')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Get tenant subscription status',
@@ -647,7 +665,8 @@ export class AdminController {
    * Returns paginated list of Stripe invoices
    */
   @Get('tenants/:tenantId/billing/invoices')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'List tenant invoices',
@@ -681,7 +700,8 @@ export class AdminController {
    * Streams the PDF from Stripe with ownership validation
    */
   @Get('tenants/:tenantId/billing/invoices/:invoiceId/pdf')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Download invoice PDF',
@@ -721,7 +741,8 @@ export class AdminController {
    * Creates a Stripe balance transaction (credit)
    */
   @Post('tenants/:tenantId/billing/credits')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Apply credit to tenant account',
