@@ -182,11 +182,11 @@ Plans:
   2. Wizard guides through 4 steps: company info, admin user, settings, review
   3. Each step validates input before allowing progression
   4. Admin sees confirmation with MSP details after successful creation
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 16-01: TBD
-- [ ] 16-02: TBD
+- [ ] 16-01-PLAN.md — Zod schema, API function, wizard shell with step navigation
+- [ ] 16-02-PLAN.md — Step components, success confirmation, localStorage persistence
 
 ## Progress
 
@@ -210,7 +210,7 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16
 | 13. Tenant Search & Impersonation UI | v1.1 | 2/2 | Complete | 2026-01-19 |
 | 14. Billing Portal UI | v1.1 | 3/3 | Complete | 2026-01-19 |
 | 15. System Health UI | v1.1 | 2/2 | Complete | 2026-01-19 |
-| 16. MSP Onboarding Wizard | v1.1 | 0/2 | Not started | - |
+| 16. MSP Onboarding Wizard | v1.1 | 0/2 | Planned | - |
 
 ---
 *Roadmap created: 2026-01-18*
