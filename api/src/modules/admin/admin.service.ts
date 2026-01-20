@@ -254,6 +254,7 @@ export class AdminService {
       iss: 'nebula-admin', // Critical: distinguishes from tenant tokens
       jti,
       mfaVerified: admin.mfaSetupComplete,
+      role: admin.role,
     };
 
     // Sign the token (uses ADMIN_JWT_SECRET configured in AdminModule)
@@ -289,6 +290,7 @@ export class AdminService {
         name: admin.name,
         status: admin.status,
         mfaSetupComplete: admin.mfaSetupComplete,
+        role: admin.role,
       },
     };
   }
