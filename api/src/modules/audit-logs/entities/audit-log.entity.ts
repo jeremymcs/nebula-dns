@@ -51,7 +51,8 @@ export type AuditAction =
   | 'billing_grace_extended'
   | 'billing_setup_intent_created'
   | 'billing_payment_method_default_set'
-  | 'billing_payment_method_deleted';
+  | 'billing_payment_method_deleted'
+  | 'admin_role_changed';
 
 export type AuditResourceType =
   | 'user'
@@ -66,7 +67,8 @@ export type AuditResourceType =
   | 'api_key'
   | 'sso'
   | 'block_page'
-  | 'template';
+  | 'template'
+  | 'admin';
 
 @Entity('audit_logs')
 export class AuditLog {
