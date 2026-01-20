@@ -93,53 +93,51 @@ Requirements for v1.2 milestone: Admin Roles & Alerting.
 
 ## Traceability
 
-_Populated during roadmap creation_
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RBAC-01 | TBD | Pending |
-| RBAC-02 | TBD | Pending |
-| RBAC-03 | TBD | Pending |
-| RBAC-04 | TBD | Pending |
-| RBAC-05 | TBD | Pending |
-| RBAC-06 | TBD | Pending |
-| RBAC-07 | TBD | Pending |
-| RBAC-08 | TBD | Pending |
-| RBAC-09 | TBD | Pending |
-| RBAC-10 | TBD | Pending |
-| USER-01 | TBD | Pending |
-| USER-02 | TBD | Pending |
-| USER-03 | TBD | Pending |
-| USER-04 | TBD | Pending |
-| USER-05 | TBD | Pending |
-| USER-06 | TBD | Pending |
-| USER-07 | TBD | Pending |
-| USER-08 | TBD | Pending |
-| USER-09 | TBD | Pending |
-| USER-10 | TBD | Pending |
-| USER-11 | TBD | Pending |
-| USER-12 | TBD | Pending |
-| ALERT-01 | TBD | Pending |
-| ALERT-02 | TBD | Pending |
-| ALERT-03 | TBD | Pending |
-| ALERT-04 | TBD | Pending |
-| ALERT-05 | TBD | Pending |
-| ALERT-06 | TBD | Pending |
-| ALERT-07 | TBD | Pending |
-| ALERT-08 | TBD | Pending |
-| ALERT-09 | TBD | Pending |
-| ALERT-10 | TBD | Pending |
-| ROLL-01 | TBD | Pending |
-| ROLL-02 | TBD | Pending |
-| ROLL-03 | TBD | Pending |
-| ROLL-04 | TBD | Pending |
-| ROLL-05 | TBD | Pending |
+| RBAC-01 | Phase 17 | Pending |
+| RBAC-02 | Phase 17 | Pending |
+| RBAC-03 | Phase 17 | Pending |
+| RBAC-04 | Phase 17 | Pending |
+| RBAC-05 | Phase 17 | Pending |
+| RBAC-06 | Phase 18 | Pending |
+| RBAC-07 | Phase 18 | Pending |
+| RBAC-08 | Phase 17 | Pending |
+| RBAC-09 | Phase 17 | Pending |
+| RBAC-10 | Phase 17 | Pending |
+| USER-01 | Phase 19 | Pending |
+| USER-02 | Phase 19 | Pending |
+| USER-03 | Phase 19 | Pending |
+| USER-04 | Phase 19 | Pending |
+| USER-05 | Phase 19 | Pending |
+| USER-06 | Phase 19 | Pending |
+| USER-07 | Phase 19 | Pending |
+| USER-08 | Phase 19 | Pending |
+| USER-09 | Phase 19 | Pending |
+| USER-10 | Phase 19 | Pending |
+| USER-11 | Phase 19 | Pending |
+| USER-12 | Phase 19 | Pending |
+| ALERT-01 | Phase 21 | Pending |
+| ALERT-02 | Phase 21 | Pending |
+| ALERT-03 | Phase 21 | Pending |
+| ALERT-04 | Phase 21 | Pending |
+| ALERT-05 | Phase 21 | Pending |
+| ALERT-06 | Phase 21 | Pending |
+| ALERT-07 | Phase 21 | Pending |
+| ALERT-08 | Phase 21 | Pending |
+| ALERT-09 | Phase 21 | Pending |
+| ALERT-10 | Phase 21 | Pending |
+| ROLL-01 | Phase 23 | Pending |
+| ROLL-02 | Phase 23 | Pending |
+| ROLL-03 | Phase 23 | Pending |
+| ROLL-04 | Phase 23 | Pending |
+| ROLL-05 | Phase 23 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 37 total
-- Mapped to phases: 0
-- Unmapped: 37
+- Mapped to phases: 37
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-19*
-*Last updated: 2026-01-19 after initial definition*
+*Traceability updated: 2026-01-20 after roadmap creation*
