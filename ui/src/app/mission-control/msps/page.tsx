@@ -15,7 +15,9 @@ import {
   EllipsisVerticalIcon,
   ArrowRightOnRectangleIcon,
   EyeIcon,
+  PlusIcon,
 } from '@heroicons/react/24/outline'
+import Link from 'next/link'
 import { Card, Badge, EmptyState, SkeletonTable } from '@/components/ui'
 import { useAdminMspList, MspTenant } from '@/hooks/useAdminApi'
 import { useToast } from '@/components/Toast'
@@ -187,6 +189,15 @@ export default function MspListingPage() {
           <p className="mt-2 text-space-500 dark:text-space-400">
             {data?.pagination?.total !== undefined ? `${data.pagination.total} total MSPs` : 'Loading...'}
           </p>
+        </div>
+        <div className="mt-4 sm:mt-0">
+          <Link
+            href="/mission-control/msps/new"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-nebula-500 text-white text-sm font-medium rounded-lg hover:bg-nebula-600 transition-colors"
+          >
+            <PlusIcon className="h-5 w-5" />
+            Onboard New MSP
+          </Link>
         </div>
       </div>
 
