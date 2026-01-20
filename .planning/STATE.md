@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-19)
 
 **Core value:** Enable ops team to manage MSPs entirely through the UI — onboarding, billing, usage monitoring — without CLI or direct API calls.
-**Current focus:** Planning next milestone
+**Current focus:** v1.2 Admin Roles & Alerting
 
 ## Current Position
 
-Phase: N/A — between milestones
-Plan: N/A
-Status: Ready for next milestone
-Last activity: 2026-01-19 - Completed v1.1 milestone
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-01-19 — Milestone v1.2 started
 
-Progress: [######################] 100% (v1 complete, v1.1 complete)
+Progress: [░░░░░░░░░░░░░░░░░░░░░░] 0%
 
 ## Milestones Shipped
 
@@ -47,7 +47,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: v1.1 milestone completion
+Stopped at: Starting v1.2 milestone
 Resume file: None
 
-Next: `/gsd:new-milestone` to start planning v2 or next feature set
+Next: Define requirements → Create roadmap
