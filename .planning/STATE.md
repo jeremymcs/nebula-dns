@@ -13,17 +13,17 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 17 - RBAC Foundation (Backend)
-Plan: Not started
-Status: Roadmap complete, ready to plan Phase 17
-Last activity: 2026-01-20 — Roadmap created for v1.2
+Plan: 01 of 4 complete
+Status: In progress
+Last activity: 2026-01-20 — Completed 17-01-role-infrastructure-PLAN.md
 
-Progress: [░░░░░░░░░░░░░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░░░░░░░░░░░░░] 3% (1/37 requirements addressed)
 
 ## Milestone v1.2 Overview
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 17 | RBAC Foundation (Backend) | 8 | Not Started |
+| 17 | RBAC Foundation (Backend) | 8 | In Progress (1/4 plans) |
 | 18 | RBAC UI | 2 | Not Started |
 | 19 | Admin User Management (Backend) | 12 | Not Started |
 | 20 | Admin User Management (UI) | 0* | Not Started |
@@ -55,8 +55,14 @@ Progress: [░░░░░░░░░░░░░░░░░░░░░░] 0
 
 Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 
-**v1.2 decisions (pending):**
-- None yet
+**v1.2 decisions:**
+
+| Decision | Rationale | Phase |
+|----------|-----------|-------|
+| Default role is 'admin' not 'super_admin' | Security - super_admin must be explicitly assigned | 17-01 |
+| Default guard policy: allow if no @AdminRoles() | Unannotated endpoints accessible to authenticated admins | 17-01 |
+| Helpful 403 messages with required role(s) | Aid debugging without exposing sensitive info | 17-01 |
+| Separate ADMIN_ROLES_KEY from ROLES_KEY | Prevent collision between admin and tenant RBAC | 17-01 |
 
 ### Pending Todos
 
@@ -68,8 +74,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-20
-Stopped at: Roadmap created, ready to plan Phase 17
-Resume file: .planning/ROADMAP.md
+Last session: 2026-01-20 16:35 UTC
+Stopped at: Completed 17-01-role-infrastructure-PLAN.md
+Resume file: .planning/phases/17-rbac-foundation-backend/17-02-PLAN.md (pending)
 
-Next: `/gsd:plan-phase 17` to create execution plan for RBAC Foundation
+Next: Execute Plan 17-02 (JWT Integration)
