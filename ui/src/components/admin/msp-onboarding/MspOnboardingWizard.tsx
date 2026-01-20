@@ -4,7 +4,7 @@
 
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -20,6 +20,14 @@ import {
   type MspOnboardingFormData,
 } from '@/lib/validations/msp-onboarding.schema'
 import { createMspTenant } from '@/hooks/useAdminApi'
+import type { MspTenantCreatedResponse } from '@/hooks/useAdminApi'
+import { CompanyInfoStep, AdminUserStep, SettingsStep, ReviewStep } from './steps'
+import { SuccessConfirmation } from './SuccessConfirmation'
+import { useToast } from '@/components/Toast'
+
+// localStorage draft persistence constants
+const STORAGE_KEY = 'msp-onboarding-draft'
+const DRAFT_EXPIRY_MS = 24 * 60 * 60 * 1000 // 24 hours
 
 /**
  * Default form values
@@ -46,7 +54,11 @@ const defaultValues: MspOnboardingFormData = {
  */
 export function MspOnboardingWizard() {
   const router = useRouter()
+  const { showToast } = useToast()
   const [state, setState] = useState<MspOnboardingState>(INITIAL_STATE)
+  const [createdMsp, setCreatedMsp] = useState<MspTenantCreatedResponse | null>(null)
+  const [isComplete, setIsComplete] = useState(false)
+  const [draftRestored, setDraftRestored] = useState(false)
 
   const {
     register,
@@ -54,11 +66,59 @@ export function MspOnboardingWizard() {
     trigger,
     formState: { errors },
     getValues,
+    watch,
+    setValue,
+    reset,
   } = useForm<MspOnboardingFormData>({
     resolver: zodResolver(mspOnboardingSchema),
     mode: 'onBlur',
     defaultValues,
   })
+
+  // Watch all form values for draft persistence
+  const watchedValues = watch()
+
+  // Restore draft from localStorage on mount
+  useEffect(() => {
+    if (draftRestored) return
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved) {
+      try {
+        const { formData, step, savedAt } = JSON.parse(saved)
+        if (Date.now() - savedAt < DRAFT_EXPIRY_MS) {
+          reset(formData)
+          setState((prev) => ({ ...prev, step }))
+          showToast('info', 'Draft restored from previous session')
+        } else {
+          localStorage.removeItem(STORAGE_KEY)
+        }
+      } catch {
+        localStorage.removeItem(STORAGE_KEY)
+      }
+    }
+    setDraftRestored(true)
+  }, [draftRestored, reset, showToast])
+
+  // Save draft to localStorage when form changes (debounced)
+  useEffect(() => {
+    if (!draftRestored) return // Don't save until initial restore is done
+
+    const timeoutId = setTimeout(() => {
+      if (watchedValues.name) {
+        // Only save if meaningful data exists
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            formData: watchedValues,
+            step: state.step,
+            savedAt: Date.now(),
+          })
+        )
+      }
+    }, 500) // Debounce 500ms
+
+    return () => clearTimeout(timeoutId)
+  }, [watchedValues, state.step, draftRestored])
 
   const currentStep = WIZARD_STEPS[state.step]
   const canGoBack = state.step > 0
@@ -126,15 +186,15 @@ export function MspOnboardingWizard() {
         clientLimit: data.clientLimit,
       })
 
-      updateState({
-        isSubmitting: false,
-        isComplete: true,
-        createdMsp: result,
-      })
+      // Clear draft on success
+      localStorage.removeItem(STORAGE_KEY)
+
+      setCreatedMsp(result)
+      setIsComplete(true)
+      updateState({ isSubmitting: false })
     } catch (error) {
       updateState({ isSubmitting: false })
-      // Error will be handled by toast or inline error display in Plan 02
-      console.error('Failed to create MSP:', error)
+      showToast('error', error instanceof Error ? error.message : 'Failed to create MSP')
     }
   }
 
@@ -142,74 +202,47 @@ export function MspOnboardingWizard() {
    * Render step content
    */
   const renderStepContent = () => {
+    const stepProps = {
+      register,
+      errors,
+      watch,
+      setValue,
+      isSubmitting: state.isSubmitting,
+    }
+
     switch (state.step) {
       case 0:
-        return (
-          <div className="space-y-4">
-            <p className="text-space-600 dark:text-space-400">
-              Step 1 content coming in Plan 02 - Company Info form fields
-            </p>
-          </div>
-        )
+        return <CompanyInfoStep {...stepProps} />
       case 1:
-        return (
-          <div className="space-y-4">
-            <p className="text-space-600 dark:text-space-400">
-              Step 2 content coming in Plan 02 - Admin User form fields
-            </p>
-          </div>
-        )
+        return <AdminUserStep {...stepProps} />
       case 2:
-        return (
-          <div className="space-y-4">
-            <p className="text-space-600 dark:text-space-400">
-              Step 3 content coming in Plan 02 - Settings form fields
-            </p>
-          </div>
-        )
+        return <SettingsStep {...stepProps} />
       case 3:
-        return (
-          <div className="space-y-4">
-            <p className="text-space-600 dark:text-space-400">
-              Step 4 content coming in Plan 02 - Review and confirmation
-            </p>
-          </div>
-        )
+        return <ReviewStep {...stepProps} onJumpToStep={jumpToStep} />
       default:
         return null
     }
   }
 
+  /**
+   * Reset wizard for creating another MSP
+   */
+  const handleCreateAnother = () => {
+    reset(defaultValues)
+    setState(INITIAL_STATE)
+    setCreatedMsp(null)
+    setIsComplete(false)
+  }
+
   // Show success state if completed
-  if (state.isComplete && state.createdMsp) {
+  if (isComplete && createdMsp) {
     return (
-      <div className="bg-white dark:bg-space-800 rounded-2xl shadow-lg overflow-hidden">
-        <div className="p-8 text-center">
-          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-success-100 dark:bg-success-900/30">
-            <CheckIcon className="h-10 w-10 text-success-600 dark:text-success-400" />
-          </div>
-          <h3 className="mt-4 text-xl font-semibold text-space-900 dark:text-white">
-            MSP Created Successfully
-          </h3>
-          <p className="mt-2 text-sm text-space-600 dark:text-space-400">
-            {state.createdMsp.name} has been created with admin {state.createdMsp.adminEmail}
-          </p>
-          <div className="mt-6 flex gap-3 justify-center">
-            <button
-              onClick={() => router.push('/mission-control/msps')}
-              className="px-4 py-2 text-sm font-medium text-space-700 dark:text-space-300 bg-space-100 dark:bg-space-700 rounded-lg hover:bg-space-200 dark:hover:bg-space-600 transition-colors"
-            >
-              Back to MSPs
-            </button>
-            <button
-              onClick={() => router.push(`/mission-control/msps/${state.createdMsp?.id}`)}
-              className="px-4 py-2 text-sm font-medium text-white bg-nebula-500 rounded-lg hover:bg-nebula-600 transition-colors"
-            >
-              View MSP Details
-            </button>
-          </div>
-        </div>
-      </div>
+      <SuccessConfirmation
+        msp={createdMsp}
+        onViewDetails={(id) => router.push(`/mission-control/msps/${id}`)}
+        onCreateAnother={handleCreateAnother}
+        onBackToList={() => router.push('/mission-control/msps')}
+      />
     )
   }
 
