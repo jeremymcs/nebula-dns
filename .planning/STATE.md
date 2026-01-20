@@ -13,17 +13,17 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 17 - RBAC Foundation (Backend)
-Plan: 03 of 4 complete
-Status: In progress
-Last activity: 2026-01-20 — Completed 17-03-endpoint-annotation-PLAN.md
+Plan: 04 of 4 complete
+Status: Phase complete
+Last activity: 2026-01-20 — Completed 17-04-self-escalation-breakglass-PLAN.md
 
-Progress: [███░░░░░░░░░░░░░░░░░░░] 8% (3/37 requirements addressed)
+Progress: [████░░░░░░░░░░░░░░░░░░] 11% (4/37 requirements addressed)
 
 ## Milestone v1.2 Overview
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 17 | RBAC Foundation (Backend) | 8 | In Progress (3/4 plans) |
+| 17 | RBAC Foundation (Backend) | 8 | Complete (4/4 plans) |
 | 18 | RBAC UI | 2 | Not Started |
 | 19 | Admin User Management (Backend) | 12 | Not Started |
 | 20 | Admin User Management (UI) | 0* | Not Started |
@@ -68,6 +68,9 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | Login and endImpersonation excluded from role guards | Login is public entry; endImpersonation uses tenant JWT | 17-03 |
 | Logout allows all roles including VIEWER | Any authenticated admin should be able to logout | 17-03 |
 | Guard order: AdminAuthGuard then AdminRolesGuard | AuthGuard populates user.role needed by RolesGuard | 17-03 |
+| Synthetic tenant ID for admin audit logs | Admins not tenant-scoped, use 00000000-0000-0000-0000-000000000000 | 17-04 |
+| Break-glass sets pending_mfa status | Security - requires MFA setup on first login | 17-04 |
+| Session invalidation on role change | Force re-login with new role for security | 17-04 |
 
 ### Pending Todos
 
@@ -79,8 +82,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-20 17:20 UTC
-Stopped at: Completed 17-03-endpoint-annotation-PLAN.md
-Resume file: .planning/phases/17-rbac-foundation-backend/17-04-PLAN.md (pending)
+Last session: 2026-01-20 16:47 UTC
+Stopped at: Completed 17-04-self-escalation-breakglass-PLAN.md
+Resume file: None
 
-Next: Execute Plan 17-04 (RBAC Testing)
+Next: Phase 18 - RBAC UI (or Phase 19 - Admin User Management Backend)
