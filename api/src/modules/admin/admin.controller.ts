@@ -783,7 +783,8 @@ export class AdminController {
    * Updates subscription in Stripe and local database
    */
   @Post('tenants/:tenantId/billing/tier')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
@@ -824,7 +825,8 @@ export class AdminController {
    * Extends an active trial via Stripe subscription update
    */
   @Post('tenants/:tenantId/billing/trial/extend')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Extend tenant trial period',
@@ -870,7 +872,8 @@ export class AdminController {
    * Extends the grace period for a tenant in subscription lapse
    */
   @Post('tenants/:tenantId/billing/grace/extend')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Extend tenant grace period',
@@ -921,7 +924,8 @@ export class AdminController {
    * Returns all payment methods attached to tenant's Stripe customer
    */
   @Get('tenants/:tenantId/billing/payment-methods')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'List tenant payment methods',
@@ -954,7 +958,8 @@ export class AdminController {
    * Returns client_secret for Stripe.js to collect card details
    */
   @Post('tenants/:tenantId/billing/payment-methods')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Create SetupIntent for adding payment method',
@@ -990,7 +995,8 @@ export class AdminController {
    * Sets the specified payment method as default for future invoices
    */
   @Patch('tenants/:tenantId/billing/payment-methods/default')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
@@ -1035,7 +1041,8 @@ export class AdminController {
    * Removes a payment method from tenant's Stripe customer
    */
   @Delete('tenants/:tenantId/billing/payment-methods/:paymentMethodId')
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Delete payment method',
