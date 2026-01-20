@@ -2,58 +2,56 @@
 
 ## What This Is
 
-An internal operations dashboard for the Nebula DNS team to manage MSP accounts and their clients. The backend API (v1) is complete. This milestone completes the frontend integration so ops can use the dashboard end-to-end.
+A fully-functional internal operations dashboard (Mission Control) for the Nebula DNS team to manage MSP accounts and their clients through a comprehensive web UI. Both backend API and frontend are complete.
 
 ## Core Value
 
 Enable the ops team to manage MSPs entirely through the UI — onboarding, billing, usage monitoring — without CLI or direct API calls.
 
-## Current Milestone: v1.1 — Mission Control Frontend
-
-**Goal:** Complete frontend integration with v1 API so ops team has a fully usable dashboard.
-
-**Target features:**
-- Full MSP onboarding wizard (company info → admin user → initial config → confirmation)
-- Complete billing portal (subscriptions, invoices, credits, tier changes, payment methods)
-- MSP listing and drill-down UI with usage metrics
-- Tenant search and impersonation flow
-- System health dashboard
-- Admin authentication UI (login, session management)
-
 ## Current State
 
-**v1 SHIPPED** — 2026-01-18
+**v1.1 SHIPPED** — 2026-01-19
 
-The admin dashboard backend API is complete with:
-- Secure admin authentication (separate from tenant auth)
-- Full tenant impersonation with audit logging
-- MSP visibility and drill-down
-- System health monitoring
-- MSP onboarding workflow
-- Billing operations
+Mission Control is fully operational with:
+- Secure admin authentication and session management
+- MSP listing with infinite scroll, search, and drill-down
+- Tenant search and impersonation with amber banner indicator
+- Complete billing portal (subscriptions, invoices, credits, payment methods)
+- System health monitoring with auto-refresh
+- 4-step MSP onboarding wizard
 
-See [MILESTONES.md](MILESTONES.md) for details.
+**Tech Stack:**
+- Next.js 15 with App Router
+- Recharts for usage visualizations
+- Stripe Elements for payment methods
+- SWR for data fetching with 30s auto-refresh
+
+See [MILESTONES.md](MILESTONES.md) for v1 (backend) and v1.1 (frontend) details.
 
 ## Requirements
 
-### Shipped (v1 Backend)
+### Validated
 
+#### v1 Backend (shipped 2026-01-18)
 - ✓ Tenant impersonation API — search, start/end sessions with audit logging
 - ✓ MSP/Client visibility API — list MSPs, drill into clients, usage metrics
 - ✓ MSP onboarding API — create accounts with initial configuration
 - ✓ Billing operations API — subscriptions, credits, tier changes, trial extensions
 - ✓ System health API — DNS status, error rates, metrics
 
-### Active (v1.1 Frontend)
+#### v1.1 Frontend (shipped 2026-01-19)
+- ✓ Admin auth UI — login page, session management, logout (AUTH-01 to AUTH-04)
+- ✓ MSP onboarding wizard — multi-step form with validation (ONBOARD-01 to ONBOARD-06)
+- ✓ MSP listing page — table with search, infinite scroll, client counts (LIST-01 to LIST-05)
+- ✓ MSP detail/drill-down — client list, usage charts, actions (DETAIL-01 to DETAIL-05)
+- ✓ Tenant search & impersonation — search bar, impersonate button, session indicator (IMP-01 to IMP-05)
+- ✓ Billing portal — subscription status, invoices, credits, tier changes (BILL-01 to BILL-06)
+- ✓ Payment method management — add/update cards, Stripe Elements (PAY-01 to PAY-06)
+- ✓ System health dashboard — service status, error rates, metrics charts (HEALTH-01 to HEALTH-04)
 
-- [ ] Admin auth UI — login page, session management, logout
-- [ ] MSP onboarding wizard — multi-step form with validation
-- [ ] MSP listing page — table with search, pagination, client counts
-- [ ] MSP detail/drill-down — client list, usage charts, actions
-- [ ] Tenant search & impersonation — search bar, impersonate button, session indicator
-- [ ] Billing portal — subscription status, invoices, credits, tier changes
-- [ ] Payment method management — add/update cards (NEW backend endpoints needed)
-- [ ] System health dashboard — service status, error rates, metrics charts
+### Active
+
+(Next milestone requirements TBD)
 
 ### Future (v2)
 
@@ -97,13 +95,17 @@ See [MILESTONES.md](MILESTONES.md) for details.
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Full impersonation over view-only | Ops needs to actually fix issues, not just see them | ✓ Implemented |
+| Full impersonation over view-only | Ops needs to actually fix issues, not just see them | ✓ v1 |
 | No role separation initially | Small team, complexity not justified yet | ✓ Deferred to v2 |
-| Backend-first approach | UI exists, API is the blocker | ✓ Complete |
-| Separate admin JWT | Security isolation from tenant tokens | ✓ Implemented |
-| Follow tenant dashboard patterns | Consistency, faster development, familiar UX | — Pending |
-| Full onboarding wizard | Multi-step better for complex MSP setup | — Pending |
-| Build payment method endpoints | Full billing control needed in admin dashboard | — Pending |
+| Backend-first approach | UI exists, API is the blocker | ✓ v1 |
+| Separate admin JWT | Security isolation from tenant tokens | ✓ v1 |
+| Follow tenant dashboard patterns | Consistency, faster development, familiar UX | ✓ v1.1 |
+| Full onboarding wizard | Multi-step better for complex MSP setup | ✓ v1.1 |
+| Build payment method endpoints | Full billing control needed in admin dashboard | ✓ v1.1 |
+| Stripe SetupIntent flow | PCI compliance, SCA support for Europe | ✓ v1.1 |
+| Amber impersonation banner | High visibility, no dismiss option for safety | ✓ v1.1 |
+| localStorage draft persistence | Resume interrupted MSP onboarding (24h expiry) | ✓ v1.1 |
+| 30s auto-refresh on health dashboard | Real-time monitoring without WebSocket complexity | ✓ v1.1 |
 
 ---
-*Last updated: 2026-01-18 after v1.1 milestone started*
+*Last updated: 2026-01-19 after v1.1 milestone shipped*
