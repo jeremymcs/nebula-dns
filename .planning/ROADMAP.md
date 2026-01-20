@@ -3,7 +3,7 @@
 ## Milestones
 
 - [x] **v1.0 Backend API** - Phases 1-8 (shipped 2026-01-18)
-- [ ] **v1.1 Frontend Integration** - Phases 9-16 (in progress)
+- [x] **v1.1 Frontend Integration** - Phases 9-16 (shipped 2026-01-19)
 
 ## Overview
 
@@ -54,7 +54,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 </details>
 
-## v1.1 Frontend Integration (In Progress)
+## v1.1 Frontend Integration (SHIPPED 2026-01-19)
 
 **Milestone Goal:** Complete frontend integration so ops team can use Mission Control end-to-end without CLI or direct API calls.
 
@@ -65,7 +65,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 13: Tenant Search & Impersonation UI** - Search bar, impersonation flow, session indicator
 - [x] **Phase 14: Billing Portal UI** - Subscription status, invoices, credits, payment methods
 - [x] **Phase 15: System Health UI** - Service status cards, error rates, metrics charts
-- [ ] **Phase 16: MSP Onboarding Wizard** - Multi-step form with validation and confirmation
+- [x] **Phase 16: MSP Onboarding Wizard** - Multi-step form with validation and confirmation
 
 ## Phase Details
 
@@ -185,8 +185,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 16-01-PLAN.md — Zod schema, API function, wizard shell with step navigation
-- [ ] 16-02-PLAN.md — Step components, success confirmation, localStorage persistence
+- [x] 16-01-PLAN.md — Zod schema, API function, wizard shell with step navigation
+- [x] 16-02-PLAN.md — Step components, success confirmation, localStorage persistence
 
 ## Progress
 
@@ -210,7 +210,7 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16
 | 13. Tenant Search & Impersonation UI | v1.1 | 2/2 | Complete | 2026-01-19 |
 | 14. Billing Portal UI | v1.1 | 3/3 | Complete | 2026-01-19 |
 | 15. System Health UI | v1.1 | 2/2 | Complete | 2026-01-19 |
-| 16. MSP Onboarding Wizard | v1.1 | 0/2 | Planned | - |
+| 16. MSP Onboarding Wizard | v1.1 | 2/2 | Complete | 2026-01-19 |
 
 ---
 *Roadmap created: 2026-01-18*

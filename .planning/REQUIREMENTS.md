@@ -16,12 +16,12 @@ Requirements for Mission Control frontend integration. Each maps to roadmap phas
 
 ### MSP Onboarding
 
-- [ ] **ONBOARD-01**: Admin can access MSP onboarding wizard from dashboard
-- [ ] **ONBOARD-02**: Wizard Step 1: Admin enters company information (name, domain)
-- [ ] **ONBOARD-03**: Wizard Step 2: Admin creates initial admin user (email, temp password)
-- [ ] **ONBOARD-04**: Wizard Step 3: Admin configures initial settings (tier, trial period)
-- [ ] **ONBOARD-05**: Wizard Step 4: Admin reviews and confirms MSP creation
-- [ ] **ONBOARD-06**: Admin receives confirmation with MSP details after creation
+- [x] **ONBOARD-01**: Admin can access MSP onboarding wizard from dashboard
+- [x] **ONBOARD-02**: Wizard Step 1: Admin enters company information (name, domain)
+- [x] **ONBOARD-03**: Wizard Step 2: Admin creates initial admin user (email, temp password)
+- [x] **ONBOARD-04**: Wizard Step 3: Admin configures initial settings (tier, trial period)
+- [x] **ONBOARD-05**: Wizard Step 4: Admin reviews and confirms MSP creation
+- [x] **ONBOARD-06**: Admin receives confirmation with MSP details after creation
 
 ### MSP Listing
 
@@ -110,12 +110,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-02 | Phase 9 | Complete |
 | AUTH-03 | Phase 9 | Complete |
 | AUTH-04 | Phase 9 | Complete |
-| ONBOARD-01 | Phase 16 | Pending |
-| ONBOARD-02 | Phase 16 | Pending |
-| ONBOARD-03 | Phase 16 | Pending |
-| ONBOARD-04 | Phase 16 | Pending |
-| ONBOARD-05 | Phase 16 | Pending |
-| ONBOARD-06 | Phase 16 | Pending |
+| ONBOARD-01 | Phase 16 | Complete |
+| ONBOARD-02 | Phase 16 | Complete |
+| ONBOARD-03 | Phase 16 | Complete |
+| ONBOARD-04 | Phase 16 | Complete |
+| ONBOARD-05 | Phase 16 | Complete |
+| ONBOARD-06 | Phase 16 | Complete |
 | LIST-01 | Phase 11 | Complete |
 | LIST-02 | Phase 11 | Complete |
 | LIST-03 | Phase 11 | Complete |
@@ -155,4 +155,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-18*
-*Last updated: 2026-01-19 after Phase 15 completion*
+*Last updated: 2026-01-19 after Phase 16 completion — v1.1 complete*
