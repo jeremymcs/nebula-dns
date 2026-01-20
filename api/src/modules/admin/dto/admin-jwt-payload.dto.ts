@@ -2,6 +2,8 @@
 // JWT token claims for admin authentication
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
+import { AdminRole } from '../enums/admin-role.enum';
+
 /**
  * Admin JWT payload structure
  * Used for admin token validation and identity extraction
@@ -36,6 +38,11 @@ export interface AdminJwtPayload {
    * Whether MFA has been verified in this session
    */
   mfaVerified: boolean;
+
+  /**
+   * Admin's role for authorization
+   */
+  role: AdminRole;
 
   /**
    * Token issued at timestamp
@@ -77,4 +84,9 @@ export interface AdminUser {
    * JWT ID for session tracking
    */
   jti: string;
+
+  /**
+   * Admin's role for authorization
+   */
+  role: AdminRole;
 }
