@@ -426,3 +426,63 @@ export function useAdminRecentErrors(
     }
   )
 }
+
+// ============================================
+// MSP Creation Types
+// ============================================
+
+export interface CreateMspTenantDto {
+  name: string
+  slug?: string
+  adminEmail: string
+  adminName?: string
+  contactEmail?: string
+  contactPhone?: string
+  locationLimit?: number | null
+  clientLimit?: number | null
+}
+
+export interface MspTenantCreatedResponse {
+  id: string
+  name: string
+  slug: string
+  status: 'active'
+  tier: 'msp'
+  adminUserId: string
+  adminEmail: string
+  welcomeEmailSent: boolean
+  locationLimit: number | null
+  clientLimit: number | null
+  createdAt: string
+}
+
+// ============================================
+// MSP Creation Functions
+// ============================================
+
+/**
+ * Create a new MSP tenant with initial admin user
+ * @param data - MSP tenant creation data
+ * @returns Created MSP tenant details
+ * @throws Error if not authenticated or creation fails
+ */
+export async function createMspTenant(data: CreateMspTenantDto): Promise<MspTenantCreatedResponse> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
+  if (!token) throw new Error('Admin authentication required')
+
+  const res = await fetch(`${API_URL}/admin/msp/tenants`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ message: 'Request failed' }))
+    throw new Error(error.message || `Request failed (${res.status})`)
+  }
+
+  return res.json()
+}
