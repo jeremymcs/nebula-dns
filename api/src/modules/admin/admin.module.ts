@@ -16,6 +16,7 @@ import { User } from '../users/entities/user.entity';
 import { Subscription } from '../subscriptions/entities/subscription.entity';
 import { AdminJwtStrategy } from './strategies/admin-jwt.strategy';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
+import { AdminRolesGuard } from './guards/admin-roles.guard';
 import { AdminService } from './admin.service';
 import { AdminSessionService } from './admin-session.service';
 import { AdminHealthService } from './admin-health.service';
@@ -107,6 +108,7 @@ import { SubscriptionLapseModule } from '../subscription-lapse/subscription-laps
     AdminBillingService,
     AdminJwtStrategy,
     AdminAuthGuard,
+    AdminRolesGuard,
   ],
 
   // Export service and guard for use by other modules
@@ -115,6 +117,7 @@ import { SubscriptionLapseModule } from '../subscription-lapse/subscription-laps
     AdminHealthService,
     AdminBillingService,
     AdminAuthGuard,
+    AdminRolesGuard,
     JwtModule,
   ],
 })

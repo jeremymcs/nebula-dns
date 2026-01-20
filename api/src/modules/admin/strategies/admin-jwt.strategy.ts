@@ -79,6 +79,7 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
       name: payload.name,
       mfaVerified: payload.mfaVerified,
       jti: payload.jti,
+      role: payload.role,
     };
   }
 }
