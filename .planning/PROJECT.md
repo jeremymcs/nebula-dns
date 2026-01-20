@@ -8,6 +8,15 @@ A fully-functional internal operations dashboard (Mission Control) for the Nebul
 
 Enable the ops team to manage MSPs entirely through the UI — onboarding, billing, usage monitoring — without CLI or direct API calls.
 
+## Current Milestone: v1.2 Admin Roles & Alerting
+
+**Goal:** Add role-based access control, automated alerting integrations, and admin user management to Mission Control.
+
+**Target features:**
+- Role-based admin access (Super Admin, Admin, Viewer)
+- Automated alerting (Slack + PagerDuty) for system health, billing, and security events
+- Admin user management with invites, activity logs, and MFA controls
+
 ## Current State
 
 **v1.1 SHIPPED** — 2026-01-19
@@ -51,19 +60,22 @@ See [MILESTONES.md](MILESTONES.md) for v1 (backend) and v1.1 (frontend) details.
 
 ### Active
 
-(Next milestone requirements TBD)
+#### v1.2 (in progress)
+- Role-based admin access — Super Admin, Admin, Viewer permission levels
+- Automated alerting — Slack + PagerDuty for system health, billing, security
+- Admin user management — CRUD, invites, activity logs, MFA management
 
-### Future (v2)
+### Future (v2+)
 
-- Role-based admin access — different permission levels for ops team
-- Automated alerting — PagerDuty/Slack integration
-- Admin user management — add/remove admins
+- Custom role builder — define granular permissions per role
+- Additional alerting channels — Email, MS Teams, webhooks
+- SSO for admin portal — integrate with corporate identity providers
 
 ### Out of Scope
 
-- Role-based admin access — single shared access for small team (2-5), revisit if team grows
 - Customer-facing admin features — this is internal ops only
-- Automated alerting/PagerDuty — manual monitoring sufficient for now
+- Per-MSP alerting rules — alerting is for ops team, not per-tenant configuration
+- Real-time chat/collaboration — ops team uses existing tools (Slack)
 
 ## Context
 
@@ -77,9 +89,10 @@ See [MILESTONES.md](MILESTONES.md) for v1 (backend) and v1.1 (frontend) details.
 
 **Current state:**
 - v1 backend complete: 23 requirements, 19 API endpoints
-- Mission Control UI has partial pages needing completion + API wiring
-- Small ops team (2-5 people) will use this
+- v1.1 frontend complete: 35 requirements, full Mission Control UI
+- Ops team (2-5 people) actively using dashboard
 - Primary workflow: MSP management (onboard → billing → usage monitoring)
+- Next: Role separation, alerting, admin management
 
 **UI patterns:**
 - Follow existing tenant dashboard conventions
@@ -108,4 +121,4 @@ See [MILESTONES.md](MILESTONES.md) for v1 (backend) and v1.1 (frontend) details.
 | 30s auto-refresh on health dashboard | Real-time monitoring without WebSocket complexity | ✓ v1.1 |
 
 ---
-*Last updated: 2026-01-19 after v1.1 milestone shipped*
+*Last updated: 2026-01-19 after starting v1.2 milestone*
