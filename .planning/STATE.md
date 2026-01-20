@@ -13,17 +13,17 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 17 - RBAC Foundation (Backend)
-Plan: 01 of 4 complete
+Plan: 02 of 4 complete
 Status: In progress
-Last activity: 2026-01-20 — Completed 17-01-role-infrastructure-PLAN.md
+Last activity: 2026-01-20 — Completed 17-02-jwt-auth-integration-PLAN.md
 
-Progress: [█░░░░░░░░░░░░░░░░░░░░░] 3% (1/37 requirements addressed)
+Progress: [██░░░░░░░░░░░░░░░░░░░░] 5% (2/37 requirements addressed)
 
 ## Milestone v1.2 Overview
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 17 | RBAC Foundation (Backend) | 8 | In Progress (1/4 plans) |
+| 17 | RBAC Foundation (Backend) | 8 | In Progress (2/4 plans) |
 | 18 | RBAC UI | 2 | Not Started |
 | 19 | Admin User Management (Backend) | 12 | Not Started |
 | 20 | Admin User Management (UI) | 0* | Not Started |
@@ -63,6 +63,8 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | Default guard policy: allow if no @AdminRoles() | Unannotated endpoints accessible to authenticated admins | 17-01 |
 | Helpful 403 messages with required role(s) | Aid debugging without exposing sensitive info | 17-01 |
 | Separate ADMIN_ROLES_KEY from ROLES_KEY | Prevent collision between admin and tenant RBAC | 17-01 |
+| Role stored directly in JWT payload | Avoids database lookup on every request for role check | 17-02 |
+| Profile endpoint uses DB role with JWT fallback | DB value is authoritative, JWT provides fallback | 17-02 |
 
 ### Pending Todos
 
@@ -74,8 +76,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-20 16:35 UTC
-Stopped at: Completed 17-01-role-infrastructure-PLAN.md
-Resume file: .planning/phases/17-rbac-foundation-backend/17-02-PLAN.md (pending)
+Last session: 2026-01-20 17:10 UTC
+Stopped at: Completed 17-02-jwt-auth-integration-PLAN.md
+Resume file: .planning/phases/17-rbac-foundation-backend/17-03-PLAN.md (pending)
 
-Next: Execute Plan 17-02 (JWT Integration)
+Next: Execute Plan 17-03 (Route Protection)
