@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-18)
 
 ## Current Position
 
-Phase: 15 of 16 (System Health UI) - COMPLETE
-Plan: 2 of 2 in phase - COMPLETE
-Status: Phase 15 complete, ready for Phase 16
-Last activity: 2026-01-19 - Completed 15-02-PLAN.md (error list, query chart, auto-refresh)
+Phase: 16 of 16 (MSP Onboarding Wizard)
+Plan: 1 of 2 in phase
+Status: In progress
+Last activity: 2026-01-19 - Completed 16-01-PLAN.md (wizard shell and navigation)
 
-Progress: [####################] 97% (v1 complete, v1.1 plan 14 of 16)
+Progress: [#####################.] 98% (v1 complete, v1.1 plan 15 of 16)
 
 ## Performance Metrics
 
@@ -47,7 +47,7 @@ Progress: [####################] 97% (v1 complete, v1.1 plan 14 of 16)
 | 13-tenant-search-impersonation-ui | 2/2 | Complete |
 | 14-billing-portal-ui | 3/3 | Complete |
 | 15-system-health-ui | 2/2 | Complete |
-| 16-msp-onboarding-wizard | 0/2 | Not started |
+| 16-msp-onboarding-wizard | 1/2 | In progress |
 
 *Updated after each plan completion*
 
@@ -107,6 +107,9 @@ Recent decisions affecting current work:
 - [15-02]: Circular SVG gauge for error rate visualization (no external dependency)
 - [15-02]: Set-based state for collapsible error cards (O(1) lookup, multiple expansion)
 - [15-02]: 1h/24h period toggle (adjusted from 24h/7d to match backend API support)
+- [16-01]: Jumpable steps - users can click completed steps to navigate back
+- [16-01]: Dual validation (onBlur + Next click) per CONTEXT.md
+- [16-01]: Progress indicator with numbered circles, checkmarks, connecting lines
 
 ### Pending Todos
 
@@ -199,12 +202,20 @@ Phase 15-system-health-ui complete:
 - Period toggle (1h/24h) for chart data
 - Auto-refresh controls with pause-on-hover
 
-**Total:** 14 plans complete
+Phase 16-msp-onboarding-wizard in progress:
+- Zod validation schemas for MSP creation form
+- createMspTenant API function
+- Wizard types and step definitions
+- MspOnboardingWizard component with 4-step navigation
+- Progress indicator with jumpable completed steps
+- Wizard page at /mission-control/msps/new
+
+**Total:** 15 plans complete
 
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: Completed 15-02-PLAN.md
+Stopped at: Completed 16-01-PLAN.md
 Resume file: None
 
-Next: Execute Phase 16 (MSP Onboarding Wizard) - 16-01-PLAN.md and 16-02-PLAN.md
+Next: Execute 16-02-PLAN.md (wizard step content)
