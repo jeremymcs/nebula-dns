@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-18)
 
 **Core value:** Enable ops team to manage MSPs entirely through the UI — onboarding, billing, usage monitoring — without CLI or direct API calls.
-**Current focus:** Phase 16 (MSP Onboarding Wizard)
+**Current focus:** v1.1 COMPLETE
 
 ## Current Position
 
 Phase: 16 of 16 (MSP Onboarding Wizard)
-Plan: 1 of 2 in phase
-Status: In progress
-Last activity: 2026-01-19 - Completed 16-01-PLAN.md (wizard shell and navigation)
+Plan: 2 of 2 in phase
+Status: COMPLETE
+Last activity: 2026-01-20 - Completed 16-02-PLAN.md (wizard step content)
 
-Progress: [#####################.] 98% (v1 complete, v1.1 plan 15 of 16)
+Progress: [######################] 100% (v1 complete, v1.1 complete)
 
 ## Performance Metrics
 
@@ -47,7 +47,7 @@ Progress: [#####################.] 98% (v1 complete, v1.1 plan 15 of 16)
 | 13-tenant-search-impersonation-ui | 2/2 | Complete |
 | 14-billing-portal-ui | 3/3 | Complete |
 | 15-system-health-ui | 2/2 | Complete |
-| 16-msp-onboarding-wizard | 1/2 | In progress |
+| 16-msp-onboarding-wizard | 2/2 | Complete |
 
 *Updated after each plan completion*
 
@@ -110,6 +110,9 @@ Recent decisions affecting current work:
 - [16-01]: Jumpable steps - users can click completed steps to navigate back
 - [16-01]: Dual validation (onBlur + Next click) per CONTEXT.md
 - [16-01]: Progress indicator with numbered circles, checkmarks, connecting lines
+- [16-02]: Slug auto-generation preview below input
+- [16-02]: Settings presets: Starter (50/10), Growth (200/50), Unlimited
+- [16-02]: Draft restore with toast notification (no confirmation dialog)
 
 ### Pending Todos
 
@@ -133,7 +136,9 @@ All 8 phases of v1 backend API complete:
 
 **Total:** 17 plans, 23 requirements, 19 API endpoints
 
-## v1.1 Progress Summary
+## v1.1 Complete Summary
+
+All 8 phases of v1.1 frontend UI complete:
 
 Phase 09-admin-auth-ui complete:
 - Admin API helpers and auth context
@@ -202,20 +207,24 @@ Phase 15-system-health-ui complete:
 - Period toggle (1h/24h) for chart data
 - Auto-refresh controls with pause-on-hover
 
-Phase 16-msp-onboarding-wizard in progress:
+Phase 16-msp-onboarding-wizard complete:
 - Zod validation schemas for MSP creation form
 - createMspTenant API function
 - Wizard types and step definitions
 - MspOnboardingWizard component with 4-step navigation
 - Progress indicator with jumpable completed steps
 - Wizard page at /mission-control/msps/new
+- Step components: CompanyInfoStep, AdminUserStep, SettingsStep, ReviewStep
+- SuccessConfirmation component with action buttons
+- localStorage draft persistence with 24h expiry
+- "Onboard New MSP" button on MSP listing page
 
-**Total:** 15 plans complete
+**Total:** 16 plans complete
 
 ## Session Continuity
 
-Last session: 2026-01-19
-Stopped at: Completed 16-01-PLAN.md
+Last session: 2026-01-20
+Stopped at: Completed 16-02-PLAN.md - v1.1 COMPLETE
 Resume file: None
 
-Next: Execute 16-02-PLAN.md (wizard step content)
+Next: Project complete! All v1 and v1.1 phases done.
