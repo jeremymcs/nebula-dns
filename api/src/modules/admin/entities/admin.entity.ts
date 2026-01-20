@@ -5,6 +5,7 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { BaseEntity } from '@/common/entities/base.entity';
+import { AdminRole } from '../enums/admin-role.enum';
 
 export type AdminStatus = 'active' | 'suspended' | 'pending_mfa';
 
@@ -22,6 +23,13 @@ export class Admin extends BaseEntity {
 
   @Column({ type: 'varchar', length: 20, default: 'pending_mfa' })
   status: AdminStatus;
+
+  @Column({
+    type: 'varchar',
+    length: 20,
+    default: AdminRole.ADMIN,
+  })
+  role: AdminRole;
 
   @Column({ name: 'mfa_setup_complete', type: 'boolean', default: false })
   mfaSetupComplete: boolean;
