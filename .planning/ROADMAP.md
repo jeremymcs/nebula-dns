@@ -22,10 +22,10 @@ This roadmap covers 7 phases (17-23) delivering role-based access control, admin
 **Plans:** 4 plans
 
 Plans:
-- [ ] 17-01-role-infrastructure-PLAN.md — Create AdminRole enum, decorator, guard, and migration
-- [ ] 17-02-jwt-auth-integration-PLAN.md — Integrate role into JWT and auth flow
-- [ ] 17-03-endpoint-annotation-PLAN.md — Apply role requirements to all endpoints
-- [ ] 17-04-self-escalation-breakglass-PLAN.md — Add protections and break-glass script
+- [x] 17-01-role-infrastructure-PLAN.md — Create AdminRole enum, decorator, guard, and migration
+- [x] 17-02-jwt-auth-integration-PLAN.md — Integrate role into JWT and auth flow
+- [x] 17-03-endpoint-annotation-PLAN.md — Apply role requirements to all endpoints
+- [x] 17-04-self-escalation-breakglass-PLAN.md — Add protections and break-glass script
 
 **Requirements:**
 - RBAC-01: Admin entity has role column (super_admin, admin, viewer)
@@ -51,6 +51,12 @@ Plans:
 **Goal:** Frontend displays role information and enforces role-based navigation/access.
 
 **Dependencies:** Phase 17 (RBAC backend must exist)
+
+**Plans:** 2 plans
+
+Plans:
+- [ ] 18-01-role-display-infrastructure-PLAN.md — Admin role types, useAdminRole hook, AdminRoleBadge component
+- [ ] 18-02-header-navigation-integration-PLAN.md — Header role badge, filtered navigation, route protection
 
 **Requirements:**
 - RBAC-06: UI displays admin's current role in header/profile
@@ -184,8 +190,8 @@ Note: Requirements are assigned to Phase 21 as the primary phase. This phase del
 
 | Phase | Name | Status | Plans | Requirements | Success Criteria |
 |-------|------|--------|-------|--------------|------------------|
-| 17 | RBAC Foundation (Backend) | Planned | 4 | 8 | 0/5 |
-| 18 | RBAC UI | Not Started | - | 2 | 0/4 |
+| 17 | RBAC Foundation (Backend) | Complete | 4 | 8 | 5/5 |
+| 18 | RBAC UI | Planned | 2 | 2 | 0/4 |
 | 19 | Admin User Management (Backend) | Not Started | - | 12 | 0/5 |
 | 20 | Admin User Management (UI) | Not Started | - | 0* | 0/5 |
 | 21 | Alerting Integrations (Backend) | Not Started | - | 10 | 0/5 |
@@ -226,4 +232,5 @@ All Phases (17-22) ---> Phase 23 (Migration & Rollout)
 
 ---
 *Roadmap created: 2026-01-20*
-*Phase 17 planned: 2026-01-20*
+*Phase 17 complete: 2026-01-20*
+*Phase 18 planned: 2026-01-21*
