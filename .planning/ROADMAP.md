@@ -55,8 +55,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 18-01-role-display-infrastructure-PLAN.md — Admin role types, useAdminRole hook, AdminRoleBadge component
-- [ ] 18-02-header-navigation-integration-PLAN.md — Header role badge, filtered navigation, route protection
+- [x] 18-01-role-display-infrastructure-PLAN.md — Admin role types, useAdminRole hook, AdminRoleBadge component
+- [x] 18-02-header-navigation-integration-PLAN.md — Header role badge, filtered navigation, route protection
 
 **Requirements:**
 - RBAC-06: UI displays admin's current role in header/profile
@@ -191,7 +191,7 @@ Note: Requirements are assigned to Phase 21 as the primary phase. This phase del
 | Phase | Name | Status | Plans | Requirements | Success Criteria |
 |-------|------|--------|-------|--------------|------------------|
 | 17 | RBAC Foundation (Backend) | Complete | 4 | 8 | 5/5 |
-| 18 | RBAC UI | Planned | 2 | 2 | 0/4 |
+| 18 | RBAC UI | Complete | 2 | 2 | 4/4 |
 | 19 | Admin User Management (Backend) | Not Started | - | 12 | 0/5 |
 | 20 | Admin User Management (UI) | Not Started | - | 0* | 0/5 |
 | 21 | Alerting Integrations (Backend) | Not Started | - | 10 | 0/5 |
@@ -233,4 +233,4 @@ All Phases (17-22) ---> Phase 23 (Migration & Rollout)
 ---
 *Roadmap created: 2026-01-20*
 *Phase 17 complete: 2026-01-20*
-*Phase 18 planned: 2026-01-21*
+*Phase 18 complete: 2026-01-21*
