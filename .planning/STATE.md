@@ -12,10 +12,10 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 
 ## Current Position
 
-Phase: 17 - RBAC Foundation (Backend)
-Plan: 04 of 4 complete
-Status: Phase complete
-Last activity: 2026-01-20 — Completed 17-04-self-escalation-breakglass-PLAN.md
+Phase: 18 - RBAC UI
+Plan: 01 of 2 complete
+Status: In progress
+Last activity: 2026-01-21 — Completed 18-01-role-display-infrastructure-PLAN.md
 
 Progress: [████░░░░░░░░░░░░░░░░░░] 11% (4/37 requirements addressed)
 
@@ -24,7 +24,7 @@ Progress: [████░░░░░░░░░░░░░░░░░░] 1
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
 | 17 | RBAC Foundation (Backend) | 8 | Complete (4/4 plans) |
-| 18 | RBAC UI | 2 | Not Started |
+| 18 | RBAC UI | 2 | In Progress (1/2 plans) |
 | 19 | Admin User Management (Backend) | 12 | Not Started |
 | 20 | Admin User Management (UI) | 0* | Not Started |
 | 21 | Alerting Integrations (Backend) | 10 | Not Started |
@@ -71,6 +71,10 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | Synthetic tenant ID for admin audit logs | Admins not tenant-scoped, use 00000000-0000-0000-0000-000000000000 | 17-04 |
 | Break-glass sets pending_mfa status | Security - requires MFA setup on first login | 17-04 |
 | Session invalidation on role change | Force re-login with new role for security | 17-04 |
+| AdminRole type matches backend exactly | Uses 'super_admin', 'admin', 'viewer' from backend enum | 18-01 |
+| Numeric hierarchy for role comparison | super_admin=3, admin=2, viewer=1 enables hasMinimumRole checks | 18-01 |
+| Super admin badge has glow effect | Red color with ring + shadow for visual prominence | 18-01 |
+| PermissionGate default fallback is null | Implements hidden items pattern (not disabled/tooltip) | 18-01 |
 
 ### Pending Todos
 
@@ -82,8 +86,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-20 16:47 UTC
-Stopped at: Completed 17-04-self-escalation-breakglass-PLAN.md
+Last session: 2026-01-21 23:47 UTC
+Stopped at: Completed 18-01-role-display-infrastructure-PLAN.md
 Resume file: None
 
-Next: Phase 18 - RBAC UI (or Phase 19 - Admin User Management Backend)
+Next: Plan 18-02 - Header Role Display (or Phase 19 - Admin User Management Backend)
