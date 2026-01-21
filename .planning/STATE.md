@@ -13,18 +13,18 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 18 - RBAC UI
-Plan: 01 of 2 complete
-Status: In progress
-Last activity: 2026-01-21 — Completed 18-01-role-display-infrastructure-PLAN.md
+Plan: 02 of 2 complete
+Status: Phase complete
+Last activity: 2026-01-21 — Completed 18-02-header-navigation-integration-PLAN.md
 
-Progress: [████░░░░░░░░░░░░░░░░░░] 11% (4/37 requirements addressed)
+Progress: [█████░░░░░░░░░░░░░░░░░] 16% (6/37 requirements addressed)
 
 ## Milestone v1.2 Overview
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
 | 17 | RBAC Foundation (Backend) | 8 | Complete (4/4 plans) |
-| 18 | RBAC UI | 2 | In Progress (1/2 plans) |
+| 18 | RBAC UI | 2 | Complete (2/2 plans) |
 | 19 | Admin User Management (Backend) | 12 | Not Started |
 | 20 | Admin User Management (UI) | 0* | Not Started |
 | 21 | Alerting Integrations (Backend) | 10 | Not Started |
@@ -75,6 +75,10 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | Numeric hierarchy for role comparison | super_admin=3, admin=2, viewer=1 enables hasMinimumRole checks | 18-01 |
 | Super admin badge has glow effect | Red color with ring + shadow for visual prominence | 18-01 |
 | PermissionGate default fallback is null | Implements hidden items pattern (not disabled/tooltip) | 18-01 |
+| Navigation filtered dynamically by role | Items filtered using canAccess checks before render | 18-02 |
+| Role badge shows in header and dropdown | Header: next to name (hidden mobile), Dropdown: with permissions list | 18-02 |
+| Route protection returns boolean | useRequireRole hooks handle redirect + toast automatically | 18-02 |
+| AuthContext provides basic role helpers | adminRole, isSuperAdmin, isAdmin, isViewer for simple checks | 18-02 |
 
 ### Pending Todos
 
@@ -86,8 +90,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-21 23:47 UTC
-Stopped at: Completed 18-01-role-display-infrastructure-PLAN.md
+Last session: 2026-01-21 23:53 UTC
+Stopped at: Completed 18-02-header-navigation-integration-PLAN.md
 Resume file: None
 
-Next: Plan 18-02 - Header Role Display (or Phase 19 - Admin User Management Backend)
+Next: Phase 19 - Admin User Management Backend
