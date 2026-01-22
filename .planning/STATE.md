@@ -12,10 +12,10 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 
 ## Current Position
 
-Phase: 20 - Admin User Management (UI)
-Plan: 06 of 6 complete
-Status: Phase complete
-Last activity: 2026-01-22 — Completed 20-06-PLAN.md
+Phase: 21 - Alerting Integrations (Backend)
+Plan: 01 of 5 complete
+Status: In progress
+Last activity: 2026-01-22 — Completed 21-01-PLAN.md
 
 Progress: [██████████████░░░░░░░] 70% (26/37 requirements addressed)
 
@@ -27,7 +27,7 @@ Progress: [██████████████░░░░░░░] 70% 
 | 18 | RBAC UI | 2 | Complete (2/2 plans) |
 | 19 | Admin User Management (Backend) | 12 | Complete (7/7 plans) |
 | 20 | Admin User Management (UI) | 0* | Complete (6/6 plans) |
-| 21 | Alerting Integrations (Backend) | 10 | Not Started |
+| 21 | Alerting Integrations (Backend) | 10 | In Progress (1/5 plans) |
 | 22 | Alerting Configuration (UI) | 0* | Not Started |
 | 23 | Migration & Rollout | 5 | Not Started |
 
@@ -126,6 +126,11 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | Users page uses useRequireFeature('admin-users') for route protection | Consistent with other feature-gated pages | 20-05 |
 | Separate mutate calls for admins and invitations data refresh | Different API endpoints require separate SWR cache invalidation | 20-05 |
 | Navigation item uses 'admin-users' feature key matching ADMIN_PERMISSIONS | Leverages existing role-based filtering infrastructure | 20-05 |
+| Slack webhook URLs validated to start with https://hooks.slack.com/ | Prevents misconfiguration with invalid webhook URLs | 21-01 |
+| PagerDuty routing keys validated to be exactly 32 characters | Matches PagerDuty Events API v2 integration key format | 21-01 |
+| Default severity filter: [critical, error] excluding warnings | Excludes warnings from critical channels (aligns with ALERT-07) | 21-01 |
+| Event types default to [] (empty array = all event types) | Allows optional filtering by system_health, billing, security | 21-01 |
+| Followed SIEM integration entity pattern for encrypted config storage | Uses encrypted JSONB column for sensitive credentials | 21-01 |
 
 ### Pending Todos
 
@@ -137,8 +142,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-21
-Stopped at: Completed Phase 20 execution and verification
+Last session: 2026-01-22
+Stopped at: Completed 21-01-PLAN.md
 Resume file: None
 
-Next: Phase 21 - Alerting Integrations (Backend)
+Next: 21-02-PLAN.md - Slack Provider Implementation
