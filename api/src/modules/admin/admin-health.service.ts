@@ -2,13 +2,14 @@
 // Aggregates health data from multiple sources for system monitoring
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as dns from 'dns';
 import { promisify } from 'util';
 
 import { ClickHouseService } from '../clickhouse/clickhouse.service';
 import { RedisService } from '../redis/redis.service';
+import { AlertDispatcherService } from '../alerting/alert-dispatcher.service';
 import {
   SystemHealthResponseDto,
   ServiceStatusDto,
@@ -48,10 +49,16 @@ export class AdminHealthService {
   // HTTP request timeout
   private readonly requestTimeoutMs = 5000;
 
+  // Alert cooldown tracking (prevent alert spam)
+  private lastAlertTime: Map<string, number> = new Map();
+  private readonly ALERT_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
+
   constructor(
     private readonly configService: ConfigService,
     private readonly clickhouseService: ClickHouseService,
     private readonly redisService: RedisService,
+    @Optional()
+    private readonly alertDispatcher?: AlertDispatcherService,
   ) {
     this.policySvcUrl = this.configService.get<string>(
       'POLICY_SVC_URL',
@@ -134,6 +141,9 @@ export class AdminHealthService {
 
     // Compute overall status
     const overallStatus = this.computeOverallStatus(services, storage);
+
+    // ALERT-04: Trigger alerts on health status changes
+    await this.checkAndSendAlerts(overallStatus, services, storage);
 
     return {
       overallStatus,
@@ -501,7 +511,10 @@ export class AdminHealthService {
   /**
    * Create an unhealthy service status object
    */
-  private createUnhealthyService(name: string, error: string): ServiceStatusDto {
+  private createUnhealthyService(
+    name: string,
+    error: string,
+  ): ServiceStatusDto {
     return {
       name,
       status: 'unhealthy',
@@ -583,5 +596,69 @@ export class AdminHealthService {
     }
 
     return errors;
+  }
+
+  /**
+   * Check health status and send alerts if needed
+   * ALERT-04: System health issues trigger alerts
+   * Implements 5-minute cooldown to prevent alert spam
+   */
+  private async checkAndSendAlerts(
+    overallStatus: OverallHealthStatus,
+    services: ServiceStatusDto[],
+    storage: StorageStatusDto,
+  ): Promise<void> {
+    // Skip if alerting not configured
+    if (!this.alertDispatcher) {
+      return;
+    }
+
+    // Check if we're in cooldown period
+    const now = Date.now();
+    const lastAlert = this.lastAlertTime.get(overallStatus) || 0;
+    if (now - lastAlert < this.ALERT_COOLDOWN_MS) {
+      return; // Still in cooldown
+    }
+
+    // Send alerts based on status
+    if (overallStatus === 'unhealthy') {
+      const unhealthyServices = services
+        .filter((s) => s.status === 'unhealthy')
+        .map((s) => s.name);
+
+      const redisDown = !storage.redis.connected;
+      if (redisDown) {
+        unhealthyServices.push('redis');
+      }
+
+      if (unhealthyServices.length > 0) {
+        await this.alertDispatcher.dispatchSystemHealth(
+          'Service Down',
+          `Services unhealthy: ${unhealthyServices.join(', ')}`,
+          'critical',
+          'system_unhealthy',
+        );
+        this.lastAlertTime.set('unhealthy', now);
+      }
+    } else if (overallStatus === 'degraded') {
+      const degradedServices = services
+        .filter((s) => s.status === 'degraded')
+        .map((s) => s.name);
+
+      const clickhouseDown = !storage.clickhouse.connected;
+      if (clickhouseDown) {
+        degradedServices.push('clickhouse');
+      }
+
+      if (degradedServices.length > 0) {
+        await this.alertDispatcher.dispatchSystemHealth(
+          'Service Degraded',
+          `Services degraded: ${degradedServices.join(', ')}`,
+          'warning',
+          'system_degraded',
+        );
+        this.lastAlertTime.set('degraded', now);
+      }
+    }
   }
 }

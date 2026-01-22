@@ -10,6 +10,7 @@ import {
   ConflictException,
   ForbiddenException,
   Logger,
+  Optional,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -60,6 +61,7 @@ import {
 } from '../audit-logs/entities/audit-log.entity';
 import { AdminUser } from './dto/admin-jwt-payload.dto';
 import { EmailService } from '../email/email.service';
+import { AlertDispatcherService } from '../alerting/alert-dispatcher.service';
 
 /**
  * Request context for admin login operations
@@ -101,6 +103,8 @@ export class AdminService {
     private readonly auditLogsService: AuditLogsService,
     private readonly clickhouseService: ClickHouseService,
     private readonly emailService: EmailService,
+    @Optional()
+    private readonly alertDispatcher?: AlertDispatcherService,
   ) {
     // Lockout configuration
     this.maxFailedAttempts = this.configService.get<number>(
@@ -112,6 +116,14 @@ export class AdminService {
       30,
     );
   }
+
+  // Impersonation tracking for suspicious activity detection
+  private impersonationCounts: Map<
+    string,
+    { count: number; windowStart: number }
+  > = new Map();
+  private readonly IMPERSONATION_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+  private readonly IMPERSONATION_THRESHOLD = 3; // 3+ in 1 hour = suspicious
 
   /**
    * Authenticate an admin and return JWT token
@@ -357,11 +369,11 @@ export class AdminService {
     const jti = uuidv4();
 
     // JWT payload with admin-specific claims
+    // Note: 'iss' (issuer) is set by JwtModule options in admin.module.ts
     const payload = {
       sub: admin.id,
       email: admin.email,
       name: admin.name,
-      iss: 'nebula-admin', // Critical: distinguishes from tenant tokens
       jti,
       mfaVerified: admin.mfaSetupComplete,
       role: admin.role,
@@ -996,7 +1008,9 @@ export class AdminService {
     const payload = {
       sub: adminUser.adminId, // Admin ID as subject
       email: adminUser.email,
+      name: `${adminUser.name} (Impersonating)`, // Admin name with indicator
       tenantId: tenant.id, // Target tenant context
+      tier: tenant.tier, // Tenant tier for dashboard features
       role: 'admin', // Full tenant admin access
       jti,
       mfaVerified: true, // Admin already MFA verified
@@ -1035,6 +1049,9 @@ export class AdminService {
       `Admin ${adminUser.email} started impersonating tenant ${tenant.name} (${tenant.id})`,
     );
 
+    // ALERT-06: Check for suspicious impersonation patterns
+    await this.checkSuspiciousImpersonation(adminUser);
+
     return {
       accessToken,
       tenantId: tenant.id,
@@ -1042,6 +1059,51 @@ export class AdminService {
       tenantTier: tenant.tier,
       expiresIn: 3600, // 1 hour in seconds
     };
+  }
+
+  /**
+   * Check for suspicious impersonation activity
+   * ALERT-06: Security events trigger alerts
+   * Triggers warning if admin has 3+ impersonations in 1 hour window
+   */
+  private async checkSuspiciousImpersonation(
+    adminUser: AdminUser,
+  ): Promise<void> {
+    if (!this.alertDispatcher) {
+      return;
+    }
+
+    const now = Date.now();
+    const adminId = adminUser.adminId;
+
+    // Get or initialize tracking for this admin
+    let tracking = this.impersonationCounts.get(adminId);
+
+    // Reset window if expired
+    if (
+      !tracking ||
+      now - tracking.windowStart > this.IMPERSONATION_WINDOW_MS
+    ) {
+      tracking = { count: 0, windowStart: now };
+      this.impersonationCounts.set(adminId, tracking);
+    }
+
+    // Increment count
+    tracking.count++;
+
+    // Trigger alert if threshold exceeded
+    if (tracking.count >= this.IMPERSONATION_THRESHOLD) {
+      await this.alertDispatcher.dispatchSecurity(
+        'Suspicious Impersonation Activity',
+        `Admin ${adminUser.email} has ${tracking.count} impersonation sessions in the last hour`,
+        'warning',
+        `suspicious_impersonation_${adminId}`,
+      );
+
+      // Reset counter after alerting to avoid spam
+      tracking.count = 0;
+      tracking.windowStart = now;
+    }
   }
 
   /**
