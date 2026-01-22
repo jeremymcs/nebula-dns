@@ -181,6 +181,13 @@ Plans:
 
 **Dependencies:** Phase 21 (backend API must exist), Phase 18 (role-based nav)
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 22-01-PLAN.md — TypeScript types, SWR hooks, and Zod validation schemas
+- [ ] 22-02-PLAN.md — AlertConfigCard, Slack/PagerDuty modals, TestAlertButton components
+- [ ] 22-03-PLAN.md — Alerting settings page and navigation integration
+
 **Requirements:** (Frontend implementation of ALERT-01 through ALERT-10)
 
 Note: Requirements are assigned to Phase 21 as the primary phase. This phase delivers the UI components for configuration.
@@ -225,7 +232,7 @@ Note: Requirements are assigned to Phase 21 as the primary phase. This phase del
 | 19 | Admin User Management (Backend) | Complete | 7 | 12 | 5/5 |
 | 20 | Admin User Management (UI) | Complete | 6 | 0* | 5/5 |
 | 21 | Alerting Integrations (Backend) | Complete | 5 | 10 | 5/5 |
-| 22 | Alerting Configuration (UI) | Not Started | - | 0* | 0/5 |
+| 22 | Alerting Configuration (UI) | Planned | 3 | 0* | 0/5 |
 | 23 | Migration & Rollout | Not Started | - | 5 | 0/5 |
 
 *UI phases implement frontend for requirements assigned to their backend counterpart phases.
@@ -267,3 +274,4 @@ All Phases (17-22) ---> Phase 23 (Migration & Rollout)
 *Phase 19 complete: 2026-01-21*
 *Phase 20 complete: 2026-01-21*
 *Phase 21 complete: 2026-01-22*
+*Phase 22 planned: 2026-01-22*
