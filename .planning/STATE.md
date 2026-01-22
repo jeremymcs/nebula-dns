@@ -13,9 +13,9 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 21 - Alerting Integrations (Backend)
-Plan: 01 of 5 complete
+Plan: 02 of 5 complete
 Status: In progress
-Last activity: 2026-01-22 — Completed 21-01-PLAN.md
+Last activity: 2026-01-22 — Completed 21-02-PLAN.md
 
 Progress: [██████████████░░░░░░░] 70% (26/37 requirements addressed)
 
@@ -27,7 +27,7 @@ Progress: [██████████████░░░░░░░] 70% 
 | 18 | RBAC UI | 2 | Complete (2/2 plans) |
 | 19 | Admin User Management (Backend) | 12 | Complete (7/7 plans) |
 | 20 | Admin User Management (UI) | 0* | Complete (6/6 plans) |
-| 21 | Alerting Integrations (Backend) | 10 | In Progress (1/5 plans) |
+| 21 | Alerting Integrations (Backend) | 10 | In Progress (2/5 plans) |
 | 22 | Alerting Configuration (UI) | 0* | Not Started |
 | 23 | Migration & Rollout | 5 | Not Started |
 
@@ -131,6 +131,10 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | Default severity filter: [critical, error] excluding warnings | Excludes warnings from critical channels (aligns with ALERT-07) | 21-01 |
 | Event types default to [] (empty array = all event types) | Allows optional filtering by system_health, billing, security | 21-01 |
 | Followed SIEM integration entity pattern for encrypted config storage | Uses encrypted JSONB column for sensitive credentials | 21-01 |
+| Used SIEM encryption pattern for alert credentials | deriveKey with 'alerting-gcm-salt' for consistency across codebase | 21-02 |
+| Auto-disable configs after 10 consecutive failures | Circuit breaker prevents runaway error loops, manual re-enable required | 21-02 |
+| Response DTOs exclude encrypted data for security | toResponseDto prevents credential leakage, getDecryptedConfig is internal | 21-02 |
+| Validation on alert config creation | Slack webhookUrl prefix and PagerDuty routingKey length validated upfront | 21-02 |
 
 ### Pending Todos
 
@@ -143,7 +147,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-22
-Stopped at: Completed 21-01-PLAN.md
+Stopped at: Completed 21-02-PLAN.md
 Resume file: None
 
-Next: 21-02-PLAN.md - Slack Provider Implementation
+Next: 21-03-PLAN.md - Slack Provider Implementation
