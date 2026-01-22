@@ -26,7 +26,7 @@ Progress: [█████████████░░░░░░░░] 65% 
 | 17 | RBAC Foundation (Backend) | 8 | Complete (4/4 plans) |
 | 18 | RBAC UI | 2 | Complete (2/2 plans) |
 | 19 | Admin User Management (Backend) | 12 | Complete (7/7 plans) |
-| 20 | Admin User Management (UI) | 0* | In Progress (3/6 plans) |
+| 20 | Admin User Management (UI) | 0* | In Progress (4/6 plans) |
 | 21 | Alerting Integrations (Backend) | 10 | Not Started |
 | 22 | Alerting Configuration (UI) | 0* | Not Started |
 | 23 | Migration & Rollout | 5 | Not Started |
@@ -115,6 +115,11 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | Custom formatTimeAgo without date-fns | Package not in admin-ui dependencies, native Date API sufficient | 20-03 |
 | Filter invites to status=pending before display | Only show actionable invitations, not accepted/revoked/expired | 20-03 |
 | Expiry countdown in days/hours/minutes | More informative than raw date for time-sensitive invitations | 20-03 |
+| Timeline-style vertical layout for activity entries | Visual line connecting entries creates clear chronological flow | 20-04 |
+| Color-coded icons by action category | Auth (accent), Positive (success), Negative (danger), Neutral (warning) | 20-04 |
+| Modal with xl size for drawer appearance | Provides sufficient width for profile and activity display | 20-04 |
+| Conditional action buttons based on status | Suspend shown for non-suspended, Reactivate shown for suspended | 20-04 |
+| All management actions require confirmation | Prevents accidental destructive operations | 20-04 |
 
 ### Pending Todos
 
@@ -126,8 +131,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-22 02:39 UTC
-Stopped at: Completed 20-03-PLAN.md
+Last session: 2026-01-22 02:49 UTC
+Stopped at: Completed 20-04-PLAN.md
 Resume file: None
 
-Next: 20-04-PLAN.md (Admin Detail Drawer)
+Next: 20-05-PLAN.md (Admin Users Page)
