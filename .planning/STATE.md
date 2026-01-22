@@ -88,6 +88,9 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | Activity log default limit is 50 (max 200) | Higher than typical 20 for bulk compliance review | 19-02 |
 | AdminInvitationResponseDto includes isExpired | Computed field avoids client-side logic duplication | 19-02 |
 | All pagination uses cursor-based pattern | Consistent pattern across all admin endpoints | 19-02 |
+| AdminActivityService exported from AdminModule | Other services can use it for activity logging | 19-03 |
+| Activity query uses LEFT JOINs for null targets | Gracefully handles actions without targetAdmin | 19-03 |
+| getActivityForAdmin filters actor OR target | Shows complete audit trail for individual admin | 19-03 |
 | Admin invite email uses gradient header | Matches existing email patterns for brand consistency | 19-04 |
 | MFA reset email uses warning colors | Yellow/amber styling highlights security action | 19-04 |
 | Role display formatting in emails | Converts super_admin to Super Admin for readability | 19-04 |
@@ -102,8 +105,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-22 01:15 UTC
-Stopped at: Completed 19-04-email-templates-PLAN.md
+Last session: 2026-01-22 01:16 UTC
+Stopped at: Created 19-03-SUMMARY.md (completing documentation for already-implemented plan)
 Resume file: None
 
-Next: Phase 19 Plan 05 - Admin service implementation
+Next: Phase 19 Plan 05 - Admin user operations service
