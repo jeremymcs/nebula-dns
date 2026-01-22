@@ -123,6 +123,9 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | Suspense wrapper for useSearchParams | Next.js 14 requires Suspense boundary for client-side URL params | 20-06 |
 | PASSWORD_REQUIREMENTS array for real-time checking | Provides structured requirement data for UI feedback | 20-06 |
 | 3-second countdown before redirect on success | Gives user feedback before automatic redirect | 20-06 |
+| Users page uses useRequireFeature('admin-users') for route protection | Consistent with other feature-gated pages | 20-05 |
+| Separate mutate calls for admins and invitations data refresh | Different API endpoints require separate SWR cache invalidation | 20-05 |
+| Navigation item uses 'admin-users' feature key matching ADMIN_PERMISSIONS | Leverages existing role-based filtering infrastructure | 20-05 |
 
 ### Pending Todos
 
@@ -134,8 +137,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-22 02:40 UTC
-Stopped at: Completed 20-06-PLAN.md (Phase 20 complete)
+Last session: 2026-01-22 03:02 UTC
+Stopped at: Completed 20-05-PLAN.md (Admin Users page and navigation)
 Resume file: None
 
 Next: 21-PLAN.md (Alerting Integrations Backend)
