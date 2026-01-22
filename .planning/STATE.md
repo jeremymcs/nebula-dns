@@ -13,11 +13,11 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 21 - Alerting Integrations (Backend)
-Plan: 03 of 5 complete
-Status: In progress
-Last activity: 2026-01-22 — Completed 21-03-PLAN.md
+Plan: 05 of 5 complete
+Status: Phase complete
+Last activity: 2026-01-22 — Completed 21-05-PLAN.md
 
-Progress: [██████████████░░░░░░░] 70% (26/37 requirements addressed)
+Progress: [████████████████░░░░░] 80% (30/37 requirements addressed)
 
 ## Milestone v1.2 Overview
 
@@ -27,7 +27,7 @@ Progress: [██████████████░░░░░░░] 70% 
 | 18 | RBAC UI | 2 | Complete (2/2 plans) |
 | 19 | Admin User Management (Backend) | 12 | Complete (7/7 plans) |
 | 20 | Admin User Management (UI) | 0* | Complete (6/6 plans) |
-| 21 | Alerting Integrations (Backend) | 10 | In Progress (4/5 plans) |
+| 21 | Alerting Integrations (Backend) | 10 | Complete (5/5 plans) |
 | 22 | Alerting Configuration (UI) | 0* | Not Started |
 | 23 | Migration & Rollout | 5 | Not Started |
 
@@ -140,6 +140,11 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | Test alert creates and immediately resolves incident (ALERT-09) | Verifies connectivity without leaving open test incidents | 21-04 |
 | Summary field truncated to 1024 chars | PagerDuty API limit for summary field | 21-04 |
 | Validation on alert config creation | Slack webhookUrl prefix and PagerDuty routingKey length validated upfront | 21-02 |
+| AlertDispatcherService uses @Optional injection | Services work without alerting configured, no hard dependencies | 21-05 |
+| Health alerts use 5-minute cooldown per status | Prevents alert spam for flapping services | 21-05 |
+| Impersonation tracking uses in-memory Map with 1-hour windows | 3+ impersonations triggers warning, simpler than database queries | 21-05 |
+| Payment alerts prepared but require webhook handler integration | PaymentsService has handlePaymentFailure() ready for webhook processing | 21-05 |
+| All event sources use optional alerting | @Optional() decorator prevents circular dependencies | 21-05 |
 
 ### Pending Todos
 
@@ -152,7 +157,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-22
-Stopped at: Completed 21-04-PLAN.md
+Stopped at: Completed Phase 21 - Alerting Integrations (Backend)
 Resume file: None
 
-Next: 21-05-PLAN.md - Alert Dispatcher Service
+Next: Phase 22 - Alerting Configuration (UI)
