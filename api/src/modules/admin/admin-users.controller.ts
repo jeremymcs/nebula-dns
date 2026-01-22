@@ -195,6 +195,90 @@ export class AdminUsersController {
   }
 
   /**
+   * Send admin invitation
+   * USER-02: Super Admin can invite new admin via email with role assignment
+   */
+  @Post('invite')
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Invite new admin',
+    description: 'Sends invitation email to create new admin account with specified role.',
+  })
+  @ApiResponse({ status: 201, description: 'Invitation sent', type: CreateAdminInvitationResponseDto })
+  @ApiResponse({ status: 409, description: 'Email already exists or has pending invite' })
+  async sendInvitation(
+    @Body() dto: CreateAdminInvitationDto,
+    @Req() req: Request,
+    @Ip() ip: string,
+  ): Promise<CreateAdminInvitationResponseDto> {
+    const admin = req.user as AdminUser;
+    return this.adminInvitationsService.createInvitation(admin.adminId, dto, this.getClientIp(req, ip));
+  }
+
+  /**
+   * Accept admin invitation (PUBLIC - no auth)
+   * USER-04: Invited admin can accept and set password/MFA
+   */
+  @Post('invite/accept')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Accept admin invitation',
+    description: 'Accepts invitation using token from email. Creates admin account.',
+  })
+  @ApiResponse({ status: 200, description: 'Account created successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid/expired token or invitation already used' })
+  @ApiResponse({ status: 404, description: 'Invitation not found' })
+  async acceptInvitation(@Body() dto: AcceptAdminInvitationDto): Promise<AdminMessageResponseDto> {
+    await this.adminInvitationsService.acceptInvitation(dto);
+    return { message: 'Admin account created successfully. Please log in and set up MFA.' };
+  }
+
+  /**
+   * List pending invitations
+   * USER-11: Super Admin can view pending invites with expiry status
+   */
+  @Get('invites')
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'List invitations',
+    description: 'Returns paginated list of admin invitations with status.',
+  })
+  @ApiResponse({ status: 200, description: 'Invitation list', type: ListInvitationsResponseDto })
+  async listInvitations(@Query() query: ListInvitationsQueryDto): Promise<ListInvitationsResponseDto> {
+    return this.adminInvitationsService.listInvitations(query);
+  }
+
+  /**
+   * Revoke pending invitation
+   * USER-12: Super Admin can revoke pending invites
+   */
+  @Delete('invites/:id')
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Revoke invitation',
+    description: 'Revokes a pending invitation. Cannot revoke already accepted invitations.',
+  })
+  @ApiParam({ name: 'id', description: 'Invitation UUID' })
+  @ApiResponse({ status: 200, description: 'Invitation revoked' })
+  @ApiResponse({ status: 400, description: 'Invitation not pending' })
+  @ApiResponse({ status: 404, description: 'Invitation not found' })
+  async revokeInvitation(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: Request,
+    @Ip() ip: string,
+  ): Promise<AdminMessageResponseDto> {
+    const admin = req.user as AdminUser;
+    await this.adminInvitationsService.revokeInvitation(admin.adminId, id, this.getClientIp(req, ip));
+    return { message: 'Invitation revoked successfully' };
+  }
+
+  /**
    * Extract client IP from request, handling proxies
    */
   private getClientIp(req: Request, ip: string): string {
