@@ -76,6 +76,17 @@ Plans:
 
 **Dependencies:** Phase 17 (requires RBAC for access control)
 
+**Plans:** 7 plans
+
+Plans:
+- [ ] 19-01-PLAN.md — Database entities and migration (AdminInvitation, AdminActivityLog)
+- [ ] 19-02-PLAN.md — DTOs for user management, invitations, and activity
+- [ ] 19-03-PLAN.md — AdminActivityService for audit logging
+- [ ] 19-04-PLAN.md — Email templates (admin invite, MFA reset notification)
+- [ ] 19-05-PLAN.md — AdminUsersService (list, profile, suspend, reactivate, MFA reset)
+- [ ] 19-06-PLAN.md — AdminInvitationsService (create, accept, list, revoke)
+- [ ] 19-07-PLAN.md — AdminUsersController with all endpoints
+
 **Requirements:**
 - USER-01: Super Admin can view list of all admin users with roles
 - USER-02: Super Admin can invite new admin via email with role assignment
@@ -192,7 +203,7 @@ Note: Requirements are assigned to Phase 21 as the primary phase. This phase del
 |-------|------|--------|-------|--------------|------------------|
 | 17 | RBAC Foundation (Backend) | Complete | 4 | 8 | 5/5 |
 | 18 | RBAC UI | Complete | 2 | 2 | 4/4 |
-| 19 | Admin User Management (Backend) | Not Started | - | 12 | 0/5 |
+| 19 | Admin User Management (Backend) | Planned | 7 | 12 | 0/5 |
 | 20 | Admin User Management (UI) | Not Started | - | 0* | 0/5 |
 | 21 | Alerting Integrations (Backend) | Not Started | - | 10 | 0/5 |
 | 22 | Alerting Configuration (UI) | Not Started | - | 0* | 0/5 |
@@ -234,3 +245,4 @@ All Phases (17-22) ---> Phase 23 (Migration & Rollout)
 *Roadmap created: 2026-01-20*
 *Phase 17 complete: 2026-01-20*
 *Phase 18 complete: 2026-01-21*
+*Phase 19 planned: 2026-01-21*
