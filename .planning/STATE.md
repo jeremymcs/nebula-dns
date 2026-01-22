@@ -13,9 +13,9 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 19 - Admin User Management (Backend)
-Plan: 01 of 3 complete
+Plan: 02 of 3 complete
 Status: In progress
-Last activity: 2026-01-21 — Completed 19-01-admin-database-entities-PLAN.md
+Last activity: 2026-01-22 — Completed 19-02-admin-dtos-PLAN.md
 
 Progress: [██████░░░░░░░░░░░░░░░░] 27% (10/37 requirements addressed)
 
@@ -25,7 +25,7 @@ Progress: [██████░░░░░░░░░░░░░░░░] 2
 |-------|------|--------------|--------|
 | 17 | RBAC Foundation (Backend) | 8 | Complete (4/4 plans) |
 | 18 | RBAC UI | 2 | Complete (2/2 plans) |
-| 19 | Admin User Management (Backend) | 12 | In Progress (1/3 plans) |
+| 19 | Admin User Management (Backend) | 12 | In Progress (2/3 plans) |
 | 20 | Admin User Management (UI) | 0* | Not Started |
 | 21 | Alerting Integrations (Backend) | 10 | Not Started |
 | 22 | Alerting Configuration (UI) | 0* | Not Started |
@@ -84,6 +84,10 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | Activity logs track 13 action types | Covers authentication, user management, security events | 19-01 |
 | Invitations CASCADE DELETE on inviter deletion | Clean up pending invitations when admin is deleted | 19-01 |
 | Activity logs SET NULL on target deletion | Preserve audit trail even if target admin deleted later | 19-01 |
+| Password requires 14+ chars with complexity | Mixed case, numbers, symbols for security | 19-02 |
+| Activity log default limit is 50 (max 200) | Higher than typical 20 for bulk compliance review | 19-02 |
+| AdminInvitationResponseDto includes isExpired | Computed field avoids client-side logic duplication | 19-02 |
+| All pagination uses cursor-based pattern | Consistent pattern across all admin endpoints | 19-02 |
 
 ### Pending Todos
 
@@ -95,8 +99,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-21 23:55 UTC
-Stopped at: Completed 19-01-admin-database-entities-PLAN.md
+Last session: 2026-01-22 01:10 UTC
+Stopped at: Completed 19-02-admin-dtos-PLAN.md
 Resume file: None
 
-Next: Phase 19 Plan 02 - Admin invitation service implementation
+Next: Phase 19 Plan 03 - Admin service implementation
