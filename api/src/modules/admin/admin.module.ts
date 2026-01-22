@@ -24,6 +24,7 @@ import { AdminSessionService } from './admin-session.service';
 import { AdminHealthService } from './admin-health.service';
 import { AdminBillingService } from './admin-billing.service';
 import { AdminActivityService } from './admin-activity.service';
+import { AdminUsersService } from './admin-users.service';
 import { AdminController } from './admin.controller';
 import { RedisModule } from '../redis/redis.module';
 import { AuditLogsModule } from '../audit-logs/audit-logs.module';
@@ -112,6 +113,7 @@ import { SubscriptionLapseModule } from '../subscription-lapse/subscription-laps
     AdminHealthService,
     AdminBillingService,
     AdminActivityService,
+    AdminUsersService,
     AdminJwtStrategy,
     AdminAuthGuard,
     AdminRolesGuard,
@@ -123,6 +125,7 @@ import { SubscriptionLapseModule } from '../subscription-lapse/subscription-laps
     AdminHealthService,
     AdminBillingService,
     AdminActivityService,
+    AdminUsersService,
     AdminAuthGuard,
     AdminRolesGuard,
     JwtModule,
