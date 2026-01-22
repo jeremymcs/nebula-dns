@@ -13,11 +13,11 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 19 - Admin User Management (Backend)
-Plan: 06 of 7 complete
-Status: In progress
-Last activity: 2026-01-22 — Completed 19-06-PLAN.md
+Plan: 07 of 7 complete
+Status: Phase complete
+Last activity: 2026-01-22 — Completed 19-07-PLAN.md
 
-Progress: [███████░░░░░░░░░░░░░░░] 32% (12/37 requirements addressed)
+Progress: [████████░░░░░░░░░░░░░] 35% (13/37 requirements addressed)
 
 ## Milestone v1.2 Overview
 
@@ -25,7 +25,7 @@ Progress: [███████░░░░░░░░░░░░░░░] 3
 |-------|------|--------------|--------|
 | 17 | RBAC Foundation (Backend) | 8 | Complete (4/4 plans) |
 | 18 | RBAC UI | 2 | Complete (2/2 plans) |
-| 19 | Admin User Management (Backend) | 12 | In Progress (6/7 plans) |
+| 19 | Admin User Management (Backend) | 12 | Complete (7/7 plans) |
 | 20 | Admin User Management (UI) | 0* | Not Started |
 | 21 | Alerting Integrations (Backend) | 10 | Not Started |
 | 22 | Alerting Configuration (UI) | 0* | Not Started |
@@ -103,6 +103,9 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | setImmediate for activity logging in transaction | Prevents activity log from blocking transaction commit | 19-06 |
 | Email sending failures logged but don't block invitation | Allows retry or manual notification | 19-06 |
 | Expired invitations marked on acceptance attempt | Simpler than background job, expiry check when token used | 19-06 |
+| All endpoints except accept-invite require SUPER_ADMIN role | User management is sensitive; only super admins should manage other admins | 19-07 |
+| Accept invitation is public (no authentication) | Invited users don't have credentials yet; use token-based validation instead | 19-07 |
+| IP address extracted from headers for audit logging | Capture real client IP when behind proxy/load balancer for security audit | 19-07 |
 
 ### Pending Todos
 
@@ -114,8 +117,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-22 01:23 UTC
-Stopped at: Completed 19-06-PLAN.md
+Last session: 2026-01-22 01:29 UTC
+Stopped at: Completed 19-07-PLAN.md (Phase 19 complete)
 Resume file: None
 
-Next: Phase 19 Plan 07 - Admin API endpoints (controller layer)
+Next: Phase 20 - Admin User Management UI
