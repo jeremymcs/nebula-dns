@@ -116,6 +116,16 @@ Plans:
 
 **Dependencies:** Phase 19 (backend API must exist), Phase 18 (role-based nav for proper access)
 
+**Plans:** 6 plans
+
+Plans:
+- [ ] 20-01-PLAN.md — TypeScript types and SWR hooks for admin user API
+- [ ] 20-02-PLAN.md — Invite admin validation schema and modal component
+- [ ] 20-03-PLAN.md — Admin users table and pending invites section
+- [ ] 20-04-PLAN.md — Admin detail drawer with actions and activity log
+- [ ] 20-05-PLAN.md — Admin Users page and navigation update
+- [ ] 20-06-PLAN.md — Accept invitation page (public route)
+
 **Requirements:** (Frontend implementation of USER-01 through USER-12)
 
 Note: Requirements are assigned to Phase 19 as the primary phase. This phase delivers the UI components that consume those APIs.
@@ -204,7 +214,7 @@ Note: Requirements are assigned to Phase 21 as the primary phase. This phase del
 | 17 | RBAC Foundation (Backend) | Complete | 4 | 8 | 5/5 |
 | 18 | RBAC UI | Complete | 2 | 2 | 4/4 |
 | 19 | Admin User Management (Backend) | Complete | 7 | 12 | 5/5 |
-| 20 | Admin User Management (UI) | Not Started | - | 0* | 0/5 |
+| 20 | Admin User Management (UI) | Planned | 6 | 0* | 0/5 |
 | 21 | Alerting Integrations (Backend) | Not Started | - | 10 | 0/5 |
 | 22 | Alerting Configuration (UI) | Not Started | - | 0* | 0/5 |
 | 23 | Migration & Rollout | Not Started | - | 5 | 0/5 |
@@ -246,3 +256,4 @@ All Phases (17-22) ---> Phase 23 (Migration & Rollout)
 *Phase 17 complete: 2026-01-20*
 *Phase 18 complete: 2026-01-21*
 *Phase 19 complete: 2026-01-21*
+*Phase 20 planned: 2026-01-21*
