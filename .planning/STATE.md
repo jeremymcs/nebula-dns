@@ -13,9 +13,9 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 20 - Admin User Management (UI)
-Plan: 01 of 6 complete
+Plan: 02 of 6 complete
 Status: In progress
-Last activity: 2026-01-21 — Completed 20-01-PLAN.md
+Last activity: 2026-01-21 — Completed 20-02-PLAN.md
 
 Progress: [████████████░░░░░░░░░] 62% (23/37 requirements addressed)
 
@@ -26,7 +26,7 @@ Progress: [████████████░░░░░░░░░] 62% 
 | 17 | RBAC Foundation (Backend) | 8 | Complete (4/4 plans) |
 | 18 | RBAC UI | 2 | Complete (2/2 plans) |
 | 19 | Admin User Management (Backend) | 12 | Complete (7/7 plans) |
-| 20 | Admin User Management (UI) | 0* | In Progress (1/6 plans) |
+| 20 | Admin User Management (UI) | 0* | In Progress (2/6 plans) |
 | 21 | Alerting Integrations (Backend) | 10 | Not Started |
 | 22 | Alerting Configuration (UI) | 0* | Not Started |
 | 23 | Migration & Rollout | 5 | Not Started |
@@ -109,6 +109,9 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | Re-export AdminRole from admin-permissions.ts | Avoids type duplication while making AdminRole available from types/admin-users.ts | 20-01 |
 | acceptAdminInvitation uses fetch without auth header | Correctly implements public endpoint as designed in backend | 20-01 |
 | useAdminUserDetail accepts null adminId | Enables conditional fetching when detail view not selected | 20-01 |
+| Zod v4 uses message param instead of errorMap for enum validation | Breaking change in Zod v4 API | 20-02 |
+| Default role in invite form is 'admin' | Matches backend default, security-conscious starting point | 20-02 |
+| Role descriptions shown inline below select | Helps users understand permission levels without separate help modal | 20-02 |
 
 ### Pending Todos
 
@@ -120,8 +123,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-21 18:00 UTC
-Stopped at: Completed 20-01-PLAN.md
+Last session: 2026-01-21 18:38 UTC
+Stopped at: Completed 20-02-PLAN.md
 Resume file: None
 
-Next: 20-02-PLAN.md (Admin List Page)
+Next: 20-03-PLAN.md (Admin Users Page)
