@@ -27,6 +27,7 @@ import { AdminActivityService } from './admin-activity.service';
 import { AdminUsersService } from './admin-users.service';
 import { AdminInvitationsService } from './admin-invitations.service';
 import { AdminController } from './admin.controller';
+import { AdminUsersController } from './admin-users.controller';
 import { RedisModule } from '../redis/redis.module';
 import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 import { ClickHouseModule } from '../clickhouse/clickhouse.module';
@@ -105,7 +106,7 @@ import { SubscriptionLapseModule } from '../subscription-lapse/subscription-laps
   ],
 
   // Admin API endpoints
-  controllers: [AdminController],
+  controllers: [AdminController, AdminUsersController],
 
   // Services and strategy
   providers: [

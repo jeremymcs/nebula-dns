@@ -279,6 +279,23 @@ export class AdminUsersController {
   }
 
   /**
+   * View admin activity logs
+   * USER-10: Admin activity log captures auth, management, and sensitive actions
+   */
+  @Get('activity')
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'View activity logs',
+    description: 'Returns paginated admin activity logs with optional filters.',
+  })
+  @ApiResponse({ status: 200, description: 'Activity log', type: AdminActivityResponseDto })
+  async getActivityLog(@Query() query: AdminActivityQueryDto): Promise<AdminActivityResponseDto> {
+    return this.adminActivityService.query(query);
+  }
+
+  /**
    * Extract client IP from request, handling proxies
    */
   private getClientIp(req: Request, ip: string): string {
