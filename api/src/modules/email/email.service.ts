@@ -73,6 +73,23 @@ export interface MspWelcomeEmailData {
   loginUrl: string;
 }
 
+// Phase 19: Admin User Management Email Data Interfaces
+export interface AdminInviteEmailData {
+  to: string;                    // Invitee email
+  inviterName: string;           // Name of admin who sent invite
+  inviterEmail: string;          // Email of admin who sent invite
+  role: string;                  // Assigned role (Super Admin, Admin, Viewer)
+  inviteUrl: string;             // Full URL with token
+  expiresAt: Date;               // When invitation expires
+}
+
+export interface MfaResetNotificationData {
+  to: string;                    // Admin whose MFA was reset
+  name: string;                  // Admin's name
+  resetByEmail: string;          // Email of admin who performed reset
+  loginUrl: string;              // Admin login URL
+}
+
 // US-028: Grace Period Email Data Interfaces
 export interface GracePeriodNotificationData {
   to: string;
@@ -823,6 +840,154 @@ Need help? Visit our documentation at ${this.docsUrl}
 
 Keep this email secure - do not share your temporary password.
 This email was sent by Nebula DNS.
+`;
+
+    return this.sendEmail(data.to, subject, htmlContent, textContent);
+  }
+
+  async sendAdminInviteEmail(data: AdminInviteEmailData): Promise<boolean> {
+    const subject = "You've been invited to join Nebula DNS Admin";
+
+    // Format role for display (super_admin -> Super Admin)
+    const roleDisplay = data.role
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Invitation</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+    <h1 style="color: white; margin: 0; font-size: 28px;">Admin Invitation</h1>
+  </div>
+
+  <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
+    <p style="font-size: 16px;">
+      <strong>${data.inviterName}</strong> has invited you to join Nebula DNS as an administrator.
+    </p>
+
+    <div style="background: white; border-radius: 8px; padding: 20px; margin: 25px 0; border: 1px solid #e5e7eb;">
+      <h3 style="color: #667eea; margin-top: 0;">Your Access Level</h3>
+      <p style="margin: 10px 0; font-size: 18px; font-weight: 600; color: #374151;">
+        ${roleDisplay}
+      </p>
+      <p style="margin: 10px 0 0 0; font-size: 14px; color: #6b7280;">
+        You will be able to access Mission Control and manage the Nebula DNS platform.
+      </p>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${data.inviteUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+        Accept Invitation
+      </a>
+    </div>
+
+    <p style="font-size: 14px; color: #dc2626; text-align: center;">
+      This invitation expires on ${data.expiresAt.toLocaleDateString()} at ${data.expiresAt.toLocaleTimeString()}.
+    </p>
+
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
+
+    <p style="font-size: 12px; color: #6b7280; text-align: center;">
+      If you didn't expect this invitation, you can safely ignore this email.<br>
+      Invited by: ${data.inviterEmail}
+    </p>
+  </div>
+</body>
+</html>`;
+
+    const textContent = `
+Admin Invitation
+
+${data.inviterName} has invited you to join Nebula DNS as an administrator.
+
+Your Access Level: ${roleDisplay}
+
+Accept your invitation: ${data.inviteUrl}
+
+This invitation expires on ${data.expiresAt.toLocaleDateString()} at ${data.expiresAt.toLocaleTimeString()}.
+
+Invited by: ${data.inviterEmail}
+`;
+
+    return this.sendEmail(data.to, subject, htmlContent, textContent);
+  }
+
+  async sendMfaResetNotification(data: MfaResetNotificationData): Promise<boolean> {
+    const subject = 'Your MFA has been reset - Action Required';
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MFA Reset Notification</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: #fef3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 30px;">
+    <h2 style="color: #856404; margin-top: 0;">MFA Reset Notification</h2>
+
+    <p style="font-size: 16px;">Hi ${data.name},</p>
+
+    <p style="font-size: 16px;">
+      Your Multi-Factor Authentication (MFA) has been reset by a Super Admin.
+    </p>
+
+    <div style="background: white; border-radius: 8px; padding: 20px; margin: 25px 0; border: 1px solid #ffc107;">
+      <h3 style="color: #856404; margin-top: 0;">What this means:</h3>
+      <ul style="margin: 0; padding-left: 20px; color: #495057;">
+        <li style="margin-bottom: 10px;">Your existing MFA setup has been removed</li>
+        <li style="margin-bottom: 10px;">You must set up MFA again on your next login</li>
+        <li style="margin-bottom: 10px;">All your active sessions have been ended</li>
+      </ul>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${data.loginUrl}" style="background: #28a745; color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+        Log In and Set Up MFA
+      </a>
+    </div>
+
+    <p style="font-size: 14px; color: #856404;">
+      <strong>Did you not request this?</strong> If you didn't request an MFA reset,
+      please contact your system administrator immediately.
+    </p>
+
+    <hr style="border: none; border-top: 1px solid #ffc107; margin: 25px 0;">
+
+    <p style="font-size: 12px; color: #6b7280; text-align: center;">
+      Reset performed by: ${data.resetByEmail}<br>
+      This is an automated notification from Nebula DNS.
+    </p>
+  </div>
+</body>
+</html>`;
+
+    const textContent = `
+MFA Reset Notification
+
+Hi ${data.name},
+
+Your Multi-Factor Authentication (MFA) has been reset by a Super Admin.
+
+What this means:
+- Your existing MFA setup has been removed
+- You must set up MFA again on your next login
+- All your active sessions have been ended
+
+Log in and set up MFA: ${data.loginUrl}
+
+Did you not request this? If you didn't request an MFA reset,
+please contact your system administrator immediately.
+
+Reset performed by: ${data.resetByEmail}
 `;
 
     return this.sendEmail(data.to, subject, htmlContent, textContent);
