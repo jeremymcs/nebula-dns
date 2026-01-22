@@ -36,6 +36,7 @@ import { PaymentsModule } from '../payments/payments.module';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 import { TrialsModule } from '../trials/trials.module';
 import { SubscriptionLapseModule } from '../subscription-lapse/subscription-lapse.module';
+import { AlertingModule } from '../alerting/alerting.module';
 
 /**
  * Admin Module
@@ -103,6 +104,7 @@ import { SubscriptionLapseModule } from '../subscription-lapse/subscription-laps
     SubscriptionsModule,
     TrialsModule,
     SubscriptionLapseModule,
+    AlertingModule,
   ],
 
   // Admin API endpoints
