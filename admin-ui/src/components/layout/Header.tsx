@@ -53,6 +53,7 @@ export function Header() {
     { name: 'Dashboard', href: '/', feature: 'dashboard' as const },
     { name: 'MSPs', href: '/msps', feature: 'msps' as const },
     { name: 'Health', href: '/health', feature: 'health' as const },
+    { name: 'Alerting', href: '/settings/alerting', feature: 'alerting-config' as const },
     { name: 'Admin Users', href: '/users', feature: 'admin-users' as const },
   ]
 
@@ -176,6 +177,12 @@ export function Header() {
                           <li className="flex items-center gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-success-500" />
                             Create & edit MSPs
+                          </li>
+                        )}
+                        {canAccess('alerting-config') && (
+                          <li className="flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-success-500" />
+                            Configure alerting
                           </li>
                         )}
                         {isSuperAdmin && (
