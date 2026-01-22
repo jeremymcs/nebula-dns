@@ -145,6 +145,15 @@ Note: Requirements are assigned to Phase 19 as the primary phase. This phase del
 
 **Dependencies:** Phase 17 (requires RBAC for config access control)
 
+**Plans:** 5 plans
+
+Plans:
+- [ ] 21-01-PLAN.md — Entity, interfaces, DTOs, and migration for alert configs
+- [ ] 21-02-PLAN.md — AlertingService with encrypted config CRUD
+- [ ] 21-03-PLAN.md — SlackProvider with Block Kit formatting
+- [ ] 21-04-PLAN.md — PagerDutyProvider with Events API v2 and dedup_key
+- [ ] 21-05-PLAN.md — AlertDispatcher, controller, module, and event triggers
+
 **Requirements:**
 - ALERT-01: Slack webhook can be configured with channel URL
 - ALERT-02: PagerDuty routing key can be configured
@@ -215,7 +224,7 @@ Note: Requirements are assigned to Phase 21 as the primary phase. This phase del
 | 18 | RBAC UI | Complete | 2 | 2 | 4/4 |
 | 19 | Admin User Management (Backend) | Complete | 7 | 12 | 5/5 |
 | 20 | Admin User Management (UI) | Complete | 6 | 0* | 5/5 |
-| 21 | Alerting Integrations (Backend) | Not Started | - | 10 | 0/5 |
+| 21 | Alerting Integrations (Backend) | Planned | 5 | 10 | 0/5 |
 | 22 | Alerting Configuration (UI) | Not Started | - | 0* | 0/5 |
 | 23 | Migration & Rollout | Not Started | - | 5 | 0/5 |
 
@@ -257,3 +266,4 @@ All Phases (17-22) ---> Phase 23 (Migration & Rollout)
 *Phase 18 complete: 2026-01-21*
 *Phase 19 complete: 2026-01-21*
 *Phase 20 complete: 2026-01-21*
+*Phase 21 planned: 2026-01-21*
