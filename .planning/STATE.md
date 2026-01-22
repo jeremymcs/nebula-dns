@@ -13,9 +13,9 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 19 - Admin User Management (Backend)
-Plan: 05 of 5 complete
-Status: Phase complete
-Last activity: 2026-01-22 — Completed 19-05-admin-users-service-PLAN.md
+Plan: 06 of 7 complete
+Status: In progress
+Last activity: 2026-01-22 — Completed 19-06-PLAN.md
 
 Progress: [███████░░░░░░░░░░░░░░░] 32% (12/37 requirements addressed)
 
@@ -25,7 +25,7 @@ Progress: [███████░░░░░░░░░░░░░░░] 3
 |-------|------|--------------|--------|
 | 17 | RBAC Foundation (Backend) | 8 | Complete (4/4 plans) |
 | 18 | RBAC UI | 2 | Complete (2/2 plans) |
-| 19 | Admin User Management (Backend) | 12 | Complete (5/5 plans) |
+| 19 | Admin User Management (Backend) | 12 | In Progress (6/7 plans) |
 | 20 | Admin User Management (UI) | 0* | Not Started |
 | 21 | Alerting Integrations (Backend) | 10 | Not Started |
 | 22 | Alerting Configuration (UI) | 0* | Not Started |
@@ -99,6 +99,10 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | Cannot reset own MFA through admin service | Must use self-service (requires working MFA to be logged in) | 19-05 |
 | Reactivation status depends on MFA state | Sets to pending_mfa if MFA not complete, active if complete | 19-05 |
 | MFA reset email failure does not block operation | Logged as warning, operation succeeds anyway (availability over notification) | 19-05 |
+| Store only SHA256 hashes of invitation tokens | Limits exposure if database is compromised | 19-06 |
+| setImmediate for activity logging in transaction | Prevents activity log from blocking transaction commit | 19-06 |
+| Email sending failures logged but don't block invitation | Allows retry or manual notification | 19-06 |
+| Expired invitations marked on acceptance attempt | Simpler than background job, expiry check when token used | 19-06 |
 
 ### Pending Todos
 
@@ -110,8 +114,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-22 01:22 UTC
-Stopped at: Completed 19-05-SUMMARY.md (Phase 19 complete - all admin user management backend services implemented)
+Last session: 2026-01-22 01:23 UTC
+Stopped at: Completed 19-06-PLAN.md
 Resume file: None
 
-Next: Phase 20 - Admin User Management UI (consume backend services from frontend)
+Next: Phase 19 Plan 07 - Admin API endpoints (controller layer)
