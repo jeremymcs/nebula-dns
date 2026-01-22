@@ -13,11 +13,11 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 19 - Admin User Management (Backend)
-Plan: 04 of 5 complete
-Status: In progress
-Last activity: 2026-01-22 — Completed 19-04-email-templates-PLAN.md
+Plan: 05 of 5 complete
+Status: Phase complete
+Last activity: 2026-01-22 — Completed 19-05-admin-users-service-PLAN.md
 
-Progress: [██████░░░░░░░░░░░░░░░░] 27% (10/37 requirements addressed)
+Progress: [███████░░░░░░░░░░░░░░░] 32% (12/37 requirements addressed)
 
 ## Milestone v1.2 Overview
 
@@ -25,7 +25,7 @@ Progress: [██████░░░░░░░░░░░░░░░░] 2
 |-------|------|--------------|--------|
 | 17 | RBAC Foundation (Backend) | 8 | Complete (4/4 plans) |
 | 18 | RBAC UI | 2 | Complete (2/2 plans) |
-| 19 | Admin User Management (Backend) | 12 | In Progress (4/5 plans) |
+| 19 | Admin User Management (Backend) | 12 | Complete (5/5 plans) |
 | 20 | Admin User Management (UI) | 0* | Not Started |
 | 21 | Alerting Integrations (Backend) | 10 | Not Started |
 | 22 | Alerting Configuration (UI) | 0* | Not Started |
@@ -94,6 +94,11 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | Admin invite email uses gradient header | Matches existing email patterns for brand consistency | 19-04 |
 | MFA reset email uses warning colors | Yellow/amber styling highlights security action | 19-04 |
 | Role display formatting in emails | Converts super_admin to Super Admin for readability | 19-04 |
+| Cannot suspend yourself | Prevents accidental self-lockout | 19-05 |
+| Cannot suspend another super_admin | Must demote to admin first to prevent privilege escalation | 19-05 |
+| Cannot reset own MFA through admin service | Must use self-service (requires working MFA to be logged in) | 19-05 |
+| Reactivation status depends on MFA state | Sets to pending_mfa if MFA not complete, active if complete | 19-05 |
+| MFA reset email failure does not block operation | Logged as warning, operation succeeds anyway (availability over notification) | 19-05 |
 
 ### Pending Todos
 
@@ -105,8 +110,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-22 01:16 UTC
-Stopped at: Created 19-03-SUMMARY.md (completing documentation for already-implemented plan)
+Last session: 2026-01-22 01:22 UTC
+Stopped at: Completed 19-05-SUMMARY.md (Phase 19 complete - all admin user management backend services implemented)
 Resume file: None
 
-Next: Phase 19 Plan 05 - Admin user operations service
+Next: Phase 20 - Admin User Management UI (consume backend services from frontend)
