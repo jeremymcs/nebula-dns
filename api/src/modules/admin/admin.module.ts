@@ -10,6 +10,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Admin } from './entities/admin.entity';
 import { AdminMfa } from './entities/admin-mfa.entity';
+import { AdminInvitation } from './entities/admin-invitation.entity';
+import { AdminActivityLog } from './entities/admin-activity-log.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
 import { Location } from '../locations/entities/location.entity';
 import { User } from '../users/entities/user.entity';
@@ -72,6 +74,8 @@ import { SubscriptionLapseModule } from '../subscription-lapse/subscription-laps
     TypeOrmModule.forFeature([
       Admin,
       AdminMfa,
+      AdminInvitation,
+      AdminActivityLog,
       Tenant,
       Location,
       User,
