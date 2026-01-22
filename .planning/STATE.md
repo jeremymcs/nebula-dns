@@ -12,12 +12,12 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 
 ## Current Position
 
-Phase: 21 - Alerting Integrations (Backend)
-Plan: 05 of 5 complete
-Status: Phase complete
-Last activity: 2026-01-22 — Completed 21-05-PLAN.md
+Phase: 22 - Alerting Configuration (UI)
+Plan: 01 of 4 complete
+Status: In progress
+Last activity: 2026-01-22 — Completed 22-01-PLAN.md
 
-Progress: [█████████████████░░░░] 86% (32/37 requirements addressed)
+Progress: [█████████████████░░░░] 89% (33/37 requirements addressed)
 
 ## Milestone v1.2 Overview
 
@@ -28,7 +28,7 @@ Progress: [█████████████████░░░░] 86% 
 | 19 | Admin User Management (Backend) | 12 | Complete (7/7 plans) |
 | 20 | Admin User Management (UI) | 0* | Complete (6/6 plans) |
 | 21 | Alerting Integrations (Backend) | 10 | Complete (5/5 plans) |
-| 22 | Alerting Configuration (UI) | 0* | Not Started |
+| 22 | Alerting Configuration (UI) | 0* | In Progress (1/4 plans) |
 | 23 | Migration & Rollout | 5 | Not Started |
 
 *UI phases implement frontend for requirements assigned to backend phases.
@@ -145,6 +145,10 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | Impersonation tracking uses in-memory Map with 1-hour windows | 3+ impersonations triggers warning, simpler than database queries | 21-05 |
 | Payment alerts prepared but require webhook handler integration | PaymentsService has handlePaymentFailure() ready for webhook processing | 21-05 |
 | All event sources use optional alerting | @Optional() decorator prevents circular dependencies | 21-05 |
+| Types use string for dates (not Date) matching JSON serialization | Frontend types mirror JSON response format | 22-01 |
+| Slack webhook URL validated with regex in Zod schema | Matches backend validation /^https:\\/\\/hooks\\.slack\\.com\\// | 22-01 |
+| PagerDuty routing key validated with z.string().length(32) | Matches backend 32-char requirement | 22-01 |
+| Form constants SEVERITY_OPTIONS and EVENT_TYPE_OPTIONS | Ready for select/checkbox form components | 22-01 |
 
 ### Pending Todos
 
@@ -157,7 +161,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-22
-Stopped at: Completed Phase 21 - Alerting Integrations (Backend)
+Stopped at: Completed 22-01-PLAN.md (Alerting types, hooks, schemas)
 Resume file: None
 
-Next: Phase 22 - Alerting Configuration (UI)
+Next: 22-02-PLAN.md (Alert Configuration List Page)
