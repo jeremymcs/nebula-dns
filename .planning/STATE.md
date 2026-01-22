@@ -13,11 +13,11 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 20 - Admin User Management (UI)
-Plan: 02 of 6 complete
+Plan: 04 of 6 complete
 Status: In progress
-Last activity: 2026-01-21 — Completed 20-02-PLAN.md
+Last activity: 2026-01-22 — Completed 20-04-PLAN.md
 
-Progress: [████████████░░░░░░░░░] 62% (23/37 requirements addressed)
+Progress: [█████████████░░░░░░░░] 65% (24/37 requirements addressed)
 
 ## Milestone v1.2 Overview
 
@@ -26,7 +26,7 @@ Progress: [████████████░░░░░░░░░] 62% 
 | 17 | RBAC Foundation (Backend) | 8 | Complete (4/4 plans) |
 | 18 | RBAC UI | 2 | Complete (2/2 plans) |
 | 19 | Admin User Management (Backend) | 12 | Complete (7/7 plans) |
-| 20 | Admin User Management (UI) | 0* | In Progress (2/6 plans) |
+| 20 | Admin User Management (UI) | 0* | In Progress (3/6 plans) |
 | 21 | Alerting Integrations (Backend) | 10 | Not Started |
 | 22 | Alerting Configuration (UI) | 0* | Not Started |
 | 23 | Migration & Rollout | 5 | Not Started |
@@ -112,6 +112,9 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | Zod v4 uses message param instead of errorMap for enum validation | Breaking change in Zod v4 API | 20-02 |
 | Default role in invite form is 'admin' | Matches backend default, security-conscious starting point | 20-02 |
 | Role descriptions shown inline below select | Helps users understand permission levels without separate help modal | 20-02 |
+| Custom formatTimeAgo without date-fns | Package not in admin-ui dependencies, native Date API sufficient | 20-03 |
+| Filter invites to status=pending before display | Only show actionable invitations, not accepted/revoked/expired | 20-03 |
+| Expiry countdown in days/hours/minutes | More informative than raw date for time-sensitive invitations | 20-03 |
 
 ### Pending Todos
 
@@ -123,8 +126,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-21 18:38 UTC
-Stopped at: Completed 20-02-PLAN.md
+Last session: 2026-01-22 02:39 UTC
+Stopped at: Completed 20-03-PLAN.md
 Resume file: None
 
-Next: 20-03-PLAN.md (Admin Users Page)
+Next: 20-04-PLAN.md (Admin Detail Drawer)
