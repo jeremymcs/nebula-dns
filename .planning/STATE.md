@@ -13,11 +13,11 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 22 - Alerting Configuration (UI)
-Plan: 01 of 4 complete
+Plan: 02 of 4 complete
 Status: In progress
-Last activity: 2026-01-22 — Completed 22-01-PLAN.md
+Last activity: 2026-01-22 — Completed 22-02-PLAN.md
 
-Progress: [█████████████████░░░░] 89% (33/37 requirements addressed)
+Progress: [██████████████████░░░] 92% (34/37 requirements addressed)
 
 ## Milestone v1.2 Overview
 
@@ -28,7 +28,7 @@ Progress: [█████████████████░░░░] 89% 
 | 19 | Admin User Management (Backend) | 12 | Complete (7/7 plans) |
 | 20 | Admin User Management (UI) | 0* | Complete (6/6 plans) |
 | 21 | Alerting Integrations (Backend) | 10 | Complete (5/5 plans) |
-| 22 | Alerting Configuration (UI) | 0* | In Progress (1/4 plans) |
+| 22 | Alerting Configuration (UI) | 0* | In Progress (2/4 plans) |
 | 23 | Migration & Rollout | 5 | Not Started |
 
 *UI phases implement frontend for requirements assigned to backend phases.
@@ -149,6 +149,10 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | Slack webhook URL validated with regex in Zod schema | Matches backend validation /^https:\\/\\/hooks\\.slack\\.com\\// | 22-01 |
 | PagerDuty routing key validated with z.string().length(32) | Matches backend 32-char requirement | 22-01 |
 | Form constants SEVERITY_OPTIONS and EVENT_TYPE_OPTIONS | Ready for select/checkbox form components | 22-01 |
+| Access Zod errors via issues not errors property | Zod v4 API change from errors to issues | 22-02 |
+| AlertConfigCard uses callback props for mutations | Keeps card presentational; parent handles API and revalidation | 22-02 |
+| PagerDuty modal excludes warning severity option | Per ALERT-07, warnings not sent to PagerDuty | 22-02 |
+| Character counter for PagerDuty routing key | Visual feedback for 32-char requirement | 22-02 |
 
 ### Pending Todos
 
@@ -161,7 +165,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-22
-Stopped at: Completed 22-01-PLAN.md (Alerting types, hooks, schemas)
+Stopped at: Completed 22-02-PLAN.md (Alerting components)
 Resume file: None
 
-Next: 22-02-PLAN.md (Alert Configuration List Page)
+Next: 22-03-PLAN.md (Alerting Settings Page)
