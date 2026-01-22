@@ -53,6 +53,7 @@ export function Header() {
     { name: 'Dashboard', href: '/', feature: 'dashboard' as const },
     { name: 'MSPs', href: '/msps', feature: 'msps' as const },
     { name: 'Health', href: '/health', feature: 'health' as const },
+    { name: 'Admin Users', href: '/users', feature: 'admin-users' as const },
   ]
 
   // Filter based on role
