@@ -11,9 +11,11 @@ import {
   BadRequestException,
   NotFoundException,
   ForbiddenException,
+  Optional,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
+import { AlertDispatcherService } from '../alerting/alert-dispatcher.service';
 
 export interface CreateCheckoutSessionParams {
   planCode: string;
@@ -43,7 +45,11 @@ export class PaymentsService {
   // Map plan codes to Stripe price IDs
   private readonly priceIds: Map<string, { monthly: string; yearly: string }>;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    @Optional()
+    private readonly alertDispatcher?: AlertDispatcherService,
+  ) {
     const stripeSecretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
 
     if (stripeSecretKey) {
@@ -288,6 +294,52 @@ export class PaymentsService {
       this.logger.error('Webhook signature verification failed', error);
       throw new BadRequestException('Invalid webhook signature');
     }
+  }
+
+  /**
+   * Handle payment failure alert
+   * ALERT-05: Billing issues trigger alerts
+   *
+   * NOTE: This should be called from your webhook handler when processing:
+   * - charge.failed events
+   * - invoice.payment_failed events
+   *
+   * Example integration in webhook handler:
+   * ```
+   * case 'charge.failed':
+   *   const charge = event.data.object as Stripe.Charge;
+   *   await this.handlePaymentFailure(
+   *     charge.customer as string,
+   *     charge.failure_message || 'Payment failed'
+   *   );
+   *   break;
+   *
+   * case 'invoice.payment_failed':
+   *   const invoice = event.data.object as Stripe.Invoice;
+   *   await this.handlePaymentFailure(
+   *     invoice.customer as string,
+   *     'Invoice payment failed'
+   *   );
+   *   break;
+   * ```
+   */
+  async handlePaymentFailure(
+    customerId: string,
+    failureMessage: string,
+  ): Promise<void> {
+    if (!this.alertDispatcher) {
+      this.logger.warn(
+        'AlertDispatcher not configured - payment failure alert not sent',
+      );
+      return;
+    }
+
+    await this.alertDispatcher.dispatchBilling(
+      'Payment Failed',
+      `Payment failed for customer ${customerId}: ${failureMessage}`,
+      'error',
+      `payment_failed_${customerId}`,
+    );
   }
 
   /**
@@ -581,7 +633,9 @@ export class PaymentsService {
    * List all payment methods for a customer
    * Returns only card-type payment methods
    */
-  async listPaymentMethods(customerId: string): Promise<Stripe.PaymentMethod[]> {
+  async listPaymentMethods(
+    customerId: string,
+  ): Promise<Stripe.PaymentMethod[]> {
     if (!this.stripe) {
       throw new BadRequestException('Payment system not configured');
     }
@@ -593,7 +647,10 @@ export class PaymentsService {
       });
       return paymentMethods.data;
     } catch (error) {
-      this.logger.error(`Failed to list payment methods for ${customerId}`, error);
+      this.logger.error(
+        `Failed to list payment methods for ${customerId}`,
+        error,
+      );
       throw new BadRequestException('Failed to list payment methods');
     }
   }
@@ -602,7 +659,9 @@ export class PaymentsService {
    * Create a SetupIntent for adding a new payment method
    * Returns client_secret for Stripe.js confirmation
    */
-  async createSetupIntent(customerId: string): Promise<{ clientSecret: string }> {
+  async createSetupIntent(
+    customerId: string,
+  ): Promise<{ clientSecret: string }> {
     if (!this.stripe) {
       throw new BadRequestException('Payment system not configured');
     }
@@ -618,7 +677,10 @@ export class PaymentsService {
 
       return { clientSecret: setupIntent.client_secret || '' };
     } catch (error) {
-      this.logger.error(`Failed to create SetupIntent for ${customerId}`, error);
+      this.logger.error(
+        `Failed to create SetupIntent for ${customerId}`,
+        error,
+      );
       throw new BadRequestException('Failed to create setup intent');
     }
   }
