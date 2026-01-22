@@ -12,10 +12,10 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 
 ## Current Position
 
-Phase: 18 - RBAC UI
-Plan: 02 of 2 complete
-Status: Phase complete
-Last activity: 2026-01-21 — Completed 18-02-header-navigation-integration-PLAN.md
+Phase: 19 - Admin User Management (Backend)
+Plan: 01 of 3 complete
+Status: In progress
+Last activity: 2026-01-21 — Completed 19-01-admin-database-entities-PLAN.md
 
 Progress: [██████░░░░░░░░░░░░░░░░] 27% (10/37 requirements addressed)
 
@@ -25,7 +25,7 @@ Progress: [██████░░░░░░░░░░░░░░░░] 2
 |-------|------|--------------|--------|
 | 17 | RBAC Foundation (Backend) | 8 | Complete (4/4 plans) |
 | 18 | RBAC UI | 2 | Complete (2/2 plans) |
-| 19 | Admin User Management (Backend) | 12 | Not Started |
+| 19 | Admin User Management (Backend) | 12 | In Progress (1/3 plans) |
 | 20 | Admin User Management (UI) | 0* | Not Started |
 | 21 | Alerting Integrations (Backend) | 10 | Not Started |
 | 22 | Alerting Configuration (UI) | 0* | Not Started |
@@ -79,6 +79,11 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | Role badge shows in header and dropdown | Header: next to name (hidden mobile), Dropdown: with permissions list | 18-02 |
 | Route protection returns boolean | useRequireRole hooks handle redirect + toast automatically | 18-02 |
 | AuthContext provides basic role helpers | adminRole, isSuperAdmin, isAdmin, isViewer for simple checks | 18-02 |
+| AdminInvitation uses SHA256 token hashing | Security - store hashes not raw tokens to limit exposure | 19-01 |
+| AdminActivityLog does not extend BaseEntity | Append-only audit logs need no updatedAt field | 19-01 |
+| Activity logs track 13 action types | Covers authentication, user management, security events | 19-01 |
+| Invitations CASCADE DELETE on inviter deletion | Clean up pending invitations when admin is deleted | 19-01 |
+| Activity logs SET NULL on target deletion | Preserve audit trail even if target admin deleted later | 19-01 |
 
 ### Pending Todos
 
@@ -90,8 +95,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-21 23:53 UTC
-Stopped at: Completed 18-02-header-navigation-integration-PLAN.md
+Last session: 2026-01-21 23:55 UTC
+Stopped at: Completed 19-01-admin-database-entities-PLAN.md
 Resume file: None
 
-Next: Phase 19 - Admin User Management Backend
+Next: Phase 19 Plan 02 - Admin invitation service implementation
