@@ -111,6 +111,90 @@ export class AdminUsersController {
   }
 
   /**
+   * Suspend an admin
+   * USER-06: Super Admin can suspend admin (blocks login)
+   */
+  @Patch(':id/suspend')
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Suspend admin',
+    description: 'Suspends admin account, blocking login. Cannot suspend super_admin.',
+  })
+  @ApiParam({ name: 'id', description: 'Admin UUID to suspend' })
+  @ApiResponse({ status: 200, description: 'Admin suspended' })
+  @ApiResponse({ status: 400, description: 'Already suspended' })
+  @ApiResponse({ status: 403, description: 'Cannot suspend self or super_admin' })
+  @ApiResponse({ status: 404, description: 'Admin not found' })
+  async suspendAdmin(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: SuspendAdminDto,
+    @Req() req: Request,
+    @Ip() ip: string,
+  ): Promise<AdminMessageResponseDto> {
+    const admin = req.user as AdminUser;
+    await this.adminUsersService.suspendAdmin(admin.adminId, id, dto, this.getClientIp(req, ip));
+    return { message: 'Admin suspended successfully' };
+  }
+
+  /**
+   * Reactivate a suspended admin
+   * USER-07: Super Admin can reactivate suspended admin
+   */
+  @Patch(':id/reactivate')
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Reactivate admin',
+    description: 'Reactivates a suspended admin account.',
+  })
+  @ApiParam({ name: 'id', description: 'Admin UUID to reactivate' })
+  @ApiResponse({ status: 200, description: 'Admin reactivated' })
+  @ApiResponse({ status: 400, description: 'Admin not suspended' })
+  @ApiResponse({ status: 404, description: 'Admin not found' })
+  async reactivateAdmin(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: Request,
+    @Ip() ip: string,
+  ): Promise<AdminMessageResponseDto> {
+    const admin = req.user as AdminUser;
+    await this.adminUsersService.reactivateAdmin(admin.adminId, id, this.getClientIp(req, ip));
+    return { message: 'Admin reactivated successfully' };
+  }
+
+  /**
+   * Reset admin's MFA
+   * USER-08: Super Admin can reset another admin's MFA
+   * USER-09: MFA reset sends notification email to target admin
+   */
+  @Post(':id/mfa/reset')
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Reset admin MFA',
+    description: 'Resets MFA for specified admin. Invalidates sessions and sends notification.',
+  })
+  @ApiParam({ name: 'id', description: 'Admin UUID' })
+  @ApiResponse({ status: 200, description: 'MFA reset' })
+  @ApiResponse({ status: 403, description: 'Cannot reset own MFA' })
+  @ApiResponse({ status: 404, description: 'Admin not found' })
+  async resetMfa(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: Request,
+    @Ip() ip: string,
+  ): Promise<AdminMessageResponseDto> {
+    const admin = req.user as AdminUser;
+    await this.adminUsersService.resetAdminMfa(admin.adminId, id, this.getClientIp(req, ip));
+    return { message: 'MFA reset successfully. Admin will need to set up MFA on next login.' };
+  }
+
+  /**
    * Extract client IP from request, handling proxies
    */
   private getClientIp(req: Request, ip: string): string {
