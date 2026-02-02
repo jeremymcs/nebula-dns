@@ -13,11 +13,11 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 23 - Migration & Rollout
-Plan: 03 of 05
+Plan: 04 of 05
 Status: In progress
-Last activity: 2026-02-02 — Completed 23-03-PLAN.md (RBAC monitoring alerting)
+Last activity: 2026-02-02 — Completed 23-04-PLAN.md (RBAC rollout runbook)
 
-Progress: [██████████████████░░░] 93% (33/37 requirements addressed)
+Progress: [██████████████████░░░] 95% (35/37 requirements addressed)
 
 ## Milestone v1.2 Overview
 
@@ -29,7 +29,7 @@ Progress: [██████████████████░░░] 93% 
 | 20 | Admin User Management (UI) | 0* | Complete (6/6 plans) |
 | 21 | Alerting Integrations (Backend) | 10 | Complete (5/5 plans) |
 | 22 | Alerting Configuration (UI) | 0* | Complete (3/3 plans) |
-| 23 | Migration & Rollout | 5 | In Progress (4/4 plans) |
+| 23 | Migration & Rollout | 5 | In Progress (4/5 plans) |
 
 *UI phases implement frontend for requirements assigned to backend phases.
 
@@ -163,10 +163,13 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | 5m/2m durations for RBAC alerts | Warning gives investigation time; critical fires fast for rapid response | 23-03 |
 | Rollback instructions in alert description | Include ADMIN_RBAC_ENABLED=false for quick remediation | 23-03 |
 | Path regex filtering for admin endpoints | Using path=~"/admin/.*" for consistent matching | 23-03 |
+| Runbook phases align with staged rollout strategy | Assign super_admin -> shadow mode -> communicate -> enforce | 23-04 |
+| Emergency rollback uses single kubectl command | Operational speed for incident response | 23-04 |
+| All Phase 23 artifacts cross-referenced in runbook | Key File Locations appendix helps ops team | 23-04 |
 
 ### Pending Todos
 
-None — Plan 23-03 complete.
+None — Plan 23-04 complete.
 
 ### Blockers/Concerns
 
@@ -175,7 +178,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 23-01-PLAN.md (Feature flags for RBAC enforcement)
+Stopped at: Completed 23-04-PLAN.md (RBAC rollout runbook)
 Resume file: None
 
-Next: 23-04-PLAN.md (Staged rollout procedure)
+Next: 23-05-PLAN.md (Verification test plan)
