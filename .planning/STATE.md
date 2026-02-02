@@ -13,11 +13,11 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 23 - Migration & Rollout
-Plan: 02 of 05
+Plan: 03 of 05
 Status: In progress
-Last activity: 2026-02-02 — Completed 23-02-PLAN.md (assign super admin script)
+Last activity: 2026-02-02 — Completed 23-03-PLAN.md (RBAC monitoring alerting)
 
-Progress: [██████████████████░░░] 92% (32/37 requirements addressed)
+Progress: [██████████████████░░░] 93% (33/37 requirements addressed)
 
 ## Milestone v1.2 Overview
 
@@ -29,7 +29,7 @@ Progress: [██████████████████░░░] 92% 
 | 20 | Admin User Management (UI) | 0* | Complete (6/6 plans) |
 | 21 | Alerting Integrations (Backend) | 10 | Complete (5/5 plans) |
 | 22 | Alerting Configuration (UI) | 0* | Complete (3/3 plans) |
-| 23 | Migration & Rollout | 5 | In Progress (2/5 plans) |
+| 23 | Migration & Rollout | 5 | In Progress (3/5 plans) |
 
 *UI phases implement frontend for requirements assigned to backend phases.
 
@@ -156,10 +156,14 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | assign-super-admin.ts uses SUPER_ADMIN_EMAIL env var | Clearer purpose than BREAK_GLASS_EMAIL | 23-02 |
 | Role assignment script is idempotent | Safe to run multiple times without side effects | 23-02 |
 | Script reports previous role for audit trail | Allows tracking of privilege changes | 23-02 |
+| 10%/30% thresholds for RBAC alerts | 10% warning, 30% critical aligns with gradual rollout strategy | 23-03 |
+| 5m/2m durations for RBAC alerts | Warning gives investigation time; critical fires fast for rapid response | 23-03 |
+| Rollback instructions in alert description | Include ADMIN_RBAC_ENABLED=false for quick remediation | 23-03 |
+| Path regex filtering for admin endpoints | Using path=~"/admin/.*" for consistent matching | 23-03 |
 
 ### Pending Todos
 
-None — Plan 23-02 complete.
+None — Plan 23-03 complete.
 
 ### Blockers/Concerns
 
@@ -168,7 +172,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 23-02-PLAN.md
+Stopped at: Completed 23-03-PLAN.md
 Resume file: None
 
-Next: 23-03-PLAN.md (Shadow mode toggle)
+Next: 23-04-PLAN.md
