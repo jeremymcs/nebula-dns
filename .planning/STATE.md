@@ -29,7 +29,7 @@ Progress: [██████████████████░░░] 93% 
 | 20 | Admin User Management (UI) | 0* | Complete (6/6 plans) |
 | 21 | Alerting Integrations (Backend) | 10 | Complete (5/5 plans) |
 | 22 | Alerting Configuration (UI) | 0* | Complete (3/3 plans) |
-| 23 | Migration & Rollout | 5 | In Progress (3/5 plans) |
+| 23 | Migration & Rollout | 5 | In Progress (4/4 plans) |
 
 *UI phases implement frontend for requirements assigned to backend phases.
 
@@ -156,6 +156,9 @@ Key decisions from v1 and v1.1 are documented in PROJECT.md Key Decisions table.
 | assign-super-admin.ts uses SUPER_ADMIN_EMAIL env var | Clearer purpose than BREAK_GLASS_EMAIL | 23-02 |
 | Role assignment script is idempotent | Safe to run multiple times without side effects | 23-02 |
 | Script reports previous role for audit trail | Allows tracking of privilege changes | 23-02 |
+| ADMIN_RBAC_ENABLED defaults to false | Requires explicit 'true' for safety during rollout | 23-01 |
+| ADMIN_RBAC_SHADOW_MODE defaults to true | Allows baseline data collection without disruption | 23-01 |
+| Audit log errors don't block RBAC decisions | Availability over logging for guard operations | 23-01 |
 | 10%/30% thresholds for RBAC alerts | 10% warning, 30% critical aligns with gradual rollout strategy | 23-03 |
 | 5m/2m durations for RBAC alerts | Warning gives investigation time; critical fires fast for rapid response | 23-03 |
 | Rollback instructions in alert description | Include ADMIN_RBAC_ENABLED=false for quick remediation | 23-03 |
@@ -172,7 +175,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 23-03-PLAN.md
+Stopped at: Completed 23-01-PLAN.md (Feature flags for RBAC enforcement)
 Resume file: None
 
-Next: 23-04-PLAN.md
+Next: 23-04-PLAN.md (Staged rollout procedure)
