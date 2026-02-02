@@ -73,3 +73,32 @@ groups:
           summary: "Threat detected"
           description: "A DNS threat (DGA, tunneling, etc.) was detected"
 
+      # Admin RBAC Monitoring
+      - alert: Admin403RateWarning
+        expr: |
+          (
+            sum(rate(http_requests_total{job="nebuladns-api",path=~"/admin/.*",status="403"}[5m]))
+            /
+            sum(rate(http_requests_total{job="nebuladns-api",path=~"/admin/.*"}[5m]))
+          ) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High 403 rate on admin endpoints"
+          description: "Admin endpoint 403 rate is above 10% for 5 minutes. May indicate RBAC misconfiguration or legitimate access changes."
+
+      - alert: Admin403RateCritical
+        expr: |
+          (
+            sum(rate(http_requests_total{job="nebuladns-api",path=~"/admin/.*",status="403"}[5m]))
+            /
+            sum(rate(http_requests_total{job="nebuladns-api",path=~"/admin/.*"}[5m]))
+          ) > 0.3
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical 403 rate on admin endpoints"
+          description: "Admin endpoint 403 rate is above 30% for 2 minutes. RBAC rollback may be needed. Set ADMIN_RBAC_ENABLED=false to disable."
+
