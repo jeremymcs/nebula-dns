@@ -155,6 +155,15 @@ class EnvironmentVariables {
   @IsBoolean()
   @IsOptional()
   FEATURE_WEBHOOKS_ENABLED: boolean = true;
+
+  // Admin RBAC Enforcement
+  @IsBoolean()
+  @IsOptional()
+  ADMIN_RBAC_ENABLED: boolean = false;
+
+  @IsBoolean()
+  @IsOptional()
+  ADMIN_RBAC_SHADOW_MODE: boolean = true;
 }
 
 export function validate(config: Record<string, unknown>) {
@@ -178,6 +187,9 @@ export function validate(config: Record<string, unknown>) {
     FEATURE_WEBHOOKS_ENABLED:
       config.FEATURE_WEBHOOKS_ENABLED === 'true' ||
       config.FEATURE_WEBHOOKS_ENABLED === true,
+    // Admin RBAC flags - ADMIN_RBAC_ENABLED requires explicit 'true', ADMIN_RBAC_SHADOW_MODE defaults true
+    ADMIN_RBAC_ENABLED: config.ADMIN_RBAC_ENABLED === 'true',
+    ADMIN_RBAC_SHADOW_MODE: config.ADMIN_RBAC_SHADOW_MODE !== 'false',
   };
 
   const validatedConfig = plainToInstance(
@@ -266,5 +278,9 @@ export default () => ({
     mfa: process.env.FEATURE_MFA_ENABLED !== 'false',
     sso: process.env.FEATURE_SSO_ENABLED !== 'false',
     webhooks: process.env.FEATURE_WEBHOOKS_ENABLED !== 'false',
+  },
+  admin: {
+    rbacEnabled: process.env.ADMIN_RBAC_ENABLED === 'true',
+    rbacShadowMode: process.env.ADMIN_RBAC_SHADOW_MODE !== 'false',
   },
 });
