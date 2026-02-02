@@ -52,7 +52,9 @@ export type AuditAction =
   | 'billing_setup_intent_created'
   | 'billing_payment_method_default_set'
   | 'billing_payment_method_deleted'
-  | 'admin_role_changed';
+  | 'admin_role_changed'
+  | 'rbac_denied'
+  | 'rbac_shadow_denied';
 
 export type AuditResourceType =
   | 'user'
