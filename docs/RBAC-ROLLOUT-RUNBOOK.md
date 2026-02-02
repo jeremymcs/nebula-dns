@@ -1,0 +1,352 @@
+# RBAC Rollout Runbook
+
+// Nebula DNS - RBAC Enforcement Rollout Runbook
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+This runbook documents the procedure for safely enabling RBAC enforcement for admin endpoints in Nebula DNS.
+
+## Overview
+
+RBAC (Role-Based Access Control) adds permission restrictions to admin endpoints based on admin roles:
+- **super_admin**: Full access to all admin endpoints
+- **admin**: Standard access (cannot manage other admins)
+- **viewer**: Read-only access (cannot modify data)
+
+The rollout uses a phased approach:
+1. Deploy code with RBAC disabled (flag off)
+2. Assign super_admin to designated admin(s)
+3. Enable shadow mode (log would-be denials)
+4. Review shadow logs and communicate to admins
+5. Enable RBAC enforcement
+6. Monitor for issues
+
+## Pre-Flight Checklist
+
+Before starting the rollout:
+
+- [ ] Code deployed with ADMIN_RBAC_ENABLED=false
+- [ ] ADMIN_RBAC_SHADOW_MODE=true (default)
+- [ ] Database accessible from migration script
+- [ ] Grafana dashboard "Admin RBAC Monitoring" accessible
+- [ ] Prometheus alerts configured (Admin403RateWarning, Admin403RateCritical)
+- [ ] Admin email list prepared for communication
+- [ ] Rollback procedure reviewed by on-call team
+
+## Phase 1: Assign Super Admin
+
+### Who Should Be Super Admin?
+
+At minimum, one admin needs super_admin role. Consider:
+- The primary ops lead who manages admin accounts
+- A backup admin for redundancy
+- Keep the number small (2-3 maximum)
+
+### Run Migration Script
+
+```bash
+# SSH to API server or use kubectl exec
+cd /app/api
+
+# Assign super_admin to designated admin
+SUPER_ADMIN_EMAIL=ops-lead@company.com npx ts-node src/scripts/assign-super-admin.ts
+```
+
+Expected output:
+```
+Initializing Nest application...
+
+========================================
+Super admin role assigned successfully!
+========================================
+
+Email: ops-lead@company.com
+Previous role: admin
+New role: super_admin
+
+NEXT STEPS:
+1. Verify admin can access super_admin endpoints
+2. Review shadow mode logs for 24-48 hours
+3. Enable RBAC enforcement: ADMIN_RBAC_ENABLED=true
+```
+
+### Verify Super Admin Assignment
+
+```bash
+# Login as the super_admin and verify access
+curl -X POST https://admin-api.nebuladns.io/admin/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"ops-lead@company.com","password":"..."}'
+
+# Check JWT contains role: "super_admin"
+# Verify access to /admin/users endpoint (super_admin only)
+```
+
+## Phase 2: Shadow Mode Monitoring
+
+Shadow mode is enabled by default (ADMIN_RBAC_SHADOW_MODE=true). In this mode:
+- All requests are **allowed** regardless of role
+- Would-be denials are **logged** to audit log as 'rbac_shadow_denied'
+- Console warnings are logged with details
+
+### Monitor Shadow Logs
+
+Run for **24-48 hours minimum** to capture all admin usage patterns.
+
+```sql
+-- Query audit logs for shadow denials
+SELECT
+  created_at,
+  resource_name as admin_email,
+  metadata->>'method' as method,
+  metadata->>'path' as path,
+  metadata->>'userRole' as user_role,
+  metadata->>'requiredRoles' as required_roles
+FROM audit_logs
+WHERE action = 'rbac_shadow_denied'
+  AND created_at > NOW() - INTERVAL '48 hours'
+ORDER BY created_at DESC;
+```
+
+### Analyze Shadow Data
+
+Review the shadow logs and identify:
+
+1. **Expected denials**: Viewers trying to access write endpoints
+2. **Unexpected denials**: Admins who need role upgrades
+3. **Role mismatches**: Admins with wrong role for their responsibilities
+
+If you find admins who need different roles:
+- Promote to super_admin using the migration script
+- Or manually update role in admin UI (if you have super_admin access)
+
+### Dashboard Check
+
+Open Grafana dashboard "Admin RBAC Monitoring":
+- Current 403 rate should be 0% (shadow mode allows everything)
+- Look at shadow log trends in audit_logs
+
+## Phase 3: Admin Communication
+
+Send communication to all admins **at least 1 week before enforcement**.
+
+### Email Template
+
+```
+Subject: [Nebula DNS] Admin Permission Changes - Action Required
+
+Hi [Name],
+
+We are implementing role-based access control (RBAC) for the Nebula DNS admin portal on [DATE].
+
+What's changing:
+- Admin permissions will be enforced based on your assigned role
+- Your current role: [ROLE]
+
+Role permissions:
+- super_admin: Full access (manage other admins, all settings)
+- admin: Standard access (manage tenants, MSPs, alerts)
+- viewer: Read-only access (view dashboards and reports)
+
+What you need to do:
+1. Review your assigned role above
+2. If you need different permissions, contact [OPS_CONTACT] before [DATE]
+3. After [DATE], requests outside your role will be denied
+
+Questions? Reply to this email or contact [OPS_CONTACT].
+
+Thanks,
+[OPS_TEAM]
+```
+
+### Send Communication
+
+```bash
+# Option 1: Use admin UI bulk email if available
+# Option 2: Manual email to admin list
+# Option 3: Internal comms channel (Slack, Teams)
+```
+
+## Phase 4: Enable RBAC Enforcement
+
+### Pre-Enforcement Checklist
+
+- [ ] Shadow mode ran for 24+ hours
+- [ ] Shadow logs reviewed, no unexpected denials
+- [ ] Super admin(s) assigned and verified
+- [ ] Admin communication sent (1+ week ago)
+- [ ] On-call team aware of rollout timing
+- [ ] Grafana dashboard open for monitoring
+
+### Enable Enforcement
+
+```bash
+# Kubernetes deployment
+kubectl set env deployment/nebula-api ADMIN_RBAC_ENABLED=true -n nebula-dns
+
+# Or update environment file and redeploy
+# ADMIN_RBAC_ENABLED=true
+```
+
+### Immediate Post-Enforcement
+
+For the first **24 hours** after enforcement:
+
+1. Watch Grafana dashboard for 403 rate spikes
+2. Check Prometheus alerts (Admin403RateWarning, Admin403RateCritical)
+3. Monitor Slack/PagerDuty for alert notifications
+4. Have rollback command ready
+
+```bash
+# Check current 403 rate (should be low single digits %)
+kubectl logs -l app=nebula-api -n nebula-dns --tail=100 | grep -i "403\|rbac"
+```
+
+## Emergency Rollback
+
+If 403 rate spikes or admins report widespread access issues:
+
+### Immediate Rollback (< 1 minute)
+
+```bash
+# Disable RBAC enforcement immediately
+kubectl set env deployment/nebula-api ADMIN_RBAC_ENABLED=false -n nebula-dns
+
+# Verify rollout
+kubectl rollout status deployment/nebula-api -n nebula-dns
+
+# Confirm RBAC is disabled
+kubectl logs -l app=nebula-api -n nebula-dns --tail=50 | grep -i rbac
+```
+
+### Verify Rollback
+
+```bash
+# Test endpoint access (should work for all admins now)
+curl -X GET https://admin-api.nebuladns.io/admin/health \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+```
+
+### Post-Rollback Actions
+
+1. Notify admins that RBAC is temporarily disabled
+2. Review audit logs to identify the issue
+3. Fix role assignments or code issues
+4. Re-run shadow mode before attempting again
+
+## Monitoring Reference
+
+### Prometheus Alerts
+
+| Alert | Threshold | Duration | Severity |
+|-------|-----------|----------|----------|
+| Admin403RateWarning | > 10% | 5 min | warning |
+| Admin403RateCritical | > 30% | 2 min | critical |
+
+### Grafana Dashboard
+
+Dashboard: **Admin RBAC Monitoring**
+- 403 Rate time series with threshold lines
+- Current 403 rate stat panel
+- 403 count in last 24h
+- Total admin requests
+
+### Audit Log Queries
+
+```sql
+-- Recent RBAC denials (actual enforcement)
+SELECT * FROM audit_logs
+WHERE action = 'rbac_denied'
+ORDER BY created_at DESC
+LIMIT 100;
+
+-- Shadow mode denials
+SELECT * FROM audit_logs
+WHERE action = 'rbac_shadow_denied'
+ORDER BY created_at DESC
+LIMIT 100;
+
+-- 403 count by admin
+SELECT
+  resource_name as admin_email,
+  COUNT(*) as denial_count
+FROM audit_logs
+WHERE action IN ('rbac_denied', 'rbac_shadow_denied')
+  AND created_at > NOW() - INTERVAL '24 hours'
+GROUP BY resource_name
+ORDER BY denial_count DESC;
+```
+
+## Environment Variables Reference
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| ADMIN_RBAC_ENABLED | false | Enable RBAC enforcement |
+| ADMIN_RBAC_SHADOW_MODE | true | Log would-be denials without enforcing |
+
+### State Matrix
+
+| RBAC_ENABLED | SHADOW_MODE | Behavior |
+|--------------|-------------|----------|
+| false | * | All admins have full access (legacy) |
+| true | true | Log denials but allow access |
+| true | false | Enforce RBAC (deny unauthorized) |
+
+## Troubleshooting
+
+### Admin Reports "Access Denied"
+
+1. Check admin's role: `SELECT role FROM admins WHERE email = 'admin@example.com'`
+2. Check endpoint requirements in codebase (`@AdminRoles()` decorator)
+3. If role is correct but still denied, check JWT expiration
+4. If urgent, temporarily disable RBAC
+
+### High 403 Rate After Rollout
+
+1. Check if a single admin is causing most denials
+2. Review their role vs endpoint requirements
+3. Either upgrade their role or disable RBAC temporarily
+
+### Shadow Mode Not Logging
+
+1. Verify ADMIN_RBAC_SHADOW_MODE=true
+2. Check audit_logs table permissions
+3. Review API logs for errors during audit logging
+
+## Appendix: Role Endpoint Matrix
+
+| Endpoint Category | super_admin | admin | viewer |
+|-------------------|-------------|-------|--------|
+| GET /admin/* | Yes | Yes | Yes |
+| POST/PUT/DELETE /admin/tenants/* | Yes | Yes | No |
+| GET/POST/PUT/DELETE /admin/users/* | Yes | No | No |
+| POST /admin/alerts/* | Yes | Yes | No |
+| GET /admin/reports/* | Yes | Yes | Yes |
+
+## Appendix: Key File Locations
+
+| File | Purpose |
+|------|---------|
+| api/src/scripts/assign-super-admin.ts | Script to promote admin to super_admin |
+| api/src/scripts/create-super-admin.ts | Break-glass script to create new super_admin |
+| api/src/modules/admin/guards/admin-roles.guard.ts | RBAC enforcement guard |
+| api/src/config/configuration.ts | Feature flag configuration |
+| monitoring/prometheus/rules/nebuladns-alerts.yml | Prometheus alert rules |
+| monitoring/grafana/dashboards/admin-rbac.json | Grafana RBAC dashboard |
+
+## Appendix: Rollout Timeline Template
+
+| Day | Action | Responsible |
+|-----|--------|-------------|
+| D-14 | Deploy code with RBAC disabled | DevOps |
+| D-14 | Assign super_admin role(s) | Ops Lead |
+| D-14 | Enable shadow mode monitoring | DevOps |
+| D-7 | Review shadow logs, adjust roles | Ops Lead |
+| D-7 | Send admin communication email | Ops Lead |
+| D | Enable RBAC enforcement | DevOps |
+| D | Active monitoring for 24 hours | On-Call Team |
+| D+7 | Review and close rollout | Ops Lead |
+
+---
+
+*Last updated: 2026-02-02*
+*Author: Nebula DNS Team*
