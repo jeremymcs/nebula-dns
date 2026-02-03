@@ -2,6 +2,36 @@
 
 ## Shipped Milestones
 
+### v1.2 — Admin Roles & Alerting
+**Shipped:** 2026-02-03
+**Duration:** ~60 days (2025-12-05 to 2026-02-02)
+**Commits:** 126
+
+#### Core Value Delivered
+Role-based access control, Slack/PagerDuty alerting, and admin user management for the ops team — enabling proper role separation and proactive alerting in Mission Control.
+
+#### Key Accomplishments
+1. **RBAC Foundation** — Three-tier role system (super_admin, admin, viewer) with AdminRolesGuard, @AdminRoles() decorator, JWT role claims, and self-escalation prevention
+2. **RBAC UI** — Role badges in header, filtered navigation by permissions, route protection with toast notifications
+3. **Admin User Management (Backend)** — Complete API for admin CRUD, email-based invitations with hashed tokens, activity audit logging, suspend/reactivate/MFA reset operations
+4. **Admin User Management (UI)** — Admin users table, invite modal, detail drawer with activity timeline, pending invites section with expiry countdowns
+5. **Alerting Integrations** — Slack webhooks with Block Kit formatting, PagerDuty Events API v2 with dedup_key, encrypted credential storage, event triggers for health/billing/security
+6. **Safe Rollout Infrastructure** — Feature flags for gradual enforcement, shadow mode logging, migration script, Prometheus alerts, Grafana dashboard, operational runbook
+
+#### Stats
+- **Requirements:** 37/37 complete
+- **Phases:** 7/7 complete (Phases 17-23)
+- **Plans:** 31 executed
+- **Files Modified:** 156
+- **Lines of Code:** ~36,797 added (TypeScript)
+
+#### Archive
+- [v1.2-ROADMAP.md](milestones/v1.2-ROADMAP.md)
+- [v1.2-REQUIREMENTS.md](milestones/v1.2-REQUIREMENTS.md)
+- [v1.2-MILESTONE-AUDIT.md](milestones/v1.2-MILESTONE-AUDIT.md)
+
+---
+
 ### v1.1 — Mission Control Frontend
 **Shipped:** 2026-01-19
 **Duration:** 2 days (2026-01-18 to 2026-01-19)
@@ -62,4 +92,4 @@ Enabled the ops team to handle support escalations quickly through tenant impers
 - [v1-MILESTONE-AUDIT.md](v1-MILESTONE-AUDIT.md)
 
 ---
-*Last updated: 2026-01-19 after v1.1 milestone*
+*Last updated: 2026-02-03 after v1.2 milestone*
