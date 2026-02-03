@@ -8,16 +8,15 @@ A fully-functional internal operations dashboard (Mission Control) for the Nebul
 
 Enable the ops team to manage MSPs entirely through the UI — onboarding, billing, usage monitoring — without CLI or direct API calls.
 
-## Current Milestone: v1.2 Admin Roles & Alerting
-
-**Goal:** Add role-based access control, automated alerting integrations, and admin user management to Mission Control.
-
-**Target features:**
-- Role-based admin access (Super Admin, Admin, Viewer)
-- Automated alerting (Slack + PagerDuty) for system health, billing, and security events
-- Admin user management with invites, activity logs, and MFA controls
-
 ## Current State
+
+**v1.2 SHIPPED** — 2026-02-03
+
+Mission Control now includes role-based access control, admin user management, and alerting integrations:
+- Three-tier RBAC (Super Admin, Admin, Viewer) with proper route protection
+- Admin user management with email invitations, activity logs, suspend/reactivate
+- Slack and PagerDuty alerting for system health, billing, and security events
+- Safe rollout infrastructure with feature flags, shadow mode, and monitoring
 
 **v1.1 SHIPPED** — 2026-01-19
 
@@ -58,12 +57,14 @@ See [MILESTONES.md](MILESTONES.md) for v1 (backend) and v1.1 (frontend) details.
 - ✓ Payment method management — add/update cards, Stripe Elements (PAY-01 to PAY-06)
 - ✓ System health dashboard — service status, error rates, metrics charts (HEALTH-01 to HEALTH-04)
 
+#### v1.2 (shipped 2026-02-03)
+- ✓ Role-based admin access — Super Admin, Admin, Viewer permission levels
+- ✓ Automated alerting — Slack + PagerDuty for system health, billing, security
+- ✓ Admin user management — CRUD, invites, activity logs, MFA management
+
 ### Active
 
-#### v1.2 (in progress)
-- Role-based admin access — Super Admin, Admin, Viewer permission levels
-- Automated alerting — Slack + PagerDuty for system health, billing, security
-- Admin user management — CRUD, invites, activity logs, MFA management
+(None — ready for next milestone)
 
 ### Future (v2+)
 
@@ -121,4 +122,4 @@ See [MILESTONES.md](MILESTONES.md) for v1 (backend) and v1.1 (frontend) details.
 | 30s auto-refresh on health dashboard | Real-time monitoring without WebSocket complexity | ✓ v1.1 |
 
 ---
-*Last updated: 2026-01-19 after starting v1.2 milestone*
+*Last updated: 2026-02-03 after v1.2 milestone*
