@@ -1,12 +1,21 @@
-# Nebula DNS Admin Dashboard
+# Nebula DNS
 
 ## What This Is
 
-A fully-functional internal operations dashboard (Mission Control) for the Nebula DNS team to manage MSP accounts and their clients through a comprehensive web UI. Both backend API and frontend are complete.
+A multi-tenant DNS security and content filtering SaaS platform with an internal operations dashboard (Mission Control). The platform blocks malware, phishing, and undesirable content at the DNS level while providing granular policy control, comprehensive analytics, and MSP management. Backend API, frontend UI, and admin dashboard are complete — now preparing for production deployment.
 
 ## Core Value
 
-Enable the ops team to manage MSPs entirely through the UI — onboarding, billing, usage monitoring — without CLI or direct API calls.
+Provide reliable, scalable DNS security filtering that blocks threats in real-time — backed by an ops dashboard for MSP management.
+
+## Current Milestone: v1.3 Production Readiness
+
+**Goal:** Get the platform tested, deployed on DigitalOcean, and handling real DNS traffic.
+
+**Target features:**
+- Full-stack automated test suite verifying all platform features
+- DigitalOcean deployment (DOKS, Managed PostgreSQL, Managed Redis, ClickHouse Cloud)
+- Production DNS resolution stack (dnsdist + Policy Service + Unbound) handling 100K-999K queries/day
 
 ## Current State
 
@@ -64,10 +73,17 @@ See [MILESTONES.md](MILESTONES.md) for v1 (backend) and v1.1 (frontend) details.
 
 ### Active
 
-(None — ready for next milestone)
+- [ ] Full-stack automated test suite (API, UI E2E, Policy Service)
+- [ ] DigitalOcean Kubernetes deployment (DOKS)
+- [ ] Managed database services (PostgreSQL, Redis, ClickHouse Cloud)
+- [ ] Production DNS resolution stack deployed and handling traffic
 
 ### Future (v2+)
 
+- CI/CD pipeline — automated deployment on push
+- Monitoring & observability — Prometheus, Grafana dashboards
+- Backup & disaster recovery — automated PostgreSQL/ClickHouse backups
+- Security hardening — TLS everywhere, network policies, secrets management
 - Custom role builder — define granular permissions per role
 - Additional alerting channels — Email, MS Teams, webhooks
 - SSO for admin portal — integrate with corporate identity providers
@@ -89,11 +105,12 @@ See [MILESTONES.md](MILESTONES.md) for v1 (backend) and v1.1 (frontend) details.
 - Audit logging already captures actions for compliance
 
 **Current state:**
-- v1 backend complete: 23 requirements, 19 API endpoints
-- v1.1 frontend complete: 35 requirements, full Mission Control UI
-- Ops team (2-5 people) actively using dashboard
-- Primary workflow: MSP management (onboard → billing → usage monitoring)
-- Next: Role separation, alerting, admin management
+- v1-v1.2 complete: 95 requirements shipped across 23 phases
+- Full admin dashboard with RBAC, alerting, MSP management
+- DNS data plane: dnsdist → Policy Service (Go) → Unbound
+- Analytics: ClickHouse for DNS query logging
+- Running in Docker Compose locally, not yet deployed to cloud
+- Next: Testing, DigitalOcean deployment, production traffic
 
 **UI patterns:**
 - Follow existing tenant dashboard conventions
@@ -104,6 +121,9 @@ See [MILESTONES.md](MILESTONES.md) for v1 (backend) and v1.1 (frontend) details.
 - **Security**: Impersonation must be audit-logged with who, when, which tenant
 - **Existing patterns**: Follow NestJS module structure in `api/src/modules/`
 - **Auth**: Admin endpoints need separate auth guard (not tenant-scoped JWT)
+- **Cloud**: DigitalOcean — DOKS for Kubernetes, managed databases, ClickHouse Cloud separate
+- **Scale**: 100K-999K DNS queries/day, 1-10 tenants initially
+- **Budget**: Cost-effective — DigitalOcean chosen for predictable pricing at moderate scale
 
 ## Key Decisions
 
@@ -120,6 +140,8 @@ See [MILESTONES.md](MILESTONES.md) for v1 (backend) and v1.1 (frontend) details.
 | Amber impersonation banner | High visibility, no dismiss option for safety | ✓ v1.1 |
 | localStorage draft persistence | Resume interrupted MSP onboarding (24h expiry) | ✓ v1.1 |
 | 30s auto-refresh on health dashboard | Real-time monitoring without WebSocket complexity | ✓ v1.1 |
+| DigitalOcean over AWS/GCP | Simpler, predictable pricing, sufficient for initial scale | — Pending |
+| ClickHouse Cloud over self-hosted | Managed analytics avoids operational burden on small team | — Pending |
 
 ---
-*Last updated: 2026-02-03 after v1.2 milestone*
+*Last updated: 2026-02-11 after v1.3 milestone start*
