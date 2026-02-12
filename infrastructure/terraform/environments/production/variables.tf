@@ -18,3 +18,21 @@ variable "environment" {
   type        = string
   default     = "production"
 }
+
+variable "clickhouse_org_id" {
+  description = "ClickHouse Cloud organization ID"
+  type        = string
+  sensitive   = true
+}
+
+variable "clickhouse_token_key" {
+  description = "ClickHouse Cloud API token key"
+  type        = string
+  sensitive   = true
+}
+
+variable "clickhouse_token_secret" {
+  description = "ClickHouse Cloud API token secret"
+  type        = string
+  sensitive   = true
+}
