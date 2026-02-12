@@ -1,582 +1,341 @@
-# Features Research: v1.2
+# Feature Landscape: Production Readiness
 
-// Nebula DNS Admin Dashboard - Feature Research for RBAC, Alerting, Admin Management
-// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+**Domain:** DNS SaaS Platform - Production Operations
+**Researched:** 2026-02-11
+**Context:** Adding comprehensive testing, DigitalOcean deployment, and production DNS handling to existing Nebula DNS platform
 
-**Domain:** Internal Ops Admin Dashboard
-**Researched:** 2026-01-19
-**Context:** Adding role-based access, alerting integrations, and admin user management to existing Mission Control admin dashboard
+## Table Stakes
 
-## Executive Summary
+Features users (ops team + platform reliability) expect. Missing = platform feels incomplete or unshippable.
 
-This research covers three feature categories for the v1.2 milestone:
+| Feature | Why Expected | Complexity | Dependencies | Notes |
+|---------|--------------|------------|--------------|-------|
+| **Unit Test Coverage** | Cannot ship without basic code confidence | Medium | NestJS Jest, Go testing package, existing spec files | ~60 spec files exist, need to expand coverage to all modules |
+| **Integration Tests** | Multi-service platform requires component integration validation | High | Docker Compose, TestContainers (Go), real DB instances | Existing: ClickHouse, Redis, session tests. Need: full module coverage |
+| **E2E Tests (API)** | REST API contracts must be verified end-to-end | Medium | Supertest, running NestJS app | Existing auth/policy tests, need all 95 shipped features |
+| **E2E Tests (UI)** | User flows must work in real browser | Medium | Playwright (already setup), test data seeding | Existing: 20 spec files. Need: admin flows, MSP workflows, billing |
+| **Health Check Endpoints** | Load balancers need to route around unhealthy instances | Low | Existing /health endpoints in API + policy-svc | Already implemented, verify completeness |
+| **Readiness Probes** | K8s needs to know when service can accept traffic | Low | Health endpoints + startup time awareness | Need: distinguish liveness vs readiness |
+| **Graceful Shutdown** | Zero downtime deploys require connection draining | Medium | SIGTERM handling in NestJS/Go, connection tracking | Policy-svc critical (DNS queries in-flight) |
+| **Database Migrations (Automated)** | Cannot manually run migrations in production | Medium | Helm pre-install/pre-upgrade hooks | Already exists via `db-migration-job.yaml` |
+| **Secrets Management** | Cannot hardcode credentials in K8s manifests | Low | K8s Secrets, DigitalOcean KMS integration | Existing Helm secrets.yaml, need rotation strategy |
+| **Logging (Structured)** | Must debug issues via centralized logs | Low | Winston (NestJS), Zap (Go), JSON formatting | Existing, verify correlation IDs |
+| **Metrics Endpoint** | Prometheus scraping for observability | Medium | NestJS @nestjs/terminus, Go pprof + custom metrics | Existing Prometheus setup, need app-level metrics |
+| **Deployment Rollback** | Bad deploys must be quickly reversible | Low | Helm rollback command, image tagging strategy | Helm supports this, need runbook |
+| **Resource Limits** | Prevent runaway pods from crashing cluster | Low | K8s resource requests/limits in manifests | Need: based on load testing data |
+| **DNS Failover** | DNS service downtime = total outage, need backup | High | Secondary DNS provider, health-based routing | Critical for SaaS - not implemented |
+| **Backup & Restore** | Data loss = business loss | Medium | PostgreSQL backups, ClickHouse backups, Redis snapshots | Need: automated daily backups to DO Spaces |
+| **SSL/TLS Certificates** | HTTPS required, auto-renewal mandatory | Low | cert-manager (K8s), Let's Encrypt, external-dns | Standard K8s pattern |
+| **Rate Limiting (API)** | Prevent abuse and runaway costs | Medium | Existing RedisRateLimitGuard | Already implemented, verify production config |
+| **Monitoring Dashboards** | On-call needs visibility into system state | Medium | Existing Grafana dashboards | Need: DNS query rate, policy eval latency, error budgets |
+| **Incident Runbooks** | On-call without runbooks = panic-driven ops | Low | Markdown docs in /docs or wiki | Need: DNS down, DB down, Redis down, policy-svc crash |
+| **CI/CD Pipeline** | Manual deploys don't scale, error-prone | Medium | GitHub Actions, DigitalOcean Container Registry | Need: build → test → push → deploy |
+| **Load Testing Baseline** | Need to know breaking points before users find them | Medium | Existing k6 scripts (dns-load-test.js, api-load-test.js) | Need: run against DigitalOcean staging, establish SLOs |
 
-1. **Role-Based Access Control (RBAC)** - Adding Super Admin, Admin, and Viewer roles to the existing admin dashboard
-2. **Alerting Integrations** - Slack and PagerDuty notifications for system events
-3. **Admin User Management** - Invite flows, activity logging, and MFA management
+## Differentiators
 
-The existing admin module already has solid foundations: JWT-based authentication, session management, audit logging infrastructure, and MFA support. The v1.2 features extend these capabilities rather than replacing them.
+Features that set a production platform apart. Not expected by default, but demonstrate maturity.
 
----
+| Feature | Value Proposition | Complexity | Dependencies | Notes |
+|---------|-------------------|------------|--------------|-------|
+| **Chaos Engineering** | Proactively find failure modes before production | High | Litmus/Steadybit, DNS failure injection | DNS-specific: simulate resolution failures, latency spikes |
+| **Canary Deployments** | Reduce blast radius of bad deployments | High | Argo Rollouts, traffic splitting (25%→50%→100%) | Multi-tenant: route by tenant_id to canary |
+| **Blue-Green Deployments** | Instant rollback on deploy failure | Medium | Duplicate infrastructure (expensive for startups) | Alternative to canary, higher cost |
+| **Multi-Region Failover** | Survive region outages | Very High | Cross-region DB replication, GeoDNS routing | Deferred to v2 - single region sufficient for 1-10 tenants |
+| **Performance Testing in CI** | Catch performance regressions before merge | Medium | k6 in GitHub Actions, thresholds as code | Validate policy eval stays O(1), API p95 < 200ms |
+| **Contract Testing** | Catch breaking API changes before deploy | Medium | Pact or OpenAPI schema validation | Alternative: strict OpenAPI enforcement + versioning |
+| **Visual Regression Testing** | Catch UI bugs not covered by functional tests | Medium | Percy, Chromatic, or Playwright screenshots | Nice-to-have for admin UI |
+| **Distributed Tracing** | Debug cross-service request flows | High | Jaeger/Tempo, OpenTelemetry instrumentation | dnsdist→policy-svc→Redis: trace full DNS query path |
+| **SLO Dashboards** | Track reliability vs customer commitments | Medium | Grafana, error budget calculations | Example: 99.9% DNS availability = 43min downtime/month |
+| **Automated Incident Detection** | Alert before users complain | Medium | Prometheus alerting rules, PagerDuty integration | Already have Slack/PagerDuty, need comprehensive rules |
+| **Cost Monitoring** | Track infra spend per tenant | High | ClickHouse query volume metering, K8s resource tagging | Already tracking usage for billing, extend to cost attribution |
+| **Security Scanning** | Find vulnerabilities before attackers | Medium | Trivy (container scanning), Snyk (dependency scanning) | Scan on every image build |
+| **Compliance Logging** | Audit trail for SOC2/GDPR | Low | Existing audit_logs table, immutability verification | Already implemented admin impersonation logging |
+| **Synthetic Monitoring** | Detect outages from user perspective | Medium | External probe (UptimeRobot, Pingdom) sending DNS queries | Critical: test from multiple regions |
+| **Auto-Scaling** | Handle traffic spikes without manual intervention | Medium | HPA (Horizontal Pod Autoscaler) based on metrics | Policy-svc: scale on DNS query rate |
 
-## Role-Based Access Control
+## Anti-Features
 
-### Table Stakes
-
-Features users expect in any admin RBAC system. Missing = dashboard feels incomplete.
-
-| Feature | Why Expected | Complexity | Dependencies |
-|---------|--------------|------------|--------------|
-| Role assignment on admin entity | Core RBAC building block | Low | Existing `Admin` entity |
-| Role-based route guards | Prevent unauthorized access | Medium | Existing `AdminAuthGuard` |
-| Role display in UI | Users need to see their access level | Low | Auth context |
-| Super Admin can manage other admins | Role hierarchy requirement | Medium | Admin CRUD operations |
-| Viewer can only read data | Basic separation of concerns | Low | Guard decorators |
-| Admin cannot elevate own role | Self-escalation prevention | Low | Business logic check |
-| Role shown in JWT claims | Stateless authorization | Low | Existing JWT infrastructure |
-| Role-based menu filtering | UI reflects permissions | Medium | NavigationConfig.ts |
-
-### Permission Matrix
-
-Based on the existing admin dashboard features and the three requested roles:
-
-| Action | Super Admin | Admin | Viewer |
-|--------|-------------|-------|--------|
-| **Authentication** ||||
-| Login to admin dashboard | Yes | Yes | Yes |
-| View own sessions | Yes | Yes | Yes |
-| Revoke own sessions | Yes | Yes | Yes |
-| **MSP Operations** ||||
-| View MSP listing | Yes | Yes | Yes |
-| Search MSPs | Yes | Yes | Yes |
-| View MSP details/drill-down | Yes | Yes | Yes |
-| Create new MSP (onboarding wizard) | Yes | Yes | No |
-| Edit MSP configuration | Yes | Yes | No |
-| **Tenant Operations** ||||
-| Search tenants | Yes | Yes | Yes |
-| Start impersonation session | Yes | Yes | No |
-| View impersonation audit logs | Yes | Yes | Yes |
-| **Billing Operations** ||||
-| View subscription status | Yes | Yes | Yes |
-| View invoice history | Yes | Yes | Yes |
-| Apply credit/adjustment | Yes | Yes | No |
-| Change subscription tier | Yes | Yes | No |
-| Extend trial/grace period | Yes | Yes | No |
-| **System Health** ||||
-| View system health dashboard | Yes | Yes | Yes |
-| View error rates/logs | Yes | Yes | Yes |
-| View aggregate metrics | Yes | Yes | Yes |
-| **Admin Management** ||||
-| View admin users list | Yes | Yes | Yes |
-| Invite new admin | Yes | No | No |
-| Assign/change admin roles | Yes | No | No |
-| Suspend/reactivate admin | Yes | No | No |
-| Reset admin MFA | Yes | No | No |
-| View admin activity logs | Yes | Yes | Yes |
-| **Alert Configuration** ||||
-| View alert settings | Yes | Yes | Yes |
-| Configure alert thresholds | Yes | Yes | No |
-| Manage Slack/PagerDuty integrations | Yes | Yes | No |
-| View alert history | Yes | Yes | Yes |
-| Acknowledge alerts | Yes | Yes | No |
-
-### Role Hierarchy
-
-```
-Super Admin (full access)
-    |
-    v
-Admin (operational access - can't manage admins)
-    |
-    v
-Viewer (read-only access)
-```
-
-**Key Principle:** Admins can perform all day-to-day operational tasks (onboarding MSPs, billing adjustments, impersonation for support). Only Super Admins can manage the admin team itself.
-
-### Differentiators
-
-Nice-to-have features that add value but aren't essential for v1.2.
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Custom permission sets | Fine-grained control beyond 3 roles | High | Defer - 3 roles sufficient for small team |
-| Time-limited elevated access | Temporary role elevation for incidents | High | YAGNI for 2-5 person team |
-| Permission inheritance | Roles inherit from parent roles | Medium | Unnecessary with flat hierarchy |
-| Per-resource permissions | Access to specific MSPs only | High | Global access simpler for ops |
-| Activity-based role suggestions | AI recommends role based on usage | High | Over-engineering |
-
-### Anti-Features
-
-Features to deliberately NOT build for RBAC.
+Features to explicitly NOT build (at this stage).
 
 | Anti-Feature | Why Avoid | What to Do Instead |
 |--------------|-----------|-------------------|
-| Role hierarchy deeper than 3 levels | Complexity for 2-5 person team | Stick with Super Admin > Admin > Viewer |
-| Self-service role changes | Security risk | Require Super Admin approval |
-| External identity provider roles | Different trust boundary | Manage roles internally |
-| API-only admin access | UI is the primary interface | Focus on UI-based access |
-| Bulk role changes | Low volume of admins | One-at-a-time changes are fine |
-
-### Implementation Notes
-
-**Existing Infrastructure to Leverage:**
-- `Admin` entity already exists with `status` field
-- Add `role` column: `'super_admin' | 'admin' | 'viewer'`
-- `AdminAuthGuard` can be extended with role checking
-- JWT payload already has custom claims structure
-
-**Guard Pattern:**
-```typescript
-// Decorator approach
-@Roles('super_admin')
-@UseGuards(AdminAuthGuard, AdminRolesGuard)
-async inviteAdmin() { ... }
-
-// Or combined
-@AdminOnly(['super_admin', 'admin'])
-async createMsp() { ... }
-```
-
----
-
-## Alerting Integrations
-
-### Table Stakes
-
-Features expected in any ops alerting system.
-
-| Feature | Why Expected | Complexity | Dependencies |
-|---------|--------------|------------|--------------|
-| Slack channel notifications | Primary communication tool | Medium | Slack webhook API |
-| PagerDuty incident creation | On-call escalation | Medium | PagerDuty Events API |
-| Alert enable/disable toggle | Control noise | Low | Settings storage |
-| Test alert button | Verify configuration | Low | Existing alert types |
-| Channel/service selection | Route alerts appropriately | Low | Integration config |
-| Basic system health alerts | Proactive monitoring | Medium | Existing health service |
-
-### Alert Types
-
-System events that should trigger alerts, categorized by severity.
-
-#### Critical Alerts (PagerDuty + Slack)
-
-| Alert | Trigger Condition | Data to Include |
-|-------|-------------------|-----------------|
-| Service Down | Policy-svc, Unbound, or dnsdist unreachable | Service name, downtime duration, last healthy timestamp |
-| Database Connection Failed | PostgreSQL or ClickHouse connection error | Database name, error message, retry count |
-| Redis Connection Failed | Cache unavailable | Connection error, impact assessment |
-| Error Rate Spike | Error rate > threshold (e.g., 5%) for N minutes | Current rate, baseline, affected services |
-
-#### Warning Alerts (Slack only)
-
-| Alert | Trigger Condition | Data to Include |
-|-------|-------------------|-----------------|
-| High Query Volume | Queries/second exceeds threshold | Current QPS, threshold, trend |
-| Elevated Error Rate | Error rate > warning threshold (e.g., 1%) | Current rate, trending direction |
-| Storage Approaching Limit | ClickHouse storage > 80% | Current usage, projected time to full |
-| Certificate Expiring Soon | TLS cert expires within 14 days | Cert name, expiry date, domains |
-
-#### Informational Alerts (Slack only, optional)
-
-| Alert | Trigger Condition | Data to Include |
-|-------|-------------------|-----------------|
-| New MSP Onboarded | MSP created via wizard | MSP name, created by admin |
-| Billing Adjustment Applied | Credit or tier change | Tenant name, amount/change, admin |
-| Impersonation Started | Admin starts impersonation | Admin name, tenant name, timestamp |
-| Admin Invited | New admin invitation sent | Invitee email, inviting admin |
-
-### Alert Configuration Schema
-
-```typescript
-interface AlertConfig {
-  id: string;
-  alertType: string;
-  enabled: boolean;
-  severity: 'critical' | 'warning' | 'info';
-
-  // Threshold configuration
-  threshold?: number;
-  thresholdUnit?: string;  // 'percent', 'count', 'seconds'
-  consecutiveViolations?: number;  // Require N violations before alerting
-
-  // Channel routing
-  slackEnabled: boolean;
-  slackChannel?: string;
-  pagerdutyEnabled: boolean;
-  pagerdutyServiceKey?: string;
-
-  // Cooldown to prevent alert fatigue
-  cooldownMinutes: number;
-
-  createdAt: Date;
-  updatedAt: Date;
-  updatedByAdminId: string;
-}
-```
-
-### Slack Message Format
-
-```
-:rotating_light: *Critical Alert: Service Down*
-
-*Service:* policy-svc
-*Status:* Unreachable
-*Duration:* 3 minutes
-*Last Healthy:* 2026-01-19 14:23:45 UTC
-
-*Impact:* DNS policy evaluation may fail. Queries falling back to fail-open mode.
-
-<https://admin.nebuladns.com/health|View System Health>
-```
-
-### PagerDuty Event Format
-
-```json
-{
-  "routing_key": "<service-integration-key>",
-  "event_action": "trigger",
-  "dedup_key": "nebula-policy-svc-down-2026-01-19",
-  "payload": {
-    "summary": "Nebula DNS: policy-svc unreachable for 3 minutes",
-    "severity": "critical",
-    "source": "nebula-admin-dashboard",
-    "component": "policy-svc",
-    "group": "dns-infrastructure",
-    "custom_details": {
-      "service": "policy-svc",
-      "duration_seconds": 180,
-      "last_healthy": "2026-01-19T14:23:45Z",
-      "dashboard_url": "https://admin.nebuladns.com/health"
-    }
-  }
-}
-```
-
-### Differentiators
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Alert history with trends | See patterns over time | Medium | Useful for post-mortems |
-| Escalation policies | Auto-escalate if not ack'd | High | PagerDuty handles this |
-| Custom alert messages | Personalized notification text | Low | Nice for branding |
-| Alert acknowledgment tracking | Know who's handling it | Medium | Sync with PagerDuty |
-| Scheduled maintenance windows | Suppress alerts during planned work | Medium | Reduce noise |
-
-### Anti-Features
-
-| Anti-Feature | Why Avoid | What to Do Instead |
-|--------------|-----------|-------------------|
-| Email alerts | Everyone uses Slack/PagerDuty | Focus on Slack + PagerDuty |
-| SMS direct integration | PagerDuty handles SMS | Let PagerDuty manage phone notifications |
-| Complex alert routing rules | 2-5 person team doesn't need it | Single channel per severity |
-| Alert grouping/correlation | Adds complexity | Let PagerDuty handle deduplication |
-| Custom alert webhooks | Build integrations as needed | Start with Slack + PagerDuty only |
-| AI-powered anomaly detection | ML complexity | Static thresholds sufficient |
-
-### Implementation Notes
-
-**Slack Integration:**
-- Use incoming webhooks (simplest approach)
-- Store webhook URL encrypted in database
-- Format messages using Block Kit for rich formatting
-
-**PagerDuty Integration:**
-- Use Events API v2 (not REST API)
-- Use `dedup_key` to prevent duplicate incidents
-- Auto-resolve when condition clears
-
-**Existing Infrastructure:**
-- `AdminHealthService` already monitors services
-- Extend with threshold checking and alert dispatch
-- Background job (cron) for periodic checks
-
----
-
-## Admin User Management
-
-### Table Stakes
-
-Features expected for managing admin users.
-
-| Feature | Why Expected | Complexity | Dependencies |
-|---------|--------------|------------|--------------|
-| List all admin users | See who has access | Low | Existing Admin entity |
-| Invite new admin via email | Onboard team members | Medium | Email service, invite tokens |
-| Admin accepts invite, sets password | Standard invite flow | Medium | Invite entity, auth flow |
-| View admin profile/details | Basic user management | Low | Admin entity |
-| Suspend admin account | Revoke access immediately | Low | Status field update |
-| Reactivate admin account | Restore access | Low | Status field update |
-| View admin's last login | Security visibility | Low | Existing lastLoginAt field |
-| View admin's MFA status | Security compliance | Low | Existing mfaSetupComplete field |
-| Reset admin's MFA | Recovery when device lost | Medium | MFA entity management |
-| Admin activity log | Audit what admins do | Medium | Audit log infrastructure |
-
-### Standard Flows
-
-#### Admin Invite Flow
-
-```
-1. Super Admin enters invitee email + name + role
-2. System checks email not already registered
-3. System creates Admin record with status='invited'
-4. System generates secure invite token (expires 72h)
-5. System sends invite email with link
-6. Invitee clicks link, validates token
-7. Invitee sets password + MFA
-8. Admin record updated: status='active'
-9. Audit log: admin_invited, admin_accepted_invite
-```
-
-**Invite Email Content:**
-- From: Nebula DNS Admin <no-reply@nebuladns.com>
-- Subject: You've been invited to Nebula DNS Admin Dashboard
-- Body: Welcome message, role description, link with token, expiry warning
-
-**Invite Token:**
-- Cryptographically random (32 bytes, hex encoded)
-- Stored hashed in database (like password)
-- Single use (invalidated on acceptance)
-- 72-hour expiry
-- Include role in invite record (not token) to prevent tampering
-
-#### MFA Reset Flow
-
-```
-1. Super Admin selects admin to reset
-2. System prompts for confirmation
-3. System clears MFA secret and backup codes
-4. Admin record: mfaSetupComplete=false, status='pending_mfa'
-5. Audit log: admin_mfa_reset with actor
-6. Next login, admin prompted to set up MFA again
-```
-
-**Security Considerations:**
-- Require Super Admin to confirm action
-- Log the reset with actor identification
-- Consider requiring admin to verify identity before re-enabling MFA
-- No "bypass MFA" option - reset forces new setup
-
-#### Admin Activity Log Format
-
-```typescript
-interface AdminActivityLog {
-  id: string;
-  timestamp: Date;  // ISO 8601: 2026-01-19T14:23:45.123Z
-  adminId: string;
-  adminEmail: string;
-  action: AdminAction;
-  resourceType: string;
-  resourceId?: string;
-  resourceName?: string;
-  ipAddress: string;
-  userAgent: string;
-  metadata: Record<string, any>;
-}
-
-type AdminAction =
-  | 'admin_login'
-  | 'admin_logout'
-  | 'admin_login_failed'
-  | 'admin_invited'
-  | 'admin_invite_accepted'
-  | 'admin_suspended'
-  | 'admin_reactivated'
-  | 'admin_role_changed'
-  | 'admin_mfa_reset'
-  | 'impersonation_started'
-  | 'impersonation_ended'
-  | 'msp_created'
-  | 'billing_adjustment'
-  | 'alert_acknowledged'
-  | 'alert_config_changed';
-```
-
-**What to Log (Required):**
-- All authentication events (login, logout, failures)
-- Admin management actions (invite, suspend, role change)
-- Sensitive operations (impersonation, billing changes)
-- Security-relevant changes (MFA reset, alert config)
-
-**What NOT to Log:**
-- Read-only page views (too noisy)
-- Search queries (privacy concern)
-- API health checks (too frequent)
-
-### Activity Log UI Requirements
-
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| Filterable by admin | See one admin's activity | High |
-| Filterable by action type | See all impersonations | High |
-| Filterable by date range | Time-bounded queries | High |
-| Searchable by resource | Find activity on specific MSP | Medium |
-| Exportable to CSV | Compliance/audit needs | Medium |
-| Real-time updates | Auto-refresh for monitoring | Low |
-
-### Differentiators
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Invite expiry reminder email | Nudge pending invites | Low | Nice UX touch |
-| Bulk admin operations | Manage multiple at once | Medium | Low volume - not needed |
-| Admin profile photo | Personalization | Low | Nice but not essential |
-| Session location display | Security visibility | Low | Use IP geolocation |
-| Force password change | Security policy | Medium | MFA more important |
-| Admin groups | Organize admins | High | 2-5 admins don't need groups |
-
-### Anti-Features
-
-| Anti-Feature | Why Avoid | What to Do Instead |
-|--------------|-----------|-------------------|
-| Self-service role requests | Security workflow complexity | Super Admin assigns directly |
-| Public admin directory | Privacy/security concern | Internal list only |
-| Admin-to-admin messaging | Use Slack | External communication tools |
-| Password policy configuration | Default strong policy | Enforce minimum 12 chars, no expiry per NIST |
-| Admin API tokens | UI is primary interface | Admin uses dashboard directly |
-| Delegate invite permission | Too granular | Only Super Admin invites |
-
-### Implementation Notes
-
-**Admin Entity Updates:**
-```typescript
-// Add to Admin entity
-@Column({ type: 'varchar', length: 20, default: 'admin' })
-role: 'super_admin' | 'admin' | 'viewer';
-
-@Column({ name: 'invite_token_hash', type: 'varchar', nullable: true })
-@Exclude()
-inviteTokenHash: string | null;
-
-@Column({ name: 'invite_expires_at', type: 'timestamp', nullable: true })
-inviteExpiresAt: Date | null;
-```
-
-**New Entity: AdminActivityLog**
-```typescript
-@Entity('admin_activity_logs')
-export class AdminActivityLog {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  timestamp: Date;
-
-  @Column({ name: 'admin_id', type: 'uuid' })
-  adminId: string;
-
-  @Column({ type: 'varchar', length: 50 })
-  action: string;
-
-  @Column({ name: 'resource_type', type: 'varchar', length: 50, nullable: true })
-  resourceType: string;
-
-  @Column({ name: 'resource_id', type: 'uuid', nullable: true })
-  resourceId: string;
-
-  @Column({ name: 'resource_name', type: 'varchar', length: 255, nullable: true })
-  resourceName: string;
-
-  @Column({ name: 'ip_address', type: 'varchar', length: 45 })
-  ipAddress: string;
-
-  @Column({ type: 'jsonb', nullable: true })
-  metadata: Record<string, any>;
-}
-```
-
-**Existing Infrastructure:**
-- `AuditLogsService` exists but is tenant-scoped
-- Create separate `AdminActivityLogService` for admin-specific logging
-- Or extend existing service with admin context detection
-
----
+| **Custom CI/CD Platform** | GitHub Actions sufficient, don't reinvent | Use GitHub Actions with DigitalOcean integrations |
+| **Self-Hosted Monitoring** | Managing Prometheus/Grafana in production = toil | Use DigitalOcean Managed Monitoring or cloud service |
+| **Multi-Cloud Deployment** | Premature optimization, adds massive complexity | Single DigitalOcean region, document migration path for later |
+| **Custom Secrets Rotation** | Vault/complex KMS = overkill at 1-10 tenants | Use K8s Secrets + manual rotation schedule, automate in v2 |
+| **Feature Flags for Every Feature** | Overhead not justified at current scale | Use for deployment strategies only (canary release) |
+| **A/B Testing Framework** | Not a product experimentation phase | Defer until product-market fit established |
+| **Custom Observability Agents** | Reinventing OpenTelemetry | Use standard OTel collectors |
+| **Zero-Downtime Migrations** | Acceptable to have brief maintenance windows | Schedule migrations during low-traffic windows, communicate to users |
+| **Geo-Distributed DNS Resolution** | Single region handles 100K-999K queries/day easily | Document as future enhancement when >1M queries/day |
+| **Machine Learning Anomaly Detection** | Insufficient data at current scale | Use static thresholds, graduate to ML when have 6+ months data |
 
 ## Feature Dependencies
 
-### Dependency Graph
-
 ```
-RBAC (Phase 1)
-  |
-  +-- Role column on Admin entity
-  |
-  +-- AdminRolesGuard
-  |
-  +-- Role-based UI filtering
-  |
-  v
-Admin User Management (Phase 2)
-  |
-  +-- Depends on RBAC for permission checks
-  |
-  +-- Admin invite flow
-  |
-  +-- MFA management
-  |
-  +-- Activity logging
-  |
-  v
-Alerting Integrations (Phase 3)
-  |
-  +-- Depends on RBAC for config permissions
-  |
-  +-- Extends Admin activity logging
-  |
-  +-- Uses existing health monitoring
+Testing Foundation:
+  Unit Tests (API) → Integration Tests (API) → E2E Tests (API)
+  Unit Tests (Go) → Integration Tests (Go)
+  E2E Tests (UI) depends on: Test data seeding
+
+Deployment Pipeline:
+  CI/CD Pipeline → Container Images → K8s Deployment
+  K8s Deployment depends on: Database Migrations (automated)
+  K8s Deployment depends on: Secrets Management
+
+Observability Stack:
+  Logging (structured) → Centralized Logging (Loki)
+  Metrics Endpoint → Prometheus Scraping → Grafana Dashboards
+  Health Checks → Readiness Probes → Load Balancer Routing
+
+Production Operations:
+  Monitoring Dashboards → Incident Runbooks → Automated Alerts
+  Load Testing Baseline → Resource Limits (right-sized)
+  Backup & Restore → Disaster Recovery Runbooks
+
+DNS Reliability (critical path):
+  DNS Failover depends on: Health Checks, Secondary DNS provider
+  Graceful Shutdown depends on: Connection draining
+  Policy-svc Scaling depends on: Metrics (DNS query rate)
 ```
 
-### Recommended Phase Order
+## MVP Recommendation
 
-1. **RBAC First** - Foundation for permission checking in all other features
-2. **Admin User Management Second** - Depends on roles for invite permissions
-3. **Alerting Integrations Third** - Uses role checks for configuration access
+**Critical Path (Block v1.3 release):**
+1. **Test Coverage Expansion** - Cannot ship untested admin features (user mgmt, billing ops, alerting)
+2. **CI/CD Pipeline** - Manual deploys = high risk of human error
+3. **Database Backups** - Data loss unacceptable for production SaaS
+4. **DNS Failover** - Single point of failure for entire service
+5. **Incident Runbooks** - On-call without runbooks = panic-driven ops
+6. **Load Testing Validation** - Must know capacity before production traffic
 
----
+**Important (Ship in v1.3 but can hotfix later):**
+1. Graceful Shutdown - Minimize disruption during deploys
+2. Resource Limits - Prevent resource exhaustion
+3. Monitoring Dashboards - Existing Grafana setup, verify completeness
+4. Automated Alerts - Already have Slack/PagerDuty, add comprehensive rules
+5. Synthetic Monitoring - External validation of DNS service
+6. Secrets Rotation Strategy - Document process even if manual
 
-## Complexity Summary
+**Defer to v1.4:**
+1. Chaos Engineering - Validate stability first
+2. Canary Deployments - Blue-green simpler for initial production
+3. Distributed Tracing - Nice-to-have, not critical at current scale
+4. Performance Testing in CI - Run manually for now
+5. SLO Dashboards - Establish baselines first
+6. Security Scanning - Important but can add post-launch
 
-| Feature Category | Table Stakes Count | Total Complexity | Estimated Effort |
-|------------------|-------------------|------------------|------------------|
-| RBAC | 8 features | Low-Medium | 1-2 sprints |
-| Alerting | 6 features | Medium | 1-2 sprints |
-| Admin Management | 10 features | Medium | 2 sprints |
-| **Total** | **24 features** | | **4-6 sprints** |
+**Defer to v2.x:**
+1. Multi-Region Failover - Single region sufficient for 1-10 tenants
+2. Auto-Scaling - Manual scaling acceptable initially
+3. Cost Monitoring per Tenant - Already have usage tracking
+4. Visual Regression Testing - Low ROI for admin-focused UI
 
----
+## Testing Strategy Specifics
+
+Based on existing codebase analysis:
+
+**API (NestJS):**
+- Current: ~60 spec files (unit tests), some integration tests (ClickHouse, Redis, session)
+- Gap: Admin modules (19-21 phases) need comprehensive unit + E2E coverage
+- Pattern: Follow existing `*.service.spec.ts` and `*.controller.spec.ts` structure
+- E2E: Expand `api/test/*.e2e-spec.ts` to cover all 95 requirements
+- Tools: Jest (already configured), Supertest (already in use)
+
+**UI (Next.js):**
+- Current: 20 Playwright spec files (auth, dashboard, policies, locations, lists, reports, settings, tiers, usage, MSP, billing)
+- Gap: Admin UI flows (mission control) not covered
+- Pattern: Follow existing Page Object Model in `ui/e2e/helpers/auth.ts`
+- Tools: Playwright 1.57.0 (already configured)
+- Critical: Test tier-based feature visibility (home/enterprise/msp)
+
+**Policy Service (Go):**
+- Current: Unit tests (`*_test.go`), integration tests in `tests/integration/`
+- Gap: Benchmark tests for O(1) validation under load
+- Pattern: Table-driven tests (Go idiomatic)
+- Tools: Go testing package, TestContainers for integration
+
+**Load Testing:**
+- Current: k6 scripts exist (`scripts/load-testing/api-load-test.js`, `dns-load-test.js`)
+- Gap: Never run against production-like environment, no baseline SLOs
+- Target: 100K-999K queries/day = ~12 queries/second average, 100+ queries/second peak
+- Validate: Policy eval latency p95 < 50ms, API p95 < 200ms
+
+## Deployment Strategy Specifics
+
+**DigitalOcean Kubernetes:**
+- Platform: DigitalOcean Managed Kubernetes (DOKS)
+- Region: Single region initially (e.g., nyc3 or sfo3)
+- Node Pool: Dedicated CPU instances (not shared, per DO docs to avoid DNS UDP latency)
+- DNS: CoreDNS (default), scale to 3+ replicas for DNS-heavy workload
+- Load Balancer: DO Load Balancer (Layer 4) → dnsdist pods
+- Storage: DO Block Storage for PostgreSQL PVCs, DO Spaces for backups
+
+**External DNS Management:**
+- Use external-dns to sync K8s Ingress/Service to DigitalOcean DNS
+- Primary: DigitalOcean DNS for API/UI endpoints
+- Secondary: Route53 or Cloudflare for DNS failover (health-based routing to backup region)
+
+**Helm Deployment:**
+- Current: `helm/safedns/` chart exists with migrations as pre-install hooks
+- Pattern: `helm upgrade --install nebula-dns ./helm/safedns -n nebula-dns`
+- Strategy: Rolling update (default), validate with small tenant load first
+- Rollback: `helm rollback nebula-dns` (keep last 5 revisions)
+
+**CI/CD Pipeline (GitHub Actions):**
+```yaml
+1. Trigger: Push to main or release tag
+2. Build:
+   - api: Docker build, tag with commit SHA + 'latest'
+   - ui: Docker build (Next.js production build)
+   - policy-svc: Docker build (Go binary)
+   - dnsdist: Docker build
+   - unbound: Docker build
+3. Test:
+   - Unit tests (API, Go)
+   - Integration tests (Docker Compose)
+   - E2E tests (Playwright)
+   - Load tests (k6, pass/fail on SLO thresholds)
+4. Push: DigitalOcean Container Registry
+5. Deploy:
+   - Staging: Auto-deploy on merge to main
+   - Production: Manual approval on release tag
+   - Run migrations: Helm pre-upgrade hook
+6. Verify:
+   - Health checks pass
+   - Smoke tests (synthetic DNS queries)
+```
+
+## Operational Readiness Specifics
+
+**Incident Runbooks (Required):**
+1. **DNS Service Down** - Symptom: Queries failing. Steps: Check policy-svc logs, verify Redis connection, failover to secondary DNS
+2. **Database Connection Pool Exhausted** - Symptom: API 500 errors. Steps: Check active connections, scale API replicas, investigate slow queries
+3. **Redis Out of Memory** - Symptom: Cache misses, policy eval failures. Steps: Check memory usage, evict old keys, scale Redis
+4. **ClickHouse Ingestion Lag** - Symptom: Reports stale. Steps: Check Kafka backlog (if using), verify disk space, scale ClickHouse
+5. **Policy-svc Crash Loop** - Symptom: DNS queries timing out. Steps: Check pod logs, verify Redis pub/sub connection, rollback deployment
+6. **Certificate Expiration** - Symptom: HTTPS errors. Steps: Verify cert-manager, manual renewal if needed, update Let's Encrypt
+
+**Monitoring Alerts (Prometheus + PagerDuty):**
+- DNS Query Success Rate < 99.9% (5min window)
+- Policy Evaluation Latency p95 > 100ms (1min window)
+- API Error Rate > 1% (5min window)
+- Database Connection Pool > 80% (1min window)
+- Redis Memory > 90% (5min window)
+- Pod Restart Count > 3 (10min window)
+- Certificate Expiration < 7 days
+
+**SLOs (Service Level Objectives):**
+- DNS Availability: 99.9% (43 minutes downtime/month)
+- DNS Query Latency: p95 < 50ms, p99 < 100ms
+- API Availability: 99.9%
+- API Latency: p95 < 200ms, p99 < 500ms
+- Policy Update Propagation: < 5 seconds (Redis pub/sub)
+
+## Complexity Notes
+
+**High Complexity Items:**
+- **Integration Tests (API)** - Requires Docker Compose orchestration, real DB seeding, multi-service coordination
+- **DNS Failover** - Health-based routing between providers, GeoDNS configuration, failover testing
+- **Chaos Engineering** - DNS-specific failure injection (latency, packet loss, resolution failures)
+- **Canary Deployments** - Traffic splitting in multi-tenant system, rollback automation
+- **Distributed Tracing** - Instrument dnsdist (Lua) → policy-svc (Go) → Redis, ClickHouse
+
+**Medium Complexity Items:**
+- **E2E Tests (UI/API)** - Test data management, async assertions, flaky test debugging
+- **Graceful Shutdown** - In-flight DNS query tracking, connection draining in Go
+- **CI/CD Pipeline** - Multi-stage builds, test orchestration, deployment approval gates
+- **Load Testing Baseline** - Realistic traffic patterns, tenant isolation validation
+- **Metrics Endpoint** - Custom app-level metrics (policy cache hit rate, tenant query distribution)
+
+**Low Complexity Items:**
+- **Health Checks** - Already implemented, verify liveness vs readiness distinction
+- **Secrets Management** - Use K8s Secrets, document rotation (automate later)
+- **Logging** - Already structured (Winston/Zap), add correlation IDs
+- **Deployment Rollback** - Helm supports natively
+- **SSL/TLS Certificates** - Standard cert-manager + Let's Encrypt pattern
 
 ## Sources
 
-### RBAC Best Practices
-- [How to Design an RBAC System - NocoBase](https://www.nocobase.com/en/blog/how-to-design-rbac-role-based-access-control-system)
-- [10 RBAC Best Practices for 2025 - Oso](https://www.osohq.com/learn/rbac-best-practices)
-- [Role-Based Access Control Guide - StrongDM](https://www.strongdm.com/rbac)
-- [RBAC Best Practices - TechPrescient](https://www.techprescient.com/blogs/role-based-access-control-best-practices/)
+### DNS SaaS Testing Best Practices
+- [Top 20 SaaS Testing Tools for 2026](https://testrigor.com/blog/saas-testing-tools/)
+- [How To Use DNS Trace Tests To Monitor Critical SaaS Services](https://www.thousandeyes.com/blog/dns-trace-tests)
+- [Getting DNS Right: Principles for Effective Monitoring](https://thenewstack.io/getting-dns-right-principles-for-effective-monitoring/)
+- [SaaS Testing Guide: Process, Tools, & Best Practices](https://testsigma.com/blog/saas-testing/)
 
-### Permission Matrix Patterns
-- [Dell Roles & Permissions Matrix](https://i.dell.com/sites/doccontent/app-merchandizing/esupport/flatcontent/global/en/Documents/RoleDetails.pdf)
-- [Best Practices for Managing Users, Roles, and Permissions - DEV Community](https://dev.to/anna_p_s/best-practices-for-managing-users-roles-and-permissions-5140)
-- [LabKey Administrator Permissions Matrix](https://www.labkey.org/Documentation/wiki-page.view?name=adminPermMatrix)
+### Kubernetes DNS Deployment Patterns
+- [DNS for Services and Pods | Kubernetes](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/)
+- [How to Use CoreDNS with Kubernetes](https://oneuptime.com/blog/post/2026-01-26-coredns-kubernetes/view)
+- [Kubernetes DNS Service: Practical Guide](https://www.tigera.io/learn/guides/kubernetes-networking/kubernetes-dns-service/)
 
-### Alerting Integrations
-- [PagerDuty Slack Integration Guide](https://support.pagerduty.com/main/docs/slack-integration-guide)
-- [Best Practices for Alerting Using PagerDuty - DrDroid](https://drdroid.io/engineering-tools/best-practices-for-alerting-using-pagerduty)
-- [IT Alerting Guide - Atlassian](https://www.atlassian.com/incident-management/on-call/it-alerting)
-- [Monitoring and Alerting Best Practices - TechTarget](https://www.techtarget.com/searchitoperations/tip/4-monitoring-and-alerting-best-practices-for-IT-ops)
-- [Network Monitoring Alerts Best Practices - Kentik](https://www.kentik.com/kentipedia/network-monitoring-alerts/)
+### Production DNS Monitoring & Observability
+- [11 Key Observability Best Practices You Should Know in 2026](https://spacelift.io/blog/observability-best-practices)
+- [Observability Predictions for 2026](https://middleware.io/blog/observability-predictions/)
+- [Kubernetes Observability and Monitoring Trends in 2026](https://www.usdsi.org/data-science-insights/kubernetes-observability-and-monitoring-trends-in-2026)
 
-### Admin User Management & MFA
-- [Reset MFA for Microsoft 365 Users - AdminDroid](https://blog.admindroid.com/reset-mfa-for-microsoft-365-users/)
-- [Remove or Change Dashboard MFA - Auth0](https://auth0.com/docs/get-started/manage-dashboard-access/add-change-remove-mfa/remove-or-change-dashboard-multi-factor-authentication)
-- [MFA Best Practices - 917 Solutions](https://917solutions.com/mfa-best-practices-microsoft-365-setup-guide-step-5-5/)
+### DigitalOcean Kubernetes Best Practices
+- [How can I improve the performance of cluster DNS?](https://docs.digitalocean.com/support/how-can-i-improve-the-performance-of-cluster-dns/)
+- [external-dns DigitalOcean Tutorial](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/digitalocean.md)
+- [How to Customize CoreDNS for Kubernetes Clusters](https://docs.digitalocean.com/products/kubernetes/how-to/customize-coredns/)
+- [Kubernetes Best Practices | DigitalOcean](https://docs.digitalocean.com/products/kubernetes/concepts/best-practices/)
 
-### Activity Logging & Audit Trails
-- [Guide to Building Audit Logs - Medium](https://medium.com/@tony.infisical/guide-to-building-audit-logs-for-application-software-b0083bb58604)
-- [Audit Logging Best Practices - CertPro](https://certpro.com/audit-log-security-best-practices/)
-- [Audit Logging Guide - Middleware.io](https://middleware.io/blog/audit-logs/)
-- [Microsoft Entra Audit Log Reference](https://learn.microsoft.com/en-us/entra/identity/monitoring-health/reference-audit-activities)
+### SaaS Testing Strategy (Integration & E2E)
+- [Test Automation Strategy for End-to-End SaaS Applications](https://www.wildnetedge.com/blogs/saas-test-automation-strategies-for-seamless-end-to-end-testing)
+- [End-to-end Testing - Tools and Frameworks Guide for 2026](https://bugbug.io/blog/test-automation/end-to-end-testing/)
+- [Ultimate Guide - Best Automated Testing Solutions For SaaS Platforms](https://www.testsprite.com/use-cases/en/the-fastest-automated-testing-solutions-for-saas-platforms)
 
-### JWT & Authentication
-- [JWT Security Best Practices 2025 - JWT.app](https://jwt.app/blog/jwt-best-practices/)
-- [Token Best Practices - Auth0](https://auth0.com/docs/secure/tokens/token-best-practices)
-- [JWT Best Practices - Curity](https://curity.io/resources/learn/jwt-best-practices/)
+### Chaos Engineering & DNS Reliability
+- [Chaos Testing Guide: Best Practices](https://katalon.com/resources-center/blog/chaos-testing-a-complete-guide)
+- [Building Resilience with Chaos Engineering and Litmus](https://www.infracloud.io/blogs/building-resilience-chaos-engineering-litmus/)
+- [REL12-BP04 Test resiliency using chaos engineering](https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_testing_resiliency_failure_injection_resiliency.html)
+
+### Helm Security & Deployment
+- [Securing Helm Charts with Security Contexts and Network Policies](https://oneuptime.com/blog/post/2026-01-17-helm-security-contexts-network-policies/view)
+- [Best Practices for Securing and Hardening Helm Charts](https://techdocs.broadcom.com/us/en/vmware-tanzu/bitnami-secure-images/bitnami-secure-images/services/bsi-doc/apps-tutorials-best-practices-hardening-charts-index.html)
+- [Helm security and best practices](https://www.sysdig.com/blog/how-to-secure-helm)
+
+### DNS Provider SLA & Uptime Monitoring
+- [Top 6 Best DNS Hosting Providers in 2026](https://www.quicksprout.com/best-dns-hosting-providers/)
+- [10 Best DNS Monitoring Tools in 2026](https://betterstack.com/community/comparisons/dns-monitoring-tools/)
+- [IBM NS1 Connect 100% uptime SLA](https://www.ibm.com/products/ns1-connect)
+- [DNSSEC Operations in 2026 – What Keeps 16 TLDs Up at Night](https://blog.nlnetlabs.nl/dnssec-operations-in-2026-what-keeps-16-tlds-up-at-night/)
+
+### Deployment Strategies (Canary/Blue-Green)
+- [Blue-Green and Canary Deployments Explained](https://www.harness.io/blog/blue-green-canary-deployment-strategies)
+- [When to use canary vs. blue/green vs. rolling deployment](https://www.techtarget.com/searchitoperations/answer/When-to-use-canary-vs-blue-green-vs-rolling-deployment)
+- [Releasing Canary on multi-tenant microservice platform](https://www.linkedin.com/pulse/releasing-canary-top-centralized-multi-tenant-platform-guillermo-wrba)
+
+### ClickHouse for DNS Logging at Scale
+- [How Cloudflare analyzes 1M DNS queries per second](https://blog.cloudflare.com/how-cloudflare-analyzes-1m-dns-queries-per-second/)
+- [HTTP Analytics for 6M requests per second using ClickHouse](https://blog.cloudflare.com/http-analytics-for-6m-requests-per-second-using-clickhouse/)
+- [How to Optimize ClickHouse Queries for Better Performance](https://oneuptime.com/blog/post/2026-01-21-clickhouse-query-optimization/view)
+
+### NestJS Testing Patterns
+- [Testing in NestJs — Unit & E2E](https://tushar-chy.medium.com/testing-in-nestjs-unit-e2e-3f9ba58d7f77)
+- [How to Write Unit Tests and E2E Tests for NestJS Applications](https://www.freecodecamp.org/news/nestjs-unit-testing-e2e-testing-guide/)
+- [Testing NestJS Apps: Best Practices & Common Pitfalls](https://amplication.com/blog/best-practices-and-common-pitfalls-when-testing-my-nestjs-app)
+- [How to Write Tests in NestJS](https://oneuptime.com/blog/post/2026-02-02-nestjs-testing/view)
+
+### Next.js Playwright Testing
+- [Testing: Playwright | Next.js](https://nextjs.org/docs/pages/guides/testing/playwright)
+- [How to Test Next.js Apps with Playwright: Complete Guide](https://www.getautonoma.com/blog/nextjs-playwright-testing-guide)
+- [Testing a Next.js Form Component with Playwright](https://www.browserstack.com/guide/nextjs-playwright)
+
+### Go Testing Patterns
+- [Testing in Go: Unit, Integration, and Benchmark Tests](https://dasroot.net/posts/2026/01/testing-in-go-unit-integration-benchmark-tests/)
+- [Go Testing Excellence: Table-Driven Tests and Mocking](https://dasroot.net/posts/2026/01/go-testing-excellence-table-driven-tests-mocking/)
+- [Integration testing for Go with Testcontainers](https://devblogs.microsoft.com/cosmosdb/integration-testing-for-go-applications-using-testcontainers-and-containerized-databases/)
+- [4 practical principles of high-quality database integration tests in Go](https://threedots.tech/post/database-integration-testing/)
+
+### Incident Response & Runbooks
+- [Incident Response Runbooks: Templates, Examples & Guide](https://rootly.com/incident-response/runbooks)
+- [The Enterprise Incident Response Plan - SRE Guide](https://uptimelabs.io/learn/enterprise-incident-response-plan-sre-guide/)
+- [10 Essential Runbook Examples for DevOps](https://www.stew.so/blog/runbook-examples-for-devops)
+- [When DNS Breaks the Cloud: What AWS/Azure Outages Teach Us](https://medium.com/@cypanrisk/when-dns-breaks-the-cloud-what-the-aws-and-azure-m365-outages-teach-us-d9087463e70d)
+
+### DNS Failover & Disaster Recovery
+- [A Beginner's Guide to DNS Failover](https://dnsmadeeasy.com/resources/dns_failover)
+- [What Is DNS Failover? | IBM](https://www.ibm.com/think/topics/dns-failover)
+- [Reliability in Azure DNS](https://learn.microsoft.com/en-us/azure/reliability/reliability-dns)
+- [Cross-Region Failover Design for Disaster Recovery](https://www.serverion.com/uncategorized/cross-region-failover-design-disaster-recovery/)
