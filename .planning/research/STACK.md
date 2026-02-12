@@ -1,505 +1,339 @@
-# Stack Research: v1.2 Additions
+# Technology Stack
 
-**Project:** Nebula DNS Admin Dashboard (Mission Control)
-**Researched:** 2026-01-19
-**Focus:** RBAC, Slack/PagerDuty alerting, Admin user management
+**Project:** Nebula DNS - Testing & DigitalOcean Deployment
+**Researched:** 2026-02-11
 
-## Executive Summary
+## Recommended Stack
 
-The existing NestJS codebase already has solid foundations for the v1.2 features. The RBAC patterns in `roles.guard.ts` can be extended for admin roles. The webhook infrastructure and `EncryptionAlertService` provide patterns for alerting. The invitation flow for family members provides a template for admin invites.
+### Testing Infrastructure
 
-**Key finding:** No new major dependencies required for RBAC. Alerting requires only `@slack/webhook` (lightweight) and direct HTTP calls to PagerDuty Events API v2.
+| Technology | Version | Purpose | Why |
+|------------|---------|---------|-----|
+| Jest | 29.7.0+ (current in project) | Unit testing for NestJS | Default NestJS testing framework, built-in support, excellent TypeScript integration |
+| @nestjs/testing | 11.1.12 | NestJS test utilities | Official NestJS testing module with DI support for mocking services |
+| Supertest | 6.3.4+ (current in project) | HTTP API integration testing | De facto standard for testing Express/NestJS endpoints, works seamlessly with Jest |
+| Testcontainers | 11.11.0 (current in project) | Integration test isolation | Provides real PostgreSQL/Redis/ClickHouse containers for deterministic integration tests |
+| Playwright | 1.58.2 | Next.js E2E testing | Superior cross-browser support, parallel execution, TypeScript support, 2x-6x faster than Cypress with lower flakiness (1.8% vs 6.5%) |
+| Go stdlib testing | Built-in (Go 1.23) | Go unit/integration tests | Table-driven tests with t.Run, no external dependencies needed |
+| go-test-coverage | Latest | Coverage enforcement | vladopajic/go-test-coverage for CI/CD coverage thresholds |
 
----
+### DigitalOcean Managed Services
 
-## New Dependencies
+| Technology | Version | Purpose | Why |
+|------------|---------|---------|-----|
+| DOKS (Kubernetes) | 1.30+ | Container orchestration | Managed control plane, autoscaling to 1000 nodes, scale-to-zero node pools, integrated with DO ecosystem |
+| Managed PostgreSQL | 16+ | Relational database | PgBouncer built-in (25 conn/GB RAM), automated backups, connection pooling, high availability with standby nodes |
+| Managed Valkey | 7.2 equivalent | Caching/pub-sub | Redis-compatible (Valkey required as Managed Redis discontinued June 2025), RDMA support, higher throughput |
+| ClickHouse Cloud | Latest | Analytics database | Official @clickhouse/client (1.17.0) with streaming support, managed service, no self-hosting overhead |
 
-### RBAC
+### Kubernetes Deployment Tooling
 
-**No new libraries needed.** The existing patterns are sufficient.
+| Technology | Version | Purpose | Why |
+|------------|---------|---------|-----|
+| Helm | 3.14+ | Package management | Industry standard (75% adoption), release history/rollback, values-based environment config (existing helm/safedns chart in project) |
+| Kustomize | kubectl built-in | Declarative customization | Bundled with kubectl, environment overlays for secrets/configs (existing k8s/overlays in project) |
+| doctl | Latest | DigitalOcean CLI | Official DO CLI for DOKS cluster creation, kubeconfig management, node pool operations |
+| External Secrets Operator | Latest (ESO) | Secrets management | Syncs DO/Vault/AWS secrets to K8s, GitOps-compatible, prevents plain-text secrets in repos |
 
-The codebase already has:
-- `RolesGuard` with `@Roles()` decorator in `/api/src/common/guards/roles.guard.ts`
-- `Role` enum with `OWNER`, `ADMIN`, `ANALYST`, `READONLY`, `MEMBER`
-- `Reflector` for metadata extraction
-- Pattern uses NestJS native `SetMetadata` approach
+### ClickHouse Integration
 
-**What to add for Admin RBAC:**
+| Library | Version | Purpose | When to Use |
+|---------|---------|---------|-------------|
+| @clickhouse/client | 1.17.0 | Official Node.js client | For NestJS API analytics queries, streaming inserts, ClickHouse Cloud compatibility |
 
-| Component | Approach | File |
-|-----------|----------|------|
-| `AdminRole` enum | New enum: `SUPER_ADMIN`, `ADMIN`, `VIEWER` | Create `admin-roles.guard.ts` |
-| `@AdminRoles()` decorator | Mirrors `@Roles()` for admin context | Same file |
-| `AdminRolesGuard` | Extends pattern from `RolesGuard` | Same file |
-| `role` column | Add to `Admin` entity | Modify `admin.entity.ts` |
+### Deployment Configuration
 
-**Rationale:** Keep admin RBAC separate from tenant RBAC. Different JWT strategies (`admin-jwt` vs `jwt`), different role hierarchies, different guards. Mixing them creates confusion.
+| Category | Recommended | Alternative | Why Not Alternative |
+|----------|-------------|-------------|---------------------|
+| Secrets Management | External Secrets Operator | Plain K8s Secrets | ESO prevents secrets in Git, syncs from external vaults, supports DO/Vault/AWS |
+| Deployment Method | Helm + Kustomize hybrid | Helm only | Existing project has both, Helm for releases/rollbacks, Kustomize for environment-specific overlays |
+| Connection Pooling | DO Managed PostgreSQL PgBouncer | Application-level (pg-pool) | DO provides 21 PgBouncer pools with 1000 connections max, reduces app complexity |
+| Redis Alternative | Managed Valkey | Self-hosted Redis | Managed Redis discontinued June 2025, Valkey is Redis-compatible with RDMA |
+| CI Test Environment | Testcontainers | Docker Compose | Testcontainers provides test isolation, automatic cleanup, deterministic environments |
 
-**Code pattern to follow:**
-```typescript
-// admin-roles.guard.ts
-export enum AdminRole {
-  SUPER_ADMIN = 'super_admin',  // Full access, can manage other admins
-  ADMIN = 'admin',               // Can manage MSPs, view all data
-  VIEWER = 'viewer',             // Read-only access to dashboard
-}
+## Installation
 
-export const ADMIN_ROLES_KEY = 'admin_roles';
-export const AdminRoles = (...roles: AdminRole[]) =>
-  SetMetadata(ADMIN_ROLES_KEY, roles);
-
-@Injectable()
-export class AdminRolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
-
-  canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<AdminRole[]>(
-      ADMIN_ROLES_KEY,
-      [context.getHandler(), context.getClass()]
-    );
-    if (!requiredRoles) return true;
-
-    const { user } = context.switchToHttp().getRequest();
-    return requiredRoles.includes(user.role);
-  }
-}
-```
-
-**Confidence:** HIGH - This pattern is already working in the codebase.
-
----
-
-### Alerting Integrations
-
-#### Slack Integration
-
-**Recommended:** `@slack/webhook` v7.x
-
-| Package | Version | Weekly Downloads | Purpose |
-|---------|---------|------------------|---------|
-| `@slack/webhook` | ^7.0.0 | 4M+ | Incoming webhooks (simple alerting) |
-| `@slack/web-api` | ^7.13.0 | 4M+ | Full API access (NOT needed) |
-
-**Why `@slack/webhook` over `@slack/web-api`:**
-- **Simpler:** Webhook-only, no OAuth/token management
-- **Lighter:** ~100KB vs 2.75MB for web-api
-- **Sufficient:** Admin alerts don't need message editing, reactions, channels API
-- **Lower risk:** Webhook URLs are per-channel, limited blast radius
-
-**Installation:**
+### NestJS Testing (Existing)
 ```bash
-cd api && npm install @slack/webhook@^7.0.0
+# Already in package.json devDependencies
+npm install --save-dev @nestjs/testing@^11.1.12 supertest@^6.3.4 testcontainers@^11.11.0
 ```
 
-**Integration pattern:**
-```typescript
-import { IncomingWebhook } from '@slack/webhook';
-
-@Injectable()
-export class SlackAlertService {
-  private webhook: IncomingWebhook | null = null;
-
-  constructor(private configService: ConfigService) {
-    const url = this.configService.get('SLACK_WEBHOOK_URL');
-    if (url) {
-      this.webhook = new IncomingWebhook(url);
-    }
-  }
-
-  async sendAlert(message: string, severity: 'info' | 'warning' | 'critical'): Promise<void> {
-    if (!this.webhook) return;
-
-    await this.webhook.send({
-      text: message,
-      attachments: [{
-        color: severity === 'critical' ? '#dc2626' : severity === 'warning' ? '#f59e0b' : '#3b82f6',
-        fields: [
-          { title: 'Severity', value: severity, short: true },
-          { title: 'Time', value: new Date().toISOString(), short: true },
-        ],
-      }],
-    });
-  }
-}
+### Next.js Testing (Upgrade Playwright)
+```bash
+cd ui
+npm install --save-dev @playwright/test@^1.58.2
 ```
 
-**Confidence:** HIGH - Official Slack SDK, well-maintained, current version verified.
-
-**Sources:**
-- [npm @slack/webhook](https://www.npmjs.com/package/@slack/webhook)
-- [Slack Node SDK Webhook Docs](https://docs.slack.dev/tools/node-slack-sdk/webhook/)
-
----
-
-#### PagerDuty Integration
-
-**Recommended:** Direct HTTP to Events API v2 (no SDK)
-
-**Why no SDK:**
-- `@pagerduty/pdjs` last release was over a year ago (not healthy cadence)
-- Events API v2 is simple HTTP POST - SDK adds unnecessary abstraction
-- Built-in retry logic in SDK (3 retries, 20s delay) may not match our needs
-- Direct HTTP gives full control and matches existing webhook patterns
-
-**DO NOT USE:**
-- `@pagerduty/pdjs` - Stale, unnecessary abstraction
-- `node-pagerduty` - Unofficial, outdated
-- `pagerduty` - Minimal maintenance
-
-**Integration pattern (matches existing `webhooksService.httpPost`):**
-```typescript
-@Injectable()
-export class PagerDutyAlertService {
-  private readonly routingKey: string | null;
-  private readonly logger = new Logger(PagerDutyAlertService.name);
-
-  constructor(private configService: ConfigService) {
-    this.routingKey = this.configService.get('PAGERDUTY_ROUTING_KEY') || null;
-  }
-
-  async triggerIncident(
-    summary: string,
-    severity: 'critical' | 'error' | 'warning' | 'info',
-    dedupKey?: string,
-    customDetails?: Record<string, unknown>,
-  ): Promise<boolean> {
-    if (!this.routingKey) return false;
-
-    const payload = {
-      routing_key: this.routingKey,
-      event_action: 'trigger',
-      dedup_key: dedupKey,
-      payload: {
-        summary,
-        source: 'nebula-dns-admin',
-        severity,
-        timestamp: new Date().toISOString(),
-        custom_details: customDetails,
-      },
-      client: 'Nebula DNS Mission Control',
-      client_url: this.configService.get('ADMIN_DASHBOARD_URL'),
-    };
-
-    try {
-      const response = await fetch('https://events.pagerduty.com/v2/enqueue', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      return response.ok;
-    } catch (err) {
-      this.logger.error(`PagerDuty trigger failed: ${err.message}`);
-      return false;
-    }
-  }
-
-  async resolveIncident(dedupKey: string): Promise<boolean> {
-    if (!this.routingKey) return false;
-
-    const payload = {
-      routing_key: this.routingKey,
-      event_action: 'resolve',
-      dedup_key: dedupKey,
-    };
-
-    try {
-      const response = await fetch('https://events.pagerduty.com/v2/enqueue', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      return response.ok;
-    } catch (err) {
-      this.logger.error(`PagerDuty resolve failed: ${err.message}`);
-      return false;
-    }
-  }
-}
+### Go Testing (No new dependencies)
+```bash
+# Standard library only for table-driven tests
+# Optional: Coverage enforcement
+go install github.com/vladopajic/go-test-coverage/v2@latest
 ```
 
-**Confidence:** HIGH - PagerDuty Events API v2 is stable and well-documented.
+### DigitalOcean CLI
+```bash
+# macOS
+brew install doctl
 
-**Sources:**
-- [PagerDuty Events API v2 Docs](https://developer.pagerduty.com/docs/events-api-v2/trigger-events/)
-- [PagerDuty API Reference](https://developer.pagerduty.com/api-reference/f80f5db9acbe3-pager-duty-v2-events-api)
+# Linux
+cd ~
+wget https://github.com/digitalocean/doctl/releases/download/v1.118.0/doctl-1.118.0-linux-amd64.tar.gz
+tar xf ~/doctl-1.118.0-linux-amd64.tar.gz
+sudo mv ~/doctl /usr/local/bin
 
----
-
-### Admin Management
-
-**No new libraries needed.** Existing patterns cover all requirements.
-
-#### Admin Invitations
-
-Follow `FamilyInvitation` entity pattern from `/api/src/modules/family/entities/family-invitation.entity.ts`:
-
-| Component | Existing Pattern | Notes |
-|-----------|------------------|-------|
-| `AdminInvitation` entity | `FamilyInvitation` | Token hash, expiry, status |
-| Email sending | `EmailService.sendMspWelcomeEmail` | Extend with `sendAdminInviteEmail` |
-| Token generation | `crypto.randomBytes()` | Already used in webhooks |
-
-**Schema for AdminInvitation:**
-```typescript
-@Entity('admin_invitations')
-export class AdminInvitation extends BaseEntity {
-  @Column({ type: 'varchar', length: 255 })
-  email: string;
-
-  @Column({ type: 'varchar', length: 20 })
-  role: AdminRole;
-
-  @Column({ name: 'invited_by_admin_id', type: 'uuid' })
-  invitedByAdminId: string;
-
-  @Column({ name: 'token_hash', type: 'varchar', length: 255, unique: true })
-  tokenHash: string;
-
-  @Column({ type: 'varchar', length: 20, default: 'pending' })
-  status: 'pending' | 'accepted' | 'expired' | 'cancelled';
-
-  @Column({ name: 'expires_at', type: 'timestamptz' })
-  expiresAt: Date;
-
-  @Column({ name: 'accepted_at', type: 'timestamptz', nullable: true })
-  acceptedAt: Date | null;
-}
+# Authenticate
+doctl auth init
 ```
 
-#### Admin Activity Logs
+### Helm (if not installed)
+```bash
+# macOS
+brew install helm
 
-**Already exists:** `AuditLogsService` with hash-chain integrity.
-
-Extend to capture admin actions:
-- Add `AuditResourceType.ADMIN` enum value
-- Log all admin CRUD operations
-- Query by admin ID for activity view
-
-#### MFA Management
-
-**Already implemented:** `AdminMfa` entity with TOTP and backup codes.
-
-For Super Admin to manage other admin MFA:
-- Add `resetMfa(adminId)` method to `AdminService`
-- Forces MFA re-enrollment on next login
-- Audit log the action
-
----
-
-## Integration Points
-
-### With Existing Guards
-
-```
-Request Flow for Admin Endpoints:
-
-Request → AdminAuthGuard (validates admin-jwt token)
-        → AdminRolesGuard (checks role from JWT payload)
-        → Controller handler
+# Linux
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 ```
 
-**Combine guards with `@UseGuards`:**
-```typescript
-@Controller('admin/settings')
-@UseGuards(AdminAuthGuard, AdminRolesGuard)
-export class AdminSettingsController {
-
-  @Get('users')
-  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN)
-  listAdmins() { ... }
-
-  @Post('users/invite')
-  @AdminRoles(AdminRole.SUPER_ADMIN)
-  inviteAdmin() { ... }
-
-  @Get('audit-logs')
-  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
-  viewAuditLogs() { ... }
-}
+### External Secrets Operator
+```bash
+helm repo add external-secrets https://charts.external-secrets.io
+helm install external-secrets \
+   external-secrets/external-secrets \
+    -n external-secrets-system \
+    --create-namespace
 ```
 
-### With Existing Email Service
-
-Add to `EmailService`:
-```typescript
-export interface AdminInviteEmailData {
-  to: string;
-  inviterName: string;
-  role: string;
-  inviteUrl: string;
-  expiresAt: Date;
-}
-
-async sendAdminInviteEmail(data: AdminInviteEmailData): Promise<boolean>
+### ClickHouse Cloud Client (Upgrade)
+```bash
+cd api
+npm install @clickhouse/client@^1.17.0
 ```
-
-### With Existing Audit Logging
-
-Add to `AuditResourceType` enum:
-```typescript
-export enum AuditResourceType {
-  // ... existing
-  ADMIN = 'admin',
-  ADMIN_MFA = 'admin_mfa',
-  ALERT_CONFIG = 'alert_config',
-}
-```
-
-### Alert Service Architecture
-
-Create unified `AlertService` that wraps Slack and PagerDuty:
-
-```typescript
-@Injectable()
-export class AlertService {
-  constructor(
-    private slack: SlackAlertService,
-    private pagerduty: PagerDutyAlertService,
-    private config: ConfigService,
-  ) {}
-
-  async sendAlert(
-    type: AlertType,
-    message: string,
-    severity: AlertSeverity,
-    metadata?: Record<string, unknown>,
-  ): Promise<void> {
-    // Route to appropriate channels based on type and severity
-    const routes = this.getAlertRoutes(type, severity);
-
-    if (routes.slack) {
-      await this.slack.sendAlert(message, severity);
-    }
-
-    if (routes.pagerduty && severity === 'critical') {
-      await this.pagerduty.triggerIncident(message, severity, type, metadata);
-    }
-  }
-}
-```
-
----
 
 ## What NOT to Add
 
-### CASL / nest-casl
+### Avoid Over-Engineering for Moderate Scale (100K-999K queries/day)
 
-**Reason:** Overkill for this use case.
+| Anti-Pattern | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| Terraform for everything | Complexity overhead for 1-10 tenants initially | Use doctl + Helm, add Terraform only when managing 10+ clusters |
+| Service mesh (Istio/Linkerd) | High operational cost, overkill for scale | Use native K8s NetworkPolicies (already in k8s/base/network-policies) |
+| Separate test frameworks (Mocha/AVA) | Fragmentation, NestJS defaults to Jest | Stick with Jest for consistency across API testing |
+| Cypress for Next.js | Slower (90min vs 14min), higher flakiness (6.5% vs 1.8%), limited parallel | Use Playwright (already in ui/package.json) |
+| Application-level connection pooling | DO provides PgBouncer, duplicate effort | Use DO Managed PostgreSQL built-in pooling |
+| Self-hosted ClickHouse | Ops complexity, scaling challenges | Use ClickHouse Cloud with @clickhouse/client |
+| Multiple secret management tools | Complexity, vendor lock-in | External Secrets Operator supports DO/Vault/AWS with one config |
+| Custom K8s operators | Development overhead | Use established operators (External Secrets, Cert Manager) |
 
-CASL is powerful for complex ABAC (attribute-based access control) with dynamic conditions. The admin dashboard needs simple role-based access:
-- 3 roles with clear hierarchy
-- No resource-level permissions
-- No dynamic conditions
+## Integration Patterns
 
-The existing `RolesGuard` pattern is simpler, more maintainable, and already understood by the team.
+### NestJS + Testcontainers Integration Testing
 
-**Confidence:** HIGH - CASL adds complexity without value for this scope.
+```typescript
+// api/test/integration/database.integration.spec.ts
+import { Test, TestingModule } from '@nestjs/testing';
+import { PostgreSqlContainer } from 'testcontainers';
+import { DataSource } from 'typeorm';
 
-### @slack/web-api
+describe('Database Integration Tests', () => {
+  let container: PostgreSqlContainer;
+  let dataSource: DataSource;
 
-**Reason:** Too heavy for webhooks-only use case.
+  beforeAll(async () => {
+    container = await new PostgreSqlContainer('postgres:16')
+      .withDatabase('nebula_test')
+      .start();
 
-Web API is 2.75MB and requires OAuth token management. Webhook package is ~100KB and only needs a URL.
+    const module: TestingModule = await Test.createTestingModule({
+      // Module configuration with container connection
+    }).compile();
 
-If future requirements need:
-- Editing messages
-- Reactions
-- Channel management
-- User lookup
+    dataSource = module.get<DataSource>(DataSource);
+  });
 
-Then upgrade to `@slack/web-api`. Until then, use `@slack/webhook`.
+  afterAll(async () => {
+    await dataSource.destroy();
+    await container.stop();
+  });
 
-### @pagerduty/pdjs
-
-**Reason:** Stale package, unnecessary abstraction.
-
-Last release over a year ago. Events API v2 is simple enough that direct HTTP is cleaner and more maintainable.
-
-### Passport strategies for admin roles
-
-**Reason:** Roles are in JWT payload, not separate auth.
-
-Admin authentication already works via `AdminJwtStrategy`. Roles are stored in the `Admin` entity and included in the JWT. Adding a separate Passport strategy for roles adds complexity without benefit.
-
-### Redis for alert rate limiting
-
-**Reason:** Premature optimization.
-
-Admin alerts are low-volume (ops team of 2-5). Rate limiting can be added later if needed. Don't add Redis dependency for alerts when simple in-memory throttling suffices.
-
----
-
-## Recommendations
-
-### Priority Order
-
-| Priority | Component | Dependency | Effort |
-|----------|-----------|------------|--------|
-| 1 | Admin RBAC | None (extend existing) | Low |
-| 2 | Admin entity role column | Migration only | Low |
-| 3 | Slack alerting | `@slack/webhook@^7.0.0` | Medium |
-| 4 | PagerDuty alerting | None (direct HTTP) | Medium |
-| 5 | Admin invitations | None (extend existing) | Medium |
-| 6 | Admin activity logs | Extend audit logging | Low |
-| 7 | MFA management for admins | Extend AdminService | Low |
-
-### Environment Variables to Add
-
-```env
-# Alerting
-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/XXX/YYY/ZZZ
-PAGERDUTY_ROUTING_KEY=your-integration-key
-ADMIN_DASHBOARD_URL=https://admin.nebuladns.com
-
-# Alert routing (optional, for future configuration)
-ALERT_SLACK_ENABLED=true
-ALERT_PAGERDUTY_ENABLED=true
-ALERT_PAGERDUTY_SEVERITY_THRESHOLD=critical
+  // Tests run against real PostgreSQL in container
+});
 ```
 
-### Database Migrations
+### DigitalOcean DOKS + Managed Services Connection
 
-1. **Add role column to admins table:**
-```sql
-ALTER TABLE admins ADD COLUMN role VARCHAR(20) DEFAULT 'admin';
--- Set first admin as super_admin
-UPDATE admins SET role = 'super_admin' WHERE id = (SELECT id FROM admins ORDER BY created_at LIMIT 1);
+```yaml
+# k8s/overlays/production/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+# Use External Secrets to sync from DO managed database credentials
+patches:
+  - target:
+      kind: Deployment
+      name: api
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/env
+        value:
+          - name: DATABASE_HOST
+            valueFrom:
+              secretKeyRef:
+                name: do-postgres-credentials
+                key: host
+          - name: DATABASE_PORT
+            valueFrom:
+              secretKeyRef:
+                name: do-postgres-credentials
+                key: port
 ```
 
-2. **Create admin_invitations table:**
-```sql
-CREATE TABLE admin_invitations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email VARCHAR(255) NOT NULL,
-  role VARCHAR(20) NOT NULL,
-  invited_by_admin_id UUID REFERENCES admins(id),
-  token_hash VARCHAR(255) UNIQUE NOT NULL,
-  status VARCHAR(20) DEFAULT 'pending',
-  expires_at TIMESTAMPTZ NOT NULL,
-  accepted_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+### Helm + Kustomize Hybrid Deployment
+
+```bash
+# Helm for base deployment with version control
+helm upgrade nebula-dns ./helm/safedns \
+  -n nebula-dns \
+  --set image.tag=v1.0.0 \
+  --values values-production.yaml
+
+# Kustomize for environment-specific overlays
+kubectl apply -k k8s/overlays/production
 ```
 
----
+### ClickHouse Cloud Connection
 
-## Summary
+```typescript
+// api/src/modules/analytics/clickhouse.service.ts
+import { createClient } from '@clickhouse/client';
 
-| Feature | New Dependencies | Integration Approach |
-|---------|------------------|---------------------|
-| Admin RBAC | None | Extend `RolesGuard` pattern |
-| Slack Alerts | `@slack/webhook@^7.0.0` | New `SlackAlertService` |
-| PagerDuty Alerts | None | Direct HTTP to Events API v2 |
-| Admin Invitations | None | Mirror `FamilyInvitation` pattern |
-| Activity Logs | None | Extend `AuditLogsService` |
-| MFA Management | None | Extend `AdminService` |
+@Injectable()
+export class ClickHouseService {
+  private client = createClient({
+    url: process.env.CLICKHOUSE_URL, // From ClickHouse Cloud console
+    password: process.env.CLICKHOUSE_PASSWORD,
+    database: 'nebula_dns',
+    compression: {
+      request: true,
+      response: true,
+    },
+  });
 
-**Total new dependencies:** 1 (`@slack/webhook`)
+  async insertQueryLogs(logs: QueryLog[]) {
+    await this.client.insert({
+      table: 'dns_queries',
+      values: logs,
+      format: 'JSONEachRow',
+    });
+  }
 
-**Sources:**
-- [npm @slack/webhook](https://www.npmjs.com/package/@slack/webhook)
-- [Slack Node SDK Webhook Docs](https://docs.slack.dev/tools/node-slack-sdk/webhook/)
-- [PagerDuty Events API v2](https://developer.pagerduty.com/docs/events-api-v2/trigger-events/)
-- [NestJS Guards Documentation](https://docs.nestjs.com/guards)
-- [NestJS Authorization](https://docs.nestjs.com/security/authorization)
+  async getQueryStats(tenantId: string) {
+    const resultSet = await this.client.query({
+      query: 'SELECT * FROM dns_queries WHERE tenant_id = {tenantId:String}',
+      query_params: { tenantId },
+      format: 'JSONEachRow',
+    });
+    return await resultSet.json();
+  }
+}
+```
+
+## Version Compatibility Matrix
+
+| Component | Minimum | Recommended | Notes |
+|-----------|---------|-------------|-------|
+| Node.js | 20.10.6 | 20.x LTS | Current in api/package.json |
+| NestJS | 10.3.0 | 10.x | Current in project |
+| Next.js | 15.0.0 | 16.1.1 | Current in ui/package.json (16.1.1) |
+| Go | 1.23.0 | 1.23.x | Current in policy-svc/go.mod |
+| Kubernetes | 1.28 | 1.30+ | DOKS supports 1.30+ |
+| Helm | 3.12 | 3.14+ | For External Secrets Operator compatibility |
+| PostgreSQL | 14 | 16+ | DO Managed PostgreSQL latest |
+| Redis/Valkey | 7.2 | 7.2 | DO Managed Valkey (Redis EOL Feb 2026) |
+| ClickHouse | 23.x | Latest | ClickHouse Cloud auto-updates |
+
+## Critical Configuration Notes
+
+### DigitalOcean Managed PostgreSQL
+
+- **Connection Pooling**: Built-in PgBouncer provides 21 pools, up to 1000 connections
+- **Limits**: 25 connections per 1GB RAM, 3 reserved for maintenance
+- **Pooling Modes**: Transaction mode (recommended for NestJS), Session mode (for prepared statements), Statement mode (most restrictive)
+- **High Availability**: Use standby nodes for automatic failover
+
+### DigitalOcean Managed Valkey (formerly Redis)
+
+- **Migration Required**: Managed Redis discontinued June 30, 2025
+- **Compatibility**: Valkey is Redis-compatible (drop-in replacement)
+- **Auto-conversion**: Existing Managed Caching clusters auto-convert to Valkey by June 30, 2025
+- **Limits**: 1-2 nodes (1 primary + optional standby), 10K concurrent connections OR 4 connections/MB RAM (whichever greater), 200 new connections/second per CPU
+
+### ClickHouse Cloud Integration
+
+- **Client**: Use official @clickhouse/client 1.17.0+ (not community forks)
+- **Authentication**: Get CLICKHOUSE_URL and CLICKHOUSE_PASSWORD from ClickHouse Cloud console
+- **Streaming**: Client supports streaming for both SELECT and INSERT (critical for high-volume DNS logs)
+- **Compression**: Enable request/response compression for bandwidth savings
+
+### External Secrets Operator
+
+- **Encryption**: Secrets encrypted at rest in etcd (enable encryption provider)
+- **RBAC**: Restrict ExternalSecret CRD access with Role-Based Access Control
+- **Rotation**: ESO watches external secret stores and syncs changes automatically
+- **Providers**: Supports DigitalOcean Spaces + Vault, AWS Secrets Manager, Google Secrets Manager, Azure Key Vault
+
+### DOKS Best Practices
+
+- **High Availability**: Deploy 3+ replicas across availability zones
+- **Resource Limits**: Define requests/limits in all Deployment specs (prevents scheduling on overloaded nodes)
+- **VPC Networking**: Use VPC for private cluster networking (security best practice)
+- **Autoscaling**: Enable Cluster Autoscaler for 1-1000 nodes, use nodepool scale-to-zero for cost savings
+- **PodDisruptionBudgets**: Already in k8s/base/pdbs/ (maintain during node upgrades)
+- **NetworkPolicies**: Already in k8s/base/network-policies/ (default-deny-all with explicit allow rules)
+
+## Sources
+
+### Testing Frameworks
+- [NestJS Testing Documentation](https://docs.nestjs.com/fundamentals/testing)
+- [Testing NestJS Apps: Best Practices & Common Pitfalls | Amplication](https://amplication.com/blog/best-practices-and-common-pitfalls-when-testing-my-nestjs-app)
+- [Next.js Testing Guide](https://nextjs.org/docs/app/guides/testing)
+- [Playwright vs Cypress: The 2026 Enterprise Testing Guide](https://devin-rosario.medium.com/playwright-vs-cypress-the-2026-enterprise-testing-guide-ade8b56d3478)
+- [Cypress vs Playwright in 2026](https://bugbug.io/blog/test-automation-tools/cypress-vs-playwright/)
+- [Go Testing Excellence: Table-Driven Tests and Mocking](https://dasroot.net/posts/2026/01/go-testing-excellence-table-driven-tests-mocking/)
+- [Testcontainers for Node.js](https://node.testcontainers.org/)
+- [@nestjs/testing npm](https://www.npmjs.com/package/@nestjs/testing)
+- [Playwright Release Notes](https://playwright.dev/docs/release-notes)
+- [Testcontainers npm](https://www.npmjs.com/package/testcontainers)
+
+### DigitalOcean DOKS
+- [DigitalOcean Kubernetes Documentation](https://docs.digitalocean.com/products/kubernetes/)
+- [Kubernetes Best Practices | DigitalOcean](https://docs.digitalocean.com/products/kubernetes/concepts/best-practices/)
+- [How ISVs and startups scale on DigitalOcean Kubernetes](https://www.digitalocean.com/blog/how-isvs-startups-scale-digitalocean-kubernetes-best-practices)
+- [doctl kubernetes CLI Reference](https://docs.digitalocean.com/reference/doctl/reference/kubernetes/)
+
+### DigitalOcean Managed Databases
+- [How to Manage Connection Pools for PostgreSQL](https://docs.digitalocean.com/products/databases/postgresql/how-to/manage-connection-pools/)
+- [Managed Databases Connection Pools and PostgreSQL Benchmarking](https://www.digitalocean.com/community/tutorials/managed-databases-connection-pools-and-postgresql-benchmarking-using-pgbench)
+- [How To Keep Running Redis On DigitalOcean After Redis Licensing Changes](https://scalegrid.io/blog/how-to-keep-running-redis-on-digitalocean-after-redis-licensing-changes/)
+- [DigitalOcean's Managed Database for Redis is now Managed Caching](https://www.digitalocean.com/blog/digitalocean-managed-caching)
+
+### ClickHouse Cloud
+- [clickhouse-client for NodeJS](https://clickhouse.js.org/)
+- [Official ClickHouse JS Client GitHub](https://github.com/ClickHouse/clickhouse-js)
+- [@clickhouse/client npm](https://www.npmjs.com/package/@clickhouse/client)
+
+### Kubernetes Tooling
+- [Helm Charts in Kubernetes – 2026 Guide](https://atmosly.com/knowledge/helm-charts-in-kubernetes-definitive-guide-for-2025)
+- [Helm Best Practices](https://helm.sh/docs/chart_best_practices/)
+- [Kustomize vs. Helm Comparison](https://spacelift.io/blog/kustomize-vs-helm)
+- [Helm vs. Kustomize: Which Is Better for K8s Config?](https://www.plural.sh/blog/helm-vs-kustomize/)
+
+### Secrets Management
+- [Good practices for Kubernetes Secrets](https://kubernetes.io/docs/concepts/security/secrets-good-practices/)
+- [Kubernetes Secrets Management: Limitations & Best Practices](https://www.groundcover.com/blog/kubernetes-secret-management)
+- [External Secrets Operator Documentation](https://external-secrets.io/latest/)
+- [External Secrets Operator GitHub](https://github.com/external-secrets/external-secrets)
