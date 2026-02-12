@@ -45,11 +45,13 @@ Phase 17-23 details archived in [milestones/v1.2-ROADMAP.md](milestones/v1.2-ROA
   4. ClickHouse Cloud is provisioned and accepting HTTPS connections
   5. cert-manager and external-dns are installed and operational
   6. All service credentials are stored as Kubernetes Secrets with rotation runbook documented
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 24-01: TBD
-- [ ] 24-02: TBD
+- [ ] 24-01-PLAN.md — Terraform project structure + VPC + DOKS cluster modules
+- [ ] 24-02-PLAN.md — Managed databases module (PostgreSQL + PgBouncer + Valkey)
+- [ ] 24-03-PLAN.md — ClickHouse Cloud module + K8s operators (cert-manager, external-dns)
+- [ ] 24-04-PLAN.md — Kubernetes Secrets creation + verification + rotation runbook
 
 #### Phase 25: Database Schema Migration
 **Goal**: PostgreSQL and ClickHouse schemas are deployed with production-compatible configurations
@@ -210,7 +212,7 @@ Phases execute in numeric order: 24 → 25 → 26 → 27 → 28 → 29 → 30 �
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 24. Infrastructure Provisioning | v1.3 | 0/TBD | Not started | - |
+| 24. Infrastructure Provisioning | v1.3 | 0/4 | Planned | - |
 | 25. Database Schema Migration | v1.3 | 0/TBD | Not started | - |
 | 26. DNS Stack Deployment | v1.3 | 0/TBD | Not started | - |
 | 27. Control Plane Deployment | v1.3 | 0/TBD | Not started | - |
