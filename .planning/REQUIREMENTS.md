@@ -89,43 +89,44 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DEPLOY-01 | — | Pending |
-| DEPLOY-02 | — | Pending |
-| DEPLOY-03 | — | Pending |
-| DEPLOY-04 | — | Pending |
-| DEPLOY-05 | — | Pending |
-| DEPLOY-06 | — | Pending |
-| DEPLOY-07 | — | Pending |
-| DEPLOY-08 | — | Pending |
-| DEPLOY-09 | — | Pending |
-| DEPLOY-10 | — | Pending |
-| DEPLOY-11 | — | Pending |
-| DEPLOY-12 | — | Pending |
-| DEPLOY-13 | — | Pending |
-| TEST-01 | — | Pending |
-| TEST-02 | — | Pending |
-| TEST-03 | — | Pending |
-| TEST-04 | — | Pending |
-| TEST-05 | — | Pending |
-| TEST-06 | — | Pending |
-| TEST-07 | — | Pending |
-| TEST-08 | — | Pending |
-| OPS-01 | — | Pending |
-| OPS-02 | — | Pending |
-| OPS-03 | — | Pending |
-| OPS-04 | — | Pending |
-| OPS-05 | — | Pending |
-| OPS-06 | — | Pending |
-| OPS-07 | — | Pending |
-| OPS-08 | — | Pending |
-| OPS-09 | — | Pending |
-| OPS-10 | — | Pending |
+| DEPLOY-01 | Phase 24 | Pending |
+| DEPLOY-02 | Phase 24 | Pending |
+| DEPLOY-03 | Phase 24 | Pending |
+| DEPLOY-04 | Phase 24, 25 | Pending |
+| DEPLOY-05 | Phase 27 | Pending |
+| DEPLOY-06 | Phase 26 | Pending |
+| DEPLOY-07 | Phase 26 | Pending |
+| DEPLOY-08 | Phase 26 | Pending |
+| DEPLOY-09 | Phase 27 | Pending |
+| DEPLOY-10 | Phase 27 | Pending |
+| DEPLOY-11 | Phase 24 | Pending |
+| DEPLOY-12 | Phase 24 | Pending |
+| DEPLOY-13 | Phase 25 | Pending |
+| TEST-01 | Phase 29 | Pending |
+| TEST-02 | Phase 28, 29 | Pending |
+| TEST-03 | Phase 29 | Pending |
+| TEST-04 | Phase 28, 30 | Pending |
+| TEST-05 | Phase 29 | Pending |
+| TEST-06 | Phase 29 | Pending |
+| TEST-07 | Phase 28, 31 | Pending |
+| TEST-08 | Phase 29, 30 | Pending |
+| OPS-01 | Phase 33 | Pending |
+| OPS-02 | Phase 33 | Pending |
+| OPS-03 | Phase 32 | Pending |
+| OPS-04 | Phase 33 | Pending |
+| OPS-05 | Phase 31 | Pending |
+| OPS-06 | Phase 31 | Pending |
+| OPS-07 | Phase 31 | Pending |
+| OPS-08 | Phase 33 | Pending |
+| OPS-09 | Phase 33 | Pending |
+| OPS-10 | Phase 33 | Pending |
 
 **Coverage:**
 - v1.3 requirements: 31 total
-- Mapped to phases: 0
-- Unmapped: 31
+- Mapped to phases: 31
+- Unmapped: 0
+- Coverage: 100%
 
 ---
 *Requirements defined: 2026-02-11*
-*Last updated: 2026-02-11 after initial definition*
+*Last updated: 2026-02-11 after roadmap creation*
