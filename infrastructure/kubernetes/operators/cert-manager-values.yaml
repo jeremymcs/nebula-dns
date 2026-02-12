@@ -1,0 +1,39 @@
+# Nebula DNS - cert-manager Helm Values
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+installCRDs: true
+
+global:
+  leaderElection:
+    namespace: cert-manager
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+webhook:
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+cainjector:
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi
+
+prometheus:
+  enabled: true
+  servicemonitor:
+    enabled: true

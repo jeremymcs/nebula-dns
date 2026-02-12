@@ -1,31 +1,28 @@
 # Nebula DNS - Let's Encrypt Cluster Issuers
-# Prerequisites: Install cert-manager first
-# kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.yaml
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+#
+# Prerequisites:
+#   1. cert-manager installed (via infrastructure/kubernetes/operators/install-operators.sh)
+#   2. DigitalOcean API token stored in cert-manager namespace
 
 ---
-# Staging issuer for testing (high rate limits, but untrusted certs)
+# Staging issuer for testing (high rate limits, untrusted certs)
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
   name: letsencrypt-staging
 spec:
   acme:
-    email: admin@example.com  # Change to your email
+    email: jeremy@fluxlabs.net
     server: https://acme-staging-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       name: letsencrypt-staging-account-key
     solvers:
-      # HTTP-01 solver for web services
-      - http01:
-          ingress:
-            class: nginx
-      # DNS-01 solver for wildcard certs (requires cloud provider config)
-      # - dns01:
-      #     cloudflare:
-      #       email: admin@example.com
-      #       apiTokenSecretRef:
-      #         name: cloudflare-api-token
-      #         key: api-token
+      - dns01:
+          digitalocean:
+            tokenSecretRef:
+              name: digitalocean-dns
+              key: access-token
 
 ---
 # Production issuer (strict rate limits, trusted certs)
@@ -35,11 +32,13 @@ metadata:
   name: letsencrypt-prod
 spec:
   acme:
-    email: admin@example.com  # Change to your email
+    email: jeremy@fluxlabs.net
     server: https://acme-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       name: letsencrypt-prod-account-key
     solvers:
-      - http01:
-          ingress:
-            class: nginx
+      - dns01:
+          digitalocean:
+            tokenSecretRef:
+              name: digitalocean-dns
+              key: access-token
