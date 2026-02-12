@@ -1,0 +1,41 @@
+# Nebula DNS - external-dns Helm Values
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+provider: digitalocean
+
+# Use environment variable for DO token (set via secret)
+env:
+  - name: DO_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: digitalocean-credentials
+        key: access-token
+
+# Only manage our domain
+domainFilters:
+  - nebuladns.io
+
+# Ownership tracking
+txtOwnerId: nebula-dns-prod
+txtPrefix: "_externaldns."
+
+# Sync mode: create, update, and delete records
+policy: sync
+
+# Sources to watch
+sources:
+  - service
+  - ingress
+
+# Resource limits
+resources:
+  requests:
+    cpu: 25m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+# Logging
+logLevel: info
+logFormat: json
