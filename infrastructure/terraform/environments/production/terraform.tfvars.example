@@ -1,0 +1,13 @@
+# Nebula DNS - Infrastructure Provisioning
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+# DigitalOcean Configuration
+# Get your API token from: https://cloud.digitalocean.com/account/api/tokens
+do_token = "dop_v1_REDACTED"
+
+# Region Configuration
+# Available regions: nyc1, nyc3, sfo3, ams3, sgp1, lon1, fra1, tor1, blr1, syd1
+region = "nyc3"
+
+# Environment
+environment = "production"
