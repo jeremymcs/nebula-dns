@@ -22,6 +22,21 @@ output "kubeconfig" {
   sensitive   = true
 }
 
+output "postgres_connection_uri" {
+  value     = module.databases.postgres_connection_uri
+  sensitive = true
+}
+
+output "postgres_direct_uri" {
+  value     = module.databases.postgres_direct_uri
+  sensitive = true
+}
+
+output "valkey_connection_uri" {
+  value     = module.databases.valkey_connection_uri
+  sensitive = true
+}
+
 output "clickhouse_service_id" {
   description = "ClickHouse Cloud service ID"
   value       = module.clickhouse.service_id
