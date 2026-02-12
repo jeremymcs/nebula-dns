@@ -21,3 +21,14 @@ output "kubeconfig" {
   value       = module.doks.cluster_kubeconfig
   sensitive   = true
 }
+
+output "clickhouse_service_id" {
+  description = "ClickHouse Cloud service ID"
+  value       = module.clickhouse.service_id
+}
+
+output "clickhouse_endpoints" {
+  description = "ClickHouse Cloud service endpoints"
+  value       = module.clickhouse.endpoints
+  sensitive   = true
+}

@@ -8,11 +8,23 @@ terraform {
       source  = "digitalocean/digitalocean"
       version = "~> 2.36"
     }
+    clickhouse = {
+      source  = "ClickHouse/clickhouse"
+      version = "~> 0.2"
+    }
   }
 }
 
 provider "digitalocean" {
   token = var.do_token
+}
+
+# Note: ClickHouse Cloud provider requires separate auth
+# Set CLICKHOUSE_TOKEN_KEY and CLICKHOUSE_TOKEN_SECRET env vars
+provider "clickhouse" {
+  organization_id = var.clickhouse_org_id
+  token_key       = var.clickhouse_token_key
+  token_secret    = var.clickhouse_token_secret
 }
 
 module "vpc" {
@@ -33,4 +45,11 @@ module "doks" {
   node_count         = 3
   min_nodes          = 3
   max_nodes          = 10
+}
+
+module "clickhouse" {
+  source       = "../../modules/clickhouse-cloud"
+  service_name = "nebula-dns-${var.environment}"
+  tier         = "development" # Start with dev tier, upgrade for production traffic
+  region       = "us-east-1"   # ClickHouse Cloud region (not DO region)
 }

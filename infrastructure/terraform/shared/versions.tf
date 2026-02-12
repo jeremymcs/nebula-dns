@@ -9,5 +9,9 @@ terraform {
       source  = "digitalocean/digitalocean"
       version = "~> 2.36"
     }
+    clickhouse = {
+      source  = "ClickHouse/clickhouse"
+      version = "~> 0.2"
+    }
   }
 }

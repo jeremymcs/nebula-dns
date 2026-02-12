@@ -11,3 +11,11 @@ region = "nyc3"
 
 # Environment
 environment = "production"
+
+# ClickHouse Cloud Configuration
+# Get credentials from: https://clickhouse.cloud/
+# Settings -> API Keys -> Create Key (with admin permissions)
+# Organization ID from: Settings -> Organization -> ID
+clickhouse_org_id       = "org_xxxxxxxxxxxxxxxxxxxxxxxx"
+clickhouse_token_key    = "key_xxxxxxxxxxxxxxxxxxxxxxxx"
+clickhouse_token_secret = "secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
