@@ -47,6 +47,24 @@ module "doks" {
   max_nodes          = 10
 }
 
+module "databases" {
+  source          = "../../modules/managed-databases"
+  project_name    = "nebula-dns"
+  environment     = var.environment
+  region          = var.region
+  vpc_uuid        = module.vpc.vpc_id
+  doks_cluster_id = module.doks.cluster_id
+
+  # PostgreSQL
+  postgres_node_size  = "db-s-2vcpu-4gb"
+  postgres_node_count = 2
+  postgres_pool_size  = 50
+
+  # Valkey
+  valkey_node_size  = "db-s-1vcpu-2gb"
+  valkey_node_count = 2
+}
+
 module "clickhouse" {
   source       = "../../modules/clickhouse-cloud"
   service_name = "nebula-dns-${var.environment}"
