@@ -13,9 +13,9 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 24 of 33 (Infrastructure Provisioning)
-Plan: 1 of 4 in current phase
+Plan: 2 of 4 in current phase
 Status: Executing
-Last activity: 2026-02-12 — Completed 24-01-PLAN.md (Terraform VPC and DOKS modules)
+Last activity: 2026-02-12 — Completed 24-02-PLAN.md (Managed databases with PostgreSQL + Valkey)
 
 Progress: [███████░░░] 23/33 phases (70% — v1-v1.2 shipped, v1.3 in progress)
 
@@ -31,7 +31,7 @@ Progress: [███████░░░] 23/33 phases (70% — v1-v1.2 shipped
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 1 plan (24-01: Terraform foundation)
+- Completed: 2 plans (24-01: Terraform foundation, 24-02: Managed databases)
 
 ## Milestones Shipped
 
@@ -67,6 +67,13 @@ Recent decisions affecting v1.3:
 - **Remote state in DO Spaces:** Team collaboration and state locking via S3-compatible backend
 - **Modular Terraform structure:** Separate VPC and DOKS modules for independent versioning
 
+**Phase 24-02 (Managed Databases):**
+- **PostgreSQL 2-node HA with PgBouncer:** 50-connection pool in transaction mode for stateless queries
+- **Valkey 2-node HA with TLS:** Redis-compatible caching for policy invalidation via pub/sub
+- **Database firewall rules:** Restrict access to DOKS cluster only, no public access
+- **Both pooled and direct URIs:** Pooled for application, direct for database migrations
+- **VPC-private networking:** All databases in private VPC network for security
+
 Full decision log in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -83,7 +90,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Completed 24-01-PLAN.md (Terraform VPC and DOKS modules)
+Stopped at: Completed 24-02-PLAN.md (Managed databases - PostgreSQL + Valkey)
 Resume file: None
 
 ---
