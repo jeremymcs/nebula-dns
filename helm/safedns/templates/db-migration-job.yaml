@@ -20,7 +20,7 @@ metadata:
 spec:
   backoffLimit: {{ .Values.migrations.backoffLimit | default 3 }}
   ttlSecondsAfterFinished: {{ .Values.migrations.ttlSecondsAfterFinished | default 300 }}
-  activeDeadlineSeconds: {{ .Values.migrations.activeDeadlineSeconds | default 600 }}
+  activeDeadlineSeconds: {{ .Values.migrations.activeDeadlineSeconds | default 900 }}
 
   template:
     metadata:
@@ -75,11 +75,13 @@ spec:
             - name: LOG_LEVEL
               value: {{ .Values.migrations.logLevel | default "info" }}
 
+            # Use direct PostgreSQL URI (not PgBouncer-pooled) for migrations.
+            # PgBouncer transaction mode doesn't support DDL or advisory locks.
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.api.secrets.name | default "api-secrets" }}
-                  key: database-url
+                  key: database-direct-url
 
             {{- with .Values.migrations.extraEnv }}
             {{- toYaml . | nindent 12 }}
