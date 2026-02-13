@@ -29,9 +29,16 @@ api:
     minReplicas: 2
     maxReplicas: 10
     targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+    behavior:
+      scaleUp:
+        stabilizationWindowSeconds: 60
+      scaleDown:
+        stabilizationWindowSeconds: 300
   env:
     NODE_ENV: production
     LOG_LEVEL: info
+    FRONTEND_URL: "https://app.nebuladns.io"
 
 # UI Service
 ui:
@@ -50,6 +57,32 @@ ui:
   service:
     type: ClusterIP
     port: 3000
+  env:
+    API_URL: "http://api.nebula-dns.svc.cluster.local:80"
+    APP_URL: "https://app.nebuladns.io"
+    ADMIN_UI_URL: "https://admin.nebuladns.io"
+
+# Admin UI Service
+adminUi:
+  replicaCount: 2
+  image:
+    repository: nebuladns/admin-ui
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  service:
+    type: ClusterIP
+    port: 3000
+  env:
+    API_URL: "http://api.nebula-dns.svc.cluster.local:80"
+    APP_URL: "https://app.nebuladns.io"
+    TENANT_UI_URL: "https://app.nebuladns.io"
 
 # Policy Service (Go)
 policySvc:
@@ -112,11 +145,17 @@ ingress:
         - path: /
           pathType: Prefix
           service: api
+    - host: admin.nebuladns.io
+      paths:
+        - path: /
+          pathType: Prefix
+          service: admin-ui
   tls:
     - secretName: nebula-dns-tls
       hosts:
         - app.nebuladns.io
         - api.nebuladns.io
+        - admin.nebuladns.io
 
 # DNS endpoints (LoadBalancer services for DoT/DoH)
 dnsEndpoints:
@@ -164,9 +203,18 @@ clickhouse:
 
 # Secrets (use external-secrets in production)
 secrets:
+  create: true
+  databaseUrl: ""
+  databaseDirectUrl: ""
+  redisUrl: ""
+  clickhouseUrl: ""
+  clickhouseUser: ""
+  clickhousePassword: ""
   jwtSecret: ""
   encryptionKey: ""
   stripeSecretKey: ""
+  stripeWebhookSecret: ""
+  sendgridApiKey: ""
   sentryDsn: ""
 
 # Service Monitor for Prometheus
