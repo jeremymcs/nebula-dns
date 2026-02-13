@@ -13,9 +13,9 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 24 of 33 (Infrastructure Provisioning)
-Plan: 3 of 4 in current phase
-Status: Executing
-Last activity: 2026-02-12 — Completed 24-03-PLAN.md (ClickHouse Cloud and Kubernetes operators)
+Plan: 4 of 4 in current phase
+Status: Complete
+Last activity: 2026-02-13 — Completed 24-04-PLAN.md (Kubernetes Secrets and operational scripts)
 
 Progress: [███████░░░] 23/33 phases (70% — v1-v1.2 shipped, v1.3 in progress)
 
@@ -31,7 +31,7 @@ Progress: [███████░░░] 23/33 phases (70% — v1-v1.2 shipped
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 3 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators)
+- Completed: 4 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts)
 
 ## Milestones Shipped
 
@@ -79,6 +79,12 @@ Recent decisions affecting v1.3:
 - **ClickHouse Cloud development tier:** 24-48GB auto-scaling with 5-minute idle timeout for cost efficiency
 - **Official ClickHouse Terraform provider:** Managed solution reduces ops burden vs self-hosted
 
+**Phase 24-04 (Kubernetes Secrets and Operational Scripts):**
+- **Auto-generate JWT and encryption keys:** Reduces manual error, ensures cryptographic quality (48-byte base64 for JWT, 32-byte hex for encryption)
+- **Separate pooled and direct PostgreSQL URIs:** PgBouncer-pooled for application queries, direct for migrations (bypasses connection pooling)
+- **Warn-level database connectivity checks:** May fail in CI/CD without VPC access, pass-level too strict for initial verification
+- **Interactive prompts for destructive rotations:** Prevents accidental JWT rotation (invalidates all sessions)
+
 Full decision log in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -94,9 +100,9 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-12
-Stopped at: Completed 24-03-PLAN.md (ClickHouse Cloud and Kubernetes operators)
+Last session: 2026-02-13
+Stopped at: Completed 24-04-PLAN.md (Kubernetes Secrets and operational scripts) - Phase 24 complete
 Resume file: None
 
 ---
-*Last updated: 2026-02-12*
+*Last updated: 2026-02-13*
