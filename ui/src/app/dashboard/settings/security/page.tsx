@@ -10,7 +10,7 @@ import { QRCodeSVG } from 'qrcode.react'
 import { Card, Button, Input, Badge, Modal, Tabs } from '@/components/ui'
 import { useToast } from '@/components/Toast'
 import { useSessions, useAuditLogs } from '@/hooks/useApi'
-import { api } from '@/lib/api'
+import { api, API_URL } from '@/lib/api'
 import { exportArrayToCsv } from '@/lib/export'
 import {
   ShieldCheckIcon,
@@ -169,7 +169,7 @@ export default function SecuritySettingsPage() {
   const fetchMfaStatus = async () => {
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/mfa/status`, {
+      const res = await fetch(`${API_URL}/mfa/status`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (res.ok) {
@@ -187,7 +187,7 @@ export default function SecuritySettingsPage() {
     setError('')
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/mfa/setup`, {
+      const res = await fetch(`${API_URL}/mfa/setup`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -213,7 +213,7 @@ export default function SecuritySettingsPage() {
 
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/mfa/verify`, {
+      const res = await fetch(`${API_URL}/mfa/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

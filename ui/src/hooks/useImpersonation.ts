@@ -14,8 +14,7 @@ import {
   clearImpersonation,
   isImpersonating as checkIsImpersonating,
 } from '@/lib/impersonation'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+import { API_URL, ADMIN_UI_URL } from '@/lib/api'
 
 /**
  * End impersonation session via API
@@ -60,12 +59,12 @@ export function useImpersonation() {
    * End impersonation session
    * - Calls API to blacklist token
    * - Clears local storage
-   * - Redirects to Mission Control
+   * - Redirects to Admin UI (separate app on port 4012)
    */
   const endImpersonation = useCallback(async () => {
     await endImpersonationApi()
     clearImpersonation()
-    window.location.href = '/mission-control'
+    window.location.href = ADMIN_UI_URL
   }, [])
 
   return {

@@ -9,7 +9,7 @@
 
 import { useState, useMemo } from 'react'
 import { useLocations, usePolicies } from '@/hooks/useApi'
-import { api } from '@/lib/api'
+import { api, API_URL } from '@/lib/api'
 import { useToast } from '@/components/Toast'
 import { Button, Card, Badge, Modal } from '@/components/ui'
 import { ZoneEditorModal, ZoneFormData } from '@/components/zones'
@@ -142,7 +142,7 @@ export default function LocationsPage() {
 
       if (editingLocation) {
         const token = localStorage.getItem('token')
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/${editingLocation.id}`, {
+        await fetch(`${API_URL}/locations/${editingLocation.id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -185,7 +185,7 @@ export default function LocationsPage() {
 
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/${location.id}`, {
+      const res = await fetch(`${API_URL}/locations/${location.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -254,7 +254,7 @@ export default function LocationsPage() {
     try {
       const token = localStorage.getItem('token')
       const deletePromises = Array.from(selectedIds).map(id =>
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/${id}`, {
+        fetch(`${API_URL}/locations/${id}`, {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` },
         })

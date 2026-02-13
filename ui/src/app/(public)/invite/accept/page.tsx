@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { API_URL } from '@/lib/api';
 
 function AcceptInviteContent() {
   const searchParams = useSearchParams();
@@ -37,7 +38,7 @@ function AcceptInviteContent() {
       }
 
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/invitations/info?token=${token}`);
+        const res = await fetch(`${API_URL}/invitations/info?token=${token}`);
         if (!res.ok) {
           const data = await res.json();
           throw new Error(data.message || 'Invalid invitation');
@@ -71,7 +72,7 @@ function AcceptInviteContent() {
     setError(null);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/invitations/accept`, {
+      const res = await fetch(`${API_URL}/invitations/accept`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

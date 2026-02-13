@@ -12,12 +12,17 @@
 
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { policySchema, type PolicyFormData } from '@/lib/validations'
+import { policySchema } from '@/lib/validations'
+import { z } from 'zod'
+
+// Use z.input for form data to handle defaults properly
+type PolicyFormData = z.input<typeof policySchema>
 import { FormField, Input, Select, Textarea, Checkbox } from '@/components/forms'
 import { useToast } from '@/components/Toast'
 import { useApiWithRetry } from '@/lib/hooks/useApiWithRetry'
 import { ErrorBoundary, ApiErrorFallback } from '@/components/ErrorBoundary'
 import { useState } from 'react'
+import { API_URL } from '@/lib/api'
 
 export function ExamplePolicyForm() {
   const { showToast } = useToast()
@@ -55,7 +60,7 @@ export function ExamplePolicyForm() {
 
     const result = await api.execute(async () => {
       // Simulate API call
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/policies`, {
+      const response = await fetch(`${API_URL}/api/v1/policies`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

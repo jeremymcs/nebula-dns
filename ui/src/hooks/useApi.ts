@@ -6,13 +6,13 @@
  */
 
 import useSWR, { SWRConfiguration } from 'swr'
-import { ApiError } from '@/lib/api'
+import { ApiError, API_URL } from '@/lib/api'
 
 // Generic fetcher that handles auth
 const fetcher = async <T>(endpoint: string): Promise<T> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-  
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${endpoint}`, {
+
+  const res = await fetch(`${API_URL}${endpoint}`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -787,6 +787,117 @@ export function useMspTemplateDeployments(templateId: string | null, limit?: num
 }
 
 // ============================================
+// MSP Template Version Hooks (US-034, US-035, US-036)
+// ============================================
+
+export interface MspTemplateVersion {
+  id: string
+  templateId: string
+  version: number
+  config: MspTemplateConfig
+  createdBy?: string
+  createdByName?: string
+  changelog?: string
+  isRollback: boolean
+  rollbackFromVersion?: number
+  createdAt: string
+}
+
+export interface MspTemplateVersionList {
+  versions: MspTemplateVersion[]
+  currentVersion: number
+  totalVersions: number
+}
+
+export interface ClientUsingTemplate {
+  clientId: string
+  clientName: string
+  clientSlug: string
+  appliedVersion: number
+  isLatestVersion: boolean
+  status: 'pending' | 'in_progress' | 'completed' | 'failed'
+  policyId?: string
+  appliedAt: string
+}
+
+export interface ClientsUsingTemplateResponse {
+  clients: ClientUsingTemplate[]
+  totalClients: number
+  clientsOnLatest: number
+  clientsOutdated: number
+}
+
+export interface ApplyJobResponse {
+  jobId: string
+  status: 'pending' | 'in_progress' | 'completed' | 'failed'
+  totalClients: number
+  processedClients: number
+  successCount: number
+  failedCount: number
+  results?: Array<{
+    clientId: string
+    clientName: string
+    status: 'pending' | 'success' | 'failed'
+    error?: string
+    policyId?: string
+  }>
+  startedAt?: string
+  completedAt?: string
+}
+
+export interface ConfigDiff {
+  templateId: string
+  fromVersion: number
+  toVersion: number
+  diff: {
+    added: Record<string, any>
+    removed: Record<string, any>
+    changed: Record<string, { from: any; to: any }>
+  }
+  summary: string
+}
+
+export function useMspTemplateVersions(templateId: string | null) {
+  return useSWR<MspTemplateVersionList>(
+    templateId ? `/msp/templates/${templateId}/versions` : null,
+    fetcher,
+    defaultConfig
+  )
+}
+
+export function useMspTemplateVersion(templateId: string | null, versionId: string | null) {
+  return useSWR<MspTemplateVersion>(
+    templateId && versionId ? `/msp/templates/${templateId}/versions/${versionId}` : null,
+    fetcher,
+    defaultConfig
+  )
+}
+
+export function useMspTemplateVersionDiff(templateId: string | null, versionNumber: number | null) {
+  return useSWR<ConfigDiff>(
+    templateId && versionNumber ? `/msp/templates/${templateId}/versions/${versionNumber}/diff` : null,
+    fetcher,
+    defaultConfig
+  )
+}
+
+export function useMspTemplateClients(templateId: string | null) {
+  return useSWR<ClientsUsingTemplateResponse>(
+    templateId ? `/msp/templates/${templateId}/clients` : null,
+    fetcher,
+    defaultConfig
+  )
+}
+
+export function useMspApplyJobStatus(templateId: string | null, jobId: string | null) {
+  return useSWR<ApplyJobResponse>(
+    templateId && jobId ? `/msp/templates/${templateId}/apply/${jobId}` : null,
+    fetcher,
+    { ...defaultConfig, refreshInterval: 2000 } // Poll every 2 seconds
+  )
+}
+
+// ============================================
 // Family Hooks
 // ============================================
 
@@ -806,6 +917,39 @@ export function useFamilyMember(id: string | null) {
   )
 }
 
+// Family Overview (US-030, US-031)
+export function useFamilyOverview() {
+  return useSWR<{
+    data: {
+      members: any[]
+      pendingInvitations: any[]
+      totalMembers: number
+      maxMembers: number
+      remainingSlots: number
+    }
+  }>(
+    '/family/overview',
+    fetcher,
+    defaultConfig
+  )
+}
+
+export function useFamilyUsers() {
+  return useSWR<{ data: any[]; total: number }>(
+    '/family/users',
+    fetcher,
+    defaultConfig
+  )
+}
+
+export function useFamilyInvitations() {
+  return useSWR<{ data: any[]; total: number }>(
+    '/family/invitations',
+    fetcher,
+    defaultConfig
+  )
+}
+
 // ============================================
 // Onboarding Hooks
 // ============================================
@@ -813,6 +957,48 @@ export function useFamilyMember(id: string | null) {
 export function useOnboardingProgress() {
   return useSWR<{ data: any }>(
     '/onboarding/progress',
+    fetcher,
+    defaultConfig
+  )
+}
+
+// ============================================
+// Trial Hooks (US-032, US-033)
+// ============================================
+
+export interface TrialStatusData {
+  hasActiveTrial: boolean
+  trialTier?: 'home' | 'enterprise' | 'msp'
+  originalTier?: 'home' | 'enterprise' | 'msp'
+  startedAt?: string
+  endsAt?: string
+  daysRemaining?: number
+  status?: 'active' | 'converted' | 'expired' | 'cancelled'
+  availableTrials?: ('home' | 'enterprise' | 'msp')[]
+}
+
+export interface TrialHistoryItem {
+  id: string
+  trialTier: 'home' | 'enterprise' | 'msp'
+  originalTier: 'home' | 'enterprise' | 'msp'
+  startedAt: string
+  endsAt: string
+  status: 'active' | 'converted' | 'expired' | 'cancelled'
+  endedAt?: string | null
+  convertedAt?: string | null
+}
+
+export function useTrialStatus() {
+  return useSWR<{ data: TrialStatusData }>(
+    '/trials/status',
+    fetcher,
+    defaultConfig
+  )
+}
+
+export function useTrialHistory() {
+  return useSWR<{ data: TrialHistoryItem[] }>(
+    '/trials/history',
     fetcher,
     defaultConfig
   )

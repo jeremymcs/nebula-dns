@@ -1,11 +1,12 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
  * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
- * 
+ *
  * WebSocket Hook - Real-time data streaming for live dashboard updates
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { API_URL } from '@/lib/api'
 
 export interface WebSocketMessage<T = unknown> {
   type: string
@@ -156,9 +157,8 @@ export interface DnsQueryEvent {
 }
 
 export function useDnsQueryStream(enabled = true) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
-  const wsUrl = apiUrl.replace(/^http/, 'ws') + '/realtime/queries'
-  
+  const wsUrl = API_URL.replace(/^http/, 'ws') + '/realtime/queries'
+
   return useWebSocket<DnsQueryEvent>({
     url: wsUrl,
     enabled,

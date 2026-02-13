@@ -9,6 +9,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid'
+import { API_URL } from '@/lib/api'
 
 interface Plan {
   id: string
@@ -88,7 +89,7 @@ function SignupFormContent() {
     // Fetch plans from API
     async function fetchPlans() {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/plans`)
+        const res = await fetch(`${API_URL}/plans`)
         if (res.ok) {
           const data = await res.json()
           if (data.data?.length > 0) {
@@ -160,7 +161,7 @@ function SignupFormContent() {
     setError('')
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/signup`, {
+      const res = await fetch(`${API_URL}/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -185,7 +186,7 @@ function SignupFormContent() {
       if (data.requiresPayment) {
         // For paid plans, redirect to checkout (Stripe integration)
         // For now, we'll simulate completion
-        const completeRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/signup/${data.signupRequestId}/complete`, {
+        const completeRes = await fetch(`${API_URL}/signup/${data.signupRequestId}/complete`, {
           method: 'POST',
         })
         
