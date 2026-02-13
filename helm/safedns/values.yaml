@@ -157,6 +157,8 @@ clickhouse:
   database: nebula_dns
   secretName: clickhouse-secrets
   retentionDays: 90
+  cloud: false  # Set to true for ClickHouse Cloud (changes protocol to https)
+  protocol: http  # Use https for ClickHouse Cloud
   persistence:
     size: 100Gi
 
@@ -173,12 +175,15 @@ serviceMonitor:
   interval: 30s
 
 # Database Migrations
+# NOTE: Migration job uses 'database-direct-url' from api-secrets (not 'database-url').
+# This bypasses PgBouncer connection pooling, which is required for TypeORM migrations
+# that use DDL statements and advisory locks.
 migrations:
   enabled: true
   hookWeight: "-5"
   backoffLimit: 3
   ttlSecondsAfterFinished: 300
-  activeDeadlineSeconds: 600
+  activeDeadlineSeconds: 900  # 15 minutes for production migrations with SSL/managed PostgreSQL
   logLevel: info
   initImage: busybox:1.36
   resources:
