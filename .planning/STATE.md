@@ -13,9 +13,9 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 26 of 33 (DNS Stack Deployment)
-Plan: 2 of 3 in current phase
+Plan: 3 of 3 in current phase
 Status: In Progress
-Last activity: 2026-02-13 — Completed 26-02-PLAN.md (Unbound StatefulSet)
+Last activity: 2026-02-13 — Completed 26-03-PLAN.md (dnsdist Deployment with DigitalOcean LoadBalancers)
 
 Progress: [███████░░░] 25/33 phases (76% — v1-v1.2 shipped, v1.3 in progress)
 
@@ -31,7 +31,7 @@ Progress: [███████░░░] 25/33 phases (76% — v1-v1.2 shipped
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 8 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet)
+- Completed: 9 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers)
 
 ## Milestones Shipped
 
@@ -107,6 +107,12 @@ Recent decisions affecting v1.3:
 - **ConfigMap for configuration:** Embeds unbound.conf from config/ directory, enables config changes without image rebuild
 - **Pod anti-affinity to spread replicas:** Preferred weight 100, spreads 3 replicas across nodes for fault tolerance
 
+**Phase 26-03 (dnsdist Deployment with DigitalOcean LoadBalancers):**
+- **Full Kubernetes service DNS names for backends:** Use `unbound.nebula-dns.svc.cluster.local` and `policy-svc.nebula-dns.svc.cluster.local` instead of short names to avoid relying on search domain configuration
+- **Bind metrics to 0.0.0.0:8083:** Enables Prometheus scraping from outside the pod (was 127.0.0.1 which only allowed local access)
+- **DigitalOcean LoadBalancer size-unit 1:** Smallest size for cost optimization while maintaining dual LoadBalancers for DNS redundancy
+- **ConfigMap-based production config:** Embed dnsdist.prod.conf in Kubernetes ConfigMap to enable config changes without image rebuilds
+
 Full decision log in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -123,7 +129,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-13
-Stopped at: Completed 26-02-PLAN.md (Unbound StatefulSet)
+Stopped at: Completed 26-03-PLAN.md (dnsdist Deployment with DigitalOcean LoadBalancers)
 Resume file: None
 
 ---
