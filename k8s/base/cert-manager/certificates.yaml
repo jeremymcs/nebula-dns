@@ -1,8 +1,9 @@
 # Nebula DNS - TLS Certificates
 # These certificates are automatically provisioned by cert-manager
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 ---
-# API and UI certificate (via Ingress)
+# API, UI, and Admin UI certificate (via Ingress)
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -13,10 +14,11 @@ spec:
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
-  commonName: app.example.com
+  commonName: app.nebuladns.io
   dnsNames:
-    - app.example.com
-    - api.example.com
+    - app.nebuladns.io
+    - api.nebuladns.io
+    - admin.nebuladns.io
   privateKey:
     algorithm: ECDSA
     size: 256
@@ -33,11 +35,11 @@ spec:
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
-  commonName: dns.example.com
+  commonName: dns1.nebuladns.io
   dnsNames:
-    - dns.example.com
-    - doh.example.com
-    - dot.example.com
+    - dns1.nebuladns.io
+    - dns2.nebuladns.io
+    - dot.nebuladns.io
   privateKey:
     algorithm: ECDSA
     size: 256
