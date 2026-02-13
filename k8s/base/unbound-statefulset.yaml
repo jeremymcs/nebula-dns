@@ -1,0 +1,262 @@
+# Nebula DNS - Unbound StatefulSet
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+# Recursive DNS resolver with persistent cache volumes
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: unbound-config
+  namespace: nebula-dns
+  labels:
+    app: unbound
+    app.kubernetes.io/name: unbound
+    app.kubernetes.io/component: dns-resolver
+data:
+  unbound.conf: |
+    # Nebula DNS - Unbound Configuration
+    # Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
+    # Recursive DNS resolver with DNSSEC validation
+
+    server:
+        # Interface and port
+        interface: 0.0.0.0
+        port: 53
+
+        # Access control
+        access-control: 0.0.0.0/0 allow
+
+        # Logging
+        verbosity: 1
+        log-queries: no
+        log-replies: no
+        log-tag-queryreply: no
+        log-local-actions: no
+
+        # Performance tuning
+        num-threads: 2
+        msg-cache-slabs: 4
+        rrset-cache-slabs: 4
+        infra-cache-slabs: 4
+        key-cache-slabs: 4
+
+        # Cache sizes
+        msg-cache-size: 64m
+        rrset-cache-size: 128m
+        key-cache-size: 32m
+        neg-cache-size: 16m
+
+        # DNSSEC validation (mandatory for Nebula DNS)
+        auto-trust-anchor-file: "/etc/unbound/root.key"
+
+        # Hardening
+        hide-identity: yes
+        hide-version: yes
+        harden-glue: yes
+        harden-dnssec-stripped: yes
+        harden-referral-path: yes
+        harden-algo-downgrade: yes
+
+        # Privacy
+        qname-minimisation: yes
+        aggressive-nsec: yes
+
+        # Root hints
+        root-hints: "/etc/unbound/root.hints"
+
+        # Prefetch (improves latency for popular domains)
+        prefetch: yes
+        prefetch-key: yes
+
+        # TCP settings
+        incoming-num-tcp: 100
+        outgoing-num-tcp: 100
+
+        # Edns settings
+        edns-buffer-size: 1232
+
+        # Serve stale records
+        serve-expired: yes
+        serve-expired-ttl: 86400
+        serve-expired-client-timeout: 1800
+
+        # Minimal responses
+        minimal-responses: yes
+
+    # Remote control (disabled for security)
+    remote-control:
+        control-enable: no
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: unbound
+  namespace: nebula-dns
+  labels:
+    app: unbound
+    app.kubernetes.io/name: unbound
+    app.kubernetes.io/component: dns-resolver
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: unbound-headless
+  namespace: nebula-dns
+  labels:
+    app: unbound
+    app.kubernetes.io/name: unbound
+    app.kubernetes.io/component: dns-resolver
+spec:
+  clusterIP: None
+  selector:
+    app: unbound
+  ports:
+    - name: dns-udp
+      port: 53
+      protocol: UDP
+      targetPort: 53
+    - name: dns-tcp
+      port: 53
+      protocol: TCP
+      targetPort: 53
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: unbound
+  namespace: nebula-dns
+  labels:
+    app: unbound
+    app.kubernetes.io/name: unbound
+    app.kubernetes.io/component: dns-resolver
+spec:
+  type: ClusterIP
+  selector:
+    app: unbound
+  ports:
+    - name: dns-udp
+      port: 53
+      protocol: UDP
+      targetPort: 53
+    - name: dns-tcp
+      port: 53
+      protocol: TCP
+      targetPort: 53
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: unbound
+  namespace: nebula-dns
+  labels:
+    app: unbound
+    app.kubernetes.io/name: unbound
+    app.kubernetes.io/component: dns-resolver
+spec:
+  serviceName: unbound-headless
+  replicas: 3
+  selector:
+    matchLabels:
+      app: unbound
+  template:
+    metadata:
+      labels:
+        app: unbound
+      annotations:
+        prometheus.io/scrape: "false"
+    spec:
+      serviceAccountName: unbound
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100
+        fsGroup: 100
+      containers:
+        - name: unbound
+          image: ghcr.io/nebuladns/unbound:latest
+          imagePullPolicy: Always
+          ports:
+            - name: dns-udp
+              containerPort: 53
+              protocol: UDP
+            - name: dns-tcp
+              containerPort: 53
+              protocol: TCP
+          volumeMounts:
+            - name: cache
+              mountPath: /var/lib/unbound
+            - name: config
+              mountPath: /etc/unbound/unbound.conf
+              subPath: unbound.conf
+              readOnly: true
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          livenessProbe:
+            exec:
+              command:
+                - drill
+                - "@127.0.0.1"
+                - google.com
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - drill
+                - "@127.0.0.1"
+                - google.com
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: config
+          configMap:
+            name: unbound-config
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: unbound
+                topologyKey: kubernetes.io/hostname
+  volumeClaimTemplates:
+    - metadata:
+        name: cache
+        labels:
+          app: unbound
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: unbound-pdb
+  namespace: nebula-dns
+  labels:
+    app: unbound
+    app.kubernetes.io/name: unbound
+    app.kubernetes.io/component: dns-resolver
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: unbound
