@@ -24,12 +24,13 @@ CREATE TABLE IF NOT EXISTS nebula_dns.query_logs
     response_time_ms UInt32,
     cached UInt8,
     threat_type Nullable(String),
-    policy_id Nullable(UUID)
+    policy_id Nullable(UUID),
+    event_date Date DEFAULT toDate(timestamp)
 ) ENGINE = MergeTree()
 PARTITION BY toYYYYMMDD(timestamp)
 ORDER BY (tenant_id, timestamp)
 TTL toDateTime(timestamp) + INTERVAL 90 DAY
-SETTINGS index_granularity = 8192;
+SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
 
 -- Create bloom filter index for domain search
 ALTER TABLE nebula_dns.query_logs ADD INDEX IF NOT EXISTS idx_domain domain TYPE bloom_filter(0.01) GRANULARITY 1;
@@ -38,7 +39,7 @@ ALTER TABLE nebula_dns.query_logs ADD INDEX IF NOT EXISTS idx_domain domain TYPE
 ALTER TABLE nebula_dns.query_logs ADD INDEX IF NOT EXISTS idx_category category TYPE set(100) GRANULARITY 1;
 
 -- ============================================
--- MATERIALIZED VIEWS FOR REPORTING
+-- AGGREGATION TABLES
 -- ============================================
 
 -- Hourly aggregation
@@ -77,6 +78,180 @@ CREATE TABLE IF NOT EXISTS nebula_dns.domain_stats (
 ) ENGINE = SummingMergeTree()
 PARTITION BY toYYYYMM(date)
 ORDER BY (tenant_id, date, action, domain);
+
+-- ============================================
+-- THREAT LOGS TABLE
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS nebula_dns.threat_logs
+(
+    id UUID DEFAULT generateUUIDv4(),
+    timestamp DateTime64(3, 'UTC') DEFAULT now64(3),
+    tenant_id UUID,
+    location_id UUID,
+    query_log_id UUID,
+    threat_type LowCardinality(String),
+    threat_name String,
+    severity Enum8('LOW' = 1, 'MEDIUM' = 2, 'HIGH' = 3, 'CRITICAL' = 4),
+    confidence Float32,
+    domain String,
+    client_ip String,
+    intel_source LowCardinality(String),
+    event_date Date DEFAULT toDate(timestamp)
+) ENGINE = MergeTree()
+PARTITION BY toYYYYMM(event_date)
+ORDER BY (tenant_id, timestamp)
+TTL event_date + INTERVAL 180 DAY DELETE
+SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
+
+-- ============================================
+-- AUDIT LOGS TABLE
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS nebula_dns.audit_logs
+(
+    id UUID DEFAULT generateUUIDv4(),
+    timestamp DateTime64(3, 'UTC') DEFAULT now64(3),
+    tenant_id UUID,
+    user_id UUID,
+    action LowCardinality(String),
+    resource_type LowCardinality(String),
+    resource_id UUID,
+    changes String,
+    ip_address String,
+    user_agent String,
+    event_date Date DEFAULT toDate(timestamp)
+) ENGINE = MergeTree()
+PARTITION BY toYYYYMM(event_date)
+ORDER BY (tenant_id, timestamp)
+TTL event_date + INTERVAL 7 YEAR DELETE
+SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
+
+-- ============================================
+-- PERFORMANCE METRICS TABLE
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS nebula_dns.performance_metrics
+(
+    timestamp DateTime64(3, 'UTC') DEFAULT now64(3),
+    metric_name LowCardinality(String),
+    location_id UUID,
+    server_id String,
+    value Float64,
+    event_date Date DEFAULT toDate(timestamp)
+) ENGINE = MergeTree()
+PARTITION BY toYYYYMM(event_date)
+ORDER BY (metric_name, timestamp)
+TTL event_date + INTERVAL 30 DAY DELETE
+SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
+
+-- ============================================
+-- MATERIALIZED VIEWS
+-- ============================================
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS nebula_dns.query_logs_hourly
+(
+    hour DateTime,
+    tenant_id UUID,
+    location_id UUID,
+    total_queries UInt64,
+    blocked_queries UInt64,
+    allowed_queries UInt64,
+    categories AggregateFunction(uniq, String),
+    avg_response_time_ms Float64
+) ENGINE = SummingMergeTree()
+PARTITION BY toYYYYMM(hour)
+ORDER BY (tenant_id, location_id, hour)
+TTL hour + INTERVAL 1 YEAR DELETE
+AS SELECT
+    toStartOfHour(timestamp) AS hour,
+    tenant_id,
+    location_id,
+    count() AS total_queries,
+    countIf(action = 'block') AS blocked_queries,
+    countIf(action = 'allow') AS allowed_queries,
+    uniqState(category) AS categories,
+    avg(response_time_ms) AS avg_response_time_ms
+FROM nebula_dns.query_logs
+GROUP BY hour, tenant_id, location_id;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS nebula_dns.query_logs_daily
+(
+    day Date,
+    tenant_id UUID,
+    location_id UUID,
+    total_queries UInt64,
+    blocked_queries UInt64,
+    allowed_queries UInt64,
+    unique_domains UInt64,
+    unique_clients UInt64,
+    top_blocked_domains Array(Tuple(String, UInt64)),
+    avg_response_time_ms Float64
+) ENGINE = SummingMergeTree()
+PARTITION BY toYYYYMM(day)
+ORDER BY (tenant_id, location_id, day)
+TTL day + INTERVAL 2 YEAR DELETE
+AS SELECT
+    toDate(timestamp) AS day,
+    tenant_id,
+    location_id,
+    count() AS total_queries,
+    countIf(action = 'block') AS blocked_queries,
+    countIf(action = 'allow') AS allowed_queries,
+    uniq(domain) AS unique_domains,
+    uniq(client_ip) AS unique_clients,
+    arraySlice(
+        groupArrayIf((domain, 1), action = 'block'),
+        1, 10
+    ) AS top_blocked_domains,
+    avg(response_time_ms) AS avg_response_time_ms
+FROM nebula_dns.query_logs
+GROUP BY day, tenant_id, location_id;
+
+-- ============================================
+-- HELPER VIEWS
+-- ============================================
+
+CREATE VIEW IF NOT EXISTS nebula_dns.v_top_blocked_domains AS
+SELECT
+    tenant_id,
+    domain,
+    count() as block_count,
+    uniq(client_ip) as affected_clients,
+    any(category) as category
+FROM nebula_dns.query_logs
+WHERE
+    action = 'block'
+    AND timestamp >= now() - INTERVAL 24 HOUR
+GROUP BY tenant_id, domain
+ORDER BY block_count DESC
+LIMIT 100;
+
+CREATE VIEW IF NOT EXISTS nebula_dns.v_hourly_summary AS
+SELECT
+    toStartOfHour(timestamp) AS hour,
+    tenant_id,
+    count() AS total_queries,
+    countIf(action = 'block') AS blocked,
+    countIf(action = 'allow') AS allowed,
+    avg(response_time_ms) AS avg_response_time
+FROM nebula_dns.query_logs
+WHERE timestamp >= now() - INTERVAL 7 DAY
+GROUP BY hour, tenant_id
+ORDER BY hour DESC;
+
+CREATE VIEW IF NOT EXISTS nebula_dns.v_active_threats AS
+SELECT
+    tenant_id,
+    threat_type,
+    severity,
+    count() AS incident_count,
+    uniq(client_ip) AS affected_clients,
+    max(timestamp) AS last_seen
+FROM nebula_dns.threat_logs
+WHERE timestamp >= now() - INTERVAL 24 HOUR
+GROUP BY tenant_id, threat_type, severity
+ORDER BY incident_count DESC;
 
 -- ============================================
 -- SAMPLE DATA FOR DEVELOPMENT
