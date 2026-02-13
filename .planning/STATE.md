@@ -13,9 +13,9 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 27 of 33 (Control Plane Deployment)
-Plan: 2 of 3 in current phase
+Plan: 3 of 3 in current phase
 Status: In Progress
-Last activity: 2026-02-13 — Completed 27-02: Runtime environment configuration for UI and Admin UI
+Last activity: 2026-02-13 — Completed 27-03: UI and Admin UI Helm deployments
 
 Progress: [████████░░] 27/33 phases (82% — v1-v1.2 shipped, v1.3 in progress)
 
@@ -31,7 +31,7 @@ Progress: [████████░░] 27/33 phases (82% — v1-v1.2 shipped
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 11 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs)
+- Completed: 12 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments)
 
 ## Milestones Shipped
 
@@ -124,6 +124,12 @@ Recent decisions affecting v1.3:
 - **Preserve NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:** Stripe.js client library requires publishable key at build time by design. This key is safe to expose client-side (Stripe's intended usage pattern).
 - **Centralized config exports in lib/api.ts:** Single source of truth for API_URL, APP_URL, ADMIN_UI_URL, TENANT_UI_URL. All components/hooks import from @/lib/api instead of duplicating env var lookups. Simplifies future updates and ensures consistency.
 
+**Phase 27-03 (UI and Admin UI Helm Deployments):**
+- **/api/config for health probes:** Validates both Next.js runtime and config endpoint functionality, providing better health signal than simple HTTP 200 on /. Created in Plan 27-02.
+- **UID 1001 for nextjs user:** Matches Dockerfile USER directive for both UI and Admin UI containers. Prevents permission issues with .next directory writes.
+- **Service port 80 targeting container port 3000:** Standard HTTP port for clean Ingress routing. Container runs on 3000 (Next.js default), Service translates to port 80 for Ingress backends.
+- **Conditional Admin UI deployment via adminUi.enabled:** Some environments may not need Admin UI (e.g., edge clusters, tenant-only deployments). Default true, but can be disabled via values flag.
+
 Full decision log in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -140,7 +146,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-13
-Stopped at: Completed 27-02-PLAN.md (Runtime environment configuration for UIs)
+Stopped at: Completed 27-03-PLAN.md (UI and Admin UI Helm deployments)
 Resume file: None
 
 ---
