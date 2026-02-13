@@ -8,6 +8,7 @@ resources:
   - jobs/
   - api-deployment.yaml
   - policy-svc-deployment.yaml
+  - dnsdist-configmap.yaml
   - dnsdist-deployment.yaml
   - unbound-statefulset.yaml
   - ui-deployment.yaml
