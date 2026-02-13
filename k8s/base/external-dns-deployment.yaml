@@ -1,0 +1,96 @@
+# Nebula DNS - external-dns for DigitalOcean DNS Record Automation
+# Watches Kubernetes Ingress/Service resources and creates DNS records
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: external-dns
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: external-dns
+rules:
+  - apiGroups: [""]
+    resources: ["services", "endpoints", "pods"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: ["extensions", "networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: external-dns-viewer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: external-dns
+subjects:
+  - kind: ServiceAccount
+    name: external-dns
+    namespace: kube-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-dns
+  namespace: kube-system
+  labels:
+    app: external-dns
+    app.kubernetes.io/name: external-dns
+    app.kubernetes.io/component: dns-automation
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: external-dns
+  strategy:
+    type: Recreate  # Prevent duplicate instances managing same DNS records
+  template:
+    metadata:
+      labels:
+        app: external-dns
+    spec:
+      serviceAccountName: external-dns
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534  # nobody
+        fsGroup: 65534
+      containers:
+        - name: external-dns
+          image: registry.k8s.io/external-dns/external-dns:v0.14.0
+          args:
+            - --source=ingress
+            - --source=service
+            - --domain-filter=nebuladns.io
+            - --provider=digitalocean
+            - --policy=upsert-only  # Safer than sync: never deletes records
+            - --txt-owner-id=nebula-dns-k8s
+            - --txt-prefix=_externaldns.
+            - --interval=1m
+            - --log-level=info
+          env:
+            - name: DO_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: digitalocean-dns
+                  key: access-token
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 50m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
