@@ -7,6 +7,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"net/http"
 	"os"
 	"os/signal"
@@ -43,7 +44,7 @@ func main() {
 
 	redisURL := os.Getenv("REDIS_URL")
 	if redisURL == "" {
-		redisURL = "redis:6379"
+		redisURL = "redis://redis:6379"
 	}
 
 	// Request timeout (default 5s for policy evaluation)
@@ -73,9 +74,17 @@ func main() {
 	clickhousePassword := os.Getenv("CLICKHOUSE_PASSWORD")
 
 	// Initialize Redis client
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: redisURL,
-	})
+	opts, err := redis.ParseURL(redisURL)
+	if err != nil {
+		sugar.Fatalw("Failed to parse Redis URL", "error", err, "url", redisURL)
+	}
+
+	// Ensure TLS 1.2+ for managed Valkey (rediss:// URLs)
+	if opts.TLSConfig != nil {
+		opts.TLSConfig.MinVersion = tls.VersionTLS12
+	}
+
+	redisClient := redis.NewClient(opts)
 
 	// Test Redis connection
 	ctx := context.Background()
