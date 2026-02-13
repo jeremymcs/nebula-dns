@@ -98,10 +98,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 27-01-PLAN.md — API Deployment Helm template with all env vars, secrets, and HPA hardening
-- [ ] 27-02-PLAN.md — Next.js runtime env var refactoring (NEXT_PUBLIC_ to runtime)
-- [ ] 27-03-PLAN.md — UI and Admin UI Helm deployment templates
-- [ ] 27-04-PLAN.md — Ingress + external-dns + TLS certificates + production values
+- [x] 27-01-PLAN.md — API Deployment Helm template with all env vars, secrets, and HPA hardening
+- [x] 27-02-PLAN.md — Next.js runtime env var refactoring (NEXT_PUBLIC_ to runtime)
+- [x] 27-03-PLAN.md — UI and Admin UI Helm deployment templates
+- [x] 27-04-PLAN.md — Ingress + external-dns + TLS certificates + production values
 
 #### Phase 28: Test Infrastructure
 **Goal**: Test environments and frameworks are configured for comprehensive testing
@@ -216,7 +216,7 @@ Phases execute in numeric order: 24 → 25 → 26 → 27 → 28 → 29 → 30 �
 | 24. Infrastructure Provisioning | v1.3 | 4/4 | ✓ Complete | 2026-02-13 |
 | 25. Database Schema Migration | v1.3 | 2/2 | ✓ Complete | 2026-02-13 |
 | 26. DNS Stack Deployment | v1.3 | 3/3 | ✓ Complete | 2026-02-13 |
-| 27. Control Plane Deployment | v1.3 | 0/4 | Not started | - |
+| 27. Control Plane Deployment | v1.3 | 4/4 | ✓ Complete | 2026-02-13 |
 | 28. Test Infrastructure | v1.3 | 0/TBD | Not started | - |
 | 29. API Test Suite | v1.3 | 0/TBD | Not started | - |
 | 30. UI Test Suite | v1.3 | 0/TBD | Not started | - |
