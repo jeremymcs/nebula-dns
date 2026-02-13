@@ -13,9 +13,9 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 26 of 33 (DNS Stack Deployment)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In Progress
-Last activity: 2026-02-13 — Completed 26-01-PLAN.md (Managed Service Connections)
+Last activity: 2026-02-13 — Completed 26-02-PLAN.md (Unbound StatefulSet)
 
 Progress: [███████░░░] 25/33 phases (76% — v1-v1.2 shipped, v1.3 in progress)
 
@@ -31,7 +31,7 @@ Progress: [███████░░░] 25/33 phases (76% — v1-v1.2 shipped
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 7 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections)
+- Completed: 8 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet)
 
 ## Milestones Shipped
 
@@ -100,6 +100,13 @@ Recent decisions affecting v1.3:
 - **TLS 1.2+ enforcement for managed Valkey:** Explicit MinVersion setting ensures compliance with DigitalOcean's security requirements
 - **Complete ClickHouse Cloud env vars in K8s:** Added CLICKHOUSE_DATABASE, CLICKHOUSE_USER, CLICKHOUSE_PASSWORD to deployment manifest (code already read them, manifest was missing mappings)
 
+**Phase 26-02 (Unbound StatefulSet):**
+- **StatefulSet with persistent volumes for DNS cache:** Cache survives pod restarts, reducing upstream queries and improving latency. 1Gi per pod (4x headroom for 240MB configured cache)
+- **Both headless and ClusterIP services:** Headless (clusterIP: None) provides stable pod DNS names for debugging/monitoring. ClusterIP provides load-balanced endpoint for dnsdist backend pool
+- **drill command for health checks:** Performs actual DNS resolution test (drill @127.0.0.1 google.com) instead of simple TCP socket check, validates full resolver functionality
+- **ConfigMap for configuration:** Embeds unbound.conf from config/ directory, enables config changes without image rebuild
+- **Pod anti-affinity to spread replicas:** Preferred weight 100, spreads 3 replicas across nodes for fault tolerance
+
 Full decision log in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -116,7 +123,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-13
-Stopped at: Completed 26-01-PLAN.md (Managed Service Connections)
+Stopped at: Completed 26-02-PLAN.md (Unbound StatefulSet)
 Resume file: None
 
 ---
