@@ -9,6 +9,7 @@ resources:
   - api-deployment.yaml
   - policy-svc-deployment.yaml
   - dnsdist-deployment.yaml
+  - unbound-statefulset.yaml
   - ui-deployment.yaml
   - ingress.yaml
   - pdbs/
