@@ -48,10 +48,10 @@ Phase 17-23 details archived in [milestones/v1.2-ROADMAP.md](milestones/v1.2-ROA
 **Plans**: 4 plans
 
 Plans:
-- [ ] 24-01-PLAN.md — Terraform project structure + VPC + DOKS cluster modules
-- [ ] 24-02-PLAN.md — Managed databases module (PostgreSQL + PgBouncer + Valkey)
-- [ ] 24-03-PLAN.md — ClickHouse Cloud module + K8s operators (cert-manager, external-dns)
-- [ ] 24-04-PLAN.md — Kubernetes Secrets creation + verification + rotation runbook
+- [x] 24-01-PLAN.md — Terraform project structure + VPC + DOKS cluster modules
+- [x] 24-02-PLAN.md — Managed databases module (PostgreSQL + PgBouncer + Valkey)
+- [x] 24-03-PLAN.md — ClickHouse Cloud module + K8s operators (cert-manager, external-dns)
+- [x] 24-04-PLAN.md — Kubernetes Secrets creation + verification + rotation runbook
 
 #### Phase 25: Database Schema Migration
 **Goal**: PostgreSQL and ClickHouse schemas are deployed with production-compatible configurations
@@ -212,7 +212,7 @@ Phases execute in numeric order: 24 → 25 → 26 → 27 → 28 → 29 → 30 �
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 24. Infrastructure Provisioning | v1.3 | 0/4 | Planned | - |
+| 24. Infrastructure Provisioning | v1.3 | 4/4 | ✓ Complete | 2026-02-13 |
 | 25. Database Schema Migration | v1.3 | 0/TBD | Not started | - |
 | 26. DNS Stack Deployment | v1.3 | 0/TBD | Not started | - |
 | 27. Control Plane Deployment | v1.3 | 0/TBD | Not started | - |
@@ -225,4 +225,4 @@ Phases execute in numeric order: 24 → 25 → 26 → 27 → 28 → 29 → 30 �
 
 ---
 *Created: 2026-02-11*
-*Last updated: 2026-02-11*
+*Last updated: 2026-02-13*
