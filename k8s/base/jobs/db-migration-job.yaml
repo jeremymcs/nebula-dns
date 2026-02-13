@@ -26,8 +26,8 @@ spec:
   # Clean up completed job after 5 minutes
   ttlSecondsAfterFinished: 300
 
-  # Allow 10 minutes for migrations to complete
-  activeDeadlineSeconds: 600
+  # Allow 15 minutes for migrations to complete (production with SSL/managed PostgreSQL)
+  activeDeadlineSeconds: 900
 
   template:
     metadata:
@@ -88,12 +88,13 @@ spec:
             - name: LOG_LEVEL
               value: info
 
-            # Ensure migrations run with proper database connection
+            # Use direct PostgreSQL URI (not PgBouncer-pooled) for migrations.
+            # PgBouncer transaction mode doesn't support DDL or advisory locks.
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: api-secrets
-                  key: database-url
+                  key: database-direct-url
 
           resources:
             requests:
