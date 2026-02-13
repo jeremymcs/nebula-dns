@@ -65,8 +65,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 25-01-PLAN.md — PostgreSQL migration job direct URI + production Helm values
-- [ ] 25-02-PLAN.md — Environment-aware ClickHouse schema with full production tables
+- [x] 25-01-PLAN.md — PostgreSQL migration job direct URI + production Helm values
+- [x] 25-02-PLAN.md — Environment-aware ClickHouse schema with full production tables
 
 #### Phase 26: DNS Stack Deployment
 **Goal**: DNS resolution stack (dnsdist, Policy Service, Unbound) is deployed and handling queries end-to-end
@@ -213,7 +213,7 @@ Phases execute in numeric order: 24 → 25 → 26 → 27 → 28 → 29 → 30 �
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 24. Infrastructure Provisioning | v1.3 | 4/4 | ✓ Complete | 2026-02-13 |
-| 25. Database Schema Migration | v1.3 | 0/TBD | Not started | - |
+| 25. Database Schema Migration | v1.3 | 2/2 | ✓ Complete | 2026-02-13 |
 | 26. DNS Stack Deployment | v1.3 | 0/TBD | Not started | - |
 | 27. Control Plane Deployment | v1.3 | 0/TBD | Not started | - |
 | 28. Test Infrastructure | v1.3 | 0/TBD | Not started | - |
