@@ -1,20 +1,29 @@
+# Nebula DNS - Ingress
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: nebula-dns
   namespace: nebula-dns
   annotations:
-    kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: letsencrypt-prod
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-body-size: "10m"
-    nginx.ingress.kubernetes.io/rate-limit: "100"
-    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    nginx.ingress.kubernetes.io/rate-limit-connections: "100"
+    nginx.ingress.kubernetes.io/rate-limit-rps: "50"
+    # CORS for API subdomain
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://app.nebuladns.io,https://admin.nebuladns.io"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Authorization, Content-Type, X-Requested-With"
 spec:
+  ingressClassName: nginx
   tls:
     - hosts:
         - app.nebuladns.io
         - api.nebuladns.io
+        - admin.nebuladns.io
       secretName: nebula-dns-tls
   rules:
     - host: app.nebuladns.io
@@ -35,5 +44,15 @@ spec:
             backend:
               service:
                 name: api
+                port:
+                  name: http
+    - host: admin.nebuladns.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: admin-ui
                 port:
                   name: http
