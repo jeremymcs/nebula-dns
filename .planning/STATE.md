@@ -13,9 +13,9 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 24 of 33 (Infrastructure Provisioning)
-Plan: 2 of 4 in current phase
+Plan: 3 of 4 in current phase
 Status: Executing
-Last activity: 2026-02-12 — Completed 24-02-PLAN.md (Managed databases with PostgreSQL + Valkey)
+Last activity: 2026-02-12 — Completed 24-03-PLAN.md (ClickHouse Cloud and Kubernetes operators)
 
 Progress: [███████░░░] 23/33 phases (70% — v1-v1.2 shipped, v1.3 in progress)
 
@@ -31,7 +31,7 @@ Progress: [███████░░░] 23/33 phases (70% — v1-v1.2 shipped
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 2 plans (24-01: Terraform foundation, 24-02: Managed databases)
+- Completed: 3 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators)
 
 ## Milestones Shipped
 
@@ -74,6 +74,11 @@ Recent decisions affecting v1.3:
 - **Both pooled and direct URIs:** Pooled for application, direct for database migrations
 - **VPC-private networking:** All databases in private VPC network for security
 
+**Phase 24-03 (ClickHouse Cloud and Operators):**
+- **DNS-01 challenge solver with DigitalOcean:** Enables wildcard certificates (*.nebuladns.io) vs HTTP-01
+- **ClickHouse Cloud development tier:** 24-48GB auto-scaling with 5-minute idle timeout for cost efficiency
+- **Official ClickHouse Terraform provider:** Managed solution reduces ops burden vs self-hosted
+
 Full decision log in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -90,7 +95,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Completed 24-02-PLAN.md (Managed databases - PostgreSQL + Valkey)
+Stopped at: Completed 24-03-PLAN.md (ClickHouse Cloud and Kubernetes operators)
 Resume file: None
 
 ---
