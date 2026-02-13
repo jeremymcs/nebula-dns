@@ -12,12 +12,12 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: 26 of 33 (DNS Stack Deployment)
-Plan: 3 of 3 in current phase
-Status: Complete
-Last activity: 2026-02-13 — Phase 26 complete, verified (5/5 success criteria passed)
+Phase: 27 of 33 (Control Plane Deployment)
+Plan: 1 of 3 in current phase
+Status: In Progress
+Last activity: 2026-02-13 — Completed 27-01: API Helm deployment with production env vars and security hardening
 
-Progress: [████████░░] 26/33 phases (79% — v1-v1.2 shipped, v1.3 in progress)
+Progress: [████████░░] 27/33 phases (82% — v1-v1.2 shipped, v1.3 in progress)
 
 ## Performance Metrics
 
@@ -31,7 +31,7 @@ Progress: [████████░░] 26/33 phases (79% — v1-v1.2 shipped
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 9 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers)
+- Completed: 10 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening)
 
 ## Milestones Shipped
 
@@ -113,6 +113,12 @@ Recent decisions affecting v1.3:
 - **DigitalOcean LoadBalancer size-unit 1:** Smallest size for cost optimization while maintaining dual LoadBalancers for DNS redundancy
 - **ConfigMap-based production config:** Embed dnsdist.prod.conf in Kubernetes ConfigMap to enable config changes without image rebuilds
 
+**Phase 27-01 (API Helm Deployment with Production Hardening):**
+- **Use api-secrets consistent naming:** Migration job references `.Values.api.secrets.name | default "api-secrets"`, not dynamic nebuladns-fullname pattern. Secrets template now matches this reference to avoid name mismatch.
+- **Add HPA stabilization behavior:** Prevents pod churn during traffic spikes. 60s scaleUp and 300s scaleDown windows provide stable autoscaling without overreacting to momentary load changes.
+- **ReadOnlyRootFilesystem with emptyDir volumes:** Security best practice. API needs writable /tmp and /app/.npm for npm cache, provided via emptyDir volumes while maintaining read-only root filesystem.
+- **Fix helper naming from nebuladns to safedns:** Existing _helpers.tpl uses safedns.* convention. Fixed API deployment to use safedns.api.fullname, safedns.labels, safedns.selectorLabels for consistency.
+
 Full decision log in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -129,7 +135,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-13
-Stopped at: Phase 26 complete — all 3 plans executed, verification passed (5/5 criteria)
+Stopped at: Completed 27-01-PLAN.md (API Helm deployment with production env vars and security hardening)
 Resume file: None
 
 ---
