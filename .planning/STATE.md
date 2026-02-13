@@ -8,16 +8,16 @@
 See: .planning/PROJECT.md (updated 2026-02-11)
 
 **Core value:** Provide reliable, scalable DNS security filtering that blocks threats in real-time — backed by an ops dashboard for MSP management
-**Current focus:** v1.3 Production Readiness — Phase 24 Infrastructure Provisioning
+**Current focus:** v1.3 Production Readiness — Phase 25 Database Schema Migration
 
 ## Current Position
 
-Phase: 24 of 33 (Infrastructure Provisioning)
-Plan: 4 of 4 in current phase
-Status: Complete
-Last activity: 2026-02-13 — Completed 24-04-PLAN.md (Kubernetes Secrets and operational scripts)
+Phase: 25 of 33 (Database Schema Migration)
+Plan: 1 of 2 in current phase
+Status: In Progress
+Last activity: 2026-02-13 — Completed 25-01-PLAN.md (PostgreSQL migration direct URI)
 
-Progress: [███████░░░] 23/33 phases (70% — v1-v1.2 shipped, v1.3 in progress)
+Progress: [███████░░░] 24/33 phases (73% — v1-v1.2 shipped, v1.3 in progress)
 
 ## Performance Metrics
 
@@ -31,7 +31,7 @@ Progress: [███████░░░] 23/33 phases (70% — v1-v1.2 shipped
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 4 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts)
+- Completed: 5 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI)
 
 ## Milestones Shipped
 
@@ -85,6 +85,11 @@ Recent decisions affecting v1.3:
 - **Warn-level database connectivity checks:** May fail in CI/CD without VPC access, pass-level too strict for initial verification
 - **Interactive prompts for destructive rotations:** Prevents accidental JWT rotation (invalidates all sessions)
 
+**Phase 25-01 (PostgreSQL Migration Direct URI):**
+- **Use database-direct-url for migrations:** Bypasses PgBouncer transaction mode (incompatible with DDL/advisory locks)
+- **Increase migration timeout to 900s:** Production managed PostgreSQL with SSL has higher latency than local development
+- **ClickHouse Cloud configuration toggle:** Prepares for Plan 25-02 migration (cloud: false, protocol: http defaults)
+
 Full decision log in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -101,7 +106,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-13
-Stopped at: Completed 24-04-PLAN.md (Kubernetes Secrets and operational scripts) - Phase 24 complete
+Stopped at: Completed 25-01-PLAN.md (PostgreSQL migration direct URI)
 Resume file: None
 
 ---
