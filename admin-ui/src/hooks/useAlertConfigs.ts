@@ -14,9 +14,7 @@ import type {
   TestAlertResponse,
   MessageResponse,
 } from '@/types/alerting';
-
-// API base URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4010';
+import { API_URL } from '@/lib/api';
 
 // Default SWR config with optimized caching
 const defaultConfig: SWRConfiguration = {
