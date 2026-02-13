@@ -1,0 +1,107 @@
+# Nebula DNS - Production Helm Values for DOKS Deployment
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+#
+# Usage: helm upgrade --install nebula-dns ./helm/safedns \
+#   -f helm/safedns/values-production.yaml \
+#   -n nebula-dns --wait
+
+# API Service - Production
+api:
+  replicaCount: 2
+  image:
+    repository: registry.digitalocean.com/nebula-dns/api
+    pullPolicy: IfNotPresent
+  env:
+    NODE_ENV: production
+    LOG_LEVEL: info
+    FRONTEND_URL: "https://app.nebuladns.io"
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+
+# UI Service - Production
+ui:
+  replicaCount: 2
+  image:
+    repository: registry.digitalocean.com/nebula-dns/ui
+    pullPolicy: IfNotPresent
+  env:
+    API_URL: "http://nebula-dns-safedns-api.nebula-dns.svc.cluster.local:80"
+    APP_URL: "https://app.nebuladns.io"
+    ADMIN_UI_URL: "https://admin.nebuladns.io"
+
+# Admin UI Service - Production
+adminUi:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: registry.digitalocean.com/nebula-dns/admin-ui
+    pullPolicy: IfNotPresent
+  env:
+    API_URL: "http://nebula-dns-safedns-api.nebula-dns.svc.cluster.local:80"
+    APP_URL: "https://app.nebuladns.io"
+    TENANT_UI_URL: "https://app.nebuladns.io"
+
+# Ingress - Production
+ingress:
+  enabled: true
+  className: nginx
+  clusterIssuer: letsencrypt-prod
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+  hosts:
+    - host: app.nebuladns.io
+      paths:
+        - path: /
+          pathType: Prefix
+          service: ui
+    - host: api.nebuladns.io
+      paths:
+        - path: /
+          pathType: Prefix
+          service: api
+    - host: admin.nebuladns.io
+      paths:
+        - path: /
+          pathType: Prefix
+          service: admin-ui
+  tls:
+    - secretName: nebula-dns-tls
+      hosts:
+        - app.nebuladns.io
+        - api.nebuladns.io
+        - admin.nebuladns.io
+
+# Database connections - managed by DigitalOcean
+# Secrets are created via scripts/k8s/create-secrets.sh, NOT via Helm
+secrets:
+  create: false  # Secrets pre-provisioned by Phase 24-04 scripts
+
+# Managed PostgreSQL via DigitalOcean
+postgresql:
+  enabled: false  # Using managed DO PostgreSQL, not Helm-installed
+  host: "private-nebula-dns-pg-do-user-xxxxx.db.ondigitalocean.com"
+  port: 25060
+
+# Managed Valkey via DigitalOcean
+redis:
+  enabled: false  # Using managed DO Valkey, not Helm-installed
+
+# ClickHouse Cloud
+clickhouse:
+  enabled: false  # Using ClickHouse Cloud, not Helm-installed
+  cloud: true
+  protocol: https
+  database: nebula_dns
+
+# Database Migrations
+migrations:
+  enabled: true
+  activeDeadlineSeconds: 900
+
+# Service Monitor
+serviceMonitor:
+  enabled: false  # Enable after Prometheus is deployed

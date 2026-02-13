@@ -12,11 +12,13 @@ resources:
   - dnsdist-deployment.yaml
   - unbound-statefulset.yaml
   - ui-deployment.yaml
+  - admin-ui-deployment.yaml
   - ingress.yaml
   - pdbs/
   - network-policies/
+  - cert-manager/
+  - external-dns-deployment.yaml
   # Optional: Enable these as needed
-  # - cert-manager/
   # - external-secrets/
   # - backups/
   # - monitoring/
