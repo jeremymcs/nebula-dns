@@ -62,11 +62,11 @@ Plans:
   2. ClickHouse Cloud schema uses MergeTree (not Replicated*) table engines
   3. ClickHouse dns_queries table uses time-only partitioning (not tenant_id partitioning)
   4. Schema deployment is environment-aware (detects Cloud vs self-hosted)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 25-01: TBD
-- [ ] 25-02: TBD
+- [ ] 25-01-PLAN.md — PostgreSQL migration job direct URI + production Helm values
+- [ ] 25-02-PLAN.md — Environment-aware ClickHouse schema with full production tables
 
 #### Phase 26: DNS Stack Deployment
 **Goal**: DNS resolution stack (dnsdist, Policy Service, Unbound) is deployed and handling queries end-to-end
