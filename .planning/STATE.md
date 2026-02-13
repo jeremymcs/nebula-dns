@@ -13,9 +13,9 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 27 of 33 (Control Plane Deployment)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In Progress
-Last activity: 2026-02-13 — Completed 27-01: API Helm deployment with production env vars and security hardening
+Last activity: 2026-02-13 — Completed 27-02: Runtime environment configuration for UI and Admin UI
 
 Progress: [████████░░] 27/33 phases (82% — v1-v1.2 shipped, v1.3 in progress)
 
@@ -31,7 +31,7 @@ Progress: [████████░░] 27/33 phases (82% — v1-v1.2 shipped
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 10 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening)
+- Completed: 11 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs)
 
 ## Milestones Shipped
 
@@ -119,6 +119,11 @@ Recent decisions affecting v1.3:
 - **ReadOnlyRootFilesystem with emptyDir volumes:** Security best practice. API needs writable /tmp and /app/.npm for npm cache, provided via emptyDir volumes while maintaining read-only root filesystem.
 - **Fix helper naming from nebuladns to safedns:** Existing _helpers.tpl uses safedns.* convention. Fixed API deployment to use safedns.api.fullname, safedns.labels, safedns.selectorLabels for consistency.
 
+**Phase 27-02 (Runtime Environment Configuration for UIs):**
+- **Runtime env vars over NEXT_PUBLIC_:** NEXT_PUBLIC_ vars are baked into JavaScript bundles at build time, making Docker images environment-specific. Runtime vars (API_URL, APP_URL, ADMIN_UI_URL, TENANT_UI_URL) sourced from /api/config endpoint enable single Docker image to work across staging and production. Build-time NEXT_PUBLIC_ vars retained as fallbacks for local development and graceful degradation.
+- **Preserve NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:** Stripe.js client library requires publishable key at build time by design. This key is safe to expose client-side (Stripe's intended usage pattern).
+- **Centralized config exports in lib/api.ts:** Single source of truth for API_URL, APP_URL, ADMIN_UI_URL, TENANT_UI_URL. All components/hooks import from @/lib/api instead of duplicating env var lookups. Simplifies future updates and ensures consistency.
+
 Full decision log in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -130,12 +135,12 @@ None.
 **Pre-Phase 24 validation:**
 - ClickHouse Cloud schema: Test MergeTree (not Replicated*) on trial account before production
 - Valkey compatibility: Audit Redis commands, test locally before migration
-- Next.js runtime env vars: NEXT_PUBLIC_ baked at build time, need refactoring strategy
+- ~~Next.js runtime env vars: NEXT_PUBLIC_ baked at build time, need refactoring strategy~~ ✓ RESOLVED in 27-02
 
 ## Session Continuity
 
 Last session: 2026-02-13
-Stopped at: Completed 27-01-PLAN.md (API Helm deployment with production env vars and security hardening)
+Stopped at: Completed 27-02-PLAN.md (Runtime environment configuration for UIs)
 Resume file: None
 
 ---
