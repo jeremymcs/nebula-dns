@@ -13,9 +13,9 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 25 of 33 (Database Schema Migration)
-Plan: 1 of 2 in current phase
-Status: In Progress
-Last activity: 2026-02-13 — Completed 25-01-PLAN.md (PostgreSQL migration direct URI)
+Plan: 2 of 2 in current phase
+Status: Complete
+Last activity: 2026-02-13 — Completed 25-02-PLAN.md (Environment-aware ClickHouse schema)
 
 Progress: [███████░░░] 24/33 phases (73% — v1-v1.2 shipped, v1.3 in progress)
 
@@ -31,7 +31,7 @@ Progress: [███████░░░] 24/33 phases (73% — v1-v1.2 shipped
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 5 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI)
+- Completed: 6 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema)
 
 ## Milestones Shipped
 
@@ -90,6 +90,11 @@ Recent decisions affecting v1.3:
 - **Increase migration timeout to 900s:** Production managed PostgreSQL with SSL has higher latency than local development
 - **ClickHouse Cloud configuration toggle:** Prepares for Plan 25-02 migration (cloud: false, protocol: http defaults)
 
+**Phase 25-02 (Environment-Aware ClickHouse Schema):**
+- **Daily partitioning for query_logs, monthly for others:** High-volume query_logs (millions/day) needs daily granularity for efficient TTL drops; lower-volume tables (threat_logs, audit_logs, performance_metrics) use monthly partitions to keep count manageable
+- **Environment-aware engine selection via Helm values:** ClickHouse Cloud requires plain MergeTree (managed replication), self-hosted requires ReplicatedMergeTree for HA
+- **HTTPS for ClickHouse Cloud, HTTP for self-hosted:** Cloud requires HTTPS on port 8443, self-hosted uses HTTP on port 8123
+
 Full decision log in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -106,7 +111,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-13
-Stopped at: Completed 25-01-PLAN.md (PostgreSQL migration direct URI)
+Stopped at: Completed 25-02-PLAN.md (Environment-aware ClickHouse schema) - Phase 25 complete
 Resume file: None
 
 ---
