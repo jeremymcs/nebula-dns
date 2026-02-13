@@ -21,6 +21,10 @@ spec:
     metadata:
       labels:
         app: dnsdist
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8083"
+        prometheus.io/path: "/metrics"
     spec:
       serviceAccountName: dnsdist
       securityContext:
@@ -41,7 +45,7 @@ spec:
               protocol: TCP
           env:
             - name: POLICY_SVC_URL
-              value: "http://policy-svc:80"
+              value: "http://policy-svc.nebula-dns.svc.cluster.local:80"
             - name: DNSDIST_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -91,7 +95,8 @@ spec:
                   app: dnsdist
               topologyKey: kubernetes.io/hostname
 ---
-# Primary DNS endpoint: dns1.nebuladns.io
+# Nebula DNS - Primary DNS endpoint: dns1.nebuladns.io
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 apiVersion: v1
 kind: Service
 metadata:
@@ -101,9 +106,10 @@ metadata:
     app: dnsdist
     dns-endpoint: primary
   annotations:
-    # For cloud providers with load balancer support
-    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
-    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    # DigitalOcean LoadBalancer configuration
+    service.beta.kubernetes.io/do-loadbalancer-protocol: "tcp"
+    service.beta.kubernetes.io/do-loadbalancer-size-unit: "1"
+    service.beta.kubernetes.io/do-loadbalancer-disable-lets-encrypt-dns-records: "true"
     # DNS hostname annotation (for external-dns)
     external-dns.alpha.kubernetes.io/hostname: dns1.nebuladns.io
 spec:
@@ -121,7 +127,8 @@ spec:
   selector:
     app: dnsdist
 ---
-# Secondary DNS endpoint: dns2.nebuladns.io
+# Nebula DNS - Secondary DNS endpoint: dns2.nebuladns.io
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 apiVersion: v1
 kind: Service
 metadata:
@@ -131,9 +138,10 @@ metadata:
     app: dnsdist
     dns-endpoint: secondary
   annotations:
-    # For cloud providers with load balancer support
-    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
-    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    # DigitalOcean LoadBalancer configuration
+    service.beta.kubernetes.io/do-loadbalancer-protocol: "tcp"
+    service.beta.kubernetes.io/do-loadbalancer-size-unit: "1"
+    service.beta.kubernetes.io/do-loadbalancer-disable-lets-encrypt-dns-records: "true"
     # DNS hostname annotation (for external-dns)
     external-dns.alpha.kubernetes.io/hostname: dns2.nebuladns.io
 spec:
