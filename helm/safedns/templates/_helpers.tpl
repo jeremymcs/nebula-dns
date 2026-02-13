@@ -76,3 +76,10 @@ dnsdist service name
 {{- printf "%s-dnsdist" (include "safedns.fullname" .) }}
 {{- end }}
 
+{{/*
+Admin UI service name
+*/}}
+{{- define "safedns.admin-ui.fullname" -}}
+{{- printf "%s-admin-ui" (include "safedns.fullname" .) }}
+{{- end }}
+

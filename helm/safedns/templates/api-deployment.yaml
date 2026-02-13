@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "nebuladns.api.fullname" . }}
+  name: {{ include "safedns.api.fullname" . }}
   labels:
-    {{- include "nebuladns.labels" . | nindent 4 }}
+    {{- include "safedns.labels" . | nindent 4 }}
     app.kubernetes.io/component: api
 spec:
   {{- if not .Values.api.autoscaling.enabled }}
@@ -11,21 +11,44 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "nebuladns.selectorLabels" . | nindent 6 }}
+      {{- include "safedns.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   template:
     metadata:
       labels:
-        {{- include "nebuladns.selectorLabels" . | nindent 8 }}
+        {{- include "safedns.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metrics"
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    {{- include "safedns.selectorLabels" . | nindent 20 }}
+                    app.kubernetes.io/component: api
+                topologyKey: kubernetes.io/hostname
       containers:
         - name: api
           image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
           imagePullPolicy: {{ .Values.api.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 4000
+              containerPort: 3000
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -33,41 +56,113 @@ spec:
               port: http
             initialDelaySeconds: 30
             periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /health
               port: http
             initialDelaySeconds: 5
             periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
           resources:
             {{- toYaml .Values.api.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: cache
+              mountPath: /app/.npm
           env:
             - name: NODE_ENV
               value: {{ .Values.api.env.NODE_ENV | quote }}
+            - name: PORT
+              value: "3000"
             - name: LOG_LEVEL
               value: {{ .Values.api.env.LOG_LEVEL | quote }}
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "nebuladns.fullname" . }}-secrets
+                  name: {{ .Values.api.secrets.name | default "api-secrets" }}
                   key: database-url
             - name: REDIS_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "nebuladns.fullname" . }}-secrets
+                  name: {{ .Values.api.secrets.name | default "api-secrets" }}
                   key: redis-url
+            - name: CLICKHOUSE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.secrets.name | default "api-secrets" }}
+                  key: clickhouse-url
+            - name: CLICKHOUSE_DATABASE
+              value: {{ .Values.clickhouse.database | quote }}
+            - name: CLICKHOUSE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.secrets.name | default "api-secrets" }}
+                  key: clickhouse-user
+                  optional: true
+            - name: CLICKHOUSE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.secrets.name | default "api-secrets" }}
+                  key: clickhouse-password
+                  optional: true
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "nebuladns.fullname" . }}-secrets
+                  name: {{ .Values.api.secrets.name | default "api-secrets" }}
                   key: jwt-secret
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.secrets.name | default "api-secrets" }}
+                  key: encryption-key
+            - name: FRONTEND_URL
+              value: {{ .Values.api.env.FRONTEND_URL | default "https://app.nebuladns.io" | quote }}
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.secrets.name | default "api-secrets" }}
+                  key: stripe-secret-key
+                  optional: true
+            - name: STRIPE_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.secrets.name | default "api-secrets" }}
+                  key: stripe-webhook-secret
+                  optional: true
+            - name: SENDGRID_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.secrets.name | default "api-secrets" }}
+                  key: sendgrid-api-key
+                  optional: true
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.secrets.name | default "api-secrets" }}
+                  key: sentry-dsn
+                  optional: true
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: cache
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "nebuladns.api.fullname" . }}
+  name: {{ include "safedns.api.fullname" . }}
   labels:
-    {{- include "nebuladns.labels" . | nindent 4 }}
+    {{- include "safedns.labels" . | nindent 4 }}
     app.kubernetes.io/component: api
 spec:
   type: {{ .Values.api.service.type }}
@@ -77,21 +172,21 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "nebuladns.selectorLabels" . | nindent 4 }}
+    {{- include "safedns.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: api
 {{- if .Values.api.autoscaling.enabled }}
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "nebuladns.api.fullname" . }}
+  name: {{ include "safedns.api.fullname" . }}
   labels:
-    {{- include "nebuladns.labels" . | nindent 4 }}
+    {{- include "safedns.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "nebuladns.api.fullname" . }}
+    name: {{ include "safedns.api.fullname" . }}
   minReplicas: {{ .Values.api.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.api.autoscaling.maxReplicas }}
   metrics:
@@ -101,5 +196,25 @@ spec:
         target:
           type: Utilization
           averageUtilization: {{ .Values.api.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.api.autoscaling.targetMemoryUtilizationPercentage | default 80 }}
+  {{- if .Values.api.autoscaling.behavior }}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: {{ .Values.api.autoscaling.behavior.scaleUp.stabilizationWindowSeconds | default 60 }}
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: {{ .Values.api.autoscaling.behavior.scaleDown.stabilizationWindowSeconds | default 300 }}
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 120
+  {{- end }}
 {{- end }}
-
