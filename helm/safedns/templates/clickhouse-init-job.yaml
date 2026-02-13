@@ -43,7 +43,11 @@ spec:
             - '-c'
             - |
               echo "Waiting for ClickHouse to be ready..."
+              {{- if .Values.clickhouse.cloud }}
+              until curl -sf "https://{{ .Values.clickhouse.host }}:{{ .Values.clickhouse.cloudPort | default 8443 }}/ping"; do
+              {{- else }}
               until curl -sf "http://{{ .Values.clickhouse.host | default "clickhouse" }}:{{ .Values.clickhouse.port | default 8123 }}/ping"; do
+              {{- end }}
                 echo "ClickHouse is unavailable - sleeping"
                 sleep 2
               done
@@ -65,25 +69,35 @@ spec:
               set -e
               echo "Initializing ClickHouse schema..."
 
-              curl -X POST "http://{{ .Values.clickhouse.host | default "clickhouse" }}:{{ .Values.clickhouse.port | default 8123 }}" \
+              {{- if .Values.clickhouse.cloud }}
+              CH_URL="https://{{ .Values.clickhouse.host }}:{{ .Values.clickhouse.cloudPort | default 8443 }}"
+              {{- else }}
+              CH_URL="http://{{ .Values.clickhouse.host | default "clickhouse" }}:{{ .Values.clickhouse.port | default 8123 }}"
+              {{- end }}
+
+              curl -X POST "${CH_URL}" \
                 --data-binary @/scripts/init-clickhouse.sql \
                 -u "${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}"
 
               echo "ClickHouse schema initialized successfully"
 
               echo "Verifying tables..."
-              TABLES=$(curl -s "http://{{ .Values.clickhouse.host | default "clickhouse" }}:{{ .Values.clickhouse.port | default 8123 }}/?query=SHOW+TABLES+FROM+{{ .Values.clickhouse.database | default "nebula_dns" }}" \
+              TABLES=$(curl -s "${CH_URL}/?query=SHOW+TABLES+FROM+{{ .Values.clickhouse.database | default "nebula_dns" }}" \
                 -u "${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}")
 
               echo "Created tables:"
               echo "$TABLES"
 
-              if echo "$TABLES" | grep -q "query_logs"; then
-                echo "✓ query_logs table created"
-              else
-                echo "✗ query_logs table missing"
-                exit 1
-              fi
+              for table in query_logs hourly_stats category_stats domain_stats threat_logs audit_logs performance_metrics; do
+                if echo "$TABLES" | grep -q "$table"; then
+                  echo "✓ $table exists"
+                else
+                  echo "✗ $table missing"
+                  exit 1
+                fi
+              done
+
+              echo "All tables verified successfully"
 
           env:
             - name: CLICKHOUSE_USER
@@ -144,10 +158,14 @@ metadata:
     app.kubernetes.io/component: clickhouse-init
 data:
   init-clickhouse.sql: |
-    -- Nebula DNS ClickHouse Initialization Script
+    -- Nebula DNS ClickHouse Initialization Script (Production)
     -- Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
     CREATE DATABASE IF NOT EXISTS {{ .Values.clickhouse.database | default "nebula_dns" }};
+
+    -- ============================================
+    -- DNS QUERY LOG TABLE
+    -- ============================================
 
     CREATE TABLE IF NOT EXISTS {{ .Values.clickhouse.database | default "nebula_dns" }}.query_logs
     (
@@ -164,15 +182,24 @@ data:
         response_time_ms UInt32,
         cached UInt8,
         threat_type Nullable(String),
-        policy_id Nullable(UUID)
+        policy_id Nullable(UUID),
+        event_date Date DEFAULT toDate(timestamp)
+    {{- if .Values.clickhouse.cloud }}
     ) ENGINE = MergeTree()
+    {{- else }}
+    ) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/query_logs', '{replica}')
+    {{- end }}
     PARTITION BY toYYYYMMDD(timestamp)
     ORDER BY (tenant_id, timestamp)
     TTL toDateTime(timestamp) + INTERVAL {{ .Values.clickhouse.retentionDays | default 90 }} DAY
-    SETTINGS index_granularity = 8192;
+    SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
 
     ALTER TABLE {{ .Values.clickhouse.database | default "nebula_dns" }}.query_logs ADD INDEX IF NOT EXISTS idx_domain domain TYPE bloom_filter(0.01) GRANULARITY 1;
     ALTER TABLE {{ .Values.clickhouse.database | default "nebula_dns" }}.query_logs ADD INDEX IF NOT EXISTS idx_category category TYPE set(100) GRANULARITY 1;
+
+    -- ============================================
+    -- AGGREGATION TABLES
+    -- ============================================
 
     CREATE TABLE IF NOT EXISTS {{ .Values.clickhouse.database | default "nebula_dns" }}.hourly_stats (
         hour DateTime,
@@ -184,7 +211,11 @@ data:
         threat_blocks UInt64,
         avg_response_time Float64,
         cached_queries UInt64
+    {{- if .Values.clickhouse.cloud }}
     ) ENGINE = SummingMergeTree()
+    {{- else }}
+    ) ENGINE = ReplicatedSummingMergeTree('/clickhouse/tables/{shard}/hourly_stats', '{replica}')
+    {{- end }}
     PARTITION BY toYYYYMM(hour)
     ORDER BY (tenant_id, hour, location_id);
 
@@ -193,7 +224,11 @@ data:
         tenant_id UUID,
         category String,
         count UInt64
+    {{- if .Values.clickhouse.cloud }}
     ) ENGINE = SummingMergeTree()
+    {{- else }}
+    ) ENGINE = ReplicatedSummingMergeTree('/clickhouse/tables/{shard}/category_stats', '{replica}')
+    {{- end }}
     PARTITION BY toYYYYMM(date)
     ORDER BY (tenant_id, date, category);
 
@@ -204,7 +239,205 @@ data:
         action Enum8('allow' = 1, 'block' = 2, 'rewrite' = 3),
         category String,
         count UInt64
+    {{- if .Values.clickhouse.cloud }}
     ) ENGINE = SummingMergeTree()
+    {{- else }}
+    ) ENGINE = ReplicatedSummingMergeTree('/clickhouse/tables/{shard}/domain_stats', '{replica}')
+    {{- end }}
     PARTITION BY toYYYYMM(date)
     ORDER BY (tenant_id, date, action, domain);
+
+    -- ============================================
+    -- THREAT LOGS TABLE
+    -- ============================================
+
+    CREATE TABLE IF NOT EXISTS {{ .Values.clickhouse.database | default "nebula_dns" }}.threat_logs
+    (
+        id UUID DEFAULT generateUUIDv4(),
+        timestamp DateTime64(3, 'UTC') DEFAULT now64(3),
+        tenant_id UUID,
+        location_id UUID,
+        query_log_id UUID,
+        threat_type LowCardinality(String),
+        threat_name String,
+        severity Enum8('LOW' = 1, 'MEDIUM' = 2, 'HIGH' = 3, 'CRITICAL' = 4),
+        confidence Float32,
+        domain String,
+        client_ip String,
+        intel_source LowCardinality(String),
+        event_date Date DEFAULT toDate(timestamp)
+    {{- if .Values.clickhouse.cloud }}
+    ) ENGINE = MergeTree()
+    {{- else }}
+    ) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/threat_logs', '{replica}')
+    {{- end }}
+    PARTITION BY toYYYYMM(event_date)
+    ORDER BY (tenant_id, timestamp)
+    TTL event_date + INTERVAL 180 DAY DELETE
+    SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
+
+    -- ============================================
+    -- AUDIT LOGS TABLE
+    -- ============================================
+
+    CREATE TABLE IF NOT EXISTS {{ .Values.clickhouse.database | default "nebula_dns" }}.audit_logs
+    (
+        id UUID DEFAULT generateUUIDv4(),
+        timestamp DateTime64(3, 'UTC') DEFAULT now64(3),
+        tenant_id UUID,
+        user_id UUID,
+        action LowCardinality(String),
+        resource_type LowCardinality(String),
+        resource_id UUID,
+        changes String,
+        ip_address String,
+        user_agent String,
+        event_date Date DEFAULT toDate(timestamp)
+    {{- if .Values.clickhouse.cloud }}
+    ) ENGINE = MergeTree()
+    {{- else }}
+    ) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/audit_logs', '{replica}')
+    {{- end }}
+    PARTITION BY toYYYYMM(event_date)
+    ORDER BY (tenant_id, timestamp)
+    TTL event_date + INTERVAL 7 YEAR DELETE
+    SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
+
+    -- ============================================
+    -- PERFORMANCE METRICS TABLE
+    -- ============================================
+
+    CREATE TABLE IF NOT EXISTS {{ .Values.clickhouse.database | default "nebula_dns" }}.performance_metrics
+    (
+        timestamp DateTime64(3, 'UTC') DEFAULT now64(3),
+        metric_name LowCardinality(String),
+        location_id UUID,
+        server_id String,
+        value Float64,
+        event_date Date DEFAULT toDate(timestamp)
+    {{- if .Values.clickhouse.cloud }}
+    ) ENGINE = MergeTree()
+    {{- else }}
+    ) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/performance_metrics', '{replica}')
+    {{- end }}
+    PARTITION BY toYYYYMM(event_date)
+    ORDER BY (metric_name, timestamp)
+    TTL event_date + INTERVAL 30 DAY DELETE
+    SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
+
+    -- ============================================
+    -- MATERIALIZED VIEWS
+    -- ============================================
+
+    CREATE MATERIALIZED VIEW IF NOT EXISTS {{ .Values.clickhouse.database | default "nebula_dns" }}.query_logs_hourly
+    (
+        hour DateTime,
+        tenant_id UUID,
+        location_id UUID,
+        total_queries UInt64,
+        blocked_queries UInt64,
+        allowed_queries UInt64,
+        categories AggregateFunction(uniq, String),
+        avg_response_time_ms Float64
+    {{- if .Values.clickhouse.cloud }}
+    ) ENGINE = SummingMergeTree()
+    {{- else }}
+    ) ENGINE = ReplicatedSummingMergeTree('/clickhouse/tables/{shard}/query_logs_hourly', '{replica}')
+    {{- end }}
+    PARTITION BY toYYYYMM(hour)
+    ORDER BY (tenant_id, location_id, hour)
+    TTL hour + INTERVAL 1 YEAR DELETE
+    AS SELECT
+        toStartOfHour(timestamp) AS hour,
+        tenant_id,
+        location_id,
+        count() AS total_queries,
+        countIf(action = 'block') AS blocked_queries,
+        countIf(action = 'allow') AS allowed_queries,
+        uniqState(category) AS categories,
+        avg(response_time_ms) AS avg_response_time_ms
+    FROM {{ .Values.clickhouse.database | default "nebula_dns" }}.query_logs
+    GROUP BY hour, tenant_id, location_id;
+
+    CREATE MATERIALIZED VIEW IF NOT EXISTS {{ .Values.clickhouse.database | default "nebula_dns" }}.query_logs_daily
+    (
+        day Date,
+        tenant_id UUID,
+        location_id UUID,
+        total_queries UInt64,
+        blocked_queries UInt64,
+        allowed_queries UInt64,
+        unique_domains UInt64,
+        unique_clients UInt64,
+        top_blocked_domains Array(Tuple(String, UInt64)),
+        avg_response_time_ms Float64
+    {{- if .Values.clickhouse.cloud }}
+    ) ENGINE = SummingMergeTree()
+    {{- else }}
+    ) ENGINE = ReplicatedSummingMergeTree('/clickhouse/tables/{shard}/query_logs_daily', '{replica}')
+    {{- end }}
+    PARTITION BY toYYYYMM(day)
+    ORDER BY (tenant_id, location_id, day)
+    TTL day + INTERVAL 2 YEAR DELETE
+    AS SELECT
+        toDate(timestamp) AS day,
+        tenant_id,
+        location_id,
+        count() AS total_queries,
+        countIf(action = 'block') AS blocked_queries,
+        countIf(action = 'allow') AS allowed_queries,
+        uniq(domain) AS unique_domains,
+        uniq(client_ip) AS unique_clients,
+        arraySlice(
+            groupArrayIf((domain, 1), action = 'block'),
+            1, 10
+        ) AS top_blocked_domains,
+        avg(response_time_ms) AS avg_response_time_ms
+    FROM {{ .Values.clickhouse.database | default "nebula_dns" }}.query_logs
+    GROUP BY day, tenant_id, location_id;
+
+    -- ============================================
+    -- HELPER VIEWS
+    -- ============================================
+
+    CREATE VIEW IF NOT EXISTS {{ .Values.clickhouse.database | default "nebula_dns" }}.v_top_blocked_domains AS
+    SELECT
+        tenant_id,
+        domain,
+        count() as block_count,
+        uniq(client_ip) as affected_clients,
+        any(category) as category
+    FROM {{ .Values.clickhouse.database | default "nebula_dns" }}.query_logs
+    WHERE
+        action = 'block'
+        AND timestamp >= now() - INTERVAL 24 HOUR
+    GROUP BY tenant_id, domain
+    ORDER BY block_count DESC
+    LIMIT 100;
+
+    CREATE VIEW IF NOT EXISTS {{ .Values.clickhouse.database | default "nebula_dns" }}.v_hourly_summary AS
+    SELECT
+        toStartOfHour(timestamp) AS hour,
+        tenant_id,
+        count() AS total_queries,
+        countIf(action = 'block') AS blocked,
+        countIf(action = 'allow') AS allowed,
+        avg(response_time_ms) AS avg_response_time
+    FROM {{ .Values.clickhouse.database | default "nebula_dns" }}.query_logs
+    WHERE timestamp >= now() - INTERVAL 7 DAY
+    GROUP BY hour, tenant_id
+    ORDER BY hour DESC;
+
+    CREATE VIEW IF NOT EXISTS {{ .Values.clickhouse.database | default "nebula_dns" }}.v_active_threats AS
+    SELECT
+        tenant_id,
+        threat_type,
+        severity,
+        count() AS incident_count,
+        uniq(client_ip) AS affected_clients,
+        max(timestamp) AS last_seen
+    FROM {{ .Values.clickhouse.database | default "nebula_dns" }}.threat_logs
+    WHERE timestamp >= now() - INTERVAL 24 HOUR
+    GROUP BY tenant_id, threat_type, severity
+    ORDER BY incident_count DESC;
 {{- end }}
