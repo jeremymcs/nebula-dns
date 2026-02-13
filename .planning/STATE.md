@@ -12,12 +12,12 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: 25 of 33 (Database Schema Migration)
-Plan: 2 of 2 in current phase
-Status: Complete
-Last activity: 2026-02-13 — Completed 25-02-PLAN.md (Environment-aware ClickHouse schema)
+Phase: 26 of 33 (DNS Stack Deployment)
+Plan: 1 of 3 in current phase
+Status: In Progress
+Last activity: 2026-02-13 — Completed 26-01-PLAN.md (Managed Service Connections)
 
-Progress: [███████░░░] 24/33 phases (73% — v1-v1.2 shipped, v1.3 in progress)
+Progress: [███████░░░] 25/33 phases (76% — v1-v1.2 shipped, v1.3 in progress)
 
 ## Performance Metrics
 
@@ -31,7 +31,7 @@ Progress: [███████░░░] 24/33 phases (73% — v1-v1.2 shipped
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 6 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema)
+- Completed: 7 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections)
 
 ## Milestones Shipped
 
@@ -95,6 +95,11 @@ Recent decisions affecting v1.3:
 - **Environment-aware engine selection via Helm values:** ClickHouse Cloud requires plain MergeTree (managed replication), self-hosted requires ReplicatedMergeTree for HA
 - **HTTPS for ClickHouse Cloud, HTTP for self-hosted:** Cloud requires HTTPS on port 8443, self-hosted uses HTTP on port 8123
 
+**Phase 26-01 (Managed Service Connections):**
+- **Use redis.ParseURL for TLS-aware connections:** Supports both dev (redis://) and prod (rediss://) URLs without code changes, automatically enables TLS for rediss:// scheme
+- **TLS 1.2+ enforcement for managed Valkey:** Explicit MinVersion setting ensures compliance with DigitalOcean's security requirements
+- **Complete ClickHouse Cloud env vars in K8s:** Added CLICKHOUSE_DATABASE, CLICKHOUSE_USER, CLICKHOUSE_PASSWORD to deployment manifest (code already read them, manifest was missing mappings)
+
 Full decision log in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -111,7 +116,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-13
-Stopped at: Completed 25-02-PLAN.md (Environment-aware ClickHouse schema) - Phase 25 complete
+Stopped at: Completed 26-01-PLAN.md (Managed Service Connections)
 Resume file: None
 
 ---
