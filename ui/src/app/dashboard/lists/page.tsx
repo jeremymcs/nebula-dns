@@ -9,7 +9,7 @@
 
 import { useState } from 'react'
 import { useLists, useListEntries } from '@/hooks/useApi'
-import { api } from '@/lib/api'
+import { api, API_URL } from '@/lib/api'
 import { useToast } from '@/components/Toast'
 import {
   PlusIcon,
@@ -116,7 +116,7 @@ export default function ListsPage() {
 
       if (editingList) {
         const token = localStorage.getItem('token')
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/lists/${editingList.id}`, {
+        await fetch(`${API_URL}/lists/${editingList.id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -147,7 +147,7 @@ export default function ListsPage() {
 
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/lists/${list.id}`, {
+      const res = await fetch(`${API_URL}/lists/${list.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -179,7 +179,7 @@ export default function ListsPage() {
 
     try {
       const token = localStorage.getItem('token')
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/lists/${selectedList.id}/entries/${entryId}`, {
+      await fetch(`${API_URL}/lists/${selectedList.id}/entries/${entryId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })

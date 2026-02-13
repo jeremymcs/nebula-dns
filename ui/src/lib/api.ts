@@ -1,4 +1,7 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+// Runtime configuration - prefers runtime env vars over build-time NEXT_PUBLIC_ vars
+export const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4010'
+export const APP_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:4011'
+export const ADMIN_UI_URL = process.env.ADMIN_UI_URL || process.env.NEXT_PUBLIC_ADMIN_UI_URL || 'http://localhost:4012'
 
 interface RequestOptions extends RequestInit {
   token?: string
@@ -780,6 +783,113 @@ export const api = {
 
   removeDeviceFromMember: (memberId: string, deviceId: string) =>
     request<{ data: any }>(`/family/members/${memberId}/devices/${deviceId}`, { method: 'DELETE' }),
+
+  // Family Invitations (US-030, US-031)
+  getFamilyOverview: () =>
+    request<{
+      data: {
+        members: any[];
+        pendingInvitations: any[];
+        totalMembers: number;
+        maxMembers: number;
+        remainingSlots: number;
+      };
+    }>('/family/overview'),
+
+  getFamilyUsers: () =>
+    request<{ data: any[]; total: number }>('/family/users'),
+
+  getFamilyInvitations: () =>
+    request<{ data: any[]; total: number }>('/family/invitations'),
+
+  createFamilyInvitation: (data: { email: string; displayName?: string }) =>
+    request<{ data: any; sent: boolean }>('/family/invitations', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  cancelFamilyInvitation: (id: string) =>
+    request<{ message: string }>(`/family/invitations/${id}`, { method: 'DELETE' }),
+
+  resendFamilyInvitation: (id: string) =>
+    request<{ sent: boolean }>(`/family/invitations/${id}/resend`, { method: 'POST' }),
+
+  removeFamilyMember: (id: string) =>
+    request<{ message: string }>(`/family/users/${id}`, { method: 'DELETE' }),
+
+  // Public family invitation endpoints (no auth required)
+  getFamilyInvitationInfo: (token: string) =>
+    request<{
+      data: {
+        tenantName: string;
+        email: string;
+        displayName: string | null;
+        invitedByName: string;
+        expiresAt: string;
+        isExpired: boolean;
+      };
+    }>(`/family/invitations/info/${token}`),
+
+  acceptFamilyInvitation: (data: { token: string; name: string; password: string }) =>
+    request<{ message: string; tenantName: string }>('/family/invitations/accept', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  // Trials (US-032, US-033)
+  getTrialStatus: () =>
+    request<{
+      data: {
+        hasActiveTrial: boolean;
+        trialTier?: 'home' | 'enterprise' | 'msp';
+        originalTier?: 'home' | 'enterprise' | 'msp';
+        startedAt?: string;
+        endsAt?: string;
+        daysRemaining?: number;
+        status?: 'active' | 'converted' | 'expired' | 'cancelled';
+        availableTrials?: ('home' | 'enterprise' | 'msp')[];
+      };
+    }>('/trials/status'),
+
+  startTrial: (tier: 'home' | 'enterprise' | 'msp', billingCycle?: 'monthly' | 'yearly') =>
+    request<{
+      success: boolean;
+      trialTier: 'home' | 'enterprise' | 'msp';
+      endsAt: string;
+      trialDays: number;
+      message?: string;
+    }>('/trials/start', {
+      method: 'POST',
+      body: JSON.stringify({ tier, billingCycle }),
+    }),
+
+  convertTrial: (billingCycle?: 'monthly' | 'yearly') =>
+    request<{
+      success: boolean;
+      checkoutUrl?: string;
+      sessionId?: string;
+      message?: string;
+    }>('/trials/convert', {
+      method: 'POST',
+      body: JSON.stringify({ billingCycle }),
+    }),
+
+  cancelTrial: () =>
+    request<{ success: boolean; message: string }>('/trials/cancel', { method: 'DELETE' }),
+
+  getTrialHistory: () =>
+    request<{
+      data: Array<{
+        id: string;
+        trialTier: 'home' | 'enterprise' | 'msp';
+        originalTier: 'home' | 'enterprise' | 'msp';
+        startedAt: string;
+        endsAt: string;
+        status: 'active' | 'converted' | 'expired' | 'cancelled';
+        endedAt?: string | null;
+        convertedAt?: string | null;
+      }>;
+    }>('/trials/history'),
 }
 
 export { ApiError }

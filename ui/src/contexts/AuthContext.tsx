@@ -10,6 +10,9 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { logger } from '@/lib/logger'
+import { API_URL } from '@/lib/api'
+
+export type TenantTier = 'home' | 'enterprise' | 'msp'
 
 interface User {
   id: string
@@ -18,6 +21,7 @@ interface User {
   role: 'owner' | 'admin' | 'analyst' | 'readonly'
   tenantId: string
   tenantName?: string
+  tenantTier?: TenantTier
   mfaEnabled?: boolean
 }
 
@@ -54,6 +58,11 @@ interface AuthContextType {
   logout: () => void
   refreshTokens: () => Promise<void>
   isAuthenticated: boolean
+  // Tier-based access
+  tier: TenantTier | undefined
+  isHome: boolean
+  isEnterprise: boolean
+  isMspTier: boolean
   // MSP functionality
   mspInfo: MspInfo | null
   isMsp: boolean
@@ -64,8 +73,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
 
 // Public paths that don't require authentication
 const publicPaths = ['/', '/signup', '/landing', '/pricing', '/invite/accept']
@@ -301,6 +308,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const currentOrg = mspInfo?.currentOrg ?? null
   const organizations = mspInfo?.organizations ?? []
 
+  // Compute tier convenience values
+  const tier = user?.tenantTier
+  const isHome = tier === 'home'
+  const isEnterprise = tier === 'enterprise'
+  const isMspTier = tier === 'msp'
+
   return (
     <AuthContext.Provider
       value={{
@@ -311,6 +324,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         refreshTokens,
         isAuthenticated: !!user,
+        // Tier-based access
+        tier,
+        isHome,
+        isEnterprise,
+        isMspTier,
         // MSP functionality
         mspInfo,
         isMsp,

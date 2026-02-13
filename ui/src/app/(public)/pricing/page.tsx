@@ -8,6 +8,7 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/solid'
+import { API_URL } from '@/lib/api'
 
 interface Plan {
   id: string
@@ -136,7 +137,7 @@ export default function PricingPage() {
     // Fetch plans from API
     async function fetchPlans() {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/plans`)
+        const res = await fetch(`${API_URL}/plans`)
         if (res.ok) {
           const data = await res.json()
           if (data.data && data.data.length > 0) {

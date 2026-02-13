@@ -9,7 +9,7 @@
 
 import { useState, useMemo } from 'react'
 import { useUsers, useInvitations } from '@/hooks/useApi'
-import { api } from '@/lib/api'
+import { api, API_URL } from '@/lib/api'
 import { useToast } from '@/components/Toast'
 import { useAuth } from '@/contexts/AuthContext'
 import {
@@ -170,7 +170,7 @@ export default function UsersPage() {
     setSaving(true)
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${editingUser.id}`, {
+      const res = await fetch(`${API_URL}/users/${editingUser.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -214,7 +214,7 @@ export default function UsersPage() {
 
     try {
       const token = localStorage.getItem('token')
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${user.id}`, {
+      await fetch(`${API_URL}/users/${user.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })

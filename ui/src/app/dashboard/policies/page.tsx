@@ -10,7 +10,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { usePolicies } from '@/hooks/useApi'
-import { api } from '@/lib/api'
+import { api, API_URL } from '@/lib/api'
 import { useToast } from '@/components/Toast'
 import { Button, Card, Badge, Modal, Input, Textarea, Select, SEARCH_ENGINE_LOGOS } from '@/components/ui'
 import { PolicyTimeline, PolicyRollback, type PolicyVersion } from '@/components/policy-history'
@@ -416,7 +416,7 @@ export default function PoliciesPage() {
 
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/policies/${policy.id}`, {
+      const res = await fetch(`${API_URL}/policies/${policy.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
