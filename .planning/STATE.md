@@ -13,9 +13,9 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 27 of 33 (Control Plane Deployment)
-Plan: 3 of 3 in current phase
-Status: In Progress
-Last activity: 2026-02-13 — Completed 27-03: UI and Admin UI Helm deployments
+Plan: 4 of 4 in current phase
+Status: Complete
+Last activity: 2026-02-13 — Completed 27-04: Ingress, DNS automation, and production configuration
 
 Progress: [████████░░] 27/33 phases (82% — v1-v1.2 shipped, v1.3 in progress)
 
@@ -31,7 +31,7 @@ Progress: [████████░░] 27/33 phases (82% — v1-v1.2 shipped
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 12 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments)
+- Completed: 13 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration)
 
 ## Milestones Shipped
 
@@ -130,6 +130,13 @@ Recent decisions affecting v1.3:
 - **Service port 80 targeting container port 3000:** Standard HTTP port for clean Ingress routing. Container runs on 3000 (Next.js default), Service translates to port 80 for Ingress backends.
 - **Conditional Admin UI deployment via adminUi.enabled:** Some environments may not need Admin UI (e.g., edge clusters, tenant-only deployments). Default true, but can be disabled via values flag.
 
+**Phase 27-04 (Ingress, DNS Automation, and Production Configuration):**
+- **upsert-only policy for external-dns:** Safer than sync policy - never deletes existing DNS records. Prevents accidental record deletion during deployments, but requires manual cleanup of stale records.
+- **CORS allow origin for app and admin UI:** API needs to accept requests from both tenant UI (app.nebuladns.io) and admin UI (admin.nebuladns.io). Explicit origin list more secure than wildcard.
+- **Replace deprecated kubernetes.io/ingress.class annotation:** Kubernetes 1.18+ uses spec.ingressClassName field. Using deprecated annotation causes warnings and may break in future versions.
+- **Pre-provisioned secrets in production (secrets.create=false):** Production secrets created by Phase 24-04 scripts with proper encryption and key management. Helm-generated secrets for development/testing only.
+- **Helm service names use release-chart pattern:** API_URL uses nebula-dns-safedns-api pattern (release name + chart name + component). Matches Helm's default naming from _helpers.tpl.
+
 Full decision log in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -146,7 +153,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-13
-Stopped at: Completed 27-03-PLAN.md (UI and Admin UI Helm deployments)
+Stopped at: Completed 27-04-PLAN.md (Ingress, DNS automation, and production configuration)
 Resume file: None
 
 ---
