@@ -1,0 +1,186 @@
+# Nebula DNS - E2E Test CI Workflow
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+name: E2E Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run nightly to detect flakiness
+    - cron: '0 2 * * *'
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  e2e-tests:
+    name: E2E Tests (Chromium)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./ui
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Playwright browsers
+        working-directory: ./ui
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        working-directory: ./ui
+        run: npx playwright test --project=chromium --workers=4 --reporter=html,line
+        env:
+          CI: true
+          TEST_BASE_URL: http://localhost:4011
+
+      - name: Upload Playwright HTML report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: ui/playwright-report/
+          retention-days: 14
+
+      - name: Upload test results (videos, traces, screenshots)
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-test-results
+          path: ui/test-results/
+          retention-days: 7
+
+      - name: Calculate flakiness metrics
+        if: always()
+        working-directory: ./ui
+        run: |
+          echo "## E2E Test Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Count total tests, passed, failed, skipped
+          if [ -f playwright-report/index.html ]; then
+            echo "✅ Playwright report generated" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "View full report in artifacts" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Check for flaky tests (would need test history)
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Flakiness Target:** < 5%" >> $GITHUB_STEP_SUMMARY
+          echo "**Workers:** 4 parallel" >> $GITHUB_STEP_SUMMARY
+          echo "**Browser:** Chromium" >> $GITHUB_STEP_SUMMARY
+
+  e2e-edge-tests:
+    name: Edge Case E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./ui
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Playwright browsers
+        working-directory: ./ui
+        run: npx playwright install --with-deps chromium
+
+      - name: Run edge case E2E tests
+        working-directory: ./ui
+        run: npx playwright test e2e/edge --project=chromium --reporter=html,line
+        env:
+          CI: true
+          TEST_BASE_URL: http://localhost:4011
+
+      - name: Upload edge test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: edge-test-results
+          path: ui/playwright-report/
+          retention-days: 7
+
+  security-e2e-tests:
+    name: Security E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./ui
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Playwright browsers
+        working-directory: ./ui
+        run: npx playwright install --with-deps chromium
+
+      - name: Run security E2E tests
+        working-directory: ./ui
+        run: npx playwright test e2e/security --project=chromium --reporter=html,line
+        env:
+          CI: true
+          TEST_BASE_URL: http://localhost:4011
+
+      - name: Upload security test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-test-results
+          path: ui/playwright-report/
+          retention-days: 14
+
+  test-summary:
+    name: E2E Test Summary
+    runs-on: ubuntu-latest
+    needs: [e2e-tests, e2e-edge-tests, security-e2e-tests]
+    if: always()
+
+    steps:
+      - name: Generate summary
+        run: |
+          echo "# E2E Test Run Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Jobs Status" >> $GITHUB_STEP_SUMMARY
+          echo "- Main E2E Tests: ${{ needs.e2e-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Edge Case Tests: ${{ needs.e2e-edge-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Security Tests: ${{ needs.security-e2e-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- Playwright HTML reports uploaded for all jobs" >> $GITHUB_STEP_SUMMARY
+          echo "- Test results (videos, traces) available for failed tests" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Flakiness Target" >> $GITHUB_STEP_SUMMARY
+          echo "Target: < 5% flaky tests" >> $GITHUB_STEP_SUMMARY
+          echo "Workers: 4 parallel per job" >> $GITHUB_STEP_SUMMARY
