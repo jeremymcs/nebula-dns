@@ -1,6 +1,19 @@
+// Nebula DNS - Policy Service Models
+// Data structures for DNS policy evaluation (US-029 adds subscription status)
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 package models
 
 import "time"
+
+// SubscriptionStatus represents the billing status of a tenant
+type SubscriptionStatus string
+
+const (
+	SubscriptionActive    SubscriptionStatus = "active"
+	SubscriptionGrace     SubscriptionStatus = "grace"
+	SubscriptionSuspended SubscriptionStatus = "suspended"
+)
 
 // TokenInfo contains validated token information
 type TokenInfo struct {

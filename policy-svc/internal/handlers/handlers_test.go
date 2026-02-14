@@ -15,8 +15,8 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/nebuladns/policy-svc/internal/models"
+	"github.com/nebuladns/policy-svc/internal/policy"
 )
-
 
 func TestHandlers_Health(t *testing.T) {
 	logger := zap.NewNop()
@@ -40,6 +40,71 @@ func TestHandlers_Health(t *testing.T) {
 
 	if response["timestamp"] == nil {
 		t.Error("Expected timestamp in response")
+	}
+}
+
+func TestHandlers_Live(t *testing.T) {
+	logger := zap.NewNop()
+	handlers := NewHandlers(nil, nil, nil, nil, logger)
+
+	req := httptest.NewRequest(http.MethodGet, "/live", nil)
+	w := httptest.NewRecorder()
+
+	handlers.Live(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+
+	var response map[string]interface{}
+	json.NewDecoder(w.Body).Decode(&response)
+
+	if response["alive"] != true {
+		t.Errorf("Expected alive=true, got %v", response["alive"])
+	}
+}
+
+func TestHandlers_Ready_PolicyServiceNil(t *testing.T) {
+	logger := zap.NewNop()
+	handlers := NewHandlers(nil, nil, nil, nil, logger)
+
+	req := httptest.NewRequest(http.MethodGet, "/ready", nil)
+	w := httptest.NewRecorder()
+
+	handlers.Ready(w, req)
+
+	if w.Code != http.StatusServiceUnavailable {
+		t.Errorf("Expected status 503, got %d", w.Code)
+	}
+
+	var response map[string]interface{}
+	json.NewDecoder(w.Body).Decode(&response)
+
+	if response["ready"] != false {
+		t.Errorf("Expected ready=false, got %v", response["ready"])
+	}
+}
+
+func TestHandlers_Ready_PolicyServiceExists(t *testing.T) {
+	logger := zap.NewNop()
+	// Create a mock policy service
+	policySvc := policy.NewService(nil, logger, nil, false)
+	handlers := NewHandlers(policySvc, nil, nil, nil, logger)
+
+	req := httptest.NewRequest(http.MethodGet, "/ready", nil)
+	w := httptest.NewRecorder()
+
+	handlers.Ready(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+
+	var response map[string]interface{}
+	json.NewDecoder(w.Body).Decode(&response)
+
+	if response["ready"] != true {
+		t.Errorf("Expected ready=true, got %v", response["ready"])
 	}
 }
 
@@ -178,7 +243,7 @@ func TestHashToken(t *testing.T) {
 	// SHA256("test-token") = 9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08
 	// Wait, that's for "test"... let me check actual value
 	result := hashToken("test-token")
-	
+
 	// Just verify it's consistent
 	result2 := hashToken("test-token")
 	if result != result2 {
@@ -191,4 +256,3 @@ func TestHashToken(t *testing.T) {
 		t.Error("Different inputs should produce different hashes")
 	}
 }
-
