@@ -9,11 +9,9 @@ import { RedisService, CacheInvalidationMessage } from './redis.service';
 /**
  * Redis Integration Tests
  *
- * These tests require a running Redis instance. You can start one using:
- * - Docker Compose: `docker-compose up -d redis`
- * - Standalone Docker: `docker run -d -p 6379:6379 redis:7-alpine`
- *
- * The tests will use database 15 (TEST_DB) to isolate from production data.
+ * Uses Redis container via Testcontainers (started in globalSetup).
+ * The REDIS_URL environment variable is set by the global setup.
+ * The tests use database 15 (TEST_DB) to isolate test data.
  */
 describe('Redis Integration Tests', () => {
   let redisService: RedisService;

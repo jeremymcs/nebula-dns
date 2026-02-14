@@ -20,8 +20,8 @@ import { RateLimitType } from './interfaces/rate-limit.interface';
  * - Fallback behavior when Redis is unavailable
  * - Response headers
  *
- * Note: These tests require a running Redis instance.
- * Skip with: npm run test:e2e -- --testPathIgnorePatterns=rate-limit.integration
+ * Uses Redis container via Testcontainers (started in globalSetup).
+ * The REDIS_URL environment variable is set by the global setup.
  */
 describe('RateLimitService Integration', () => {
   let module: TestingModule;
