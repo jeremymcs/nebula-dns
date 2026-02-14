@@ -113,11 +113,14 @@ Plans:
   3. Ephemeral test namespaces can be created in DOKS staging
   4. Test database reset scripts work in CI environment
   5. k6 is configured to run against DOKS staging endpoints
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 28-01: TBD
-- [ ] 28-02: TBD
+- [ ] 28-01-PLAN.md — Testcontainers setup with PostgreSQL, Redis, ClickHouse containers
+- [ ] 28-02-PLAN.md — Database reset scripts (PostgreSQL, Redis, ClickHouse)
+- [ ] 28-03-PLAN.md — Playwright configuration improvements and CI integration
+- [ ] 28-04-PLAN.md — Ephemeral test namespaces with RBAC and CronJob cleanup
+- [ ] 28-05-PLAN.md — k6 staging configuration and load test CI workflow
 
 #### Phase 29: API Test Suite
 **Goal**: API has comprehensive test coverage across unit, integration, and E2E layers
@@ -217,7 +220,7 @@ Phases execute in numeric order: 24 → 25 → 26 → 27 → 28 → 29 → 30 �
 | 25. Database Schema Migration | v1.3 | 2/2 | ✓ Complete | 2026-02-13 |
 | 26. DNS Stack Deployment | v1.3 | 3/3 | ✓ Complete | 2026-02-13 |
 | 27. Control Plane Deployment | v1.3 | 4/4 | ✓ Complete | 2026-02-13 |
-| 28. Test Infrastructure | v1.3 | 0/TBD | Not started | - |
+| 28. Test Infrastructure | v1.3 | 0/5 | Not started | - |
 | 29. API Test Suite | v1.3 | 0/TBD | Not started | - |
 | 30. UI Test Suite | v1.3 | 0/TBD | Not started | - |
 | 31. Load Testing & SLOs | v1.3 | 0/TBD | Not started | - |
