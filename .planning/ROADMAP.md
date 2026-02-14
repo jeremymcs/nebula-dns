@@ -133,12 +133,15 @@ Plans:
   4. Policy-svc has table-driven unit tests for policy evaluation
   5. Policy-svc integration tests validate Redis cache and ClickHouse logging
   6. All tests pass in CI environment
-**Plans**: TBD
+**Plans**: 6 plans in 3 waves
 
 Plans:
-- [ ] 29-01: TBD
-- [ ] 29-02: TBD
-- [ ] 29-03: TBD
+- [ ] 29-01-PLAN.md — Expand API unit tests for admin modules (>3 assertions)
+- [ ] 29-02-PLAN.md — Convert integration tests to Testcontainers
+- [ ] 29-03-PLAN.md — Expand E2E tests for critical endpoint flows
+- [ ] 29-04-PLAN.md — Table-driven unit tests for policy-svc
+- [ ] 29-05-PLAN.md — Policy-svc integration tests (Redis + ClickHouse)
+- [ ] 29-06-PLAN.md — CI configuration for all tests
 
 #### Phase 30: UI Test Suite
 **Goal**: UI has comprehensive E2E test coverage expanded from 20 to 60+ Playwright specs
