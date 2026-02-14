@@ -174,11 +174,14 @@ Plans:
   4. Prometheus alerting rules are configured for query success rate, policy eval latency, connection pool exhaustion
   5. Synthetic monitoring is deployed (external probe from multiple regions)
   6. Load test results document baseline performance metrics
-**Plans**: TBD
+**Plans**: 5 plans in 3 waves
 
 Plans:
-- [ ] 31-01: TBD
-- [ ] 31-02: TBD
+- [ ] 31-01-PLAN.md — k6 load test SLO alignment and CI workflow enhancements
+- [ ] 31-02-PLAN.md — Prometheus SLO burn rate alerting rules and connection pool alerts
+- [ ] 31-03-PLAN.md — Blackbox Exporter synthetic DNS monitoring deployment
+- [ ] 31-04-PLAN.md — Grafana SLO tracking dashboard
+- [ ] 31-05-PLAN.md — Load test baseline documentation and SLO runbook
 
 #### Phase 32: CI/CD Pipeline
 **Goal**: Automated pipeline builds, tests, and deploys to staging (auto) and production (manual)
