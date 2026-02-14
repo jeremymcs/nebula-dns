@@ -24,16 +24,24 @@ const (
 	DecisionRewrite = "REWRITE"
 )
 
+// CacheInterface defines the interface for policy cache operations
+type CacheInterface interface {
+	GetPolicy(ctx context.Context, locationID string) (*models.CompiledPolicy, error)
+	CheckThreatDomain(ctx context.Context, domain string) (string, bool)
+	GetDomainCategory(ctx context.Context, domain string) string
+	ValidateToken(ctx context.Context, tokenHash string) (*cache.TokenInfo, error)
+}
+
 // Service handles policy evaluation
 type Service struct {
-	cache      *cache.PolicyCache
+	cache      CacheInterface
 	logger     *zap.Logger
 	metrics    *metrics.Metrics
 	failClosed bool
 }
 
 // NewService creates a new policy service
-func NewService(cache *cache.PolicyCache, logger *zap.Logger, m *metrics.Metrics, failClosed bool) *Service {
+func NewService(cache CacheInterface, logger *zap.Logger, m *metrics.Metrics, failClosed bool) *Service {
 	return &Service{
 		cache:      cache,
 		logger:     logger,
@@ -197,7 +205,7 @@ func (s *Service) isThreatFeedEnabled(policy *models.CompiledPolicy, threatType 
 
 func (s *Service) findCategoryByParent(ctx context.Context, domain string) string {
 	parts := strings.Split(domain, ".")
-	
+
 	// Try progressively shorter parent domains
 	for i := 1; i < len(parts); i++ {
 		parentDomain := strings.Join(parts[i:], ".")
@@ -205,7 +213,7 @@ func (s *Service) findCategoryByParent(ctx context.Context, domain string) strin
 			return category
 		}
 	}
-	
+
 	return ""
 }
 
@@ -265,7 +273,7 @@ func (s *Service) failSafeResponse() *models.EvaluateResponse {
 			TTL:       30,
 		}
 	}
-	
+
 	return &models.EvaluateResponse{
 		Decision: DecisionAllow,
 		Reason:   "policy_error",
