@@ -6,6 +6,13 @@ import { ConfigService } from '@nestjs/config';
 import { ClickHouseService, QueryLog } from './clickhouse.service';
 import { createClient, ClickHouseClient } from '@clickhouse/client';
 
+/**
+ * ClickHouse Integration Tests
+ *
+ * Uses ClickHouse container via Testcontainers (started in globalSetup).
+ * The CLICKHOUSE_* environment variables are set by the global setup.
+ */
+
 describe('ClickHouse Integration Tests', () => {
   let service: ClickHouseService;
   let client: ClickHouseClient;
@@ -33,7 +40,14 @@ describe('ClickHouse Integration Tests', () => {
   });
 
   beforeAll(async () => {
-    // Create test module with real ClickHouse connection
+    // Use environment variables from Testcontainers global setup
+    const clickHouseHost = process.env.CLICKHOUSE_HOST || 'localhost';
+    const clickHousePort = parseInt(process.env.CLICKHOUSE_PORT || '8123', 10);
+    const clickHouseDatabase = process.env.CLICKHOUSE_DATABASE || 'nebula_dns';
+    const clickHouseUser = process.env.CLICKHOUSE_USER || 'nebula';
+    const clickHousePassword = process.env.CLICKHOUSE_PASSWORD || 'nebula';
+
+    // Create test module with ClickHouse connection from environment
     module = await Test.createTestingModule({
       providers: [
         ClickHouseService,
@@ -42,11 +56,11 @@ describe('ClickHouse Integration Tests', () => {
           useValue: {
             get: jest.fn((key: string, defaultValue?: any) => {
               const config: Record<string, any> = {
-                CLICKHOUSE_HOST: 'localhost',
-                CLICKHOUSE_PORT: 4123,
-                CLICKHOUSE_DATABASE: 'nebula_dns',
-                CLICKHOUSE_USER: 'nebula',
-                CLICKHOUSE_PASSWORD: 'nebula',
+                CLICKHOUSE_HOST: clickHouseHost,
+                CLICKHOUSE_PORT: clickHousePort,
+                CLICKHOUSE_DATABASE: clickHouseDatabase,
+                CLICKHOUSE_USER: clickHouseUser,
+                CLICKHOUSE_PASSWORD: clickHousePassword,
               };
               return config[key] ?? defaultValue;
             }),
@@ -57,12 +71,12 @@ describe('ClickHouse Integration Tests', () => {
 
     service = module.get<ClickHouseService>(ClickHouseService);
 
-    // Create a separate client for test setup/teardown
+    // Create a separate client for test setup/teardown using environment
     client = createClient({
-      host: 'http://localhost:4123',
-      username: 'nebula',
-      password: 'nebula',
-      database: 'nebula_dns',
+      host: `http://${clickHouseHost}:${clickHousePort}`,
+      username: clickHouseUser,
+      password: clickHousePassword,
+      database: clickHouseDatabase,
     });
 
     // Wait for service to initialize
