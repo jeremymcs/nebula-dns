@@ -154,13 +154,14 @@ Plans:
   4. Tier-based feature visibility is validated (home/enterprise/msp)
   5. Tests use API for data setup (not UI clicks)
   6. All Playwright tests pass with <5% flakiness rate
-**Plans**: 4 plans in 3 waves
+**Plans**: 5 plans (4 complete + 1 gap closure)
 
 Plans:
 - [x] 30-01-PLAN.md — Admin + MSP workflows (33 tests)
 - [x] 30-02-PLAN.md — Billing + Tier feature visibility (27 tests)
 - [x] 30-03-PLAN.md — Security + Advanced features (33 tests)
 - [x] 30-04-PLAN.md — Edge cases + CI integration (23 tests)
+- [ ] 30-05-PLAN.md — Flakiness metrics and CI threshold enforcement (gap closure)
 
 #### Phase 31: Load Testing & SLOs
 **Goal**: Performance baselines and SLOs are established from load testing against DOKS staging
