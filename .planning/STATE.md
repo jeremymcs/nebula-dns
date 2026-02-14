@@ -8,16 +8,16 @@
 See: .planning/PROJECT.md (updated 2026-02-11)
 
 **Core value:** Provide reliable, scalable DNS security filtering that blocks threats in real-time — backed by an ops dashboard for MSP management
-**Current focus:** v1.3 Production Readiness — Phase 29 API Test Suite (complete)
+**Current focus:** v1.3 Production Readiness — Phase 30 UI Test Suite (in progress)
 
 ## Current Position
 
-Phase: 29 of 33 (API Test Suite)
-Plan: 6 of 6 in current phase
-Status: Complete
-Last activity: 2026-02-14 — Completed 29-06: CI configuration for all tests
+Phase: 30 of 33 (UI Test Suite)
+Plan: 2 of 4 in current phase
+Status: In progress
+Last activity: 2026-02-14 — Completed 30-02: Billing + Tier E2E tests (100 tests)
 
-Progress: [█████████░] 29/33 phases (88% — v1-v1.2 shipped, v1.3 in progress)
+Progress: [██████████░] 30/33 phases (91% — v1-v1.2 shipped, v1.3 in progress)
 
 ## Performance Metrics
 
@@ -31,7 +31,7 @@ Progress: [█████████░] 29/33 phases (88% — v1-v1.2 shipped
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 19 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types)
+- Completed: 20 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-02: Billing + Tier E2E tests)
 
 ## Milestones Shipped
 

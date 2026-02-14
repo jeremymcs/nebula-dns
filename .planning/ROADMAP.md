@@ -157,10 +157,10 @@ Plans:
 **Plans**: 4 plans in 3 waves
 
 Plans:
-- [ ] 30-01-PLAN.md — Admin + MSP workflows (33 tests)
-- [ ] 30-02-PLAN.md — Billing + Tier feature visibility (27 tests)
-- [ ] 30-03-PLAN.md — Security + Advanced features (33 tests)
-- [ ] 30-04-PLAN.md — Edge cases + CI integration (23 tests)
+- [x] 30-01-PLAN.md — Admin + MSP workflows (33 tests)
+- [x] 30-02-PLAN.md — Billing + Tier feature visibility (27 tests)
+- [x] 30-03-PLAN.md — Security + Advanced features (33 tests)
+- [x] 30-04-PLAN.md — Edge cases + CI integration (23 tests)
 
 #### Phase 31: Load Testing & SLOs
 **Goal**: Performance baselines and SLOs are established from load testing against DOKS staging
@@ -227,7 +227,7 @@ Phases execute in numeric order: 24 → 25 → 26 → 27 → 28 → 29 → 30 �
 | 27. Control Plane Deployment | v1.3 | 4/4 | ✓ Complete | 2026-02-13 |
 | 28. Test Infrastructure | v1.3 | 5/5 | ✓ Complete | 2026-02-13 |
 | 29. API Test Suite | v1.3 | 6/6 | ✓ Complete | 2026-02-14 |
-| 30. UI Test Suite | v1.3 | 0/4 | Not started | - |
+| 30. UI Test Suite | v1.3 | 2/4 | In progress | - |
 | 31. Load Testing & SLOs | v1.3 | 0/TBD | Not started | - |
 | 32. CI/CD Pipeline | v1.3 | 0/TBD | Not started | - |
 | 33. Operational Readiness | v1.3 | 0/TBD | Not started | - |
