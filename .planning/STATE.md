@@ -8,14 +8,14 @@
 See: .planning/PROJECT.md (updated 2026-02-11)
 
 **Core value:** Provide reliable, scalable DNS security filtering that blocks threats in real-time — backed by an ops dashboard for MSP management
-**Current focus:** v1.3 Production Readiness — Phase 27 Control Plane Deployment (complete)
+**Current focus:** v1.3 Production Readiness — Phase 29 API Test Suite (complete)
 
 ## Current Position
 
 Phase: 29 of 33 (API Test Suite)
-Plan: 5 of 6 in current phase
-Status: In progress
-Last activity: 2026-02-14 — Completed 29-06: CI pipeline configuration with all test types
+Plan: 6 of 6 in current phase
+Status: Complete
+Last activity: 2026-02-14 — Completed 29-06: CI configuration for all tests
 
 Progress: [█████████░] 29/33 phases (88% — v1-v1.2 shipped, v1.3 in progress)
 
