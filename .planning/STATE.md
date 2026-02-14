@@ -13,9 +13,9 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 30 of 33 (UI Test Suite)
-Plan: 4 of 4 in current phase
+Plan: 5 of 5 in current phase
 Status: Complete
-Last activity: 2026-02-14 — Completed 30-04: Edge Cases and Error Handling E2E + CI Integration (23 tests)
+Last activity: 2026-02-14 — Completed 30-05: Flakiness Detection and Threshold Enforcement (automated detection, metrics, and <5% threshold gate)
 
 Progress: [██████████░] 30/33 phases (91% — v1-v1.2 shipped, v1.3 in progress)
 
@@ -31,7 +31,7 @@ Progress: [██████████░] 30/33 phases (91% — v1-v1.2 ship
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 22 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration)
+- Completed: 23 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration, 30-05: Flakiness Detection and Threshold Enforcement)
 
 ## Milestones Shipped
 
@@ -148,6 +148,12 @@ Recent decisions affecting v1.3:
 - **Separate CI jobs for test categories:** Dedicated jobs for main E2E, edge cases, and security tests allow faster feedback and easier debugging. Parallel execution reduces total CI time to ~10-15 minutes.
 - **Defensive pattern for auth redirects:** Tests using `page.goto()` with mocked routes can interfere with authentication. Switched to defensive URL assertions (`not.toContain('/login')`) and conditional route mocking to handle auth gracefully.
 
+**Phase 30-05 (Flakiness Detection and Threshold Enforcement):**
+- **JSON reporter preferred over JUnit XML:** Playwright JSON has explicit retry status, easier to parse for flakiness detection than JUnit's duplicate test case entries
+- **5% flakiness threshold as CI gate:** Industry standard for acceptable test flakiness, balances reliability with pragmatism
+- **Per-job flakiness reporting:** Each test job (main, edge, security) gets independent flakiness metrics in GitHub step summary
+- **Fail-fast threshold enforcement:** Script exits with code 1 if >5% flakiness, failing the CI job to prevent merging
+
 Full decision log in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -164,7 +170,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Completed 30-04-PLAN.md - Edge Cases and Error Handling E2E + CI Integration (23 tests covering network errors, rate limiting, form validation, concurrency, navigation, pagination + dedicated E2E CI workflow)
+Stopped at: Completed 30-05-PLAN.md - Flakiness Detection and Threshold Enforcement (automated detection, metrics, and <5% threshold gate)
 Resume file: None
 
 ---
