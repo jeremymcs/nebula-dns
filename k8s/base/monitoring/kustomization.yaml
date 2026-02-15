@@ -13,3 +13,9 @@ configMapGenerator:
     options:
       labels:
         grafana_dashboard: "1"
+  - name: grafana-dashboard-slo
+    files:
+      - grafana-slo-dashboard.json
+    options:
+      labels:
+        grafana_dashboard: "1"
