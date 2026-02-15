@@ -12,12 +12,12 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: 30 of 33 (UI Test Suite)
-Plan: 5 of 5 in current phase
-Status: Complete
-Last activity: 2026-02-14 — Completed 30-05: Flakiness Detection and Threshold Enforcement (automated detection, metrics, and <5% threshold gate)
+Phase: 31 of 33 (Load Testing & SLOs)
+Plan: 2 of 5 in current phase
+Status: In Progress
+Last activity: 2026-02-15 — Completed 31-02: SLO Burn Rate Alerting Rules (multi-window burn rate alerts for DNS/API availability and latency)
 
-Progress: [██████████░] 30/33 phases (91% — v1-v1.2 shipped, v1.3 in progress)
+Progress: [██████████░] 31/33 phases (94% — v1-v1.2 shipped, v1.3 in progress)
 
 ## Performance Metrics
 
@@ -31,7 +31,7 @@ Progress: [██████████░] 30/33 phases (91% — v1-v1.2 ship
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 23 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration, 30-05: Flakiness Detection and Threshold Enforcement)
+- Completed: 24 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration, 30-05: Flakiness Detection and Threshold Enforcement, 31-02: SLO burn rate alerting rules)
 
 ## Milestones Shipped
 
@@ -154,6 +154,12 @@ Recent decisions affecting v1.3:
 - **Per-job flakiness reporting:** Each test job (main, edge, security) gets independent flakiness metrics in GitHub step summary
 - **Fail-fast threshold enforcement:** Script exits with code 1 if >5% flakiness, failing the CI job to prevent merging
 
+**Phase 31-02 (SLO Burn Rate Alerting Rules):**
+- **Multi-window burn rate pattern (1h+5m fast, 6h+30m slow):** Google SRE Workbook pattern reduces false positives while maintaining fast incident detection. Both windows must exceed threshold to alert.
+- **99.9% availability SLO with error budget burn rates:** 0.1% error budget = 43.8 min/month. Fast burn 14.4x (exhausts in ~2 days) triggers critical, slow burn 6x (exhausts in ~5 days) triggers warning.
+- **Connection pool thresholds:** PostgreSQL >90% (critical), Redis >80% (warning). PostgreSQL more aggressive due to slower connection setup and higher query queueing impact.
+- **APIHighLatency downgraded to info at 500ms:** SLO burn rate alerts now handle paging. Simple threshold useful for debugging but shouldn't wake on-call. Lowered threshold for earlier signal.
+
 Full decision log in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -169,10 +175,10 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-14
-Stopped at: Completed 30-05-PLAN.md - Flakiness Detection and Threshold Enforcement (automated detection, metrics, and <5% threshold gate)
+Last session: 2026-02-15
+Stopped at: Completed 31-02-PLAN.md - SLO Burn Rate Alerting Rules (multi-window burn rate alerts for DNS/API availability and latency)
 Resume file: None
 
 ---
 
-*Last updated: 2026-02-14*
+*Last updated: 2026-02-15*
