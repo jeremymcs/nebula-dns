@@ -194,11 +194,12 @@ Plans:
   4. Pipeline deploys to staging automatically on main branch push
   5. Pipeline deploys to production via manual approval
   6. Failed deployments trigger rollback automatically
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 32-01: TBD
-- [ ] 32-02: TBD
+- [ ] 32-01-PLAN.md — Reusable Docker build-push workflow + staging Helm values
+- [ ] 32-02-PLAN.md — Main deployment workflow (test gates, 6-service builds, staging/production deploy)
+- [ ] 32-03-PLAN.md — DOCR cleanup, security-scan reuse, pipeline documentation, environment verification
 
 #### Phase 33: Operational Readiness
 **Goal**: Platform is production-ready with health checks, monitoring, runbooks, and backup verification
