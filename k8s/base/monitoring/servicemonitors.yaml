@@ -54,3 +54,56 @@ spec:
       path: /metrics
       interval: 15s
       scrapeTimeout: 10s
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: blackbox-dns-probes
+  namespace: nebula-dns
+  labels:
+    app: blackbox-exporter
+spec:
+  jobLabel: blackbox-dns
+  selector:
+    matchLabels:
+      app: blackbox-exporter
+  endpoints:
+    # DNS UDP probe
+    - port: http
+      interval: 30s
+      scrapeTimeout: 10s
+      path: /probe
+      params:
+        module: ["dns_udp"]
+        target: ["dns1.staging.nebuladns.io"]
+      metricRelabelings:
+        - sourceLabels: [__name__]
+          regex: 'probe_(success|duration_seconds|dns_lookup_time_seconds)'
+          action: keep
+      relabelings:
+        - sourceLabels: [__param_target]
+          targetLabel: instance
+        - targetLabel: __address__
+          replacement: blackbox-exporter:9115
+        - targetLabel: probe_type
+          replacement: dns_udp
+    # DoH probe
+    - port: http
+      interval: 30s
+      scrapeTimeout: 10s
+      path: /probe
+      params:
+        module: ["doh_https"]
+        target: ["doh.staging.nebuladns.io"]
+      metricRelabelings:
+        - sourceLabels: [__name__]
+          regex: 'probe_(success|duration_seconds|dns_lookup_time_seconds)'
+          action: keep
+      relabelings:
+        - sourceLabels: [__param_target]
+          targetLabel: instance
+        - targetLabel: __address__
+          replacement: blackbox-exporter:9115
+        - targetLabel: probe_type
+          replacement: doh_https
