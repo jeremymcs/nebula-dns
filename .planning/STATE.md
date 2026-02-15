@@ -12,12 +12,12 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: 31 of 33 (Load Testing & SLOs)
-Plan: 5 of 5 in current phase
-Status: Completed
-Last activity: 2026-02-15 — Completed 31-05: Load Test Baseline and SLO Runbook (documented baseline performance metrics with TBD staging values, SLO definitions with 99.9% availability targets, multi-window burn rate alert procedures, and error budget policy)
+Phase: 32 of 33 (CI/CD Pipeline)
+Plan: 1 of 3 in current phase
+Status: In Progress
+Last activity: 2026-02-15 — Completed 32-01: Docker Build and Staging Values (reusable Docker build-push workflow with DOCR authentication and staging Helm values for cost-optimized deployments)
 
-Progress: [██████████░] 31/33 phases (94% — v1-v1.2 shipped, v1.3 in progress)
+Progress: [██████████░] 32/33 phases (97% — v1-v1.2 shipped, v1.3 in progress)
 
 ## Performance Metrics
 
@@ -31,7 +31,7 @@ Progress: [██████████░] 31/33 phases (94% — v1-v1.2 ship
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 28 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration, 30-05: Flakiness Detection and Threshold Enforcement, 31-01: SLO-aligned load test configuration, 31-02: SLO burn rate alerting rules, 31-03: Blackbox Exporter deployment, 31-04: SLO tracking dashboard, 31-05: Load test baseline and SLO runbook)
+- Completed: 29 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration, 30-05: Flakiness Detection and Threshold Enforcement, 31-01: SLO-aligned load test configuration, 31-02: SLO burn rate alerting rules, 31-03: Blackbox Exporter deployment, 31-04: SLO tracking dashboard, 31-05: Load test baseline and SLO runbook, 32-01: Docker build and staging values)
 
 ## Milestones Shipped
 
@@ -185,6 +185,12 @@ Full decision log in PROJECT.md Key Decisions table.
 - **Error budget policy at 50%/25%/0% thresholds:** Industry standard zones (Green >50%, Yellow 25-50%, Orange <25%, Red 0%) with specific actions. Clear policy for balancing features vs reliability.
 - **Feature freeze at <25% budget remaining:** Proactive approach preventing complete exhaustion. 25% = ~11 min remaining (tight but recoverable). Exit criteria (>25% + no alerts for 7 days) provides clear path back to green.
 
+**Phase 32-01 (Docker Build and Staging Values):**
+- **Service-scoped cache keys (type=gha,scope=${service}-build):** Prevents cache thrashing across 6 service builds. Without scoping, parallel builds invalidate each other's cache layers, increasing build times from ~2 min to ~10 min per service.
+- **1200s DOCR token expiry:** Balances security with build time. 20 minutes sufficient for Docker image push (typical 5-10 min for large images), while limiting token exposure window. Shorter expiry (300s) risks timeout during slow uploads.
+- **Staging single replicas and lower resources:** Single replicas (vs 2-3 in production) + reduced CPU/memory (50-500m CPU, 128-512Mi memory) cuts staging costs ~60%. No HA needed for testing environment.
+- **Let's Encrypt staging issuer in staging:** Avoids production rate limits (50 certs/week) during testing. Staging issuer has higher limits and doesn't count against production quota, enabling unlimited testing.
+
 ### Pending Todos
 
 None.
@@ -199,7 +205,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-15
-Stopped at: Completed 31-05-PLAN.md - Load Test Baseline and SLO Runbook (documented baseline performance metrics with TBD staging values, SLO definitions with 99.9% availability targets, multi-window burn rate alert procedures, and error budget policy). Phase 31 complete (all 5 plans executed).
+Stopped at: Completed 32-01-PLAN.md - Docker Build and Staging Values (reusable Docker build-push workflow with DOCR authentication and staging Helm values for cost-optimized deployments)
 Resume file: None
 
 ---
