@@ -1,4 +1,5 @@
 # Nebula DNS - Prometheus Alerting Rules
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 # Apply with: kubectl apply -f prometheus-rules.yaml
 # Requires Prometheus Operator
 
@@ -31,14 +32,14 @@ spec:
 
         - alert: APIHighLatency
           expr: |
-            histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job="api"}[5m])) by (le)) > 1
+            histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job="api"}[5m])) by (le)) > 0.5
           for: 5m
           labels:
-            severity: warning
+            severity: info
             service: api
           annotations:
             summary: "High API latency"
-            description: "API p95 latency is {{ $value | humanizeDuration }} (threshold: 1s)"
+            description: "API p95 latency is {{ $value | humanizeDuration }} (threshold: 500ms)"
 
         - alert: APIDown
           expr: up{job="api"} == 0
@@ -232,7 +233,7 @@ spec:
 
         - alert: HPAMaxedOut
           expr: |
-            kube_horizontalpodautoscaler_status_current_replicas{namespace="nebula-dns"} 
+            kube_horizontalpodautoscaler_status_current_replicas{namespace="nebula-dns"}
             == kube_horizontalpodautoscaler_spec_max_replicas{namespace="nebula-dns"}
           for: 15m
           labels:
@@ -240,3 +241,174 @@ spec:
           annotations:
             summary: "HPA at maximum replicas"
             description: "HPA {{ $labels.horizontalpodautoscaler }} is at max replicas"
+
+    # ============================================
+    # SLO Burn Rate Alerts - DNS/API Availability
+    # ============================================
+    # Multi-window burn rate pattern from Google SRE Workbook
+    # 99.9% SLO = 0.1% error budget = 43.8 minutes/month
+    # Fast burn: 14.4x rate exhausts budget in ~2 days
+    # Slow burn: 6x rate exhausts budget in ~5 days
+    - name: nebula-dns-slo-availability
+      rules:
+        - alert: DNSAvailabilitySLOFastBurn
+          expr: |
+            (
+              1 - (sum(rate(probe_success{job="blackbox-dns"}[1h])) / sum(rate(probe_success{job="blackbox-dns"}[1h])) + sum(rate(probe_failures_total{job="blackbox-dns"}[1h])))
+            ) > (14.4 * 0.001)
+            and
+            (
+              1 - (sum(rate(probe_success{job="blackbox-dns"}[5m])) / sum(rate(probe_success{job="blackbox-dns"}[5m])) + sum(rate(probe_failures_total{job="blackbox-dns"}[5m])))
+            ) > (14.4 * 0.001)
+          for: 2m
+          labels:
+            severity: critical
+            service: dns
+            slo: dns_availability
+          annotations:
+            summary: "DNS availability SLO fast burn"
+            description: "DNS error rate is burning through error budget at 14.4x rate. At this rate, the monthly budget will be exhausted in ~2 days. Current 1h error rate: {{ $value | humanizePercentage }}"
+
+        - alert: DNSAvailabilitySLOSlowBurn
+          expr: |
+            (
+              1 - (sum(rate(probe_success{job="blackbox-dns"}[6h])) / sum(rate(probe_success{job="blackbox-dns"}[6h])) + sum(rate(probe_failures_total{job="blackbox-dns"}[6h])))
+            ) > (6 * 0.001)
+            and
+            (
+              1 - (sum(rate(probe_success{job="blackbox-dns"}[30m])) / sum(rate(probe_success{job="blackbox-dns"}[30m])) + sum(rate(probe_failures_total{job="blackbox-dns"}[30m])))
+            ) > (6 * 0.001)
+          for: 15m
+          labels:
+            severity: warning
+            service: dns
+            slo: dns_availability
+          annotations:
+            summary: "DNS availability SLO slow burn"
+            description: "DNS error rate is burning through error budget at 6x rate. At this rate, the monthly budget will be exhausted in ~5 days. Current 6h error rate: {{ $value | humanizePercentage }}"
+
+        - alert: APIAvailabilitySLOFastBurn
+          expr: |
+            (
+              sum(rate(http_requests_total{job="api",status=~"5.."}[1h])) / sum(rate(http_requests_total{job="api"}[1h]))
+            ) > (14.4 * 0.001)
+            and
+            (
+              sum(rate(http_requests_total{job="api",status=~"5.."}[5m])) / sum(rate(http_requests_total{job="api"}[5m]))
+            ) > (14.4 * 0.001)
+          for: 2m
+          labels:
+            severity: critical
+            service: api
+            slo: api_availability
+          annotations:
+            summary: "API availability SLO fast burn"
+            description: "API 5xx error rate is burning through error budget at 14.4x rate. At this rate, the monthly budget will be exhausted in ~2 days. Current 1h error rate: {{ $value | humanizePercentage }}"
+
+        - alert: APIAvailabilitySLOSlowBurn
+          expr: |
+            (
+              sum(rate(http_requests_total{job="api",status=~"5.."}[6h])) / sum(rate(http_requests_total{job="api"}[6h]))
+            ) > (6 * 0.001)
+            and
+            (
+              sum(rate(http_requests_total{job="api",status=~"5.."}[30m])) / sum(rate(http_requests_total{job="api"}[30m]))
+            ) > (6 * 0.001)
+          for: 15m
+          labels:
+            severity: warning
+            service: api
+            slo: api_availability
+          annotations:
+            summary: "API availability SLO slow burn"
+            description: "API 5xx error rate is burning through error budget at 6x rate. At this rate, the monthly budget will be exhausted in ~5 days. Current 6h error rate: {{ $value | humanizePercentage }}"
+
+    # ============================================
+    # SLO Burn Rate Alerts - Latency
+    # ============================================
+    # API latency SLO: p95 < 200ms
+    # Policy eval latency SLO: p95 < 50ms
+    - name: nebula-dns-slo-latency
+      rules:
+        - alert: APILatencySLOFastBurn
+          expr: |
+            histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job="api"}[1h])) by (le)) > 0.2
+            and
+            histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job="api"}[5m])) by (le)) > 0.2
+          for: 2m
+          labels:
+            severity: critical
+            service: api
+            slo: api_latency
+          annotations:
+            summary: "API latency SLO fast burn"
+            description: "API p95 latency exceeds 200ms SLO in both 1h and 5m windows. Current 1h p95: {{ $value | humanizeDuration }}"
+
+        - alert: APILatencySLOSlowBurn
+          expr: |
+            histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job="api"}[6h])) by (le)) > 0.2
+            and
+            histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job="api"}[30m])) by (le)) > 0.2
+          for: 15m
+          labels:
+            severity: warning
+            service: api
+            slo: api_latency
+          annotations:
+            summary: "API latency SLO slow burn"
+            description: "API p95 latency exceeds 200ms SLO in both 6h and 30m windows. Current 6h p95: {{ $value | humanizeDuration }}"
+
+        - alert: PolicyEvalLatencySLOFastBurn
+          expr: |
+            histogram_quantile(0.95, sum(rate(policy_evaluation_duration_seconds_bucket{job="policy-svc"}[1h])) by (le)) > 0.05
+            and
+            histogram_quantile(0.95, sum(rate(policy_evaluation_duration_seconds_bucket{job="policy-svc"}[5m])) by (le)) > 0.05
+          for: 2m
+          labels:
+            severity: critical
+            service: policy-svc
+            slo: policy_latency
+          annotations:
+            summary: "Policy evaluation latency SLO fast burn"
+            description: "Policy evaluation p95 latency exceeds 50ms SLO in both 1h and 5m windows. Current 1h p95: {{ $value | humanizeDuration }}"
+
+        - alert: PolicyEvalLatencySLOSlowBurn
+          expr: |
+            histogram_quantile(0.95, sum(rate(policy_evaluation_duration_seconds_bucket{job="policy-svc"}[6h])) by (le)) > 0.05
+            and
+            histogram_quantile(0.95, sum(rate(policy_evaluation_duration_seconds_bucket{job="policy-svc"}[30m])) by (le)) > 0.05
+          for: 15m
+          labels:
+            severity: warning
+            service: policy-svc
+            slo: policy_latency
+          annotations:
+            summary: "Policy evaluation latency SLO slow burn"
+            description: "Policy evaluation p95 latency exceeds 50ms SLO in both 6h and 30m windows. Current 6h p95: {{ $value | humanizeDuration }}"
+
+    # ============================================
+    # Connection Pool Exhaustion Alerts
+    # ============================================
+    - name: nebula-dns-connection-pool
+      rules:
+        - alert: PostgresConnectionPoolExhaustion
+          expr: |
+            pg_stat_activity_count{job="postgres"} / pg_settings_max_connections{job="postgres"} > 0.9
+          for: 5m
+          labels:
+            severity: critical
+            service: postgres
+          annotations:
+            summary: "PostgreSQL connection pool exhaustion"
+            description: "PostgreSQL connection usage is {{ $value | humanizePercentage }} (threshold: 90%). Current connections: {{ $labels.pg_stat_activity_count }}, max: {{ $labels.pg_settings_max_connections }}"
+
+        - alert: RedisConnectionPoolExhaustion
+          expr: |
+            redis_connected_clients{job="redis"} / redis_config_maxclients{job="redis"} > 0.8
+          for: 5m
+          labels:
+            severity: warning
+            service: redis
+          annotations:
+            summary: "Redis connection pool exhaustion"
+            description: "Redis connection usage is {{ $value | humanizePercentage }} (threshold: 80%). Current clients: {{ $labels.redis_connected_clients }}, max: {{ $labels.redis_config_maxclients }}"
