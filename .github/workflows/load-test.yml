@@ -1,0 +1,161 @@
+# Nebula DNS - Load Test Workflow
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+#
+# Runs k6 load tests against DOKS staging endpoints
+
+name: Load Test
+
+on:
+  schedule:
+    - cron: '0 2 * * 1'  # Every Monday at 2 AM UTC
+  push:
+    paths:
+      - 'scripts/load-testing/**'
+      - '.github/workflows/load-test.yml'
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: 'Test scenario to run'
+        required: false
+        default: 'smoke'
+        type: choice
+        options:
+          - smoke
+          - load
+          - stress
+      target:
+        description: 'Target environment'
+        required: false
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - local
+
+env:
+  K6_VERSION: 'v0.54.0'
+
+jobs:
+  api-load-test:
+    name: API Load Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install k6
+        run: |
+          curl -L https://github.com/grafana/k6/releases/download/${{ env.K6_VERSION }}/k6-${{ env.K6_VERSION }}-linux-amd64.tar.gz | tar xvz
+          sudo mv k6-${{ env.K6_VERSION }}-linux-amd64/k6 /usr/local/bin/
+          k6 version
+
+      - name: Run API load test
+        run: |
+          k6 run \
+            --out json=api-results.json \
+            --tag testid=api-$(date +%s) \
+            scripts/load-testing/api-load-test.js
+        env:
+          API_URL: ${{ github.event.inputs.target == 'local' && 'http://localhost:4010' || secrets.STAGING_API_URL }}
+          TEST_EMAIL: ${{ secrets.STAGING_TEST_EMAIL }}
+          TEST_PASSWORD: ${{ secrets.STAGING_TEST_PASSWORD }}
+          K6_SCENARIO: ${{ github.event.inputs.scenario || (github.event_name == 'schedule' && 'load' || 'smoke') }}
+        continue-on-error: ${{ github.event_name == 'workflow_dispatch' }}
+
+      - name: Generate API test summary
+        if: always()
+        run: |
+          echo "## API Load Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f api-results.json ]; then
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            jq -r '
+              if .metrics.http_req_duration and .metrics.http_req_duration.values then
+                "HTTP Request Duration:\n  p50: " + (.metrics.http_req_duration.values["p(50)"] | tostring) + "ms\n  p95: " + (.metrics.http_req_duration.values["p(95)"] | tostring) + "ms\n  p99: " + (.metrics.http_req_duration.values["p(99)"] | tostring) + "ms"
+              else
+                "Metrics not available"
+              end
+            ' api-results.json >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "Could not parse results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            jq -r '
+              if .metrics.errors and .metrics.errors.values then
+                "Error Rate: " + ((.metrics.errors.values.rate * 100) | tostring) + "%"
+              else
+                ""
+              end
+            ' api-results.json >> $GITHUB_STEP_SUMMARY 2>/dev/null || true
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No results file found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload API results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-api-results-${{ github.run_id }}
+          path: api-results.json
+          retention-days: 30
+
+  dns-load-test:
+    name: DNS Load Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install k6
+        run: |
+          curl -L https://github.com/grafana/k6/releases/download/${{ env.K6_VERSION }}/k6-${{ env.K6_VERSION }}-linux-amd64.tar.gz | tar xvz
+          sudo mv k6-${{ env.K6_VERSION }}-linux-amd64/k6 /usr/local/bin/
+          k6 version
+
+      - name: Run DNS load test
+        run: |
+          k6 run \
+            --out json=dns-results.json \
+            --tag testid=dns-$(date +%s) \
+            scripts/load-testing/dns-load-test.js
+        env:
+          DOH_URL: ${{ github.event.inputs.target == 'local' && 'https://localhost:4443/dns-query' || secrets.STAGING_DOH_URL }}
+          DNS_SERVER: ${{ secrets.STAGING_DNS_SERVER }}
+          DNS_PORT: ${{ secrets.STAGING_DNS_PORT }}
+          K6_SCENARIO: ${{ github.event.inputs.scenario || (github.event_name == 'schedule' && 'sustained' || 'smoke') }}
+        continue-on-error: ${{ github.event_name == 'workflow_dispatch' }}
+
+      - name: Generate DNS test summary
+        if: always()
+        run: |
+          echo "## DNS Load Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f dns-results.json ]; then
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            jq -r '
+              if .metrics.dns_query_duration and .metrics.dns_query_duration.values then
+                "DNS Query Duration:\n  p50: " + (.metrics.dns_query_duration.values["p(50)"] | tostring) + "ms\n  p95: " + (.metrics.dns_query_duration.values["p(95)"] | tostring) + "ms\n  p99: " + (.metrics.dns_query_duration.values["p(99)"] | tostring) + "ms"
+              else
+                "Metrics not available"
+              end
+            ' dns-results.json >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "Could not parse results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            jq -r '
+              if .metrics.dns_errors and .metrics.dns_errors.values then
+                "Error Rate: " + ((.metrics.dns_errors.values.rate * 100) | tostring) + "%"
+              else
+                ""
+              end
+            ' dns-results.json >> $GITHUB_STEP_SUMMARY 2>/dev/null || true
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No results file found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload DNS results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-dns-results-${{ github.run_id }}
+          path: dns-results.json
+          retention-days: 30
