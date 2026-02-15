@@ -1,9 +1,10 @@
-/**
- * Nebula DNS - DNS Query Load Test Script
- * Tests the DNS resolution performance via DoH endpoint
- * 
- * Run with: k6 run dns-load-test.js
- */
+// Nebula DNS - DNS Query Load Test Script
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+//
+// Tests the DNS resolution performance via DoH endpoint
+//
+// Run with: k6 run dns-load-test.js
+// For staging: k6 run --env-file=k6-staging.env dns-load-test.js
 
 import http from 'k6/http';
 import { check, sleep } from 'k6';
@@ -17,8 +18,12 @@ const blockedQueries = new Counter('blocked_queries');
 const allowedQueries = new Counter('allowed_queries');
 
 // Configuration
-const DOH_URL = __ENV.DOH_URL || 'https://localhost:443/dns-query';
+const DOH_URL = __ENV.DOH_URL || 'https://localhost:4443/dns-query';
+const DNS_SERVER = __ENV.DNS_SERVER || 'localhost';
+const DNS_PORT = __ENV.DNS_PORT || '4853';
+const TEST_DOMAIN = __ENV.TEST_DOMAIN || 'example.com';
 const AUTH_TOKEN = __ENV.DNS_TOKEN || '';
+const SCENARIO = __ENV.K6_SCENARIO || 'smoke';
 
 // Test domains
 const TEST_DOMAINS = [
@@ -33,6 +38,9 @@ const TEST_DOMAINS = [
   'netflix.com',
   'twitter.com',
   'linkedin.com',
+  
+  // Configurable test domain
+  TEST_DOMAIN,
   
   // Potentially blocked (for testing)
   'malware-test.example.com',
@@ -74,33 +82,43 @@ function encodeDNSQuery(domain) {
   return encoding.b64encode(query, 'rawurl');
 }
 
+// Test scenario definitions
+const SCENARIOS = {
+  smoke: {
+    executor: 'constant-arrival-rate',
+    rate: 10,              // 10 requests per second
+    timeUnit: '1s',
+    duration: '30s',
+    preAllocatedVUs: 5,
+    maxVUs: 20,
+  },
+  sustained: {
+    executor: 'constant-arrival-rate',
+    rate: 1000,           // 1000 requests per second
+    timeUnit: '1s',
+    duration: '5m',
+    preAllocatedVUs: 100,
+    maxVUs: 500,
+  },
+  spike: {
+    executor: 'ramping-arrival-rate',
+    startRate: 100,
+    timeUnit: '1s',
+    stages: [
+      { duration: '1m', target: 100 },
+      { duration: '30s', target: 5000 },  // Spike to 5K QPS
+      { duration: '1m', target: 5000 },
+      { duration: '30s', target: 100 },
+      { duration: '1m', target: 100 },
+    ],
+    preAllocatedVUs: 200,
+    maxVUs: 1000,
+  },
+};
+
 export const options = {
   scenarios: {
-    // Sustained load test - target 10K QPS
-    sustained: {
-      executor: 'constant-arrival-rate',
-      rate: 1000,           // 1000 requests per second
-      timeUnit: '1s',
-      duration: '5m',
-      preAllocatedVUs: 100,
-      maxVUs: 500,
-    },
-    // Spike test
-    spike: {
-      executor: 'ramping-arrival-rate',
-      startRate: 100,
-      timeUnit: '1s',
-      stages: [
-        { duration: '1m', target: 100 },
-        { duration: '30s', target: 5000 },  // Spike to 5K QPS
-        { duration: '1m', target: 5000 },
-        { duration: '30s', target: 100 },
-        { duration: '1m', target: 100 },
-      ],
-      preAllocatedVUs: 200,
-      maxVUs: 1000,
-      startTime: '6m',
-    },
+    [SCENARIO]: SCENARIOS[SCENARIO] || SCENARIOS.smoke,
   },
   thresholds: {
     dns_query_duration: ['p(50)<50', 'p(95)<100', 'p(99)<200'],  // ms
