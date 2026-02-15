@@ -15,7 +15,7 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 Phase: 31 of 33 (Load Testing & SLOs)
 Plan: 2 of 5 in current phase
 Status: In Progress
-Last activity: 2026-02-15 — Completed 31-02: SLO Burn Rate Alerting Rules (multi-window burn rate alerts for DNS/API availability and latency)
+Last activity: 2026-02-15 — Completed 31-01: SLO-Aligned Load Test Configuration (updated k6 thresholds to p95<200ms, added CI scheduling and GitHub step summaries)
 
 Progress: [██████████░] 31/33 phases (94% — v1-v1.2 shipped, v1.3 in progress)
 
@@ -31,7 +31,7 @@ Progress: [██████████░] 31/33 phases (94% — v1-v1.2 ship
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 24 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration, 30-05: Flakiness Detection and Threshold Enforcement, 31-02: SLO burn rate alerting rules)
+- Completed: 24 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration, 30-05: Flakiness Detection and Threshold Enforcement, 31-01: SLO-aligned load test configuration)
 
 ## Milestones Shipped
 
@@ -154,6 +154,13 @@ Recent decisions affecting v1.3:
 - **Per-job flakiness reporting:** Each test job (main, edge, security) gets independent flakiness metrics in GitHub step summary
 - **Fail-fast threshold enforcement:** Script exits with code 1 if >5% flakiness, failing the CI job to prevent merging
 
+**Phase 31-01 (SLO-Aligned Load Test Configuration):**
+- **Updated API thresholds from p95<500ms to p95<200ms:** Previous thresholds were too lenient and didn't match documented SLO targets. SLO requires p95 API latency <200ms for production compliance.
+- **Changed error threshold from 1% to 0.1%:** 99.9% availability SLO requires error rate <0.1% (not <1%). Ensures load tests validate actual availability target.
+- **Dynamic scenario selection via K6_SCENARIO:** Avoids running full load tests on every push. Smoke for push triggers (30s), load/sustained for scheduled runs. Enables appropriate test depth per trigger type.
+- **GitHub Step Summaries for test results:** Test results previously required downloading artifacts. Step summaries provide immediate visibility in Actions UI with parsed metrics (p95, p99, error rate).
+- **Push trigger for load-testing scripts:** Validates script changes don't break functionality. Catches syntax errors and configuration issues early with smoke tests only for fast feedback.
+
 **Phase 31-02 (SLO Burn Rate Alerting Rules):**
 - **Multi-window burn rate pattern (1h+5m fast, 6h+30m slow):** Google SRE Workbook pattern reduces false positives while maintaining fast incident detection. Both windows must exceed threshold to alert.
 - **99.9% availability SLO with error budget burn rates:** 0.1% error budget = 43.8 min/month. Fast burn 14.4x (exhausts in ~2 days) triggers critical, slow burn 6x (exhausts in ~5 days) triggers warning.
@@ -176,7 +183,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-15
-Stopped at: Completed 31-02-PLAN.md - SLO Burn Rate Alerting Rules (multi-window burn rate alerts for DNS/API availability and latency)
+Stopped at: Completed 31-01-PLAN.md - SLO-Aligned Load Test Configuration (updated k6 thresholds to p95<200ms, added CI scheduling and GitHub step summaries)
 Resume file: None
 
 ---
