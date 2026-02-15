@@ -13,9 +13,9 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 32 of 33 (CI/CD Pipeline)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In Progress
-Last activity: 2026-02-15 — Completed 32-01: Docker Build and Staging Values (reusable Docker build-push workflow with DOCR authentication and staging Helm values for cost-optimized deployments)
+Last activity: 2026-02-15 — Completed 32-02: Build and Deploy to Staging (main deployment pipeline orchestrating test gates, parallel builds for all 6 services, automatic staging deployment, and manual-approval production deployment)
 
 Progress: [██████████░] 32/33 phases (97% — v1-v1.2 shipped, v1.3 in progress)
 
@@ -31,7 +31,7 @@ Progress: [██████████░] 32/33 phases (97% — v1-v1.2 ship
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 29 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration, 30-05: Flakiness Detection and Threshold Enforcement, 31-01: SLO-aligned load test configuration, 31-02: SLO burn rate alerting rules, 31-03: Blackbox Exporter deployment, 31-04: SLO tracking dashboard, 31-05: Load test baseline and SLO runbook, 32-01: Docker build and staging values)
+- Completed: 30 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration, 30-05: Flakiness Detection and Threshold Enforcement, 31-01: SLO-aligned load test configuration, 31-02: SLO burn rate alerting rules, 31-03: Blackbox Exporter deployment, 31-04: SLO tracking dashboard, 31-05: Load test baseline and SLO runbook, 32-01: Docker build and staging values, 32-02: Build and deploy to staging)
 
 ## Milestones Shipped
 
@@ -191,6 +191,15 @@ Full decision log in PROJECT.md Key Decisions table.
 - **Staging single replicas and lower resources:** Single replicas (vs 2-3 in production) + reduced CPU/memory (50-500m CPU, 128-512Mi memory) cuts staging costs ~60%. No HA needed for testing environment.
 - **Let's Encrypt staging issuer in staging:** Avoids production rate limits (50 certs/week) during testing. Staging issuer has higher limits and doesn't count against production quota, enabling unlimited testing.
 
+**Phase 32-02 (Build and Deploy to Staging):**
+- **Test gates (ci.yml + security-scan.yml) run before all builds:** Prevents wasting DOCR bandwidth and build time on broken code. Tests run in parallel (~8-12 min), skippable via workflow_dispatch for emergencies.
+- **6 parallel build jobs after test gates:** Reduces build phase from ~12 min (sequential) to ~2 min (parallel). Each service uses dedicated cache scope to prevent thrashing.
+- **Staging deploys automatically after builds, production requires manual approval:** Enables rapid iteration on staging while protecting production from accidental deployments. GitHub Environment protection enforces approval.
+- **Both staging (10m) and production (15m) use --atomic flag:** Automatically rolls back failed deployments to last known-good state. Prevents manual cleanup and reduces downtime.
+- **Production timeout 15m vs staging 10m:** Accounts for higher replica counts (2-10 pods vs 1) and autoscaling stabilization. Prevents premature timeout failures.
+- **kubectl rollout status verifies deployment health:** Confirms all pods are ready before marking job complete. Catches issues like ImagePullBackOff or CrashLoopBackOff.
+- **--history-max 10 limits Helm release history:** Prevents etcd bloat from unlimited history growth. 10 releases provides sufficient rollback window (~2-4 weeks at typical deployment frequency).
+
 ### Pending Todos
 
 None.
@@ -205,7 +214,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-15
-Stopped at: Completed 32-01-PLAN.md - Docker Build and Staging Values (reusable Docker build-push workflow with DOCR authentication and staging Helm values for cost-optimized deployments)
+Stopped at: Completed 32-02-PLAN.md - Build and Deploy to Staging (main deployment pipeline orchestrating test gates, parallel builds for all 6 services, automatic staging deployment, and manual-approval production deployment)
 Resume file: None
 
 ---
