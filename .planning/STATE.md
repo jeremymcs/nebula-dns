@@ -13,9 +13,9 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 31 of 33 (Load Testing & SLOs)
-Plan: 4 of 5 in current phase
-Status: In Progress
-Last activity: 2026-02-15 — Completed 31-04: SLO Tracking Dashboard (created 10-panel Grafana dashboard with DNS availability, error budget, and latency metrics against SLO targets)
+Plan: 5 of 5 in current phase
+Status: Completed
+Last activity: 2026-02-15 — Completed 31-05: Load Test Baseline and SLO Runbook (documented baseline performance metrics with TBD staging values, SLO definitions with 99.9% availability targets, multi-window burn rate alert procedures, and error budget policy)
 
 Progress: [██████████░] 31/33 phases (94% — v1-v1.2 shipped, v1.3 in progress)
 
@@ -31,7 +31,7 @@ Progress: [██████████░] 31/33 phases (94% — v1-v1.2 ship
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 27 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration, 30-05: Flakiness Detection and Threshold Enforcement, 31-01: SLO-aligned load test configuration, 31-02: SLO burn rate alerting rules, 31-03: Blackbox Exporter deployment, 31-04: SLO tracking dashboard)
+- Completed: 28 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration, 30-05: Flakiness Detection and Threshold Enforcement, 31-01: SLO-aligned load test configuration, 31-02: SLO burn rate alerting rules, 31-03: Blackbox Exporter deployment, 31-04: SLO tracking dashboard, 31-05: Load test baseline and SLO runbook)
 
 ## Milestones Shipped
 
@@ -178,6 +178,13 @@ Full decision log in PROJECT.md Key Decisions table.
 - [Phase 31-04]: Error budget formula ((0.001 - (1 - availability)) / 0.001) * 100 converts 0.1% error budget (43.8 min/month) to percentage remaining with color thresholds at 75%/25%/0%
 - [Phase 31-04]: Burn rate windows match alerting rules: fast 1h window and slow 6h window with threshold lines at 14.4x (critical) and 6x (warning) for alert correlation
 
+**Phase 31-05 (Load Test Baseline and SLO Runbook):**
+- **Baseline values TBD until staging execution:** Pragmatic approach marking performance metrics as "TBD - run k6 against staging to populate" instead of placeholder numbers. Prevents misleading values and clearly signals baseline requires initial population.
+- **Quarterly baseline review (every 3 months):** Balances baseline freshness with update overhead. Weekly load tests provide regression detection, quarterly updates prevent staleness without excessive churn.
+- **20% degradation threshold triggers investigation:** Actionable signal outside normal variance. Lower (10%) creates excessive overhead, higher (50%) allows significant regressions. Aligns with industry best practices.
+- **Error budget policy at 50%/25%/0% thresholds:** Industry standard zones (Green >50%, Yellow 25-50%, Orange <25%, Red 0%) with specific actions. Clear policy for balancing features vs reliability.
+- **Feature freeze at <25% budget remaining:** Proactive approach preventing complete exhaustion. 25% = ~11 min remaining (tight but recoverable). Exit criteria (>25% + no alerts for 7 days) provides clear path back to green.
+
 ### Pending Todos
 
 None.
@@ -192,7 +199,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-15
-Stopped at: Completed 31-04-PLAN.md - SLO Tracking Dashboard (created 10-panel Grafana dashboard with DNS availability, error budget, and latency metrics against SLO targets)
+Stopped at: Completed 31-05-PLAN.md - Load Test Baseline and SLO Runbook (documented baseline performance metrics with TBD staging values, SLO definitions with 99.9% availability targets, multi-window burn rate alert procedures, and error budget policy). Phase 31 complete (all 5 plans executed).
 Resume file: None
 
 ---
