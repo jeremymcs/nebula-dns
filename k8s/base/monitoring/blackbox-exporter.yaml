@@ -1,0 +1,136 @@
+# Nebula DNS - Blackbox Exporter for DNS Synthetic Monitoring
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blackbox-exporter-config
+  namespace: nebula-dns
+  labels:
+    app: blackbox-exporter
+    part-of: nebula-dns
+data:
+  blackbox.yml: |
+    modules:
+      dns_udp:
+        prober: dns
+        timeout: 5s
+        dns:
+          query_name: "healthcheck.nebuladns.io"
+          query_type: "A"
+          transport_protocol: "udp"
+          preferred_ip_protocol: "ip4"
+          valid_rcodes:
+            - NOERROR
+
+      doh_https:
+        prober: http
+        timeout: 5s
+        http:
+          method: GET
+          headers:
+            Accept: "application/dns-message"
+          preferred_ip_protocol: "ip4"
+          valid_status_codes:
+            - 200
+          fail_if_body_not_matches_regexp:
+            - ".*"
+
+      dot_tcp:
+        prober: dns
+        timeout: 5s
+        dns:
+          query_name: "healthcheck.nebuladns.io"
+          query_type: "A"
+          transport_protocol: "tcp"
+          preferred_ip_protocol: "ip4"
+          tls_config:
+            insecure_skip_verify: false
+          valid_rcodes:
+            - NOERROR
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blackbox-exporter
+  namespace: nebula-dns
+  labels:
+    app: blackbox-exporter
+    part-of: nebula-dns
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: blackbox-exporter
+  template:
+    metadata:
+      labels:
+        app: blackbox-exporter
+        part-of: nebula-dns
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+      containers:
+        - name: blackbox-exporter
+          image: prom/blackbox-exporter:v0.25.0
+          args:
+            - '--config.file=/config/blackbox.yml'
+          ports:
+            - containerPort: 9115
+              name: http
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9115
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9115
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: blackbox-exporter-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blackbox-exporter
+  namespace: nebula-dns
+  labels:
+    app: blackbox-exporter
+    part-of: nebula-dns
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9115
+      targetPort: 9115
+      protocol: TCP
+      name: http
+  selector:
+    app: blackbox-exporter
