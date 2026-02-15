@@ -13,9 +13,9 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 31 of 33 (Load Testing & SLOs)
-Plan: 3 of 5 in current phase
+Plan: 4 of 5 in current phase
 Status: In Progress
-Last activity: 2026-02-15 — Completed 31-03: Blackbox Exporter Deployment (synthetic DNS monitoring with probe_success metrics)
+Last activity: 2026-02-15 — Completed 31-04: SLO Tracking Dashboard (created 10-panel Grafana dashboard with DNS availability, error budget, and latency metrics against SLO targets)
 
 Progress: [██████████░] 31/33 phases (94% — v1-v1.2 shipped, v1.3 in progress)
 
@@ -31,7 +31,7 @@ Progress: [██████████░] 31/33 phases (94% — v1-v1.2 ship
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 26 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration, 30-05: Flakiness Detection and Threshold Enforcement, 31-01: SLO-aligned load test configuration, 31-02: SLO burn rate alerting rules, 31-03: Blackbox Exporter deployment)
+- Completed: 27 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration, 30-05: Flakiness Detection and Threshold Enforcement, 31-01: SLO-aligned load test configuration, 31-02: SLO burn rate alerting rules, 31-03: Blackbox Exporter deployment, 31-04: SLO tracking dashboard)
 
 ## Milestones Shipped
 
@@ -174,6 +174,9 @@ Recent decisions affecting v1.3:
 - **Staging targets in base configuration, production via Kustomize overlays:** Prevents accidental production probing from development clusters. Production targets overlaid per environment.
 
 Full decision log in PROJECT.md Key Decisions table.
+- [Phase 31-04]: 10-panel dashboard structure: 4 stat panels (overview), 2 availability time series, 2 latency distribution panels, 2 probe detail panels for logical SLO tracking flow
+- [Phase 31-04]: Error budget formula ((0.001 - (1 - availability)) / 0.001) * 100 converts 0.1% error budget (43.8 min/month) to percentage remaining with color thresholds at 75%/25%/0%
+- [Phase 31-04]: Burn rate windows match alerting rules: fast 1h window and slow 6h window with threshold lines at 14.4x (critical) and 6x (warning) for alert correlation
 
 ### Pending Todos
 
@@ -189,7 +192,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-15
-Stopped at: Completed 31-03-PLAN.md - Blackbox Exporter Deployment (synthetic DNS monitoring)
+Stopped at: Completed 31-04-PLAN.md - SLO Tracking Dashboard (created 10-panel Grafana dashboard with DNS availability, error budget, and latency metrics against SLO targets)
 Resume file: None
 
 ---
