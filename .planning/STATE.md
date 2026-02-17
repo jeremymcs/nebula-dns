@@ -13,11 +13,11 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 32 of 33 (CI/CD Pipeline)
-Plan: 2 of 3 in current phase
-Status: In Progress
-Last activity: 2026-02-15 — Completed 32-02: Build and Deploy to Staging (main deployment pipeline orchestrating test gates, parallel builds for all 6 services, automatic staging deployment, and manual-approval production deployment)
+Plan: 3 of 3 in current phase (COMPLETE)
+Status: Phase Complete — Ready for Phase 33
+Last activity: 2026-02-17 — Completed 32-03: DOCR Cleanup and Pipeline Documentation (weekly DOCR garbage collection, security-scan workflow_call reuse, full operator documentation with architecture, rollback procedures, and troubleshooting)
 
-Progress: [██████████░] 32/33 phases (97% — v1-v1.2 shipped, v1.3 in progress)
+Progress: [██████████░] 32/33 phases (97% — v1-v1.2 shipped, v1.3 in progress — Phase 32 complete, Phase 33 remaining)
 
 ## Performance Metrics
 
@@ -31,7 +31,7 @@ Progress: [██████████░] 32/33 phases (97% — v1-v1.2 ship
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 30 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration, 30-05: Flakiness Detection and Threshold Enforcement, 31-01: SLO-aligned load test configuration, 31-02: SLO burn rate alerting rules, 31-03: Blackbox Exporter deployment, 31-04: SLO tracking dashboard, 31-05: Load test baseline and SLO runbook, 32-01: Docker build and staging values, 32-02: Build and deploy to staging)
+- Completed: 33 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration, 30-05: Flakiness Detection and Threshold Enforcement, 31-01: SLO-aligned load test configuration, 31-02: SLO burn rate alerting rules, 31-03: Blackbox Exporter deployment, 31-04: SLO tracking dashboard, 31-05: Load test baseline and SLO runbook, 32-01: Docker build and staging values, 32-02: Build and deploy to staging, 32-03: DOCR cleanup and pipeline documentation)
 
 ## Milestones Shipped
 
@@ -200,6 +200,11 @@ Full decision log in PROJECT.md Key Decisions table.
 - **kubectl rollout status verifies deployment health:** Confirms all pods are ready before marking job complete. Catches issues like ImagePullBackOff or CrashLoopBackOff.
 - **--history-max 10 limits Helm release history:** Prevents etcd bloat from unlimited history growth. 10 releases provides sufficient rollback window (~2-4 weeks at typical deployment frequency).
 
+**Phase 32-03 (DOCR Cleanup and Pipeline Documentation):**
+- **Weekly Sunday 4 AM UTC DOCR cleanup:** Low-traffic window minimizes disruption; weekly frequency sufficient since images accumulate at ~6 per commit and storage costs are incremental.
+- **workflow_call added to security-scan.yml with no other changes:** Minimal, surgical change enabling reuse from deploy.yml without restructuring existing scanning jobs.
+- **Pipeline docs as operator reference not tutorial:** Structured for incident lookup (troubleshooting headings) and onboarding (env config section) rather than step-by-step learning. Architecture diagram first.
+
 ### Pending Todos
 
 None.
@@ -213,10 +218,10 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-15
-Stopped at: Completed 32-02-PLAN.md - Build and Deploy to Staging (main deployment pipeline orchestrating test gates, parallel builds for all 6 services, automatic staging deployment, and manual-approval production deployment)
+Last session: 2026-02-17
+Stopped at: Completed 32-03-PLAN.md - DOCR Cleanup and Pipeline Documentation (weekly DOCR garbage collection via docr-cleanup.yml, workflow_call reuse on security-scan.yml, and full operator CI/CD pipeline documentation). Phase 32 complete.
 Resume file: None
 
 ---
 
-*Last updated: 2026-02-15*
+*Last updated: 2026-02-17*
