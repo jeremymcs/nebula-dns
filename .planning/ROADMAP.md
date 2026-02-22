@@ -219,10 +219,24 @@ Plans:
 - [x] 33-02-PLAN.md — HPA custom DNS QPS metrics and backup verification
 - [x] 33-03-PLAN.md — Incident runbooks and deployment/rollback procedures
 
+#### Phase 34: ClickHouse Credential Wiring Fix
+**Goal**: Fix ClickHouse credential wiring so Policy Service can connect to ClickHouse Cloud in production
+**Depends on**: Phase 24, Phase 26
+**Requirements**: DEPLOY-06
+**Gap Closure**: Closes gaps from v1.3 milestone audit (DEPLOY-06 partial, integration 24→26, flow Policy Service→ClickHouse)
+**Success Criteria** (what must be TRUE):
+  1. `create-secrets.sh` creates `policy-svc-secrets` with all 5 required keys (redis-url, clickhouse-url, clickhouse-database, clickhouse-user, clickhouse-password)
+  2. `policy-svc-deployment.yaml` env vars all resolve to valid secret keys
+  3. Orphaned `clickhouse-secrets` creation is removed from `create-secrets.sh`
+**Plans**: 1 plan
+
+Plans:
+- [ ] 34-01-PLAN.md — Add missing ClickHouse credentials to policy-svc-secrets and remove orphaned clickhouse-secrets
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 24 → 25 → 26 → 27 → 28 → 29 → 30 → 31 → 32 → 33
+Phases execute in numeric order: 24 → 25 → 26 → 27 → 28 → 29 → 30 → 31 → 32 → 33 → 34
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -236,7 +250,8 @@ Phases execute in numeric order: 24 → 25 → 26 → 27 → 28 → 29 → 30 �
 | 31. Load Testing & SLOs | v1.3 | 5/5 | ✓ Complete | 2026-02-14 |
 | 32. CI/CD Pipeline | v1.3 | Complete    | 2026-02-22 | - |
 | 33. Operational Readiness | v1.3 | Complete    | 2026-02-22 | - |
+| 34. ClickHouse Credential Wiring Fix | v1.3 | 0/1 | Pending | - |
 
 ---
 *Created: 2026-02-11*
-*Last updated: 2026-02-14*
+*Last updated: 2026-02-21*

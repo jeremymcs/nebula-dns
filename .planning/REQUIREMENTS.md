@@ -94,7 +94,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEPLOY-03 | Phase 24 | Pending |
 | DEPLOY-04 | Phase 24, 25 | Pending |
 | DEPLOY-05 | Phase 27 | Pending |
-| DEPLOY-06 | Phase 26 | Pending |
+| DEPLOY-06 | Phase 26, 34 | Pending |
 | DEPLOY-07 | Phase 26 | Pending |
 | DEPLOY-08 | Phase 26 | Pending |
 | DEPLOY-09 | Phase 27 | Pending |
