@@ -215,8 +215,8 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 33-01-PLAN.md — Health probes and graceful shutdown for all services
-- [ ] 33-02-PLAN.md — HPA custom DNS QPS metrics and backup verification
+- [x] 33-01-PLAN.md — Health probes and graceful shutdown for all services
+- [x] 33-02-PLAN.md — HPA custom DNS QPS metrics and backup verification
 - [ ] 33-03-PLAN.md — Incident runbooks and deployment/rollback procedures
 
 ## Progress
