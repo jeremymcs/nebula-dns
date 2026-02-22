@@ -231,7 +231,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 34-01-PLAN.md — Add missing ClickHouse credentials to policy-svc-secrets and remove orphaned clickhouse-secrets
+- [x] 34-01-PLAN.md — Add missing ClickHouse credentials to policy-svc-secrets and remove orphaned clickhouse-secrets
 
 ## Progress
 
@@ -248,10 +248,10 @@ Phases execute in numeric order: 24 → 25 → 26 → 27 → 28 → 29 → 30 �
 | 29. API Test Suite | v1.3 | 6/6 | ✓ Complete | 2026-02-14 |
 | 30. UI Test Suite | v1.3 | 5/5 | ✓ Complete | 2026-02-14 |
 | 31. Load Testing & SLOs | v1.3 | 5/5 | ✓ Complete | 2026-02-14 |
-| 32. CI/CD Pipeline | v1.3 | Complete    | 2026-02-22 | - |
-| 33. Operational Readiness | v1.3 | Complete    | 2026-02-22 | - |
-| 34. ClickHouse Credential Wiring Fix | v1.3 | 0/1 | Pending | - |
+| 32. CI/CD Pipeline | v1.3 | 3/3 | ✓ Complete | 2026-02-15 |
+| 33. Operational Readiness | v1.3 | 3/3 | ✓ Complete | 2026-02-21 |
+| 34. ClickHouse Credential Wiring Fix | v1.3 | 1/1 | ✓ Complete | 2026-02-22 |
 
 ---
 *Created: 2026-02-11*
-*Last updated: 2026-02-21*
+*Last updated: 2026-02-22*
