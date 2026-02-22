@@ -12,12 +12,12 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: 33 of 33 (Operational Readiness)
-Plan: 3 of 3 in current phase (COMPLETE)
-Status: Phase Complete — Ready for v1.3 Release
-Last activity: 2026-02-21 — Completed 33-03: Incident Runbooks and Deployment Procedures (7 comprehensive runbooks covering DNS, DB, Redis, policy-svc, cert failures, deployment, and rollback with hybrid format and quick-action checklists)
+Phase: 34 of 34 (ClickHouse Credential Wiring Fix)
+Plan: 1 of 1 in current phase (COMPLETE)
+Status: Phase Complete — Gap Closure
+Last activity: 2026-02-22 — Completed 34-01: ClickHouse Credential Wiring Fix (Fixed create-secrets.sh to extract ClickHouse HTTPS URL from Terraform JSON and populate all 5 policy-svc-secrets keys)
 
-Progress: [███████████] 33/33 phases (100% COMPLETE — v1-v1.2 shipped, v1.3 Production Readiness COMPLETE)
+Progress: [███████████] 34/34 phases (100% COMPLETE — v1-v1.2 shipped, v1.3 Production Readiness + Gap Closure COMPLETE)
 
 ## Performance Metrics
 
@@ -27,11 +27,10 @@ Progress: [███████████] 33/33 phases (100% COMPLETE — v1
 - v1.1: 35 requirements, 8 phases, ~45 plans
 - v1.2: 37 requirements, 7 phases, ~74 plans
 
-**v1.3 In Progress:**
-- 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
-- 10 phases (24-33)
-- Estimated: 50-80 plans based on historical velocity
-- Completed: 36 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration, 30-05: Flakiness Detection and Threshold Enforcement, 31-01: SLO-aligned load test configuration, 31-02: SLO burn rate alerting rules, 31-03: Blackbox Exporter deployment, 31-04: SLO tracking dashboard, 31-05: Load test baseline and SLO runbook, 32-01: Docker build and staging values, 32-02: Build and deploy to staging, 32-03: DOCR cleanup and pipeline documentation, 33-01: Health probes and graceful shutdown, 33-02: HPA custom metrics and backup verification, 33-03: Incident runbooks and deployment procedures)
+**v1.3 Complete:**
+- 31 requirements (13 DEPLOY, 8 TEST, 10 OPS) + 1 gap closure
+- 11 phases (24-34)
+- Completed: 37 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration, 30-05: Flakiness Detection and Threshold Enforcement, 31-01: SLO-aligned load test configuration, 31-02: SLO burn rate alerting rules, 31-03: Blackbox Exporter deployment, 31-04: SLO tracking dashboard, 31-05: Load test baseline and SLO runbook, 32-01: Docker build and staging values, 32-02: Build and deploy to staging, 32-03: DOCR cleanup and pipeline documentation, 33-01: Health probes and graceful shutdown, 33-02: HPA custom metrics and backup verification, 33-03: Incident runbooks and deployment procedures, 34-01: ClickHouse credential wiring fix)
 
 ## Milestones Shipped
 
@@ -215,6 +214,8 @@ Full decision log in PROJECT.md Key Decisions table.
 - **Policy Service HPA scales on DNS QPS (1000/pod):** Custom metric from Prometheus Adapter correlates better with workload than CPU, with CPU (70%) fallback and anti-flapping behavior (5min scale-down, 1min scale-up).
 - **Monthly automated backup verification:** 1st of month, 3 AM UTC for PostgreSQL and ClickHouse Cloud ensures backups are restorable.
 - [Phase 33-03]: Hybrid runbook format with quick-action checklist first, detailed diagnostics below
+- [Phase 34]: Use jq to parse Terraform JSON map output for ClickHouse endpoints (v3.0.0+ returns map not list)
+- [Phase 34]: Interactive prompts with defaults for missing ClickHouse credentials (nebula, default) improve operator UX
 
 ### Pending Todos
 
@@ -229,10 +230,10 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-21
-Stopped at: Completed 33-03-PLAN.md - Incident Runbooks and Deployment Procedures (7 comprehensive runbooks covering DNS down, DB down, Redis down, policy-svc crash, cert expiration, deployment, and rollback with hybrid format and quick-action checklists). Phase 33 COMPLETE. v1.3 Production Readiness COMPLETE.
+Last session: 2026-02-22
+Stopped at: Completed 34-01-PLAN.md - ClickHouse Credential Wiring Fix (Fixed create-secrets.sh to extract ClickHouse HTTPS URL from Terraform JSON and populate all 5 policy-svc-secrets keys). Phase 34 COMPLETE. v1.3 Production Readiness + Gap Closure COMPLETE.
 Resume file: None
 
 ---
 
-*Last updated: 2026-02-21*
+*Last updated: 2026-02-22*
