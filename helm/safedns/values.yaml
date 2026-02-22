@@ -61,6 +61,8 @@ ui:
     API_URL: "http://api.nebula-dns.svc.cluster.local:80"
     APP_URL: "https://app.nebuladns.io"
     ADMIN_UI_URL: "https://admin.nebuladns.io"
+    MARKETING_DOMAIN: "nebuladns.io"
+    APP_DOMAIN: "app.nebuladns.io"
 
 # Admin UI Service
 adminUi:
@@ -135,6 +137,16 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
   hosts:
+    - host: nebuladns.io
+      paths:
+        - path: /
+          pathType: Prefix
+          service: ui
+    - host: www.nebuladns.io
+      paths:
+        - path: /
+          pathType: Prefix
+          service: ui
     - host: app.nebuladns.io
       paths:
         - path: /
@@ -153,6 +165,8 @@ ingress:
   tls:
     - secretName: nebula-dns-tls
       hosts:
+        - nebuladns.io
+        - www.nebuladns.io
         - app.nebuladns.io
         - api.nebuladns.io
         - admin.nebuladns.io

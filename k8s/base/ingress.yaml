@@ -14,18 +14,40 @@ metadata:
     nginx.ingress.kubernetes.io/rate-limit-rps: "50"
     # CORS for API subdomain
     nginx.ingress.kubernetes.io/enable-cors: "true"
-    nginx.ingress.kubernetes.io/cors-allow-origin: "https://app.nebuladns.io,https://admin.nebuladns.io"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://nebuladns.io,https://www.nebuladns.io,https://app.nebuladns.io,https://admin.nebuladns.io"
     nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, PATCH, DELETE, OPTIONS"
     nginx.ingress.kubernetes.io/cors-allow-headers: "Authorization, Content-Type, X-Requested-With"
 spec:
   ingressClassName: nginx
   tls:
     - hosts:
+        - nebuladns.io
+        - www.nebuladns.io
         - app.nebuladns.io
         - api.nebuladns.io
         - admin.nebuladns.io
       secretName: nebula-dns-tls
   rules:
+    - host: nebuladns.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ui
+                port:
+                  name: http
+    - host: www.nebuladns.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ui
+                port:
+                  name: http
     - host: app.nebuladns.io
       http:
         paths:

@@ -48,6 +48,8 @@ ui:
     API_URL: "http://nebula-dns-safedns-api.nebula-dns-staging.svc.cluster.local:80"
     APP_URL: "https://app-staging.nebuladns.io"
     ADMIN_UI_URL: "https://admin-staging.nebuladns.io"
+    MARKETING_DOMAIN: "staging.nebuladns.io"
+    APP_DOMAIN: "app-staging.nebuladns.io"
 
 # Admin UI Service - Staging
 adminUi:
@@ -124,6 +126,11 @@ ingress:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-body-size: "10m"
   hosts:
+    - host: staging.nebuladns.io
+      paths:
+        - path: /
+          pathType: Prefix
+          service: ui
     - host: app-staging.nebuladns.io
       paths:
         - path: /
@@ -142,6 +149,7 @@ ingress:
   tls:
     - secretName: nebula-dns-staging-tls
       hosts:
+        - staging.nebuladns.io
         - app-staging.nebuladns.io
         - api-staging.nebuladns.io
         - admin-staging.nebuladns.io

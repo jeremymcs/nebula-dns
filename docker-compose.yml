@@ -30,7 +30,7 @@ services:
       JWT_REFRESH_SECRET: dev-jwt-refresh-secret-change-in-production
       JWT_EXPIRES_IN: 15m
       JWT_REFRESH_EXPIRES_IN: 7d
-      CORS_ORIGINS: http://localhost:4011,http://localhost:4012,http://localhost:3000
+      CORS_ORIGINS: http://localhost:4011,http://localhost:4012,http://localhost:4013,http://localhost:3000
       MFA_ENCRYPTION_KEY: dev-mfa-encryption-key-change-in-production-32bytes!
       SSO_ENCRYPTION_KEY: dev-sso-encryption-key-change-in-production-32bytes!
       SIEM_ENCRYPTION_KEY: dev-siem-encryption-key-change-in-production-32byte!
@@ -62,10 +62,32 @@ services:
       PORT: 3000
       NEXT_PUBLIC_API_URL: http://localhost:4010
       NEXT_PUBLIC_ADMIN_UI_URL: http://localhost:4012
+      MARKETING_DOMAIN: localhost
+      APP_DOMAIN: localhost
     depends_on:
       - api
     volumes:
       - ./ui:/app
+      - /app/node_modules
+    networks:
+      - dnsfilter-network
+
+  www:
+    build:
+      context: ./www
+      dockerfile: Dockerfile
+      target: development
+    container_name: dnsfilter-www
+    ports:
+      - "4013:3000"
+    environment:
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: http://localhost:4010
+      NEXT_PUBLIC_APP_URL: http://localhost:4011
+    depends_on:
+      - api
+    volumes:
+      - ./www:/app
       - /app/node_modules
     networks:
       - dnsfilter-network

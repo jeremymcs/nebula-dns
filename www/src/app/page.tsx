@@ -1,3 +1,6 @@
+// Nebula DNS - Marketing Website - page.tsx
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 /**
  * Nebula DNS Landing Page
  * Modern marketing page with hero, features, pricing preview
