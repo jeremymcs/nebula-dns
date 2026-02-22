@@ -2,8 +2,10 @@
 # Nebula DNS - Kubernetes Operator Installation
 # Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 #
-# Installs cert-manager and external-dns on a DOKS cluster.
-# Prerequisites: kubectl configured, helm installed, DO_TOKEN set.
+# Installs cert-manager on a DOKS cluster.
+# DNS is managed in Cloudflare — external-dns is NOT used.
+#
+# Prerequisites: kubectl configured, helm installed, CLOUDFLARE_API_TOKEN set.
 #
 # Usage: ./install-operators.sh [--dry-run]
 
@@ -21,9 +23,9 @@ fi
 command -v kubectl >/dev/null 2>&1 || { echo "kubectl required but not found"; exit 1; }
 command -v helm >/dev/null 2>&1 || { echo "helm required but not found"; exit 1; }
 
-if [[ -z "${DO_TOKEN:-}" ]]; then
-  echo "ERROR: DO_TOKEN environment variable must be set"
-  echo "Get it from: DigitalOcean Control Panel -> API -> Tokens"
+if [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
+  echo "ERROR: CLOUDFLARE_API_TOKEN environment variable must be set"
+  echo "Token requires: Zone:DNS:Edit + Zone:Zone:Read for nebuladns.io"
   exit 1
 fi
 
@@ -53,56 +55,35 @@ if [[ -z "${DRY_RUN}" ]]; then
     -n cert-manager --timeout=120s
 fi
 
-# --- DigitalOcean credentials for external-dns and cert-manager ---
+# --- Cloudflare API token secret for DNS-01 ---
 echo ""
-echo "--- Creating DigitalOcean credentials secrets ---"
+echo "--- Creating Cloudflare DNS-01 secret ---"
 
-# Create namespace if not exists
-kubectl create namespace nebula-dns ${DRY_RUN} 2>/dev/null || true
+kubectl create namespace nebula-dns 2>/dev/null || true
 
-# Secret for external-dns
-kubectl create secret generic digitalocean-credentials \
-  --namespace kube-system \
-  --from-literal=access-token="${DO_TOKEN}" \
-  --dry-run=client -o yaml | kubectl apply ${DRY_RUN} -f -
-
-# Secret for cert-manager DNS-01 solver
-kubectl create secret generic digitalocean-dns \
+kubectl create secret generic cloudflare-api-token \
   --namespace cert-manager \
-  --from-literal=access-token="${DO_TOKEN}" \
+  --from-literal=api-token="${CLOUDFLARE_API_TOKEN}" \
   --dry-run=client -o yaml | kubectl apply ${DRY_RUN} -f -
 
-echo "Secrets created successfully"
-
-# --- external-dns ---
-echo ""
-echo "--- Installing external-dns ---"
-helm repo add external-dns https://kubernetes-sigs.github.io/external-dns/ 2>/dev/null || true
-helm repo update external-dns
-
-helm upgrade --install external-dns external-dns/external-dns \
-  --namespace kube-system \
-  --values "${SCRIPT_DIR}/external-dns-values.yaml" \
-  --wait \
-  --timeout 5m \
-  ${DRY_RUN}
-
-echo "external-dns installed successfully"
+echo "Cloudflare secret created in cert-manager namespace"
 
 # --- Apply ClusterIssuer ---
 echo ""
 echo "--- Applying cert-manager ClusterIssuer ---"
 if [[ -z "${DRY_RUN}" ]]; then
   kubectl apply -f "${SCRIPT_DIR}/../../../k8s/base/cert-manager/cluster-issuer.yaml"
-  echo "ClusterIssuer applied"
+  echo "ClusterIssuers applied"
 else
   echo "(skipped in dry-run mode)"
 fi
 
 echo ""
-echo "=== All operators installed successfully ==="
+echo "=== Operators installed successfully ==="
 echo ""
 echo "Verify with:"
 echo "  kubectl get pods -n cert-manager"
-echo "  kubectl get pods -n kube-system -l app.kubernetes.io/name=external-dns"
 echo "  kubectl get clusterissuers"
+echo ""
+echo "NOTE: DNS records must be created manually in Cloudflare."
+echo "      See Phase 12 of the go-live plan."

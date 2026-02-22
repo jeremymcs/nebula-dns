@@ -1,7 +1,5 @@
-// Nebula DNS - Enterprise DNS Security Platform
-// Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
-//
-// ClickHouse Client for Query Logging
+// Nebula DNS - Policy Service ClickHouse Client for Query Logging
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 package clickhouse
 

@@ -7,10 +7,10 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: nebula-dns-web-tls
+  name: nebula-dns-tls
   namespace: nebula-dns
 spec:
-  secretName: nebula-dns-web-tls
+  secretName: nebula-dns-tls
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
