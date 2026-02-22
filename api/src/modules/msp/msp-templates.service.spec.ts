@@ -16,9 +16,12 @@ import {
   MspTemplate,
   MspTemplateDeployment,
 } from './entities/msp-template.entity';
+import { MspTemplateVersion } from './entities/msp-template-version.entity';
+import { ClientTemplateApplication } from './entities/client-template-application.entity';
+import { TemplateApplyJob } from './entities/template-apply-job.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
 import { User } from '../users/entities/user.entity';
-import { PartnerUser } from '../partners/entities/partner-user.entity';
+// PartnerUser removed - using unified tier system (US-022, US-023)
 import { Policy } from '../policies/entities/policy.entity';
 import { PolicyVersion } from '../policies/entities/policy-version.entity';
 import { Location } from '../locations/entities/location.entity';
@@ -32,7 +35,7 @@ describe('MspTemplatesService', () => {
   let deploymentRepository: any;
   let tenantRepository: any;
   let userRepository: any;
-  let partnerUserRepository: any;
+  // partnerUserRepository removed - using unified tier system (US-022, US-023)
   let policyRepository: any;
 
   const mockUserId = 'user-123';
@@ -45,17 +48,14 @@ describe('MspTemplatesService', () => {
     email: 'test@example.com',
   };
 
-  const mockPartnerUser = {
-    id: 'pu-123',
-    email: 'test@example.com',
-    partnerId: mockPartnerId,
-    status: 'active',
-  };
+  // mockPartnerUser removed - using unified tier system (US-022, US-023)
+  // MSP users are now identified by tenant.tier='msp'
 
   const mockTenant = {
     id: mockTenantId,
-    partnerId: mockPartnerId,
-    name: 'Test Tenant',
+    tier: 'msp', // MSP tier replaces partnerId
+    managedByMspId: null,
+    name: 'Test MSP Tenant',
   };
 
   const mockTemplate = {
@@ -117,9 +117,7 @@ describe('MspTemplatesService', () => {
     findOne: jest.fn(),
   };
 
-  const mockPartnerUserRepository = {
-    findOne: jest.fn(),
-  };
+  // mockPartnerUserRepository removed - using unified tier system (US-022, US-023)
 
   const mockPolicyRepository = {
     create: jest.fn(),
@@ -133,6 +131,35 @@ describe('MspTemplatesService', () => {
 
   const mockLocationRepository = {
     find: jest.fn(),
+  };
+
+  const mockVersionRepository = {
+    find: jest.fn(),
+    findOne: jest.fn(),
+    create: jest.fn(),
+    save: jest.fn(),
+  };
+
+  const mockApplicationRepository = {
+    find: jest.fn(),
+    findOne: jest.fn(),
+    create: jest.fn(),
+    save: jest.fn(),
+    createQueryBuilder: jest.fn().mockReturnValue({
+      select: jest.fn().mockReturnThis(),
+      addSelect: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      groupBy: jest.fn().mockReturnThis(),
+      getRawMany: jest.fn().mockResolvedValue([]),
+    }),
+  };
+
+  const mockApplyJobRepository = {
+    find: jest.fn(),
+    findOne: jest.fn(),
+    create: jest.fn(),
+    save: jest.fn(),
   };
 
   const mockRedisService = {
@@ -160,6 +187,18 @@ describe('MspTemplatesService', () => {
           useValue: mockDeploymentRepository,
         },
         {
+          provide: getRepositoryToken(MspTemplateVersion),
+          useValue: mockVersionRepository,
+        },
+        {
+          provide: getRepositoryToken(ClientTemplateApplication),
+          useValue: mockApplicationRepository,
+        },
+        {
+          provide: getRepositoryToken(TemplateApplyJob),
+          useValue: mockApplyJobRepository,
+        },
+        {
           provide: getRepositoryToken(Tenant),
           useValue: mockTenantRepository,
         },
@@ -167,10 +206,7 @@ describe('MspTemplatesService', () => {
           provide: getRepositoryToken(User),
           useValue: mockUserRepository,
         },
-        {
-          provide: getRepositoryToken(PartnerUser),
-          useValue: mockPartnerUserRepository,
-        },
+        // PartnerUser repository removed - using unified tier system (US-022, US-023)
         {
           provide: getRepositoryToken(Policy),
           useValue: mockPolicyRepository,
@@ -205,40 +241,17 @@ describe('MspTemplatesService', () => {
     );
     tenantRepository = module.get(getRepositoryToken(Tenant));
     userRepository = module.get(getRepositoryToken(User));
-    partnerUserRepository = module.get(getRepositoryToken(PartnerUser));
+    // partnerUserRepository removed - using unified tier system (US-022, US-023)
     policyRepository = module.get(getRepositoryToken(Policy));
 
     jest.clearAllMocks();
   });
 
-  describe('getPartnerId (via findAll)', () => {
-    it('should get partner ID from PartnerUser association', async () => {
+  describe('getMspTenantId (via findAll)', () => {
+    // Updated for unified tier system (US-022, US-023)
+    // MSP access is now determined by tenant.tier='msp'
+    it('should get MSP tenant ID from tenant with tier=msp', async () => {
       mockUserRepository.findOne.mockResolvedValue(mockUser);
-      mockPartnerUserRepository.findOne.mockResolvedValue(mockPartnerUser);
-      mockTemplateRepository.find.mockResolvedValue([]);
-
-      const mockQueryBuilder = {
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([]),
-      };
-      mockDeploymentRepository.createQueryBuilder.mockReturnValue(
-        mockQueryBuilder,
-      );
-
-      await service.findAll(mockUserId, mockTenantId);
-
-      expect(mockPartnerUserRepository.findOne).toHaveBeenCalledWith({
-        where: { email: mockUser.email, status: 'active' },
-      });
-    });
-
-    it('should get partner ID from tenant when no PartnerUser exists', async () => {
-      mockUserRepository.findOne.mockResolvedValue(mockUser);
-      mockPartnerUserRepository.findOne.mockResolvedValue(null);
       mockTenantRepository.findOne.mockResolvedValue(mockTenant);
       mockTemplateRepository.find.mockResolvedValue([]);
 
@@ -269,12 +282,11 @@ describe('MspTemplatesService', () => {
       );
     });
 
-    it('should throw ForbiddenException when not an MSP user', async () => {
+    it('should throw ForbiddenException when not an MSP tier tenant', async () => {
       mockUserRepository.findOne.mockResolvedValue(mockUser);
-      mockPartnerUserRepository.findOne.mockResolvedValue(null);
       mockTenantRepository.findOne.mockResolvedValue({
         id: mockTenantId,
-        partnerId: null,
+        tier: 'enterprise', // Not MSP tier
       });
 
       await expect(service.findAll(mockUserId, mockTenantId)).rejects.toThrow(
@@ -286,7 +298,7 @@ describe('MspTemplatesService', () => {
   describe('findAll', () => {
     beforeEach(() => {
       mockUserRepository.findOne.mockResolvedValue(mockUser);
-      mockPartnerUserRepository.findOne.mockResolvedValue(mockPartnerUser);
+      mockTenantRepository.findOne.mockResolvedValue(mockTenant);
     });
 
     it('should return all templates for the partner', async () => {
@@ -302,7 +314,7 @@ describe('MspTemplatesService', () => {
           .fn()
           .mockResolvedValue([{ templateId: mockTemplateId, count: '5' }]),
       };
-      mockDeploymentRepository.createQueryBuilder.mockReturnValue(
+      mockApplicationRepository.createQueryBuilder.mockReturnValue(
         mockQueryBuilder,
       );
 
@@ -326,7 +338,7 @@ describe('MspTemplatesService', () => {
   describe('findOne', () => {
     beforeEach(() => {
       mockUserRepository.findOne.mockResolvedValue(mockUser);
-      mockPartnerUserRepository.findOne.mockResolvedValue(mockPartnerUser);
+      mockTenantRepository.findOne.mockResolvedValue(mockTenant);
     });
 
     it('should return a single template by ID', async () => {
@@ -342,7 +354,7 @@ describe('MspTemplatesService', () => {
           .fn()
           .mockResolvedValue([{ templateId: mockTemplateId, count: '3' }]),
       };
-      mockDeploymentRepository.createQueryBuilder.mockReturnValue(
+      mockApplicationRepository.createQueryBuilder.mockReturnValue(
         mockQueryBuilder,
       );
 
@@ -369,7 +381,7 @@ describe('MspTemplatesService', () => {
   describe('create', () => {
     beforeEach(() => {
       mockUserRepository.findOne.mockResolvedValue(mockUser);
-      mockPartnerUserRepository.findOne.mockResolvedValue(mockPartnerUser);
+      mockTenantRepository.findOne.mockResolvedValue(mockTenant);
     });
 
     it('should create a new template', async () => {
@@ -455,7 +467,7 @@ describe('MspTemplatesService', () => {
   describe('update', () => {
     beforeEach(() => {
       mockUserRepository.findOne.mockResolvedValue(mockUser);
-      mockPartnerUserRepository.findOne.mockResolvedValue(mockPartnerUser);
+      mockTenantRepository.findOne.mockResolvedValue(mockTenant);
     });
 
     it('should update template metadata without incrementing version', async () => {
@@ -551,7 +563,7 @@ describe('MspTemplatesService', () => {
   describe('remove', () => {
     beforeEach(() => {
       mockUserRepository.findOne.mockResolvedValue(mockUser);
-      mockPartnerUserRepository.findOne.mockResolvedValue(mockPartnerUser);
+      mockTenantRepository.findOne.mockResolvedValue(mockTenant);
     });
 
     it('should delete a template', async () => {
@@ -590,7 +602,7 @@ describe('MspTemplatesService', () => {
 
     beforeEach(() => {
       mockUserRepository.findOne.mockResolvedValue(mockUser);
-      mockPartnerUserRepository.findOne.mockResolvedValue(mockPartnerUser);
+      mockTenantRepository.findOne.mockResolvedValue(mockTenant);
     });
 
     it('should deploy template to multiple tenants', async () => {
@@ -690,7 +702,7 @@ describe('MspTemplatesService', () => {
   describe('getDeploymentHistory', () => {
     beforeEach(() => {
       mockUserRepository.findOne.mockResolvedValue(mockUser);
-      mockPartnerUserRepository.findOne.mockResolvedValue(mockPartnerUser);
+      mockTenantRepository.findOne.mockResolvedValue(mockTenant);
     });
 
     it('should return deployment history for a template', async () => {

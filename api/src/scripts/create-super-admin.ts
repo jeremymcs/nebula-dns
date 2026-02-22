@@ -38,10 +38,14 @@ async function createBreakGlassAdmin() {
 
   // Validate environment variables
   if (!email || !password) {
-    console.error('ERROR: BREAK_GLASS_EMAIL and BREAK_GLASS_PASSWORD environment variables are required');
+    console.error(
+      'ERROR: BREAK_GLASS_EMAIL and BREAK_GLASS_PASSWORD environment variables are required',
+    );
     console.error('');
     console.error('Usage:');
-    console.error('  BREAK_GLASS_EMAIL=admin@example.com BREAK_GLASS_PASSWORD=YourSecurePassword123! npx ts-node src/scripts/create-super-admin.ts');
+    console.error(
+      '  BREAK_GLASS_EMAIL=admin@example.com BREAK_GLASS_PASSWORD=YourSecurePassword123! npx ts-node src/scripts/create-super-admin.ts',
+    );
     process.exit(1);
   }
 
@@ -66,13 +70,17 @@ async function createBreakGlassAdmin() {
       logger: ['error', 'warn'],
     });
   } catch (error) {
-    console.error('ERROR: Failed to initialize application. Is the database accessible?');
+    console.error(
+      'ERROR: Failed to initialize application. Is the database accessible?',
+    );
     console.error((error as Error).message);
     process.exit(1);
   }
 
   try {
-    const adminRepository = app.get<Repository<Admin>>(getRepositoryToken(Admin));
+    const adminRepository = app.get<Repository<Admin>>(
+      getRepositoryToken(Admin),
+    );
 
     // Check if any super_admin exists
     const existingSuperAdminCount = await adminRepository.count({
@@ -80,8 +88,12 @@ async function createBreakGlassAdmin() {
     });
 
     if (existingSuperAdminCount > 0) {
-      console.error('ERROR: Super admin already exists. This script only works when no super_admin exists.');
-      console.error('Use the admin UI or API to manage existing admin accounts.');
+      console.error(
+        'ERROR: Super admin already exists. This script only works when no super_admin exists.',
+      );
+      console.error(
+        'Use the admin UI or API to manage existing admin accounts.',
+      );
       await app.close();
       process.exit(1);
     }
@@ -92,7 +104,9 @@ async function createBreakGlassAdmin() {
     });
 
     if (existingAdmin) {
-      console.error(`ERROR: Email ${email} is already in use by an existing admin account.`);
+      console.error(
+        `ERROR: Email ${email} is already in use by an existing admin account.`,
+      );
       await app.close();
       process.exit(1);
     }

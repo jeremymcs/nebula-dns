@@ -94,7 +94,11 @@ describe('ListsController', () => {
 
       const result = await controller.findAll(mockTenantId, query);
 
-      expect(service.findAll).toHaveBeenCalledWith(mockTenantId, {}, 'block');
+      expect(service.findAll).toHaveBeenCalledWith(
+        mockTenantId,
+        {},
+        'blocklist',
+      );
       expect(result.data).toHaveLength(1);
     });
 
@@ -177,12 +181,12 @@ describe('ListsController', () => {
         type: 'allowlist',
       };
 
-      const expectedList = { ...mockList, type: 'allowlist', ...createDto };
+      const expectedList = { ...mockList, ...createDto };
       mockListsService.create.mockResolvedValue(expectedList);
 
       const result = await controller.create(mockTenantId, createDto);
 
-      expect(result.type).toBe('allow');
+      expect(result.type).toBe('allowlist');
     });
 
     it('should reject invalid list type', async () => {

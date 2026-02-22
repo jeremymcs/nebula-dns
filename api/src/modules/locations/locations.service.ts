@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  ForbiddenException,
   Logger,
   Inject,
   forwardRef,
@@ -22,6 +23,8 @@ import {
 } from '@/common/dto/pagination.dto';
 import { RedisService } from '../redis/redis.service';
 import { PolicyCompilerService } from '../policies/policy-compiler.service';
+import { LimitsService } from '../limits/limits.service';
+import { BillingMeterService } from '../billing-meter/billing-meter.service';
 
 export interface TokenInfo {
   tenantId: string;
@@ -44,6 +47,8 @@ export class LocationsService {
     private readonly redisService: RedisService,
     @Inject(forwardRef(() => PolicyCompilerService))
     private readonly policyCompilerService: PolicyCompilerService,
+    private readonly limitsService: LimitsService,
+    private readonly billingMeterService: BillingMeterService,
   ) {}
 
   async findAll(
@@ -103,6 +108,24 @@ export class LocationsService {
     tenantId: string,
     createDto: CreateLocationDto,
   ): Promise<Location> {
+    // Check location limit before creating
+    try {
+      await this.limitsService.canCreateLocation(tenantId);
+    } catch (error) {
+      // Convert LimitExceededException to ForbiddenException with required format
+      if (error.getDetails) {
+        const details = error.getDetails();
+        throw new ForbiddenException({
+          message: 'Location limit reached. Please upgrade your plan.',
+          limitReached: true,
+          current: details.current,
+          limit: details.limit,
+          upgradeUrl: '/settings/billing',
+        });
+      }
+      throw error;
+    }
+
     // Validate that either ipRange or dyndns is provided
     if (!createDto.ipRange && !createDto.dyndns) {
       throw new BadRequestException(
@@ -170,6 +193,13 @@ export class LocationsService {
         );
       }
     }
+
+    // Report location usage to Stripe for metered billing (US-011)
+    this.billingMeterService.reportLocationUsage(tenantId).catch((error) => {
+      this.logger.warn(
+        `Failed to report location usage to Stripe: ${error.message}`,
+      );
+    });
 
     return location;
   }
@@ -262,6 +292,13 @@ export class LocationsService {
     await this.locationRepository.remove(location);
 
     this.logger.log(`Location ${id} deleted from tenant ${tenantId}`);
+
+    // Report location usage to Stripe for metered billing (US-011)
+    this.billingMeterService.reportLocationUsage(tenantId).catch((error) => {
+      this.logger.warn(
+        `Failed to report location usage to Stripe: ${error.message}`,
+      );
+    });
   }
 
   async getTokens(

@@ -11,6 +11,7 @@ import { RedisService } from '../redis/redis.service';
 export interface JwtPayload {
   sub: string;
   email: string;
+  name?: string; // User's display name (optional for backward compatibility)
   tenantId: string;
   role: string;
   jti?: string;
@@ -67,10 +68,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       return {
         id: payload.sub, // Admin's ID
         email: payload.email, // Admin's email
+        name: payload.name, // Admin's name with "(Impersonating)" indicator
         tenantId: payload.tenantId, // Target tenant
+        tier: payload.tier, // Tenant tier for dashboard features
         role: payload.role, // 'admin' for full tenant access
         jti: payload.jti,
         mfaVerified: payload.mfaVerified || true,
+        mfaEnabled: true, // Impersonation sessions are considered MFA verified
         // Impersonation context for audit attribution
         isImpersonation: true,
         impersonatingAdminId: payload.impersonatingAdminId,

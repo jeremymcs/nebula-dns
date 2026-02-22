@@ -167,6 +167,7 @@ export class AuthController {
       name: user.name,
       role: user.role,
       tenantId: user.tenantId,
+      tenantTier: user.tier, // From JWT payload
       mfaEnabled: user.mfaEnabled || false,
     };
   }

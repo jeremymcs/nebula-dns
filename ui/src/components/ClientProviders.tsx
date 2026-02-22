@@ -10,24 +10,22 @@
 
 import { ReactNode } from 'react'
 import { AuthProvider } from '@/contexts/AuthContext'
-import { AdminAuthProvider } from '@/contexts/AdminAuthContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { ToastProvider } from '@/components/Toast'
 // PartnerBrandingProvider removed - using unified tier system (US-022, US-023)
 // Branding is now handled at the tenant level via settings
+// AdminAuthProvider removed - admin functionality moved to admin-ui app (port 4012)
 import { CommandBarProvider } from '@/components/command-bar'
 
 export function ClientProviders({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AdminAuthProvider>
-          <CommandBarProvider>
-            <ToastProvider>
-              {children}
-            </ToastProvider>
-          </CommandBarProvider>
-        </AdminAuthProvider>
+        <CommandBarProvider>
+          <ToastProvider>
+            {children}
+          </ToastProvider>
+        </CommandBarProvider>
       </AuthProvider>
     </ThemeProvider>
   )

@@ -166,9 +166,9 @@ export class AdminActivityService {
 
     // Check if there are more results
     const hasMore = activities.length > limit;
-    const data = activities.slice(0, limit).map((activity) =>
-      this.toActivityItemDto(activity),
-    );
+    const data = activities
+      .slice(0, limit)
+      .map((activity) => this.toActivityItemDto(activity));
 
     return {
       data,
@@ -200,9 +200,12 @@ export class AdminActivityService {
       .leftJoinAndSelect('activity.admin', 'admin')
       .leftJoin('activity.targetAdmin', 'targetAdmin')
       .addSelect(['targetAdmin.id', 'targetAdmin.email', 'targetAdmin.name'])
-      .where('activity.adminId = :adminId OR activity.targetAdminId = :adminId', {
-        adminId,
-      })
+      .where(
+        'activity.adminId = :adminId OR activity.targetAdminId = :adminId',
+        {
+          adminId,
+        },
+      )
       .orderBy('activity.createdAt', 'DESC')
       .take(limit)
       .getMany();

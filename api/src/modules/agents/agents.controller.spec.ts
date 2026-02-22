@@ -35,12 +35,11 @@ describe('AgentsController', () => {
   };
 
   const mockVersion: AgentVersion = {
-    platform: 'windows',
     version: '1.2.0',
+    releaseDate: '2024-01-01',
     downloadUrl: 'https://example.com/agent-windows-1.2.0.exe',
     sha256: 'abc123...',
     releaseNotes: 'Bug fixes and improvements',
-    releasedAt: new Date('2024-01-01'),
   };
 
   const mockAgentsService = {
@@ -86,9 +85,9 @@ describe('AgentsController', () => {
 
     it('should return versions for all platforms', async () => {
       const mockVersions = [
-        { ...mockVersion, platform: 'windows' },
-        { ...mockVersion, platform: 'macos' },
-        { ...mockVersion, platform: 'linux' },
+        { ...mockVersion, version: '1.2.0' },
+        { ...mockVersion, version: '1.2.0' },
+        { ...mockVersion, version: '1.1.0' },
       ];
 
       mockAgentsService.getAgentVersions.mockResolvedValue(mockVersions);
@@ -121,11 +120,11 @@ describe('AgentsController', () => {
   describe('POST /agents/register (Public)', () => {
     it('should register agent with valid data', async () => {
       const registerDto: RegisterAgentDto = {
-        locationToken: 'location-token-123',
+        installationToken: 'installation-token-123',
         deviceId: 'device-abc-123',
         deviceName: 'Office-PC-01',
         platform: 'windows',
-        version: '1.2.0',
+        agentVersion: '1.2.0',
       };
 
       mockAgentsService.registerAgent.mockResolvedValue(mockAgent);
@@ -137,17 +136,17 @@ describe('AgentsController', () => {
       expect(result.data.id).toBe(mockAgentId);
     });
 
-    it('should reject invalid location token', async () => {
+    it('should reject invalid installation token', async () => {
       const registerDto: RegisterAgentDto = {
-        locationToken: 'invalid-token',
+        installationToken: 'invalid-token',
         deviceId: 'device-abc-123',
         deviceName: 'Office-PC-01',
         platform: 'windows',
-        version: '1.2.0',
+        agentVersion: '1.2.0',
       };
 
       mockAgentsService.registerAgent.mockRejectedValue(
-        new BadRequestException('Invalid location token'),
+        new BadRequestException('Invalid installation token'),
       );
 
       await expect(controller.registerAgent(registerDto)).rejects.toThrow(
@@ -157,11 +156,11 @@ describe('AgentsController', () => {
 
     it('should reject invalid platform', async () => {
       const registerDto = {
-        locationToken: 'location-token-123',
+        installationToken: 'installation-token-123',
         deviceId: 'device-abc-123',
         deviceName: 'Office-PC-01',
         platform: 'invalid-platform',
-        version: '1.2.0',
+        agentVersion: '1.2.0',
       } as any;
 
       mockAgentsService.registerAgent.mockRejectedValue(
@@ -178,8 +177,8 @@ describe('AgentsController', () => {
     it('should handle heartbeat with valid data', async () => {
       const heartbeatDto: AgentHeartbeatDto = {
         deviceId: 'device-abc-123',
-        version: '1.2.0',
-        status: 'online',
+        agentVersion: '1.2.0',
+        status: 'active',
       };
 
       const mockResponse = {
@@ -199,8 +198,8 @@ describe('AgentsController', () => {
     it('should indicate update available', async () => {
       const heartbeatDto: AgentHeartbeatDto = {
         deviceId: 'device-abc-123',
-        version: '1.0.0',
-        status: 'online',
+        agentVersion: '1.0.0',
+        status: 'active',
       };
 
       const mockResponse = {
@@ -220,8 +219,8 @@ describe('AgentsController', () => {
     it('should reject heartbeat from unknown device', async () => {
       const heartbeatDto: AgentHeartbeatDto = {
         deviceId: 'unknown-device',
-        version: '1.2.0',
-        status: 'online',
+        agentVersion: '1.2.0',
+        status: 'active',
       };
 
       mockAgentsService.handleHeartbeatPublic.mockRejectedValue(
@@ -242,8 +241,8 @@ describe('AgentsController', () => {
 
       expect(service.getLatestVersion).toHaveBeenCalledWith('windows');
       expect(result.success).toBe(true);
-      expect(result.data.version).toBe(mockVersion.version);
-      expect(result.data.downloadUrl).toBe(mockVersion.downloadUrl);
+      expect(result.data?.version).toBe(mockVersion.version);
+      expect(result.data?.downloadUrl).toBe(mockVersion.downloadUrl);
     });
 
     it('should handle platform not found', async () => {
@@ -341,12 +340,13 @@ describe('AgentsController', () => {
       const createDto: CreateDownloadLinkDto = {
         platform: 'windows',
         locationId: mockLocationId,
-        expiresInHours: 24,
       };
 
       const mockLink = {
-        url: 'https://example.com/download/agent-windows.exe?token=xyz',
+        downloadUrl: 'https://example.com/download/agent-windows.exe?token=xyz',
+        installationToken: 'token-123',
         expiresAt: new Date('2024-01-02'),
+        version: mockVersion,
       };
 
       mockAgentsService.createDownloadLink.mockResolvedValue(mockLink);
@@ -361,14 +361,13 @@ describe('AgentsController', () => {
         createDto,
       );
       expect(result.success).toBe(true);
-      expect(result.data.url).toBeDefined();
+      expect(result.data.downloadUrl).toBeDefined();
     });
 
     it('should reject invalid platform', async () => {
       const createDto = {
         platform: 'invalid-platform',
         locationId: mockLocationId,
-        expiresInHours: 24,
       } as any;
 
       mockAgentsService.createDownloadLink.mockRejectedValue(
@@ -471,11 +470,11 @@ describe('AgentsController', () => {
 
     it('should allow public access to registration', async () => {
       const registerDto: RegisterAgentDto = {
-        locationToken: 'location-token-123',
+        installationToken: 'installation-token-123',
         deviceId: 'device-abc-123',
         deviceName: 'Office-PC-01',
         platform: 'windows',
-        version: '1.2.0',
+        agentVersion: '1.2.0',
       };
 
       mockAgentsService.registerAgent.mockResolvedValue(mockAgent);
@@ -502,11 +501,11 @@ describe('AgentsController', () => {
 
     it('should propagate validation errors', async () => {
       const registerDto: RegisterAgentDto = {
-        locationToken: 'invalid',
+        installationToken: 'invalid',
         deviceId: 'device-abc-123',
         deviceName: 'Office-PC-01',
         platform: 'windows',
-        version: '1.2.0',
+        agentVersion: '1.2.0',
       };
 
       mockAgentsService.registerAgent.mockRejectedValue(

@@ -80,6 +80,7 @@ func (h *Handlers) Live(w http.ResponseWriter, r *http.Request) {
 }
 
 // Evaluate handles DNS query policy evaluation requests
+// US-029: Checks subscription status before evaluating policy
 func (h *Handlers) Evaluate(w http.ResponseWriter, r *http.Request) {
 	var req models.EvaluateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -94,7 +95,28 @@ func (h *Handlers) Evaluate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Evaluate policy
+	// US-029: Check subscription status before evaluating
+	// Suspended tenants receive NXDOMAIN for all queries
+	if h.cache.IsTenantSuspended(r.Context(), req.TenantID) {
+		h.logger.Info("Blocked query for suspended tenant",
+			zap.String("tenantId", req.TenantID),
+			zap.String("qname", req.QName),
+		)
+
+		// Return NXDOMAIN block response for suspended tenants
+		result := &models.EvaluateResponse{
+			Decision:  "BLOCK",
+			Reason:    "subscription_suspended",
+			BlockType: models.BlockTypeNXDOMAIN,
+			TTL:       60,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	// Evaluate policy normally for active/grace tenants
 	result := h.policySvc.Evaluate(r.Context(), &req)
 
 	w.Header().Set("Content-Type", "application/json")

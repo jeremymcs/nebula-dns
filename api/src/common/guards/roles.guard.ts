@@ -6,6 +6,7 @@ export enum Role {
   ADMIN = 'admin',
   ANALYST = 'analyst',
   READONLY = 'readonly',
+  MEMBER = 'member', // Home tier family member with limited permissions
 }
 
 export const ROLES_KEY = 'roles';

@@ -96,7 +96,6 @@ describe('BlockPagesController', () => {
 
       const result = await controller.renderBlockPage(
         'tenant-slug',
-        'tenant-slug',
         'blocked-site.com',
         'malware',
         mockBlockPageId,
@@ -112,7 +111,6 @@ describe('BlockPagesController', () => {
 
       const result = await controller.renderBlockPage(
         'tenant-slug',
-        'tenant-slug',
         'blocked-site.com',
         'malware',
         mockBlockPageId,
@@ -126,7 +124,6 @@ describe('BlockPagesController', () => {
       mockBlockPagesService.generateBlockPageHtml.mockReturnValue(mockHtml);
 
       const result = await controller.renderBlockPage(
-        'tenant-slug',
         'tenant-slug',
         'blocked-site.com',
         'malware',
@@ -148,10 +145,9 @@ describe('BlockPagesController', () => {
 
       const result = await controller.renderBlockPage(
         'tenant-slug',
-        'tenant-slug',
-        undefined,
-        undefined,
-        undefined,
+        '',
+        '',
+        '',
       );
 
       expect(service.generateBlockPageHtml).toHaveBeenCalledWith(
@@ -347,12 +343,7 @@ describe('BlockPagesController', () => {
       mockBlockPagesService.findOne.mockResolvedValue(mockBlockPage);
       mockBlockPagesService.generateBlockPageHtml.mockReturnValue(mockHtml);
 
-      await controller.preview(
-        mockTenantId,
-        mockBlockPageId,
-        undefined,
-        undefined,
-      );
+      await controller.preview(mockTenantId, mockBlockPageId, '', '');
 
       expect(service.generateBlockPageHtml).toHaveBeenCalledWith(
         mockBlockPage,
@@ -488,15 +479,9 @@ describe('BlockPagesController', () => {
       const mockRequests = [mockAccessRequest];
       mockBlockPagesService.getAccessRequests.mockResolvedValue(mockRequests);
 
-      const result = await controller.getAccessRequests(
-        mockTenantId,
-        undefined,
-      );
+      const result = await controller.getAccessRequests(mockTenantId, '');
 
-      expect(service.getAccessRequests).toHaveBeenCalledWith(
-        mockTenantId,
-        null,
-      );
+      expect(service.getAccessRequests).toHaveBeenCalledWith(mockTenantId, '');
       expect(result.data).toEqual(mockRequests);
     });
 
@@ -519,10 +504,7 @@ describe('BlockPagesController', () => {
     it('should return empty array when no requests exist', async () => {
       mockBlockPagesService.getAccessRequests.mockResolvedValue([]);
 
-      const result = await controller.getAccessRequests(
-        mockTenantId,
-        undefined,
-      );
+      const result = await controller.getAccessRequests(mockTenantId, '');
 
       expect(result.data).toEqual([]);
     });
@@ -659,7 +641,6 @@ describe('BlockPagesController', () => {
       mockBlockPagesService.generateBlockPageHtml.mockReturnValue(mockHtml);
 
       const result = await controller.renderBlockPage(
-        'tenant-slug',
         'tenant-slug',
         'blocked-site.com',
         'malware',

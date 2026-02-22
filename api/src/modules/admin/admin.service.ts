@@ -245,7 +245,11 @@ export class AdminService {
     targetId: string,
     newRole: AdminRole,
     ipAddress?: string,
-  ): Promise<{ success: boolean; previousRole: AdminRole; newRole: AdminRole }> {
+  ): Promise<{
+    success: boolean;
+    previousRole: AdminRole;
+    newRole: AdminRole;
+  }> {
     // 1. Load both admins
     const requester = await this.findById(requesterId);
     const target = await this.findById(targetId);
@@ -267,14 +271,15 @@ export class AdminService {
     }
 
     // 3. Prevent demoting the last super_admin
-    if (previousRole === AdminRole.SUPER_ADMIN && newRole !== AdminRole.SUPER_ADMIN) {
+    if (
+      previousRole === AdminRole.SUPER_ADMIN &&
+      newRole !== AdminRole.SUPER_ADMIN
+    ) {
       const superAdminCount = await this.adminRepository.count({
         where: { role: AdminRole.SUPER_ADMIN },
       });
       if (superAdminCount <= 1) {
-        this.logger.warn(
-          `Attempted to demote last super_admin ${targetId}`,
-        );
+        this.logger.warn(`Attempted to demote last super_admin ${targetId}`);
         throw new ForbiddenException(
           'Cannot demote the last super_admin. Promote another admin first.',
         );

@@ -336,8 +336,9 @@ export class AuditLogsService {
       };
     }
 
-    // CSV format
+    // CSV format - includes hash fields for integrity verification
     const headers = [
+      'ID',
       'Timestamp',
       'User',
       'Email',
@@ -346,8 +347,11 @@ export class AuditLogsService {
       'Resource ID',
       'Resource Name',
       'IP Address',
+      'Previous Hash',
+      'Record Hash',
     ];
     const rows = logs.map((log) => [
+      log.id,
       log.createdAt.toISOString(),
       log.user?.name || 'System',
       log.user?.email || '',
@@ -356,6 +360,8 @@ export class AuditLogsService {
       log.resourceId || '',
       log.resourceName || '',
       log.ipAddress || '',
+      log.previousHash || '',
+      log.recordHash,
     ]);
 
     const csv = [headers, ...rows]

@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic'
 export { HeroMetric, HeroMetricsGrid } from './HeroMetrics'
 export { TopBlockedList } from './TopBlockedList'
 export { ActivityFeed } from './ActivityFeed'
+export { UsageWidget } from './UsageWidget'
 
 // Lazy-loaded chart components (reduces initial bundle by ~150KB)
 export const QueryTrendsChart = dynamic(

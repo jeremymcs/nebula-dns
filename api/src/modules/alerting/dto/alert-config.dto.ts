@@ -37,7 +37,8 @@ export class CreateSlackConfigDto {
 
   @ApiProperty({
     description: 'Slack webhook URL (must start with https://hooks.slack.com/)',
-    example: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
+    example:
+      'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
   })
   @IsUrl()
   @IsNotEmpty()

@@ -48,6 +48,7 @@ export class LoginResponseDto {
     name: string;
     role: string;
     tenantId: string;
+    tenantTier?: 'home' | 'enterprise' | 'msp';
   };
 }
 

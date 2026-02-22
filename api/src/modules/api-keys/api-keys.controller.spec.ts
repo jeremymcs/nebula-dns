@@ -40,7 +40,7 @@ describe('ApiKeysController', () => {
 
   const mockApiKeyWithSecret = {
     ...mockApiKey,
-    key: 'ndns_test_1234567890abcdef',
+    apiKey: 'ndns_test_1234567890abcdef',
   };
 
   const mockUsageStats = {

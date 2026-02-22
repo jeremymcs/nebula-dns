@@ -333,12 +333,17 @@ export class PaymentMethodDto {
   @ApiProperty({ description: 'Whether this is the default payment method' })
   isDefault: boolean;
 
-  @ApiProperty({ description: 'When the payment method was created (ISO date)' })
+  @ApiProperty({
+    description: 'When the payment method was created (ISO date)',
+  })
   created: string;
 }
 
 export class PaymentMethodListResponseDto {
-  @ApiProperty({ type: [PaymentMethodDto], description: 'List of payment methods' })
+  @ApiProperty({
+    type: [PaymentMethodDto],
+    description: 'List of payment methods',
+  })
   data: PaymentMethodDto[];
 
   @ApiProperty({ description: 'Total count of payment methods' })
@@ -346,7 +351,9 @@ export class PaymentMethodListResponseDto {
 }
 
 export class CreateSetupIntentResponseDto {
-  @ApiProperty({ description: 'Client secret for Stripe.js SetupIntent confirmation' })
+  @ApiProperty({
+    description: 'Client secret for Stripe.js SetupIntent confirmation',
+  })
   clientSecret: string;
 }
 

@@ -22,7 +22,8 @@ describe('SlackProvider', () => {
   describe('validateConfig', () => {
     it('should return true for valid Slack webhook URL', () => {
       const config = {
-        webhookUrl: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
+        webhookUrl:
+          'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
       };
 
       expect(provider.validateConfig(config)).toBe(true);
@@ -44,7 +45,8 @@ describe('SlackProvider', () => {
 
     it('should return false for non-https URL', () => {
       const config = {
-        webhookUrl: 'http://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
+        webhookUrl:
+          'http://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
       };
 
       expect(provider.validateConfig(config)).toBe(false);
@@ -72,7 +74,8 @@ describe('SlackProvider', () => {
       };
 
       const config = {
-        webhookUrl: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
+        webhookUrl:
+          'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
       };
 
       // Access private method through send with mocked HTTP
@@ -92,19 +95,27 @@ describe('SlackProvider', () => {
 
         // Check header with emoji
         expect(payload.blocks[0].type).toBe('header');
-        expect(payload.blocks[0].text.text).toBe(':rotating_light: Service Down');
+        expect(payload.blocks[0].text.text).toBe(
+          ':rotating_light: Service Down',
+        );
         expect(payload.blocks[0].text.emoji).toBe(true);
 
         // Check message section
         expect(payload.blocks[1].type).toBe('section');
-        expect(payload.blocks[1].text.text).toBe('Policy service is not responding');
+        expect(payload.blocks[1].text.text).toBe(
+          'Policy service is not responding',
+        );
 
         // Check context
         expect(payload.blocks[2].type).toBe('context');
         expect(payload.blocks[2].elements).toHaveLength(3);
         expect(payload.blocks[2].elements[0].text).toBe('*Source:* policy-svc');
-        expect(payload.blocks[2].elements[1].text).toBe('*Time:* 2026-01-21T12:00:00.000Z');
-        expect(payload.blocks[2].elements[2].text).toBe('*Type:* system_health');
+        expect(payload.blocks[2].elements[1].text).toBe(
+          '*Time:* 2026-01-21T12:00:00.000Z',
+        );
+        expect(payload.blocks[2].elements[2].text).toBe(
+          '*Type:* system_health',
+        );
 
         mockHttpPost.mockRestore();
       });
@@ -134,12 +145,14 @@ describe('SlackProvider', () => {
         };
 
         const config = {
-          webhookUrl: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
+          webhookUrl:
+            'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
         };
 
         await provider.send(alert, config);
 
-        const callArgs = mockHttpPost.mock.calls[mockHttpPost.mock.calls.length - 1];
+        const callArgs =
+          mockHttpPost.mock.calls[mockHttpPost.mock.calls.length - 1];
         const payload = JSON.parse(callArgs[1] as string);
 
         expect(payload.blocks[0].text.text).toContain(emoji);
@@ -166,7 +179,8 @@ describe('SlackProvider', () => {
       };
 
       const config = {
-        webhookUrl: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
+        webhookUrl:
+          'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
       };
 
       const result = await provider.send(alert, config);
@@ -197,7 +211,8 @@ describe('SlackProvider', () => {
       };
 
       const config = {
-        webhookUrl: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
+        webhookUrl:
+          'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
       };
 
       const result = await provider.send(alert, config);
@@ -225,7 +240,8 @@ describe('SlackProvider', () => {
       };
 
       const config = {
-        webhookUrl: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
+        webhookUrl:
+          'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
       };
 
       const result = await provider.send(alert, config);
@@ -253,7 +269,8 @@ describe('SlackProvider', () => {
       };
 
       const config = {
-        webhookUrl: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
+        webhookUrl:
+          'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
       };
 
       const result = await provider.send(alert, config);
@@ -291,7 +308,8 @@ describe('SlackProvider', () => {
         .mockResolvedValue({ statusCode: 200, body: 'ok' });
 
       const config = {
-        webhookUrl: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
+        webhookUrl:
+          'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
       };
 
       const result = await provider.test(config);
@@ -316,7 +334,8 @@ describe('SlackProvider', () => {
         .mockRejectedValue(new Error('Connection refused'));
 
       const config = {
-        webhookUrl: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
+        webhookUrl:
+          'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
       };
 
       const result = await provider.test(config);

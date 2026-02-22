@@ -377,7 +377,11 @@ describe('AdminBillingService', () => {
       } as any);
       auditLogsService.log.mockResolvedValue({} as any);
 
-      const result = await service.applyCredit('tenant-123', creditDto, adminId);
+      const result = await service.applyCredit(
+        'tenant-123',
+        creditDto,
+        adminId,
+      );
 
       expect(result.transactionId).toBe('txn_abc123');
       expect(result.newBalance).toBe(-1500);

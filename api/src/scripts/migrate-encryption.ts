@@ -3,12 +3,19 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 //
 // Migrates encrypted data from AES-256-CBC to AES-256-GCM format
-// Usage: npx ts-node src/scripts/migrate-encryption.ts [--dry-run]
+// Usage: npx ts-node src/scripts/migrate-encryption.ts [--dry-run] [--verify]
+//
+// Options:
+//   --dry-run     Preview changes without modifying the database
+//   --verify      Verify data integrity after migration (re-decrypt and compare)
+//   --verbose     Show detailed progress information
+//   --batch-size=N  Process N records at a time (default: 100)
 
 import { DataSource } from 'typeorm';
 import * as crypto from 'crypto';
 import {
   encrypt,
+  decrypt,
   deriveKey,
   detectEncryptionFormat,
 } from '../common/utils/encryption.util';
@@ -19,6 +26,7 @@ interface MigrationConfig {
   dryRun: boolean;
   batchSize: number;
   verbose: boolean;
+  verify: boolean;
 }
 
 // Migration statistics
@@ -26,12 +34,18 @@ interface MigrationStats {
   mfaTotal: number;
   mfaMigrated: number;
   mfaFailed: number;
+  mfaVerified: number;
+  mfaVerifyFailed: number;
   ssoTotal: number;
   ssoMigrated: number;
   ssoFailed: number;
+  ssoVerified: number;
+  ssoVerifyFailed: number;
   siemTotal: number;
   siemMigrated: number;
   siemFailed: number;
+  siemVerified: number;
+  siemVerifyFailed: number;
   errors: string[];
 }
 
@@ -44,7 +58,37 @@ function parseArgs(): MigrationConfig {
       args.find((a) => a.startsWith('--batch-size='))?.split('=')[1] || '100',
     ),
     verbose: args.includes('--verbose') || args.includes('-v'),
+    verify: args.includes('--verify'),
   };
+}
+
+/**
+ * Verifies that data can be decrypted correctly after migration
+ * by re-decrypting and comparing against the original plaintext
+ */
+function verifyMigration(
+  originalPlaintext: string,
+  newCiphertext: string,
+  key: Buffer,
+  recordId: string,
+  module: string,
+): { success: boolean; error?: string } {
+  try {
+    const decrypted = decrypt(newCiphertext, key);
+    if (decrypted === originalPlaintext) {
+      return { success: true };
+    } else {
+      return {
+        success: false,
+        error: `Data mismatch for ${module} record ${recordId}: plaintext does not match after re-encryption`,
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: `Verification failed for ${module} record ${recordId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    };
+  }
 }
 
 // Create database connection
@@ -134,6 +178,25 @@ async function migrateMfaSecrets(
       // Re-encrypt with GCM
       const newEncrypted = encrypt(plaintext, newKey);
 
+      // Verify the new encryption before saving (if enabled)
+      if (config.verify) {
+        const verifyResult = verifyMigration(
+          plaintext,
+          newEncrypted,
+          newKey,
+          record.id,
+          'MFA',
+        );
+        if (!verifyResult.success) {
+          const errorMsg = verifyResult.error || 'Verification failed';
+          console.error(`[MFA] ${errorMsg}`);
+          stats.errors.push(errorMsg);
+          stats.mfaVerifyFailed++;
+          continue; // Skip this record - data integrity issue
+        }
+        stats.mfaVerified++;
+      }
+
       if (config.dryRun) {
         console.log(`[MFA] Record ${record.id}: Would migrate (dry-run)`);
         stats.mfaMigrated++;
@@ -153,8 +216,11 @@ async function migrateMfaSecrets(
     }
   }
 
+  const verifyMsg = config.verify
+    ? `, ${stats.mfaVerified} verified, ${stats.mfaVerifyFailed} verify failed`
+    : '';
   console.log(
-    `[MFA] Migration complete: ${stats.mfaMigrated} migrated, ${stats.mfaFailed} failed`,
+    `[MFA] Migration complete: ${stats.mfaMigrated} migrated, ${stats.mfaFailed} failed${verifyMsg}`,
   );
 }
 
@@ -200,6 +266,26 @@ async function migrateSsoSecrets(
             legacyKey,
           );
           const newEncrypted = encrypt(plaintext, newKey);
+
+          // Verify before saving
+          if (config.verify) {
+            const verifyResult = verifyMigration(
+              plaintext,
+              newEncrypted,
+              newKey,
+              record.id,
+              'SSO/OIDC',
+            );
+            if (!verifyResult.success) {
+              const errorMsg = verifyResult.error || 'Verification failed';
+              console.error(`[SSO] ${errorMsg}`);
+              stats.errors.push(errorMsg);
+              stats.ssoVerifyFailed++;
+              continue; // Skip this record
+            }
+            stats.ssoVerified++;
+          }
+
           updates.push(`oidc_client_secret_encrypted = $${paramIndex++}`);
           values.push(newEncrypted);
           updated = true;
@@ -218,6 +304,26 @@ async function migrateSsoSecrets(
             legacyKey,
           );
           const newEncrypted = encrypt(plaintext, newKey);
+
+          // Verify before saving
+          if (config.verify) {
+            const verifyResult = verifyMigration(
+              plaintext,
+              newEncrypted,
+              newKey,
+              record.id,
+              'SSO/SAML',
+            );
+            if (!verifyResult.success) {
+              const errorMsg = verifyResult.error || 'Verification failed';
+              console.error(`[SSO] ${errorMsg}`);
+              stats.errors.push(errorMsg);
+              stats.ssoVerifyFailed++;
+              continue; // Skip this record
+            }
+            stats.ssoVerified++;
+          }
+
           updates.push(`saml_signing_key_encrypted = $${paramIndex++}`);
           values.push(newEncrypted);
           updated = true;
@@ -255,8 +361,11 @@ async function migrateSsoSecrets(
     }
   }
 
+  const verifyMsg = config.verify
+    ? `, ${stats.ssoVerified} verified, ${stats.ssoVerifyFailed} verify failed`
+    : '';
   console.log(
-    `[SSO] Migration complete: ${stats.ssoMigrated} migrated, ${stats.ssoFailed} failed`,
+    `[SSO] Migration complete: ${stats.ssoMigrated} migrated, ${stats.ssoFailed} failed${verifyMsg}`,
   );
 }
 
@@ -300,7 +409,7 @@ async function migrateSiemSecrets(
 
   for (const record of records) {
     try {
-      const config = record.config_encrypted;
+      const recordConfig = record.config_encrypted;
       const fields = encryptedFields[record.integration_type] || [];
 
       if (fields.length === 0) {
@@ -313,15 +422,39 @@ async function migrateSiemSecrets(
       }
 
       let updated = false;
-      const newConfig = { ...config };
+      const newConfig = { ...recordConfig };
 
       for (const field of fields) {
-        if (config[field]) {
-          const formatInfo = detectEncryptionFormat(config[field]);
+        if (recordConfig[field]) {
+          const formatInfo = detectEncryptionFormat(recordConfig[field]);
 
           if (formatInfo.isLegacy) {
-            const plaintext = decryptSiemLegacyCBC(config[field], legacyKey);
-            newConfig[field] = encrypt(plaintext, newKey);
+            const plaintext = decryptSiemLegacyCBC(
+              recordConfig[field],
+              legacyKey,
+            );
+            const newEncrypted = encrypt(plaintext, newKey);
+
+            // Verify before saving
+            if (config.verify) {
+              const verifyResult = verifyMigration(
+                plaintext,
+                newEncrypted,
+                newKey,
+                record.id,
+                `SIEM/${field}`,
+              );
+              if (!verifyResult.success) {
+                const errorMsg = verifyResult.error || 'Verification failed';
+                console.error(`[SIEM] ${errorMsg}`);
+                stats.errors.push(errorMsg);
+                stats.siemVerifyFailed++;
+                continue; // Skip this field
+              }
+              stats.siemVerified++;
+            }
+
+            newConfig[field] = newEncrypted;
             updated = true;
           }
         }
@@ -353,8 +486,11 @@ async function migrateSiemSecrets(
     }
   }
 
+  const verifyMsg = config.verify
+    ? `, ${stats.siemVerified} verified, ${stats.siemVerifyFailed} verify failed`
+    : '';
   console.log(
-    `[SIEM] Migration complete: ${stats.siemMigrated} migrated, ${stats.siemFailed} failed`,
+    `[SIEM] Migration complete: ${stats.siemMigrated} migrated, ${stats.siemFailed} failed${verifyMsg}`,
   );
 }
 
@@ -372,17 +508,24 @@ async function main(): Promise<void> {
 
   console.log(`Batch size: ${config.batchSize}`);
   console.log(`Verbose: ${config.verbose}`);
+  console.log(`Verify: ${config.verify}`);
 
   const stats: MigrationStats = {
     mfaTotal: 0,
     mfaMigrated: 0,
     mfaFailed: 0,
+    mfaVerified: 0,
+    mfaVerifyFailed: 0,
     ssoTotal: 0,
     ssoMigrated: 0,
     ssoFailed: 0,
+    ssoVerified: 0,
+    ssoVerifyFailed: 0,
     siemTotal: 0,
     siemMigrated: 0,
     siemFailed: 0,
+    siemVerified: 0,
+    siemVerifyFailed: 0,
     errors: [],
   };
 
@@ -404,27 +547,47 @@ async function main(): Promise<void> {
     console.log('='.repeat(60));
 
     console.log(`\nMFA Secrets:`);
-    console.log(`  Total:    ${stats.mfaTotal}`);
-    console.log(`  Migrated: ${stats.mfaMigrated}`);
-    console.log(`  Failed:   ${stats.mfaFailed}`);
+    console.log(`  Total:         ${stats.mfaTotal}`);
+    console.log(`  Migrated:      ${stats.mfaMigrated}`);
+    console.log(`  Failed:        ${stats.mfaFailed}`);
+    if (config.verify) {
+      console.log(`  Verified:      ${stats.mfaVerified}`);
+      console.log(`  Verify Failed: ${stats.mfaVerifyFailed}`);
+    }
 
     console.log(`\nSSO Secrets:`);
-    console.log(`  Total:    ${stats.ssoTotal}`);
-    console.log(`  Migrated: ${stats.ssoMigrated}`);
-    console.log(`  Failed:   ${stats.ssoFailed}`);
+    console.log(`  Total:         ${stats.ssoTotal}`);
+    console.log(`  Migrated:      ${stats.ssoMigrated}`);
+    console.log(`  Failed:        ${stats.ssoFailed}`);
+    if (config.verify) {
+      console.log(`  Verified:      ${stats.ssoVerified}`);
+      console.log(`  Verify Failed: ${stats.ssoVerifyFailed}`);
+    }
 
     console.log(`\nSIEM Secrets:`);
-    console.log(`  Total:    ${stats.siemTotal}`);
-    console.log(`  Migrated: ${stats.siemMigrated}`);
-    console.log(`  Failed:   ${stats.siemFailed}`);
+    console.log(`  Total:         ${stats.siemTotal}`);
+    console.log(`  Migrated:      ${stats.siemMigrated}`);
+    console.log(`  Failed:        ${stats.siemFailed}`);
+    if (config.verify) {
+      console.log(`  Verified:      ${stats.siemVerified}`);
+      console.log(`  Verify Failed: ${stats.siemVerifyFailed}`);
+    }
 
     const totalMigrated =
       stats.mfaMigrated + stats.ssoMigrated + stats.siemMigrated;
     const totalFailed = stats.mfaFailed + stats.ssoFailed + stats.siemFailed;
+    const totalVerified =
+      stats.mfaVerified + stats.ssoVerified + stats.siemVerified;
+    const totalVerifyFailed =
+      stats.mfaVerifyFailed + stats.ssoVerifyFailed + stats.siemVerifyFailed;
 
     console.log(`\nTotal:`);
-    console.log(`  Migrated: ${totalMigrated}`);
-    console.log(`  Failed:   ${totalFailed}`);
+    console.log(`  Migrated:      ${totalMigrated}`);
+    console.log(`  Failed:        ${totalFailed}`);
+    if (config.verify) {
+      console.log(`  Verified:      ${totalVerified}`);
+      console.log(`  Verify Failed: ${totalVerifyFailed}`);
+    }
 
     if (stats.errors.length > 0) {
       console.log(`\nErrors:`);

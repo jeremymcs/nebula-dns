@@ -75,19 +75,19 @@ export interface MspWelcomeEmailData {
 
 // Phase 19: Admin User Management Email Data Interfaces
 export interface AdminInviteEmailData {
-  to: string;                    // Invitee email
-  inviterName: string;           // Name of admin who sent invite
-  inviterEmail: string;          // Email of admin who sent invite
-  role: string;                  // Assigned role (Super Admin, Admin, Viewer)
-  inviteUrl: string;             // Full URL with token
-  expiresAt: Date;               // When invitation expires
+  to: string; // Invitee email
+  inviterName: string; // Name of admin who sent invite
+  inviterEmail: string; // Email of admin who sent invite
+  role: string; // Assigned role (Super Admin, Admin, Viewer)
+  inviteUrl: string; // Full URL with token
+  expiresAt: Date; // When invitation expires
 }
 
 export interface MfaResetNotificationData {
-  to: string;                    // Admin whose MFA was reset
-  name: string;                  // Admin's name
-  resetByEmail: string;          // Email of admin who performed reset
-  loginUrl: string;              // Admin login URL
+  to: string; // Admin whose MFA was reset
+  name: string; // Admin's name
+  resetByEmail: string; // Email of admin who performed reset
+  loginUrl: string; // Admin login URL
 }
 
 // US-028: Grace Period Email Data Interfaces
@@ -851,7 +851,7 @@ This email was sent by Nebula DNS.
     // Format role for display (super_admin -> Super Admin)
     const roleDisplay = data.role
       .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
 
     const htmlContent = `
@@ -919,7 +919,9 @@ Invited by: ${data.inviterEmail}
     return this.sendEmail(data.to, subject, htmlContent, textContent);
   }
 
-  async sendMfaResetNotification(data: MfaResetNotificationData): Promise<boolean> {
+  async sendMfaResetNotification(
+    data: MfaResetNotificationData,
+  ): Promise<boolean> {
     const subject = 'Your MFA has been reset - Action Required';
 
     const htmlContent = `

@@ -9,6 +9,7 @@ This guide covers deploying Nebula DNS to production environments.
 3. [Kubernetes Deployment](#kubernetes-deployment)
    - [Pod Disruption Budgets (PDBs)](#pod-disruption-budgets-pdbs)
 4. [Security Configuration](#security-configuration)
+   - [Encryption Key Configuration](#encryption-key-configuration)
 5. [Monitoring Setup](#monitoring-setup)
 6. [Backup and Recovery](#backup-and-recovery)
 7. [Scaling Considerations](#scaling-considerations)
@@ -357,6 +358,119 @@ metadata:
     pod-security.kubernetes.io/audit: restricted
     pod-security.kubernetes.io/warn: restricted
 ```
+
+### Encryption Key Configuration
+
+**CRITICAL**: The following encryption keys are required for production deployment. The application will fail to start if these are missing or invalid in production mode.
+
+| Key | Purpose | Minimum Length |
+|-----|---------|----------------|
+| `MFA_ENCRYPTION_KEY` | Encrypts MFA TOTP secrets | 32 bytes |
+| `SSO_ENCRYPTION_KEY` | Encrypts SSO client secrets and SAML certificates | 32 bytes |
+| `SIEM_ENCRYPTION_KEY` | Encrypts SIEM integration credentials | 32 bytes |
+
+#### Generating Secure Encryption Keys
+
+```bash
+# Generate base64-encoded keys (recommended)
+openssl rand -base64 32
+
+# Generate hex-encoded keys
+openssl rand -hex 32
+
+# Generate all required keys at once
+echo "MFA_ENCRYPTION_KEY=$(openssl rand -base64 32)"
+echo "SSO_ENCRYPTION_KEY=$(openssl rand -base64 32)"
+echo "SIEM_ENCRYPTION_KEY=$(openssl rand -base64 32)"
+```
+
+#### Configuring Keys in Kubernetes
+
+**Option 1: Using AWS Secrets Manager (Recommended)**
+
+```yaml
+# external-secret.yaml
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: encryption-keys
+  namespace: nebula-dns
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: aws-secrets-manager
+  target:
+    name: encryption-keys
+    creationPolicy: Owner
+  data:
+    - secretKey: MFA_ENCRYPTION_KEY
+      remoteRef:
+        key: nebuladns/production
+        property: MFA_ENCRYPTION_KEY
+    - secretKey: SSO_ENCRYPTION_KEY
+      remoteRef:
+        key: nebuladns/production
+        property: SSO_ENCRYPTION_KEY
+    - secretKey: SIEM_ENCRYPTION_KEY
+      remoteRef:
+        key: nebuladns/production
+        property: SIEM_ENCRYPTION_KEY
+```
+
+**Option 2: Using HashiCorp Vault**
+
+```bash
+# Store encryption keys in Vault
+vault kv put secret/nebuladns/production \
+  MFA_ENCRYPTION_KEY="$(openssl rand -base64 32)" \
+  SSO_ENCRYPTION_KEY="$(openssl rand -base64 32)" \
+  SIEM_ENCRYPTION_KEY="$(openssl rand -base64 32)"
+```
+
+**Option 3: Direct Kubernetes Secret (not recommended for production)**
+
+```bash
+kubectl create secret generic encryption-keys \
+  -n nebula-dns \
+  --from-literal=MFA_ENCRYPTION_KEY="$(openssl rand -base64 32)" \
+  --from-literal=SSO_ENCRYPTION_KEY="$(openssl rand -base64 32)" \
+  --from-literal=SIEM_ENCRYPTION_KEY="$(openssl rand -base64 32)"
+```
+
+#### Verification
+
+After deployment, verify encryption configuration via the health endpoint:
+
+```bash
+curl https://api.your-domain.com/health/encryption
+```
+
+Expected response for properly configured production:
+```json
+{
+  "status": "configured",
+  "environment": "production",
+  "keys": [
+    {"key": "MFA_ENCRYPTION_KEY", "isPresent": true, "isValidLength": true},
+    {"key": "SSO_ENCRYPTION_KEY", "isPresent": true, "isValidLength": true},
+    {"key": "SIEM_ENCRYPTION_KEY", "isPresent": true, "isValidLength": true}
+  ],
+  "hasErrors": false,
+  "hasWarnings": false
+}
+```
+
+#### Key Rotation
+
+When rotating encryption keys:
+
+1. **Generate new key**: `openssl rand -base64 32`
+2. **Update secret store** (Vault/AWS Secrets Manager)
+3. **External Secrets will sync** automatically (if using External Secrets)
+4. **Rolling restart** API pods: `kubectl rollout restart deployment/api -n nebula-dns`
+
+**Warning**: Changing encryption keys will invalidate existing encrypted data (MFA secrets, SSO configurations, SIEM credentials). Plan data migration accordingly.
 
 ### Secrets Rotation
 

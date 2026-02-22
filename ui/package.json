@@ -4,7 +4,7 @@
   "author": "Jeremy McSpadden <jeremy@fluxlabs.net>",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 4011",
     "build": "next build",
     "start": "next start",
     "lint": "eslint src --ext .ts,.tsx",

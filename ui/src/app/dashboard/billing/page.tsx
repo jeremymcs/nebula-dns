@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import { Card, StatCard, Button, Badge, Tabs, Modal } from '@/components/ui'
 import { useMspBillingOverview, useMspBundles, useMspRealTimeUsage, useMspInvoices, useMspPurchases } from '@/hooks/useApi'
+import { UsageBreakdown } from '@/components/billing/UsageBreakdown'
+import { UsageChart } from '@/components/billing/UsageChart'
+import { UsageExport } from '@/components/billing/UsageExport'
 import { api } from '@/lib/api'
 import {
   CreditCardIcon,
@@ -62,6 +65,7 @@ export default function BillingPage() {
   }
 
   const tabItems = [
+    { id: 'overview', label: 'Usage Overview' },
     { id: 'bundles', label: 'Query Bundles' },
     { id: 'purchases', label: 'Purchase History' },
     { id: 'invoices', label: 'Invoices' },
@@ -75,6 +79,7 @@ export default function BillingPage() {
           <h1 className="text-3xl font-bold text-white">Billing & Usage</h1>
           <p className="text-space-400">Manage your query bundles and view usage</p>
         </div>
+        <UsageExport />
       </div>
 
       {/* Overview Cards */}
@@ -105,6 +110,13 @@ export default function BillingPage() {
       <Tabs tabs={tabItems} activeTab={activeTab} onChange={setActiveTab} />
 
       <div className="mt-6">
+        {activeTab === 'overview' && (
+          <div className="space-y-6">
+            <UsageBreakdown />
+            <UsageChart />
+          </div>
+        )}
+
         {activeTab === 'bundles' && (
               <div className="grid gap-4 md:grid-cols-3">
                 {bundles?.map((bundle) => (

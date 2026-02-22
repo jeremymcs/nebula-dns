@@ -16,7 +16,11 @@ import { AdminRole } from '../enums/admin-role.enum';
  * - expired: Invitation passed expiry time
  * - revoked: Manually cancelled before acceptance
  */
-export type AdminInvitationStatus = 'pending' | 'accepted' | 'expired' | 'revoked';
+export type AdminInvitationStatus =
+  | 'pending'
+  | 'accepted'
+  | 'expired'
+  | 'revoked';
 
 /**
  * AdminInvitation Entity

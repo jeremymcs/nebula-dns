@@ -1,4 +1,5 @@
 // Nebula DNS - Authentication Service
+// Updated to use the unified tier system (US-022, US-023)
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import {
@@ -19,7 +20,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { User } from '../users/entities/user.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
-import { PartnerUser } from '../partners/entities/partner-user.entity';
 import {
   LoginDto,
   LoginResponseDto,
@@ -49,8 +49,6 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Tenant)
     private readonly tenantRepository: Repository<Tenant>,
-    @InjectRepository(PartnerUser)
-    private readonly partnerUserRepository: Repository<PartnerUser>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => MfaService))
@@ -276,14 +274,14 @@ export class AuthService {
 
   /**
    * Get managed organizations for an MSP user
-   * Checks if the user's tenant belongs to a partner and returns all partner's orgs
+   * Uses the new tier-based system via managedByMspId (US-022, US-023)
    */
   async getManagedOrganizations(
     userId: string,
     tenantId: string,
   ): Promise<{
     isMsp: boolean;
-    partnerId: string | null;
+    partnerId: string | null; // Kept for backwards compatibility
     currentOrg: { id: string; name: string; slug: string } | null;
     organizations: Array<{
       id: string;
@@ -292,10 +290,9 @@ export class AuthService {
       status: string;
     }>;
   }> {
-    // First get the current tenant to check if it belongs to a partner
+    // First get the current tenant
     const currentTenant = await this.tenantRepository.findOne({
       where: { id: tenantId },
-      relations: ['partner'],
     });
 
     if (!currentTenant) {
@@ -307,52 +304,8 @@ export class AuthService {
       };
     }
 
-    // Check if this tenant belongs to a partner (MSP)
-    if (!currentTenant.partnerId) {
-      // Also check if the user email matches a partner user
-      const user = await this.userRepository.findOne({ where: { id: userId } });
-      if (!user) {
-        return {
-          isMsp: false,
-          partnerId: null,
-          currentOrg: {
-            id: currentTenant.id,
-            name: currentTenant.name,
-            slug: currentTenant.slug,
-          },
-          organizations: [],
-        };
-      }
-
-      // Check if this email belongs to a partner user
-      const partnerUser = await this.partnerUserRepository.findOne({
-        where: { email: user.email, status: 'active' },
-      });
-
-      if (partnerUser) {
-        // This user is also an MSP user - get all partner orgs
-        const partnerOrgs = await this.tenantRepository.find({
-          where: { partnerId: partnerUser.partnerId },
-          order: { name: 'ASC' },
-        });
-
-        return {
-          isMsp: true,
-          partnerId: partnerUser.partnerId,
-          currentOrg: {
-            id: currentTenant.id,
-            name: currentTenant.name,
-            slug: currentTenant.slug,
-          },
-          organizations: partnerOrgs.map((org) => ({
-            id: org.id,
-            name: org.name,
-            slug: org.slug,
-            status: org.status,
-          })),
-        };
-      }
-
+    // Check if this tenant is an MSP tier
+    if (currentTenant.tier !== 'msp') {
       return {
         isMsp: false,
         partnerId: null,
@@ -365,21 +318,21 @@ export class AuthService {
       };
     }
 
-    // Tenant belongs to a partner - get all organizations for this partner
-    const partnerOrgs = await this.tenantRepository.find({
-      where: { partnerId: currentTenant.partnerId },
+    // Get all organizations managed by this MSP tenant
+    const managedOrgs = await this.tenantRepository.find({
+      where: { managedByMspId: tenantId },
       order: { name: 'ASC' },
     });
 
     return {
       isMsp: true,
-      partnerId: currentTenant.partnerId,
+      partnerId: tenantId, // For backwards compatibility, use the MSP tenant ID
       currentOrg: {
         id: currentTenant.id,
         name: currentTenant.name,
         slug: currentTenant.slug,
       },
-      organizations: partnerOrgs.map((org) => ({
+      organizations: managedOrgs.map((org) => ({
         id: org.id,
         name: org.name,
         slug: org.slug,
@@ -390,26 +343,30 @@ export class AuthService {
 
   /**
    * Switch to a different tenant/organization for MSP users
+   * Uses the new tier-based system (US-022, US-023)
    */
   async switchTenant(
     userId: string,
     currentTenantId: string,
     targetTenantId: string,
   ): Promise<LoginResponseDto> {
-    // First verify the user can switch to this tenant
-    const mspInfo = await this.getManagedOrganizations(userId, currentTenantId);
+    // Get the current tenant to check MSP access
+    const currentTenant = await this.tenantRepository.findOne({
+      where: { id: currentTenantId },
+    });
 
-    if (!mspInfo.isMsp) {
+    if (!currentTenant || currentTenant.tier !== 'msp') {
       throw new ForbiddenException(
         'Only MSP users can switch between organizations',
       );
     }
 
-    // Check if target tenant is in the list of managed orgs
-    const targetOrg = mspInfo.organizations.find(
-      (org) => org.id === targetTenantId,
-    );
-    if (!targetOrg) {
+    // Check if target tenant is managed by this MSP
+    const targetTenant = await this.tenantRepository.findOne({
+      where: { id: targetTenantId, managedByMspId: currentTenantId },
+    });
+
+    if (!targetTenant) {
       throw new ForbiddenException(
         'You do not have access to this organization',
       );
@@ -502,6 +459,7 @@ export class AuthService {
       role: user.role,
       jti, // Include JTI in access token for blacklist checking
       mfaVerified, // Track if MFA was verified for this session
+      tier: user.tenant?.tier, // Include tier for frontend feature gating
     };
 
     const accessToken = this.jwtService.sign(payload);
@@ -551,6 +509,7 @@ export class AuthService {
         name: user.name,
         role: user.role,
         tenantId: user.tenantId,
+        tenantTier: user.tenant?.tier,
       },
     };
   }

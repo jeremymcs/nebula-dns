@@ -211,7 +211,10 @@ export class SsoController {
   })
   @ApiResponse({ status: 201, description: 'SAML configuration saved' })
   @ApiResponse({ status: 400, description: 'Invalid SAML configuration' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing JWT token',
+  })
   @ApiResponse({ status: 403, description: 'Forbidden - Requires owner role' })
   async configureSaml(
     @CurrentTenant() tenantId: string,
@@ -235,7 +238,10 @@ export class SsoController {
   })
   @ApiResponse({ status: 201, description: 'OIDC configuration saved' })
   @ApiResponse({ status: 400, description: 'Invalid OIDC configuration' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing JWT token',
+  })
   @ApiResponse({ status: 403, description: 'Forbidden - Requires owner role' })
   async configureOidc(
     @CurrentTenant() tenantId: string,
@@ -255,10 +261,14 @@ export class SsoController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Enable SSO',
-    description: 'Enables SSO for the tenant. Users can then log in via the configured identity provider.',
+    description:
+      'Enables SSO for the tenant. Users can then log in via the configured identity provider.',
   })
   @ApiResponse({ status: 200, description: 'SSO enabled' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing JWT token',
+  })
   @ApiResponse({ status: 403, description: 'Forbidden - Requires owner role' })
   async enableSso(@CurrentTenant() tenantId: string) {
     await this.ssoService.enableSso(tenantId);
@@ -271,10 +281,14 @@ export class SsoController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Disable SSO',
-    description: 'Disables SSO for the tenant. Users will need to log in with username/password.',
+    description:
+      'Disables SSO for the tenant. Users will need to log in with username/password.',
   })
   @ApiResponse({ status: 200, description: 'SSO disabled' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing JWT token',
+  })
   @ApiResponse({ status: 403, description: 'Forbidden - Requires owner role' })
   async disableSso(@CurrentTenant() tenantId: string) {
     await this.ssoService.disableSso(tenantId);
@@ -290,7 +304,10 @@ export class SsoController {
     description: 'Deletes all SSO configuration for the tenant.',
   })
   @ApiResponse({ status: 200, description: 'SSO configuration deleted' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing JWT token',
+  })
   @ApiResponse({ status: 403, description: 'Forbidden - Requires owner role' })
   async deleteConfig(@CurrentTenant() tenantId: string) {
     await this.ssoService.deleteSsoConfig(tenantId);

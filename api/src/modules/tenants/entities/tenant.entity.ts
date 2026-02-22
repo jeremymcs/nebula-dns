@@ -1,12 +1,19 @@
-import { Entity, Column, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+// Nebula DNS - Tenant Entity
+// Defines the Tenant model for multi-tenancy support with tier-based features
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+import { Entity, Column, OneToMany, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseEntity } from '@/common/entities/base.entity';
 import { User } from '../../users/entities/user.entity';
 import { Policy } from '../../policies/entities/policy.entity';
 import { Location } from '../../locations/entities/location.entity';
-import { Partner } from '../../partners/entities/partner.entity';
 
 export type TenantStatus = 'active' | 'suspended' | 'cancelled';
 export type TenantPlan = 'free' | 'starter' | 'pro' | 'enterprise';
+
+// Tier system for unified user tiers
+export type TenantTier = 'home' | 'enterprise' | 'msp';
+export type SubscriptionStatus = 'active' | 'grace' | 'suspended';
 
 export interface TenantSettings {
   timezone?: string;
@@ -17,20 +24,16 @@ export interface TenantSettings {
     weeklyReports?: boolean;
     systemUpdates?: boolean;
   };
+  // MSP-specific settings
+  mspDisplayName?: string;
+  mspSupportUrl?: string;
+  mspSupportEmail?: string;
 }
 
 // Tenant represents an Organization (sub-client) in the MSP hierarchy
-// Each Tenant belongs to a Partner (MSP/Reseller)
+// MSP tenants can manage client tenants via managed_by_msp_id relationship
 @Entity('tenants')
 export class Tenant extends BaseEntity {
-  // Partner (MSP) that manages this organization
-  @Column({ name: 'partner_id', type: 'uuid', nullable: true })
-  partnerId: string | null;
-
-  @ManyToOne(() => Partner, { nullable: true })
-  @JoinColumn({ name: 'partner_id' })
-  partner: Partner;
-
   @Column({ type: 'varchar', length: 255 })
   name: string;
 
@@ -42,6 +45,43 @@ export class Tenant extends BaseEntity {
 
   @Column({ type: 'varchar', length: 20, default: 'free' })
   plan: TenantPlan;
+
+  // Tier system for unified user tiers (US-001)
+  @Column({
+    type: 'enum',
+    enum: ['home', 'enterprise', 'msp'],
+    default: 'home',
+  })
+  tier: TenantTier;
+
+  // Location limit (null = unlimited)
+  @Column({ name: 'location_limit', type: 'int', nullable: true })
+  locationLimit: number | null;
+
+  // Client limit for MSP tier (null = unlimited)
+  @Column({ name: 'client_limit', type: 'int', nullable: true })
+  clientLimit: number | null;
+
+  // Subscription status for billing/access control
+  @Column({
+    name: 'subscription_status',
+    type: 'enum',
+    enum: ['active', 'grace', 'suspended'],
+    default: 'active',
+  })
+  subscriptionStatus: SubscriptionStatus;
+
+  // Self-referential FK for MSP-managed clients
+  @Column({ name: 'managed_by_msp_id', type: 'uuid', nullable: true })
+  managedByMspId: string | null;
+
+  @ManyToOne(() => Tenant, { nullable: true })
+  @JoinColumn({ name: 'managed_by_msp_id' })
+  managedByMsp: Tenant | null;
+
+  // Clients managed by this MSP tenant (inverse relationship)
+  @OneToMany(() => Tenant, (tenant) => tenant.managedByMsp)
+  managedClients: Tenant[];
 
   @Column({ type: 'jsonb', nullable: true })
   settings: TenantSettings;

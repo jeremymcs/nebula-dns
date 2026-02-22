@@ -1,6 +1,6 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
- * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
+ * Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
  *
  * Locations Service Unit Tests
  */
@@ -8,18 +8,30 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { LocationsService } from './locations.service';
 import { Location } from './entities/location.entity';
 import { LocationToken } from './entities/location-token.entity';
 import { RedisService } from '../redis/redis.service';
 import { PolicyCompilerService } from '../policies/policy-compiler.service';
+import { LimitsService } from '../limits/limits.service';
+
+// Mock BillingMeterService to avoid TypeScript compilation errors in the actual service
+jest.mock('../billing-meter/billing-meter.service', () => ({
+  BillingMeterService: jest.fn().mockImplementation(() => ({
+    recordEvent: jest.fn(),
+    trackUsage: jest.fn(),
+  })),
+}));
+
+import { BillingMeterService } from '../billing-meter/billing-meter.service';
 
 describe('LocationsService', () => {
   let service: LocationsService;
   let locationRepository: any;
   let tokenRepository: any;
   let configService: any;
+  let limitsService: any;
 
   const mockTenantId = 'tenant-123';
 
@@ -80,6 +92,16 @@ describe('LocationsService', () => {
     compile: jest.fn(),
   };
 
+  const mockLimitsService = {
+    canCreateLocation: jest.fn(),
+  };
+
+  const mockBillingMeterService = {
+    recordEvent: jest.fn(),
+    trackUsage: jest.fn(),
+    reportLocationUsage: jest.fn().mockResolvedValue(undefined),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -104,6 +126,14 @@ describe('LocationsService', () => {
           provide: PolicyCompilerService,
           useValue: mockPolicyCompilerService,
         },
+        {
+          provide: LimitsService,
+          useValue: mockLimitsService,
+        },
+        {
+          provide: BillingMeterService,
+          useValue: mockBillingMeterService,
+        },
       ],
     }).compile();
 
@@ -111,6 +141,7 @@ describe('LocationsService', () => {
     locationRepository = module.get(getRepositoryToken(Location));
     tokenRepository = module.get(getRepositoryToken(LocationToken));
     configService = module.get<ConfigService>(ConfigService);
+    limitsService = module.get<LimitsService>(LimitsService);
 
     jest.clearAllMocks();
   });
@@ -156,13 +187,33 @@ describe('LocationsService', () => {
   });
 
   describe('create', () => {
-    it('should create location', async () => {
+    // Mock exception that mimics LimitExceededException
+    const mockLimitException = {
+      getDetails: () => ({
+        resourceType: 'location',
+        current: 5,
+        limit: 5,
+        tier: 'starter',
+        upgradeMessage: 'Upgrade to Pro plan',
+        upgradeUrl: '/dashboard/settings/billing',
+      }),
+    };
+
+    it('should create location when within limits', async () => {
       const createDto = {
         name: 'New Location',
         description: 'A new location',
         policyId: 'policy-123',
         ipRange: '192.168.1.0/24',
       };
+
+      // Mock limits check to allow creation (no exception thrown)
+      mockLimitsService.canCreateLocation.mockResolvedValue({
+        allowed: true,
+        current: 2,
+        limit: 5,
+        remaining: 3,
+      });
 
       mockLocationRepository.findOne.mockResolvedValue(null); // No existing location with same IP
       mockLocationRepository.create.mockReturnValue({
@@ -179,6 +230,121 @@ describe('LocationsService', () => {
 
       expect(result.name).toBe(createDto.name);
       expect(mockLocationRepository.save).toHaveBeenCalled();
+      expect(mockLimitsService.canCreateLocation).toHaveBeenCalledWith(
+        mockTenantId,
+      );
+    });
+
+    it('should throw ForbiddenException when location limit reached', async () => {
+      const createDto = {
+        name: 'New Location',
+        description: 'A new location',
+        policyId: 'policy-123',
+        ipRange: '192.168.1.0/24',
+      };
+
+      // Mock limits check to throw exception (limit exceeded)
+      mockLimitsService.canCreateLocation.mockRejectedValue(mockLimitException);
+
+      await expect(service.create(mockTenantId, createDto)).rejects.toThrow(
+        ForbiddenException,
+      );
+
+      expect(mockLimitsService.canCreateLocation).toHaveBeenCalledWith(
+        mockTenantId,
+      );
+      expect(mockLocationRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('should include limit details in ForbiddenException response', async () => {
+      const createDto = {
+        name: 'New Location',
+        description: 'A new location',
+        policyId: 'policy-123',
+        ipRange: '192.168.1.0/24',
+      };
+
+      const customLimitException = {
+        getDetails: () => ({
+          resourceType: 'location',
+          current: 3,
+          limit: 3,
+          tier: 'starter',
+          upgradeMessage: 'Upgrade your plan',
+          upgradeUrl: '/dashboard/settings/billing',
+        }),
+      };
+
+      mockLimitsService.canCreateLocation.mockRejectedValue(
+        customLimitException,
+      );
+
+      try {
+        await service.create(mockTenantId, createDto);
+        fail('Expected ForbiddenException to be thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(ForbiddenException);
+        const response = error.getResponse();
+        expect(response.message).toBe(
+          'Location limit reached. Please upgrade your plan.',
+        );
+        expect(response.limitReached).toBe(true);
+        expect(response.current).toBe(3);
+        expect(response.limit).toBe(3);
+        expect(response.upgradeUrl).toBe('/settings/billing');
+      }
+    });
+
+    it('should allow creation when tenant has unlimited locations', async () => {
+      const createDto = {
+        name: 'New Location',
+        description: 'A new location',
+        policyId: 'policy-123',
+        ipRange: '192.168.1.0/24',
+      };
+
+      // Mock unlimited plan - no exception thrown
+      mockLimitsService.canCreateLocation.mockResolvedValue({
+        allowed: true,
+        current: 100,
+        limit: null,
+        remaining: null,
+      });
+
+      mockLocationRepository.findOne.mockResolvedValue(null);
+      mockLocationRepository.create.mockReturnValue({
+        ...mockLocation,
+        name: createDto.name,
+        description: createDto.description,
+        ipRange: createDto.ipRange,
+      });
+      mockLocationRepository.save.mockImplementation((loc) =>
+        Promise.resolve(loc),
+      );
+
+      const result = await service.create(mockTenantId, createDto);
+
+      expect(result.name).toBe(createDto.name);
+      expect(mockLocationRepository.save).toHaveBeenCalled();
+    });
+
+    it('should re-throw non-limit exceptions', async () => {
+      const createDto = {
+        name: 'New Location',
+        description: 'A new location',
+        policyId: 'policy-123',
+        ipRange: '192.168.1.0/24',
+      };
+
+      // Mock an unexpected error (no getDetails method)
+      const unexpectedError = new Error('Database connection failed');
+      mockLimitsService.canCreateLocation.mockRejectedValue(unexpectedError);
+
+      await expect(service.create(mockTenantId, createDto)).rejects.toThrow(
+        'Database connection failed',
+      );
+
+      expect(mockLocationRepository.save).not.toHaveBeenCalled();
     });
   });
 
