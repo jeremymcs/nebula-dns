@@ -26,6 +26,7 @@ spec:
         prometheus.io/port: "8083"
         prometheus.io/path: "/metrics"
     spec:
+      terminationGracePeriodSeconds: 30
       serviceAccountName: dnsdist
       securityContext:
         runAsUser: 0  # Required for binding to ports < 1024
@@ -67,8 +68,11 @@ spec:
               cpu: "2"
               memory: 1Gi
           livenessProbe:
-            tcpSocket:
-              port: dot
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - echo '' | nc -w 2 127.0.0.1 8083 > /dev/null 2>&1
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 5
@@ -77,7 +81,7 @@ spec:
             tcpSocket:
               port: dot
             initialDelaySeconds: 5
-            periodSeconds: 5
+            periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 3
       volumes:
