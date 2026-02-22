@@ -28,6 +28,7 @@ fi
 # Validate prerequisites
 command -v kubectl >/dev/null 2>&1 || { echo "kubectl required"; exit 1; }
 command -v terraform >/dev/null 2>&1 || { echo "terraform required"; exit 1; }
+command -v jq >/dev/null 2>&1 || { echo "jq required for JSON parsing"; exit 1; }
 
 # Ensure namespace exists
 kubectl create namespace "${NAMESPACE}" ${DRY_RUN} 2>/dev/null || true
@@ -44,6 +45,16 @@ VALKEY_URI=$(terraform output -raw valkey_connection_uri 2>/dev/null || echo "")
 
 # ClickHouse (endpoints from ClickHouse Cloud)
 CH_ENDPOINTS=$(terraform output -json clickhouse_endpoints 2>/dev/null || echo "{}")
+CH_HOST=$(echo "${CH_ENDPOINTS}" | jq -r '.https.host // empty')
+CH_PORT=$(echo "${CH_ENDPOINTS}" | jq -r '.https.port // "8443"')
+
+# Construct ClickHouse URL
+if [[ -n "${CH_HOST}" ]]; then
+  CLICKHOUSE_URL="https://${CH_HOST}:${CH_PORT}"
+else
+  CLICKHOUSE_URL=""
+  echo "WARNING: clickhouse_endpoints not found in Terraform output"
+fi
 
 cd "${SCRIPT_DIR}"
 
@@ -54,6 +65,47 @@ if [[ -z "${PG_URI}" ]]; then
   echo "  cat ${SCRIPT_DIR}/secret-template.yaml"
   echo ""
 fi
+
+# Source ClickHouse credentials from Terraform with fallback prompts
+echo "=== Sourcing ClickHouse Credentials ==="
+cd "${TF_DIR}"
+
+# Database name
+CLICKHOUSE_DATABASE=$(terraform output -raw clickhouse_database 2>/dev/null || echo "")
+if [[ -z "${CLICKHOUSE_DATABASE}" ]]; then
+  read -p "Enter ClickHouse database name [nebula]: " CLICKHOUSE_DATABASE
+  CLICKHOUSE_DATABASE="${CLICKHOUSE_DATABASE:-nebula}"
+fi
+
+# Username
+CLICKHOUSE_USER=$(terraform output -raw clickhouse_user 2>/dev/null || echo "")
+if [[ -z "${CLICKHOUSE_USER}" ]]; then
+  read -p "Enter ClickHouse username [default]: " CLICKHOUSE_USER
+  CLICKHOUSE_USER="${CLICKHOUSE_USER:-default}"
+fi
+
+# Password
+CLICKHOUSE_PASSWORD=$(terraform output -raw clickhouse_password 2>/dev/null || echo "")
+if [[ -z "${CLICKHOUSE_PASSWORD}" ]]; then
+  read -s -p "Enter ClickHouse password: " CLICKHOUSE_PASSWORD
+  echo ""
+fi
+
+# URL (if not extracted from Terraform)
+if [[ -z "${CLICKHOUSE_URL}" ]]; then
+  read -p "Enter ClickHouse URL (e.g., https://example.clickhouse.cloud:8443): " CLICKHOUSE_URL
+fi
+
+# Validate password is not empty
+if [[ -z "${CLICKHOUSE_PASSWORD}" ]]; then
+  echo "ERROR: ClickHouse password cannot be empty"
+  exit 1
+fi
+
+echo "Configured ClickHouse database: ${CLICKHOUSE_DATABASE}"
+echo "Configured ClickHouse user: ${CLICKHOUSE_USER}"
+
+cd "${SCRIPT_DIR}"
 
 echo "=== Creating Kubernetes Secrets ==="
 
@@ -79,22 +131,13 @@ echo "Creating policy-svc-secrets..."
 kubectl create secret generic policy-svc-secrets \
   --namespace "${NAMESPACE}" \
   --from-literal=redis-url="${VALKEY_URI}" \
-  --from-literal=clickhouse-url="${CH_ENDPOINTS}" \
+  --from-literal=clickhouse-url="${CLICKHOUSE_URL}" \
+  --from-literal=clickhouse-database="${CLICKHOUSE_DATABASE}" \
+  --from-literal=clickhouse-user="${CLICKHOUSE_USER}" \
+  --from-literal=clickhouse-password="${CLICKHOUSE_PASSWORD}" \
   ${DRY_RUN} -o yaml | ${APPLY_CMD} ${DRY_RUN} -f -
 
 echo "policy-svc-secrets created"
-
-# --- ClickHouse Secrets ---
-echo "Creating clickhouse-secrets..."
-kubectl create secret generic clickhouse-secrets \
-  --namespace "${NAMESPACE}" \
-  --from-literal=username="default" \
-  --from-literal=password="" \
-  --from-literal=host="" \
-  --from-literal=port="8443" \
-  ${DRY_RUN} -o yaml | ${APPLY_CMD} ${DRY_RUN} -f -
-
-echo "clickhouse-secrets created (update username/password/host manually from ClickHouse Cloud console)"
 
 # --- External Service Secrets (manual) ---
 echo ""
