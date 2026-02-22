@@ -1,9 +1,12 @@
 # Nebula DNS - Let's Encrypt Cluster Issuers
 # Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 #
+# Uses Cloudflare DNS-01 solver for certificate validation.
 # Prerequisites:
 #   1. cert-manager installed (via infrastructure/kubernetes/operators/install-operators.sh)
-#   2. DigitalOcean API token stored in cert-manager namespace
+#   2. Cloudflare API token stored in cert-manager namespace:
+#      kubectl -n cert-manager create secret generic cloudflare-api-token \
+#        --from-literal=api-token='<token>'
 
 ---
 # Staging issuer for testing (high rate limits, untrusted certs)
@@ -19,10 +22,10 @@ spec:
       name: letsencrypt-staging-account-key
     solvers:
       - dns01:
-          digitalocean:
-            tokenSecretRef:
-              name: digitalocean-dns
-              key: access-token
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token
+              key: api-token
 
 ---
 # Production issuer (strict rate limits, trusted certs)
@@ -38,7 +41,7 @@ spec:
       name: letsencrypt-prod-account-key
     solvers:
       - dns01:
-          digitalocean:
-            tokenSecretRef:
-              name: digitalocean-dns
-              key: access-token
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token
+              key: api-token

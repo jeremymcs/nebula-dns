@@ -1,7 +1,5 @@
-// Nebula DNS - Enterprise DNS Security Platform
-// Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
-//
-// HTTP Handlers for Policy Service
+// Nebula DNS - Policy Service HTTP Handlers
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 package handlers
 
@@ -52,9 +50,19 @@ func (h *Handlers) Healthz(w http.ResponseWriter, r *http.Request) {
 // Health handles detailed health check requests
 func (h *Handlers) Health(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	// Report ClickHouse status without affecting overall health.
+	// ClickHouse is a non-critical dependency; degraded CH must not mark
+	// the service as unhealthy or block DNS evaluation.
+	chStatus := "ok"
+	if h.clickhouse != nil && !h.clickhouse.IsHealthy() {
+		chStatus = "degraded"
+	}
+
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status":    "healthy",
-		"timestamp": time.Now().UTC().Format(time.RFC3339),
+		"status":     "healthy",
+		"clickhouse": chStatus,
+		"timestamp":  time.Now().UTC().Format(time.RFC3339),
 	})
 }
 
