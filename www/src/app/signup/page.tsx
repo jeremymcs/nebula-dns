@@ -9,7 +9,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid'
-import { API_URL } from '@/lib/api'
+import { API_URL, APP_URL } from '@/lib/config'
 
 interface Plan {
   id: string
@@ -197,7 +197,7 @@ function SignupFormContent() {
 
       setSuccess(true)
       setTimeout(() => {
-        router.push('/')
+        window.location.href = APP_URL
       }, 3000)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
@@ -615,9 +615,9 @@ function SignupFormContent() {
         {/* Already have an account */}
         <p className="text-center mt-8 text-space-600 dark:text-space-400">
           Already have an account?{' '}
-          <Link href="/" className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">
+          <a href={APP_URL} className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">
             Sign in
-          </Link>
+          </a>
         </p>
       </div>
     </div>

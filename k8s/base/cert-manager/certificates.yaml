@@ -16,6 +16,8 @@ spec:
     kind: ClusterIssuer
   commonName: app.nebuladns.io
   dnsNames:
+    - nebuladns.io
+    - www.nebuladns.io
     - app.nebuladns.io
     - api.nebuladns.io
     - admin.nebuladns.io

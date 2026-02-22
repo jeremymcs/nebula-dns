@@ -8,7 +8,7 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/solid'
-import { API_URL } from '@/lib/api'
+import { API_URL } from '@/lib/config'
 
 interface Plan {
   id: string

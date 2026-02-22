@@ -18,7 +18,7 @@ metadata:
     nginx.ingress.kubernetes.io/rate-limit-rps: "50"
     # CORS for API subdomain
     nginx.ingress.kubernetes.io/enable-cors: "true"
-    nginx.ingress.kubernetes.io/cors-allow-origin: "https://{{ (index .Values.ingress.hosts 0).host }},https://{{ (index .Values.ingress.hosts 2).host }}"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "{{- $origins := list -}}{{- range .Values.ingress.hosts -}}{{- if or (eq .service "ui") (eq .service "admin-ui") -}}{{- $origins = append $origins (printf "https://%s" .host) -}}{{- end -}}{{- end -}}{{ join "," $origins }}"
     nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, PATCH, DELETE, OPTIONS"
     nginx.ingress.kubernetes.io/cors-allow-headers: "Authorization, Content-Type, X-Requested-With"
     {{- with .Values.ingress.annotations }}

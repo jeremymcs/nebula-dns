@@ -1,0 +1,114 @@
+/**
+ * Nebula DNS - Marketing Website
+ * Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+ *
+ * Global Styles - Cosmic Security Theme
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased scroll-smooth;
+  }
+
+  /* Dark mode base styles */
+  html.dark {
+    color-scheme: dark;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-space-100 dark:bg-space-900;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-space-300 dark:bg-space-700 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-space-400 dark:bg-space-600;
+  }
+
+  /* Focus ring styles */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-white dark:ring-offset-space-900;
+  }
+}
+
+@layer components {
+  /* ============================================
+   * BUTTONS
+   * ============================================ */
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/30 hover:from-primary-500 hover:to-primary-400 active:scale-[0.98] focus-visible:ring-primary-500;
+  }
+
+  .btn-secondary {
+    @apply btn bg-white dark:bg-space-800 text-space-700 dark:text-space-200 shadow-sm ring-1 ring-space-200 dark:ring-space-700 hover:bg-space-50 dark:hover:bg-space-700 active:scale-[0.98] focus-visible:ring-primary-500;
+  }
+
+  .btn-ghost {
+    @apply btn text-space-600 dark:text-space-400 hover:bg-space-100 dark:hover:bg-space-800 hover:text-space-900 dark:hover:text-space-100;
+  }
+
+  .btn-danger {
+    @apply btn bg-gradient-to-r from-danger-600 to-danger-500 text-white shadow-lg shadow-danger-500/25 hover:shadow-xl hover:shadow-danger-500/30 hover:from-danger-500 hover:to-danger-400 active:scale-[0.98] focus-visible:ring-danger-500;
+  }
+
+  .btn-accent {
+    @apply btn bg-gradient-to-r from-accent-600 to-accent-500 text-white shadow-lg shadow-accent-500/25 hover:shadow-xl hover:shadow-accent-500/30 hover:from-accent-500 hover:to-accent-400 active:scale-[0.98] focus-visible:ring-accent-500;
+  }
+
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs rounded-lg;
+  }
+
+  .btn-lg {
+    @apply px-6 py-3 text-base rounded-2xl;
+  }
+
+  .btn-icon {
+    @apply p-2.5 rounded-xl;
+  }
+
+  /* ============================================
+   * GRADIENT TEXT
+   * ============================================ */
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-accent-500;
+  }
+
+  .text-gradient-light {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400;
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Text balance for headings */
+  .text-balance {
+    text-wrap: balance;
+  }
+}

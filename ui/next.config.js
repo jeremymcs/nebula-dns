@@ -1,10 +1,13 @@
 // Nebula DNS - Next.js Configuration
-// Configures redirects, rewrites, and build options
+// Configures redirects and build options for the dashboard app
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  turbopack: {
+    root: __dirname,
+  },
 
   // Redirect legacy partner portal routes to new dashboard locations
   // The partner portal has been deprecated in favor of the unified tier system
