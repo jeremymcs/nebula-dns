@@ -165,6 +165,7 @@ spec:
       annotations:
         prometheus.io/scrape: "false"
     spec:
+      terminationGracePeriodSeconds: 30
       serviceAccountName: unbound
       securityContext:
         runAsNonRoot: true
@@ -198,19 +199,19 @@ spec:
           livenessProbe:
             exec:
               command:
-                - drill
-                - "@127.0.0.1"
-                - google.com
+                - /bin/sh
+                - -c
+                - drill @127.0.0.1 google.com | grep -q "NOERROR"
             initialDelaySeconds: 10
-            periodSeconds: 30
+            periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
           readinessProbe:
             exec:
               command:
-                - drill
-                - "@127.0.0.1"
-                - google.com
+                - /bin/sh
+                - -c
+                - drill @127.0.0.1 google.com | grep -q "NOERROR"
             initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 3
