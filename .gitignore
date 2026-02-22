@@ -49,3 +49,6 @@ coverage/
 # Temporary files
 *.tmp
 *.temp
+
+# Local plans (may contain credentials)
+.plans/
