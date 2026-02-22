@@ -1,14 +1,12 @@
-/**
- * Nebula DNS Signup Page
- * Multi-step signup flow with plan selection and payment
- */
+// Nebula DNS Marketing Website - Signup Page
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid'
+import { CheckIcon, CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid'
 import { API_URL, APP_URL } from '@/lib/config'
 
 interface Plan {
@@ -26,32 +24,37 @@ const defaultPlans: Plan[] = [
   { id: 'enterprise', name: 'Enterprise', priceMonthly: 99.99, priceYearly: 999.99, description: 'For organizations' },
 ]
 
-// Loading fallback for Suspense
+const planFeatures: Record<string, string[]> = {
+  free: ['DNS filtering & security', 'Basic reporting', '1 network location', '100K queries/month'],
+  starter: ['Everything in Free', 'Email support', 'Custom block/allow lists', '3 locations, 500K queries/month'],
+  pro: ['Everything in Starter', 'Advanced analytics', 'API access', 'Priority support', '10 locations, 5M queries/month'],
+  enterprise: ['Everything in Professional', 'SSO/SAML integration', 'Dedicated account manager', 'Unlimited locations & queries', '99.99% uptime SLA'],
+}
+
+const stepLabels = ['Account Details', 'Company Info', 'Review & Confirm']
+
+// --- Skeleton ---
 function SignupFormSkeleton() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-space-950 py-12 px-4">
+      <div className="max-w-5xl mx-auto">
         <div className="animate-pulse">
-          <div className="h-10 bg-space-200 dark:bg-space-700 rounded w-1/2 mx-auto mb-8" />
+          <div className="h-8 bg-space-800 rounded-xl w-1/2 mx-auto mb-10" />
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-8">
-                <div className="space-y-6">
-                  <div className="h-8 bg-space-200 dark:bg-space-700 rounded w-2/3" />
-                  <div className="h-12 bg-space-200 dark:bg-space-700 rounded" />
-                  <div className="h-12 bg-space-200 dark:bg-space-700 rounded" />
-                  <div className="h-12 bg-space-200 dark:bg-space-700 rounded" />
-                </div>
+              <div className="bg-space-900/60 border border-space-700/50 rounded-2xl p-8 space-y-6">
+                <div className="h-7 bg-space-800 rounded-xl w-2/3" />
+                <div className="h-12 bg-space-800 rounded-xl" />
+                <div className="h-12 bg-space-800 rounded-xl" />
+                <div className="h-12 bg-space-800 rounded-xl" />
               </div>
             </div>
             <div className="lg:col-span-1">
-              <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-6">
-                <div className="h-6 bg-space-200 dark:bg-space-700 rounded w-1/2 mb-4" />
-                <div className="space-y-3">
-                  <div className="h-16 bg-space-200 dark:bg-space-700 rounded" />
-                  <div className="h-16 bg-space-200 dark:bg-space-700 rounded" />
-                  <div className="h-16 bg-space-200 dark:bg-space-700 rounded" />
-                </div>
+              <div className="bg-space-900/60 border border-space-700/50 rounded-2xl p-6 space-y-4">
+                <div className="h-5 bg-space-800 rounded-xl w-1/2" />
+                <div className="h-16 bg-space-800 rounded-xl" />
+                <div className="h-16 bg-space-800 rounded-xl" />
+                <div className="h-16 bg-space-800 rounded-xl" />
               </div>
             </div>
           </div>
@@ -61,10 +64,10 @@ function SignupFormSkeleton() {
   )
 }
 
+// --- Main Form ---
 function SignupFormContent() {
-  const router = useRouter()
   const searchParams = useSearchParams()
-  
+
   const [step, setStep] = useState(1)
   const [plans, setPlans] = useState<Plan[]>(defaultPlans)
   const [loading, setLoading] = useState(false)
@@ -86,7 +89,6 @@ function SignupFormContent() {
   })
 
   useEffect(() => {
-    // Fetch plans from API
     async function fetchPlans() {
       try {
         const res = await fetch(`${API_URL}/plans`)
@@ -146,10 +148,10 @@ function SignupFormContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (step === 1 && !validateStep1()) return
     if (step === 2 && !validateStep2()) return
-    
+
     if (step < 3) {
       setStep(step + 1)
       return
@@ -184,12 +186,9 @@ function SignupFormContent() {
       }
 
       if (data.requiresPayment) {
-        // For paid plans, redirect to checkout (Stripe integration)
-        // For now, we'll simulate completion
         const completeRes = await fetch(`${API_URL}/signup/${data.signupRequestId}/complete`, {
           method: 'POST',
         })
-        
         if (!completeRes.ok) {
           throw new Error('Failed to complete signup')
         }
@@ -207,125 +206,153 @@ function SignupFormContent() {
   }
 
   const selectedPlan = plans.find(p => p.id === formData.planId) || plans[0]
-  const price = formData.billingCycle === 'yearly' ? selectedPlan.priceYearly : selectedPlan.priceMonthly
+  const price =
+    formData.billingCycle === 'yearly' ? selectedPlan.priceYearly : selectedPlan.priceMonthly
+  const features = planFeatures[selectedPlan.id] || []
 
+  // --- Success Screen ---
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-12 px-4">
-        <div className="max-w-md w-full text-center">
-          <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-8">
-            <div className="w-16 h-16 bg-success-100 dark:bg-success-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircleIcon className="h-10 w-10 text-success-500" />
+      <div className="min-h-screen bg-space-950 flex items-center justify-center px-4">
+        {/* Atmospheric orbs */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-success-700/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-primary-700/15 rounded-full blur-3xl" />
+        </div>
+
+        <div className="relative max-w-md w-full text-center">
+          <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-10">
+            <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 bg-gradient-to-br from-success-600 to-success-500 shadow-[0_0_30px_rgba(5,150,105,0.4)]">
+              <CheckCircleIcon className="h-10 w-10 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-space-900 dark:text-white mb-2">Welcome to Nebula DNS!</h2>
-            <p className="text-space-600 dark:text-space-400 mb-6">
+            <h2 className="text-2xl font-bold text-white mb-3">Welcome to Nebula DNS!</h2>
+            <p className="text-space-400 mb-6">
               Your account has been created successfully. Check your email for a welcome message with getting started instructions.
             </p>
-            <p className="text-sm text-space-500 dark:text-space-400">Redirecting to login...</p>
+            <p className="text-sm text-space-500">Redirecting to your dashboard...</p>
           </div>
         </div>
       </div>
     )
   }
 
+  // --- Multi-Step Form ---
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Progress Steps */}
-        <div className="mb-8">
+    <div className="min-h-screen bg-space-950 py-12 px-4">
+      {/* Atmospheric orbs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-32 -left-32 w-80 h-80 bg-primary-700/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 -right-24 w-64 h-64 bg-accent-700/15 rounded-full blur-3xl" />
+      </div>
+
+      <div className="relative max-w-5xl mx-auto">
+        {/* Step Indicator */}
+        <div className="mb-10">
           <div className="flex items-center justify-center">
-            {[1, 2, 3].map((s) => (
-              <div key={s} className="flex items-center">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-medium ${
-                    s < step
-                      ? 'bg-indigo-600 text-white'
-                      : s === step
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-space-200 dark:bg-space-700 text-space-500 dark:text-space-400'
-                  }`}
-                >
-                  {s < step ? (
-                    <CheckCircleIcon className="h-6 w-6" />
-                  ) : (
-                    s
+            {stepLabels.map((label, i) => {
+              const s = i + 1
+              const isCompleted = s < step
+              const isActive = s === step
+              return (
+                <div key={s} className="flex items-center">
+                  <div className="flex flex-col items-center">
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all ${
+                        isCompleted
+                          ? 'bg-success-600 text-white'
+                          : isActive
+                          ? 'bg-primary-600 text-white shadow-glow-sm'
+                          : 'bg-space-700 text-space-400'
+                      }`}
+                    >
+                      {isCompleted ? (
+                        <CheckIcon className="h-5 w-5" />
+                      ) : (
+                        s
+                      )}
+                    </div>
+                    <span
+                      className={`mt-2 text-xs font-medium hidden sm:block ${
+                        isActive ? 'text-white' : isCompleted ? 'text-success-400' : 'text-space-500'
+                      }`}
+                    >
+                      {label}
+                    </span>
+                  </div>
+                  {s < 3 && (
+                    <div
+                      className={`w-16 sm:w-24 h-px mx-2 mb-5 transition-all ${
+                        s < step ? 'bg-success-600' : 'bg-space-700'
+                      }`}
+                    />
                   )}
                 </div>
-                {s < 3 && (
-                  <div
-                    className={`w-20 h-1 ${
-                      s < step ? 'bg-indigo-600' : 'bg-space-200 dark:bg-space-700'
-                    }`}
-                  />
-                )}
-              </div>
-            ))}
+              )
+            })}
           </div>
-          <div className="flex justify-center mt-2">
-            <span className="text-sm text-space-600 dark:text-space-400">
-              Step {step} of 3:{' '}
-              {step === 1 ? 'Account Details' : step === 2 ? 'Company Info' : 'Review & Confirm'}
-            </span>
-          </div>
+          <p className="text-center text-sm text-space-500 mt-1 sm:hidden">
+            Step {step} of 3: {stepLabels[step - 1]}
+          </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Form */}
+        <div className="grid lg:grid-cols-3 gap-8 items-start">
+          {/* Form Panel */}
           <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-8">
+            <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8">
               <form onSubmit={handleSubmit}>
+                {/* Error Banner */}
                 {error && (
-                  <div className="mb-6 p-4 rounded-lg bg-danger-50 dark:bg-danger-900/30 flex items-start">
-                    <ExclamationCircleIcon className="h-5 w-5 text-danger-500 mt-0.5 mr-2 flex-shrink-0" />
-                    <span className="text-sm text-danger-700 dark:text-danger-300">{error}</span>
+                  <div className="mb-6 p-4 rounded-xl bg-danger-900/30 border border-danger-700/40 flex items-start gap-3">
+                    <ExclamationCircleIcon className="h-5 w-5 text-danger-400 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm text-danger-300">{error}</span>
                   </div>
                 )}
 
                 {/* Step 1: Account Details */}
                 {step === 1 && (
                   <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-space-900 dark:text-white">Create Your Account</h2>
+                    <h2 className="text-2xl font-bold text-white">Create Your Account</h2>
 
                     <div>
-                      <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
-                        Email Address *
+                      <label className="block text-sm font-medium text-space-300 mb-2">
+                        Email Address <span className="text-primary-400">*</span>
                       </label>
                       <input
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-lg border border-space-300 dark:border-space-600 bg-white dark:bg-space-700 text-space-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full"
                         placeholder="you@company.com"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
-                        Password *
+                      <label className="block text-sm font-medium text-space-300 mb-2">
+                        Password <span className="text-primary-400">*</span>
                       </label>
                       <input
                         type="password"
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-lg border border-space-300 dark:border-space-600 bg-white dark:bg-space-700 text-space-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full"
                         placeholder="At least 8 characters"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
-                        Confirm Password *
+                      <label className="block text-sm font-medium text-space-300 mb-2">
+                        Confirm Password <span className="text-primary-400">*</span>
                       </label>
                       <input
                         type="password"
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-lg border border-space-300 dark:border-space-600 bg-white dark:bg-space-700 text-space-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full"
                         placeholder="Repeat your password"
                         required
                       />
@@ -336,33 +363,33 @@ function SignupFormContent() {
                 {/* Step 2: Company Info */}
                 {step === 2 && (
                   <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-space-900 dark:text-white">Tell Us About Your Organization</h2>
+                    <h2 className="text-2xl font-bold text-white">Tell Us About Your Organization</h2>
 
                     <div>
-                      <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
-                        Full Name *
+                      <label className="block text-sm font-medium text-space-300 mb-2">
+                        Full Name <span className="text-primary-400">*</span>
                       </label>
                       <input
                         type="text"
                         name="fullName"
                         value={formData.fullName}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-lg border border-space-300 dark:border-space-600 bg-white dark:bg-space-700 text-space-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full"
                         placeholder="John Smith"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
-                        Company Name *
+                      <label className="block text-sm font-medium text-space-300 mb-2">
+                        Company Name <span className="text-primary-400">*</span>
                       </label>
                       <input
                         type="text"
                         name="companyName"
                         value={formData.companyName}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-lg border border-space-300 dark:border-space-600 bg-white dark:bg-space-700 text-space-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full"
                         placeholder="Acme Corporation"
                         required
                       />
@@ -370,14 +397,12 @@ function SignupFormContent() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
-                          Industry
-                        </label>
+                        <label className="block text-sm font-medium text-space-300 mb-2">Industry</label>
                         <select
                           name="industry"
                           value={formData.industry}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 rounded-lg border border-space-300 dark:border-space-600 bg-white dark:bg-space-700 text-space-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full"
                         >
                           <option value="">Select...</option>
                           <option value="technology">Technology</option>
@@ -392,14 +417,12 @@ function SignupFormContent() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
-                          Company Size
-                        </label>
+                        <label className="block text-sm font-medium text-space-300 mb-2">Company Size</label>
                         <select
                           name="companySize"
                           value={formData.companySize}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 rounded-lg border border-space-300 dark:border-space-600 bg-white dark:bg-space-700 text-space-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full"
                         >
                           <option value="">Select...</option>
                           <option value="1-10">1-10 employees</option>
@@ -412,14 +435,12 @@ function SignupFormContent() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-space-700 dark:text-space-300 mb-2">
-                        Country
-                      </label>
+                      <label className="block text-sm font-medium text-space-300 mb-2">Country</label>
                       <select
                         name="country"
                         value={formData.country}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-lg border border-space-300 dark:border-space-600 bg-white dark:bg-space-700 text-space-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full"
                       >
                         <option value="">Select...</option>
                         <option value="US">United States</option>
@@ -437,47 +458,39 @@ function SignupFormContent() {
                 {/* Step 3: Review & Confirm */}
                 {step === 3 && (
                   <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-space-900 dark:text-white">Review & Confirm</h2>
+                    <h2 className="text-2xl font-bold text-white">Review & Confirm</h2>
 
-                    <div className="bg-space-50 dark:bg-space-700 rounded-lg p-4 space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-space-600 dark:text-space-400">Email</span>
-                        <span className="font-medium dark:text-white">{formData.email}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-space-600 dark:text-space-400">Name</span>
-                        <span className="font-medium dark:text-white">{formData.fullName}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-space-600 dark:text-space-400">Company</span>
-                        <span className="font-medium dark:text-white">{formData.companyName}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-space-600 dark:text-space-400">Plan</span>
-                        <span className="font-medium dark:text-white">{selectedPlan.name}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-space-600 dark:text-space-400">Billing</span>
-                        <span className="font-medium capitalize dark:text-white">{formData.billingCycle}</span>
-                      </div>
+                    <div className="bg-space-900 border border-space-700/60 rounded-xl p-5 space-y-3">
+                      {[
+                        { label: 'Email', value: formData.email },
+                        { label: 'Name', value: formData.fullName },
+                        { label: 'Company', value: formData.companyName },
+                        { label: 'Plan', value: selectedPlan.name },
+                        { label: 'Billing', value: formData.billingCycle.charAt(0).toUpperCase() + formData.billingCycle.slice(1) },
+                      ].map(({ label, value }) => (
+                        <div key={label} className="flex justify-between items-center text-sm">
+                          <span className="text-space-400">{label}</span>
+                          <span className="font-medium text-white">{value || '—'}</span>
+                        </div>
+                      ))}
                     </div>
 
-                    <div className="flex items-start">
+                    <div className="flex items-start gap-3">
                       <input
                         type="checkbox"
                         name="agreeTerms"
                         id="agreeTerms"
                         checked={formData.agreeTerms}
                         onChange={handleChange}
-                        className="mt-1 h-4 w-4 text-indigo-600 border-space-300 dark:border-space-600 rounded focus:ring-indigo-500 bg-white dark:bg-space-700"
+                        className="mt-1 h-4 w-4 rounded border-space-600 bg-space-900 text-primary-600 focus:ring-primary-500 focus:ring-offset-0"
                       />
-                      <label htmlFor="agreeTerms" className="ml-3 text-sm text-space-600 dark:text-space-400">
+                      <label htmlFor="agreeTerms" className="text-sm text-space-400">
                         I agree to the{' '}
-                        <Link href="/terms" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+                        <Link href="/terms" className="text-primary-400 hover:text-primary-300 underline underline-offset-2">
                           Terms of Service
                         </Link>{' '}
                         and{' '}
-                        <Link href="/privacy" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+                        <Link href="/privacy" className="text-primary-400 hover:text-primary-300 underline underline-offset-2">
                           Privacy Policy
                         </Link>
                       </label>
@@ -486,12 +499,12 @@ function SignupFormContent() {
                 )}
 
                 {/* Navigation Buttons */}
-                <div className="mt-8 flex justify-between">
+                <div className="mt-8 flex justify-between items-center">
                   {step > 1 ? (
                     <button
                       type="button"
-                      onClick={() => setStep(step - 1)}
-                      className="px-6 py-3 rounded-lg border border-space-300 dark:border-space-600 text-space-700 dark:text-space-300 font-medium hover:bg-space-50 dark:hover:bg-space-700"
+                      onClick={() => { setStep(step - 1); setError('') }}
+                      className="px-6 py-3 rounded-xl border border-space-700 text-space-300 font-semibold text-sm hover:bg-space-800 hover:border-space-600 hover:text-white transition-all"
                     >
                       Back
                     </button>
@@ -502,7 +515,7 @@ function SignupFormContent() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-8 py-3 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-8 py-3 rounded-xl font-semibold text-sm transition-all bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading
                       ? 'Processing...'
@@ -515,22 +528,29 @@ function SignupFormContent() {
                 </div>
               </form>
             </div>
+
+            <p className="text-center mt-6 text-space-500 text-sm">
+              Already have an account?{' '}
+              <a href={APP_URL} className="text-primary-400 font-medium hover:text-primary-300">
+                Sign in
+              </a>
+            </p>
           </div>
 
-          {/* Order Summary */}
+          {/* Order Summary Panel */}
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-6 sticky top-24">
-              <h3 className="text-lg font-semibold text-space-900 dark:text-white mb-4">Order Summary</h3>
+            <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6 sticky top-24">
+              <h3 className="text-base font-semibold text-white mb-5">Order Summary</h3>
 
               {/* Plan Selection */}
-              <div className="space-y-3 mb-6">
+              <div className="space-y-2 mb-5">
                 {plans.map((plan) => (
                   <label
                     key={plan.id}
-                    className={`flex items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
                       formData.planId === plan.id
-                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30'
-                        : 'border-space-200 dark:border-space-700 hover:border-space-300 dark:hover:border-space-600'
+                        ? 'border-primary-600/60 bg-primary-900/20'
+                        : 'border-space-700/50 hover:border-space-600/60 hover:bg-space-800/30'
                     }`}
                   >
                     <input
@@ -539,13 +559,14 @@ function SignupFormContent() {
                       value={plan.id}
                       checked={formData.planId === plan.id}
                       onChange={handleChange}
-                      className="h-4 w-4 text-indigo-600 border-space-300 dark:border-space-600 focus:ring-indigo-500"
+                      className="h-4 w-4 text-primary-600 border-space-600 bg-space-900 focus:ring-primary-500 focus:ring-offset-0"
                     />
-                    <div className="ml-3 flex-1">
-                      <div className="font-medium text-space-900 dark:text-white">{plan.name}</div>
-                      <div className="text-sm text-space-500 dark:text-space-400">
-                        ${formData.billingCycle === 'yearly' ? plan.priceYearly : plan.priceMonthly}
-                        /{formData.billingCycle === 'yearly' ? 'year' : 'month'}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-white">{plan.name}</div>
+                      <div className="text-xs text-space-500">
+                        {plan.priceMonthly === 0
+                          ? 'Free'
+                          : `$${formData.billingCycle === 'yearly' ? plan.priceYearly : plan.priceMonthly}/${formData.billingCycle === 'yearly' ? 'yr' : 'mo'}`}
                       </div>
                     </div>
                   </label>
@@ -553,15 +574,15 @@ function SignupFormContent() {
               </div>
 
               {/* Billing Cycle Toggle */}
-              <div className="mb-6">
-                <div className="bg-space-100 dark:bg-space-700 p-1 rounded-lg flex">
+              <div className="mb-5">
+                <div className="bg-space-800 rounded-full p-1 flex">
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, billingCycle: 'monthly' }))}
-                    className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
+                    className={`flex-1 py-1.5 text-xs font-medium rounded-full transition-all ${
                       formData.billingCycle === 'monthly'
-                        ? 'bg-white dark:bg-space-600 text-space-900 dark:text-white shadow-sm'
-                        : 'text-space-600 dark:text-space-400'
+                        ? 'bg-primary-600 text-white'
+                        : 'text-space-400 hover:text-white'
                     }`}
                   >
                     Monthly
@@ -569,61 +590,70 @@ function SignupFormContent() {
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, billingCycle: 'yearly' }))}
-                    className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
+                    className={`flex-1 py-1.5 text-xs font-medium rounded-full transition-all ${
                       formData.billingCycle === 'yearly'
-                        ? 'bg-white dark:bg-space-600 text-space-900 dark:text-white shadow-sm'
-                        : 'text-space-600 dark:text-space-400'
+                        ? 'bg-primary-600 text-white'
+                        : 'text-space-400 hover:text-white'
                     }`}
                   >
                     Yearly
                   </button>
                 </div>
                 {formData.billingCycle === 'yearly' && (
-                  <p className="text-xs text-success-600 dark:text-success-400 mt-2 text-center">
-                    Save up to 17% with yearly billing!
+                  <p className="text-xs text-success-400 mt-2 text-center">
+                    Save up to 17% with yearly billing
                   </p>
                 )}
               </div>
 
-              <div className="border-t border-space-200 dark:border-space-700 pt-4">
-                <div className="flex justify-between mb-2">
-                  <span className="text-space-600 dark:text-space-400">Subtotal</span>
-                  <span className="font-medium dark:text-white">${price.toFixed(2)}</span>
+              {/* Feature List */}
+              {features.length > 0 && (
+                <div className="mb-5 pt-4 border-t border-space-700/50">
+                  <ul className="space-y-2">
+                    {features.map((feature, i) => (
+                      <li key={i} className="flex items-start gap-2 text-xs text-space-400">
+                        <CheckIcon className="h-3.5 w-3.5 text-success-400 flex-shrink-0 mt-0.5" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Price Breakdown */}
+              <div className="border-t border-space-700/50 pt-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-space-400">Subtotal</span>
+                  <span className="text-white font-medium">
+                    {price === 0 ? 'Free' : `$${price.toFixed(2)}`}
+                  </span>
                 </div>
                 {price > 0 && (
-                  <div className="flex justify-between mb-2 text-success-600 dark:text-success-400">
+                  <div className="flex justify-between text-sm text-success-400">
                     <span>14-day free trial</span>
                     <span>-${price.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-lg font-bold pt-2 border-t border-space-200 dark:border-space-700">
-                  <span className="dark:text-white">Due Today</span>
-                  <span className="dark:text-white">$0.00</span>
+                <div className="flex justify-between items-center pt-2 border-t border-space-700/50">
+                  <span className="text-white font-semibold">Due Today</span>
+                  <span className="text-white font-bold text-lg">$0.00</span>
                 </div>
               </div>
 
               {price > 0 && (
-                <p className="text-xs text-space-500 dark:text-space-400 mt-4">
-                  Your card will be charged ${price.toFixed(2)} after your 14-day trial ends.
-                  Cancel anytime.
+                <p className="text-xs text-space-500 mt-4 leading-relaxed">
+                  Your card will be charged ${price.toFixed(2)} after your 14-day trial ends. Cancel anytime.
                 </p>
               )}
             </div>
           </div>
         </div>
-
-        {/* Already have an account */}
-        <p className="text-center mt-8 text-space-600 dark:text-space-400">
-          Already have an account?{' '}
-          <a href={APP_URL} className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">
-            Sign in
-          </a>
-        </p>
       </div>
     </div>
   )
 }
 
+// --- Page Export ---
 export default function SignupPage() {
   return (
     <Suspense fallback={<SignupFormSkeleton />}>

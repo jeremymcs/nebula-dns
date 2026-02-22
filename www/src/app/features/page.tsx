@@ -14,6 +14,7 @@ const features = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
       </svg>
     ),
+    accent: 'purple',
   },
   {
     name: 'Content Filtering',
@@ -23,6 +24,7 @@ const features = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
       </svg>
     ),
+    accent: 'cyan',
   },
   {
     name: 'Multi-Location Support',
@@ -33,6 +35,7 @@ const features = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
     ),
+    accent: 'purple',
   },
   {
     name: 'Real-Time Analytics',
@@ -42,6 +45,7 @@ const features = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
       </svg>
     ),
+    accent: 'cyan',
   },
   {
     name: 'Custom Lists',
@@ -51,6 +55,7 @@ const features = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
       </svg>
     ),
+    accent: 'purple',
   },
   {
     name: 'SafeSearch Enforcement',
@@ -60,6 +65,7 @@ const features = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
     ),
+    accent: 'cyan',
   },
   {
     name: 'API Access',
@@ -69,6 +75,7 @@ const features = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
       </svg>
     ),
+    accent: 'purple',
   },
   {
     name: 'Automated Playbooks',
@@ -78,6 +85,7 @@ const features = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
       </svg>
     ),
+    accent: 'cyan',
   },
 ]
 
@@ -114,61 +122,104 @@ const steps = [
   },
 ]
 
+const stats = [
+  { label: 'Avg Response Time', value: '<50ms' },
+  { label: 'Uptime SLA', value: '99.99%' },
+  { label: 'Daily Queries', value: '1B+' },
+  { label: 'Threats Blocked', value: '10M+' },
+]
+
 export default function FeaturesPage() {
   return (
-    <div className="bg-white dark:bg-space-900 transition-colors">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800" />
+    <div className="bg-space-950">
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 sm:pt-24 sm:pb-32">
-          <div className="text-center">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-space-900 dark:text-white tracking-tight">
-              Powerful DNS Security
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">
-                Features
-              </span>
-            </h1>
-            <p className="mt-6 text-lg sm:text-xl text-space-600 dark:text-space-300 max-w-3xl mx-auto">
-              Everything you need to protect your organization from malware, phishing, and unwanted content.
-              Enterprise-grade security that&apos;s simple to deploy and manage.
-            </p>
+      {/* Hero Section */}
+      <section className="py-24 bg-space-950 relative overflow-hidden">
+        {/* Nebula orbs */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-600/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent-600/15 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-4">
+            Platform Overview
+          </p>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
+            Powerful DNS Security{' '}
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
+              Features
+            </span>
+          </h1>
+          <p className="mt-6 text-lg sm:text-xl text-space-400 max-w-3xl mx-auto">
+            Everything you need to protect your organization from malware, phishing, and unwanted content.
+            Enterprise-grade security that&apos;s simple to deploy and manage.
+          </p>
+          <div className="mt-10">
+            <Link
+              href="/signup"
+              className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
+            >
+              Start Free Trial
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Features Grid */}
-      <div className="py-24 bg-white dark:bg-space-900">
+      <section className="py-24 bg-space-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="text-center mb-16">
+            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">
+              What We Offer
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+              Everything You Need to Stay Protected
+            </h2>
+            <p className="mt-4 text-space-400 max-w-2xl mx-auto">
+              A comprehensive suite of DNS security tools built for organizations of every size.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {features.map((feature) => (
               <div
                 key={feature.name}
-                className="bg-white dark:bg-space-800 rounded-xl p-6 border border-space-200 dark:border-space-700 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-lg transition-all"
+                className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6 hover:border-primary-700/50 transition-all"
               >
-                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white mb-4">
-                  {feature.icon}
-                </div>
-                <h3 className="text-lg font-semibold text-space-900 dark:text-white mb-3">
+                {feature.accent === 'purple' ? (
+                  <div className="h-12 w-12 rounded-xl bg-primary-900/50 border border-primary-800/50 flex items-center justify-center text-primary-400 mb-4">
+                    {feature.icon}
+                  </div>
+                ) : (
+                  <div className="h-12 w-12 rounded-xl bg-accent-900/50 border border-accent-800/50 flex items-center justify-center text-accent-400 mb-4">
+                    {feature.icon}
+                  </div>
+                )}
+                <h3 className="text-lg font-semibold text-white mb-3">
                   {feature.name}
                 </h3>
-                <p className="text-space-600 dark:text-space-400 text-sm leading-relaxed">
+                <p className="text-space-400 text-sm leading-relaxed">
                   {feature.description}
                 </p>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* How It Works Section */}
-      <div className="py-24 bg-space-50 dark:bg-space-800">
+      {/* How It Works */}
+      <section className="py-24 bg-space-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-space-900 dark:text-white mb-4">
+            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">
+              Simple Setup
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white">
               How It Works
             </h2>
-            <p className="text-lg text-space-600 dark:text-space-300 max-w-2xl mx-auto">
+            <p className="mt-4 text-space-400 max-w-2xl mx-auto">
               Get started with Nebula DNS in three simple steps. No complex setup required.
             </p>
           </div>
@@ -176,27 +227,20 @@ export default function FeaturesPage() {
           <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
             {steps.map((step, index) => (
               <div key={step.number} className="relative">
-                {/* Connector Line (desktop only) */}
                 {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-16 left-1/2 w-full h-0.5 bg-gradient-to-r from-indigo-200 to-purple-200 dark:from-indigo-800 dark:to-purple-800" />
+                  <div className="hidden md:block absolute top-10 left-[calc(50%+2rem)] w-[calc(100%-4rem)] h-px bg-gradient-to-r from-primary-700/50 to-accent-700/50" />
                 )}
-
-                <div className="relative bg-white dark:bg-space-900 rounded-xl p-8 border border-space-200 dark:border-space-700">
-                  {/* Step Number */}
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-xl mb-6">
+                <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary-600 to-accent-600 text-white font-bold text-xl mb-6">
                     {step.number}
                   </div>
-
-                  {/* Icon */}
-                  <div className="mb-4 text-indigo-600 dark:text-indigo-400">
+                  <div className="mb-4 text-primary-400">
                     {step.icon}
                   </div>
-
-                  {/* Content */}
-                  <h3 className="text-xl font-bold text-space-900 dark:text-white mb-3">
+                  <h3 className="text-xl font-bold text-white mb-3">
                     {step.title}
                   </h3>
-                  <p className="text-space-600 dark:text-space-400 leading-relaxed">
+                  <p className="text-space-400 leading-relaxed">
                     {step.description}
                   </p>
                 </div>
@@ -204,130 +248,104 @@ export default function FeaturesPage() {
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Additional Features Highlight */}
-      <div className="py-24 bg-white dark:bg-space-900">
+      {/* Performance Stats */}
+      <section className="py-24 bg-space-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-space-900 dark:text-white mb-6">
-                Enterprise-Grade Performance
-              </h2>
-              <p className="text-lg text-space-600 dark:text-space-300 mb-8">
-                Built for scale with global anycast DNS infrastructure. Our distributed network ensures
-                low-latency responses and 99.99% uptime SLA.
-              </p>
+          <div className="text-center mb-16">
+            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">
+              By the Numbers
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+              Built for Performance at Scale
+            </h2>
+            <p className="mt-4 text-space-400 max-w-2xl mx-auto">
+              Global anycast infrastructure delivering sub-50ms responses and 99.99% uptime.
+            </p>
+          </div>
 
-              <div className="space-y-4">
-                {[
-                  'Global anycast network with 100+ locations',
-                  'Sub-50ms average response time',
-                  '99.99% uptime SLA with guaranteed credits',
-                  'Automatic failover and load balancing',
-                  'DNSSEC validation for enhanced security',
-                  'DNS over HTTPS (DoH) and DNS over TLS (DoT)',
-                ].map((item) => (
-                  <div key={item} className="flex items-start">
-                    <svg
-                      className="h-6 w-6 text-success-500 flex-shrink-0 mr-3"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    <span className="text-space-700 dark:text-space-300">{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-space-50 dark:bg-space-800 rounded-2xl p-8 border border-space-200 dark:border-space-700">
-              <h3 className="text-xl font-bold text-space-900 dark:text-white mb-6">
-                Performance Stats
-              </h3>
-              <div className="space-y-6">
-                <div>
-                  <div className="flex justify-between items-baseline mb-2">
-                    <span className="text-sm font-medium text-space-600 dark:text-space-400">
-                      Average Response Time
-                    </span>
-                    <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-                      &lt;50ms
-                    </span>
-                  </div>
-                  <div className="h-2 bg-space-200 dark:bg-space-700 rounded-full overflow-hidden">
-                    <div className="h-full w-[15%] bg-gradient-to-r from-indigo-500 to-purple-600" />
-                  </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            {stats.map((stat) => (
+              <div
+                key={stat.label}
+                className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6 text-center"
+              >
+                <div className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400 mb-2">
+                  {stat.value}
                 </div>
-
-                <div>
-                  <div className="flex justify-between items-baseline mb-2">
-                    <span className="text-sm font-medium text-space-600 dark:text-space-400">
-                      Uptime SLA
-                    </span>
-                    <span className="text-2xl font-bold text-success-600 dark:text-success-400">
-                      99.99%
-                    </span>
-                  </div>
-                  <div className="h-2 bg-space-200 dark:bg-space-700 rounded-full overflow-hidden">
-                    <div className="h-full w-[99.99%] bg-gradient-to-r from-success-500 to-success-600" />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between items-baseline mb-2">
-                    <span className="text-sm font-medium text-space-600 dark:text-space-400">
-                      Queries/Day
-                    </span>
-                    <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                      1B+
-                    </span>
-                  </div>
-                  <div className="h-2 bg-space-200 dark:bg-space-700 rounded-full overflow-hidden">
-                    <div className="h-full w-[85%] bg-gradient-to-r from-purple-500 to-purple-600" />
-                  </div>
+                <div className="text-space-400 text-sm">
+                  {stat.label}
                 </div>
               </div>
+            ))}
+          </div>
+
+          {/* Performance feature list */}
+          <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8">
+            <h3 className="text-xl font-bold text-white mb-6 text-center">
+              Enterprise-Grade Infrastructure
+            </h3>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {[
+                'Global anycast network with 100+ locations',
+                'Sub-50ms average response time',
+                '99.99% uptime SLA with guaranteed credits',
+                'Automatic failover and load balancing',
+                'DNSSEC validation for enhanced security',
+                'DNS over HTTPS (DoH) and DNS over TLS (DoT)',
+              ].map((item) => (
+                <div key={item} className="flex items-start gap-3">
+                  <svg
+                    className="h-5 w-5 text-success-400 flex-shrink-0 mt-0.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-space-400 text-sm">{item}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* CTA Section */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Ready to get started?
-          </h2>
-          <p className="text-lg text-indigo-100 mb-8 max-w-2xl mx-auto">
-            Try all features free for 14 days. No credit card required.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/signup"
-              className="inline-flex items-center justify-center px-8 py-4 rounded-lg bg-white text-indigo-600 font-semibold text-lg hover:bg-space-100 transition-all shadow-lg"
-            >
-              Start Free Trial
-              <svg className="ml-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Link>
-            <Link
-              href="/pricing"
-              className="inline-flex items-center justify-center px-8 py-4 rounded-lg bg-indigo-700 text-white font-semibold text-lg hover:bg-indigo-800 transition-all border-2 border-white/20"
-            >
-              View Pricing
-            </Link>
+      <section className="py-24 bg-space-950">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-10 text-center">
+            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-4">
+              Get Started Today
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+              Ready to secure your network?
+            </h2>
+            <p className="text-space-400 mb-8 max-w-xl mx-auto">
+              Try all features free for 14 days. No credit card required. Cancel anytime.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/signup"
+                className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center justify-center gap-2"
+              >
+                Start Free Trial
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+              <Link
+                href="/pricing"
+                className="bg-space-800 border border-space-700 text-white hover:bg-space-700 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center justify-center"
+              >
+                View Pricing
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
+
     </div>
   )
 }

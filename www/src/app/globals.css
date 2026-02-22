@@ -2,7 +2,7 @@
  * Nebula DNS - Marketing Website
  * Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
  *
- * Global Styles - Cosmic Security Theme
+ * Global Styles - Nebula Dark Theme
  */
 
 @tailwind base;
@@ -12,34 +12,34 @@
 @layer base {
   html {
     @apply antialiased scroll-smooth;
+    color-scheme: dark;
   }
 
-  /* Dark mode base styles */
-  html.dark {
-    color-scheme: dark;
+  body {
+    @apply bg-space-950 text-white;
   }
 
   /* Custom scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-space-100 dark:bg-space-900;
+    @apply bg-space-900;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-space-300 dark:bg-space-700 rounded-full;
+    @apply bg-space-700 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-space-400 dark:bg-space-600;
+    @apply bg-space-600;
   }
 
-  /* Focus ring styles */
+  /* Focus ring */
   *:focus-visible {
-    @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-white dark:ring-offset-space-900;
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-space-950;
   }
 }
 
@@ -53,23 +53,19 @@
   }
 
   .btn-primary {
-    @apply btn bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/30 hover:from-primary-500 hover:to-primary-400 active:scale-[0.98] focus-visible:ring-primary-500;
+    @apply btn bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg hover:from-primary-500 hover:to-primary-400 active:scale-[0.98] focus-visible:ring-primary-500;
   }
 
   .btn-secondary {
-    @apply btn bg-white dark:bg-space-800 text-space-700 dark:text-space-200 shadow-sm ring-1 ring-space-200 dark:ring-space-700 hover:bg-space-50 dark:hover:bg-space-700 active:scale-[0.98] focus-visible:ring-primary-500;
+    @apply btn bg-space-800 text-white border border-space-700 hover:bg-space-700 hover:border-space-600 active:scale-[0.98] focus-visible:ring-primary-500;
   }
 
   .btn-ghost {
-    @apply btn text-space-600 dark:text-space-400 hover:bg-space-100 dark:hover:bg-space-800 hover:text-space-900 dark:hover:text-space-100;
-  }
-
-  .btn-danger {
-    @apply btn bg-gradient-to-r from-danger-600 to-danger-500 text-white shadow-lg shadow-danger-500/25 hover:shadow-xl hover:shadow-danger-500/30 hover:from-danger-500 hover:to-danger-400 active:scale-[0.98] focus-visible:ring-danger-500;
+    @apply btn text-space-400 hover:bg-space-800 hover:text-white;
   }
 
   .btn-accent {
-    @apply btn bg-gradient-to-r from-accent-600 to-accent-500 text-white shadow-lg shadow-accent-500/25 hover:shadow-xl hover:shadow-accent-500/30 hover:from-accent-500 hover:to-accent-400 active:scale-[0.98] focus-visible:ring-accent-500;
+    @apply btn bg-gradient-to-r from-accent-600 to-accent-500 text-white shadow-glow-cyan hover:shadow-glow-lg active:scale-[0.98] focus-visible:ring-accent-500;
   }
 
   .btn-sm {
@@ -77,7 +73,7 @@
   }
 
   .btn-lg {
-    @apply px-6 py-3 text-base rounded-2xl;
+    @apply px-6 py-3.5 text-base rounded-2xl;
   }
 
   .btn-icon {
@@ -89,16 +85,166 @@
    * ============================================ */
 
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-accent-500;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400;
   }
 
-  .text-gradient-light {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400;
+  .text-gradient-purple {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-300 to-primary-500;
+  }
+
+  /* ============================================
+   * CARDS & PANELS
+   * ============================================ */
+
+  .glass-card {
+    @apply bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl;
+  }
+
+  .glass-card-hover {
+    @apply glass-card hover:border-primary-700/50 hover:bg-space-900/80 transition-all duration-300;
+  }
+
+  /* ============================================
+   * NEBULA BADGE
+   * ============================================ */
+
+  .badge-nebula {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-primary-900/50 text-primary-300 border border-primary-800/50;
+  }
+
+  .badge-cyan {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-accent-900/50 text-accent-300 border border-accent-800/50;
+  }
+
+  .badge-success {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-success-900/50 text-success-300 border border-success-800/50;
+  }
+
+  /* ============================================
+   * ICON CONTAINERS
+   * ============================================ */
+
+  .icon-nebula {
+    @apply h-12 w-12 rounded-xl bg-primary-900/50 border border-primary-800/50 flex items-center justify-center text-primary-400;
+  }
+
+  .icon-cyan {
+    @apply h-12 w-12 rounded-xl bg-accent-900/50 border border-accent-800/50 flex items-center justify-center text-accent-400;
+  }
+
+  /* ============================================
+   * SECTIONS
+   * ============================================ */
+
+  .section-dark {
+    @apply py-24 bg-space-950;
+  }
+
+  .section-alt {
+    @apply py-24 bg-space-900;
+  }
+
+  .section-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-heading {
+    @apply text-3xl sm:text-4xl font-bold text-white;
+  }
+
+  .section-sub {
+    @apply mt-4 text-lg text-space-400 max-w-2xl mx-auto;
+  }
+
+  /* ============================================
+   * NEBULA GLOW ORBS (atmospheric effects)
+   * ============================================ */
+
+  .nebula-orb-purple {
+    @apply absolute rounded-full bg-primary-500/15 blur-3xl pointer-events-none;
+  }
+
+  .nebula-orb-cyan {
+    @apply absolute rounded-full bg-accent-500/15 blur-3xl pointer-events-none;
+  }
+
+  /* ============================================
+   * FORM INPUTS
+   * ============================================ */
+
+  .input-dark {
+    @apply w-full bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+  }
+
+  .label-dark {
+    @apply block text-sm font-medium text-space-300 mb-1.5;
+  }
+
+  /* ============================================
+   * DIVIDER
+   * ============================================ */
+
+  .divider-nebula {
+    @apply border-t border-space-800;
+  }
+
+  /* ============================================
+   * PROSE (blog/docs content)
+   * ============================================ */
+
+  .prose-nebula {
+    @apply text-space-300 leading-relaxed;
+  }
+
+  .prose-nebula h1,
+  .prose-nebula h2,
+  .prose-nebula h3,
+  .prose-nebula h4 {
+    @apply text-white font-bold;
+  }
+
+  .prose-nebula h2 {
+    @apply text-2xl mt-8 mb-4;
+  }
+
+  .prose-nebula h3 {
+    @apply text-xl mt-6 mb-3;
+  }
+
+  .prose-nebula p {
+    @apply mb-4;
+  }
+
+  .prose-nebula a {
+    @apply text-primary-400 hover:text-primary-300 underline underline-offset-2;
+  }
+
+  .prose-nebula code {
+    @apply bg-space-800 text-accent-400 px-1.5 py-0.5 rounded text-sm font-mono;
+  }
+
+  .prose-nebula pre {
+    @apply bg-space-900 border border-space-700 rounded-xl p-4 overflow-x-auto;
+  }
+
+  .prose-nebula pre code {
+    @apply bg-transparent p-0;
+  }
+
+  .prose-nebula ul {
+    @apply list-disc list-inside space-y-1 mb-4;
+  }
+
+  .prose-nebula ol {
+    @apply list-decimal list-inside space-y-1 mb-4;
+  }
+
+  .prose-nebula blockquote {
+    @apply border-l-4 border-primary-600 pl-4 italic text-space-400;
   }
 }
 
 @layer utilities {
-  /* Hide scrollbar */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -107,7 +253,6 @@
     display: none;
   }
 
-  /* Text balance for headings */
   .text-balance {
     text-wrap: balance;
   }
