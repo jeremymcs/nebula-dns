@@ -12,12 +12,12 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: 32 of 33 (CI/CD Pipeline)
-Plan: 3 of 3 in current phase (COMPLETE)
-Status: Phase Complete — Ready for Phase 33
-Last activity: 2026-02-17 — Completed 32-03: DOCR Cleanup and Pipeline Documentation (weekly DOCR garbage collection, security-scan workflow_call reuse, full operator documentation with architecture, rollback procedures, and troubleshooting)
+Phase: 33 of 33 (Operational Readiness)
+Plan: 2 of 3 in current phase
+Status: In Progress
+Last activity: 2026-02-22 — Completed 33-02: HPA Custom Metrics and Backup Verification (Policy Service HPA scales on DNS QPS with anti-flapping behavior, monthly automated backup verification for PostgreSQL and ClickHouse Cloud)
 
-Progress: [██████████░] 32/33 phases (97% — v1-v1.2 shipped, v1.3 in progress — Phase 32 complete, Phase 33 remaining)
+Progress: [██████████░] 33/33 phases (100% in progress — v1-v1.2 shipped, v1.3 final phase in progress — 2 of 3 plans complete)
 
 ## Performance Metrics
 
@@ -31,7 +31,7 @@ Progress: [██████████░] 32/33 phases (97% — v1-v1.2 ship
 - 31 requirements (13 DEPLOY, 8 TEST, 10 OPS)
 - 10 phases (24-33)
 - Estimated: 50-80 plans based on historical velocity
-- Completed: 33 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration, 30-05: Flakiness Detection and Threshold Enforcement, 31-01: SLO-aligned load test configuration, 31-02: SLO burn rate alerting rules, 31-03: Blackbox Exporter deployment, 31-04: SLO tracking dashboard, 31-05: Load test baseline and SLO runbook, 32-01: Docker build and staging values, 32-02: Build and deploy to staging, 32-03: DOCR cleanup and pipeline documentation)
+- Completed: 35 plans (24-01: Terraform foundation, 24-02: Managed databases, 24-03: ClickHouse Cloud and operators, 24-04: Kubernetes Secrets and operational scripts, 25-01: PostgreSQL migration direct URI, 25-02: Environment-aware ClickHouse schema, 26-01: Managed Service Connections, 26-02: Unbound StatefulSet, 26-03: dnsdist Deployment with DigitalOcean LoadBalancers, 27-01: API Helm deployment with production hardening, 27-02: Runtime environment configuration for UIs, 27-03: UI and Admin UI Helm deployments, 27-04: Ingress, DNS automation, and production configuration, 29-01: API unit tests expansion, 29-02: Integration tests with Testcontainers, 29-03: E2E test expansion for admin, billing, MSP, 29-04: Table-driven unit tests for policy evaluation, 29-05: Policy service integration tests for Redis cache and ClickHouse, 29-06: CI pipeline configuration with all test types, 30-01: Admin + MSP E2E workflows, 30-03: Security & Advanced Features E2E tests, 30-04: Edge Cases and Error Handling E2E + CI Integration, 30-05: Flakiness Detection and Threshold Enforcement, 31-01: SLO-aligned load test configuration, 31-02: SLO burn rate alerting rules, 31-03: Blackbox Exporter deployment, 31-04: SLO tracking dashboard, 31-05: Load test baseline and SLO runbook, 32-01: Docker build and staging values, 32-02: Build and deploy to staging, 32-03: DOCR cleanup and pipeline documentation, 33-01: Production readiness documentation, 33-02: HPA custom metrics and backup verification)
 
 ## Milestones Shipped
 
@@ -205,6 +205,12 @@ Full decision log in PROJECT.md Key Decisions table.
 - **workflow_call added to security-scan.yml with no other changes:** Minimal, surgical change enabling reuse from deploy.yml without restructuring existing scanning jobs.
 - **Pipeline docs as operator reference not tutorial:** Structured for incident lookup (troubleshooting headings) and onboarding (env config section) rather than step-by-step learning. Architecture diagram first.
 
+**Phase 33-02 (HPA Custom Metrics and Backup Verification):**
+- [Phase 33]: Policy Service HPA scales on DNS QPS (1000/pod) with CPU (70%) fallback and anti-flapping behavior (5min scale-down, 1min scale-up)
+- [Phase 33]: Monthly automated backup verification (1st of month, 3 AM UTC) for PostgreSQL and ClickHouse Cloud
+- [Phase 33]: Policy Service HPA scales on DNS QPS (1000/pod) with CPU (70%) fallback and anti-flapping behavior (5min scale-down, 1min scale-up)
+- [Phase 33]: Monthly automated backup verification (1st of month, 3 AM UTC) for PostgreSQL and ClickHouse Cloud
+
 ### Pending Todos
 
 None.
@@ -218,10 +224,10 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-17
-Stopped at: Completed 32-03-PLAN.md - DOCR Cleanup and Pipeline Documentation (weekly DOCR garbage collection via docr-cleanup.yml, workflow_call reuse on security-scan.yml, and full operator CI/CD pipeline documentation). Phase 32 complete.
+Last session: 2026-02-22
+Stopped at: Completed 33-02-PLAN.md - HPA Custom Metrics and Backup Verification (Policy Service HPA scales on DNS QPS with anti-flapping behavior, monthly automated backup verification for PostgreSQL and ClickHouse Cloud). Phase 33 in progress (2 of 3 plans complete).
 Resume file: None
 
 ---
 
-*Last updated: 2026-02-17*
+*Last updated: 2026-02-22*
