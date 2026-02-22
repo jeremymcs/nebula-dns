@@ -455,3 +455,8 @@ func (c *PolicyCache) IsTenantSuspended(ctx context.Context, tenantID string) bo
 	status, _ := c.GetSubscriptionStatus(ctx, tenantID)
 	return status == models.SubscriptionSuspended
 }
+
+// Ping verifies Redis connectivity for readiness checks
+func (c *PolicyCache) Ping(ctx context.Context) error {
+	return c.redis.Ping(ctx).Err()
+}

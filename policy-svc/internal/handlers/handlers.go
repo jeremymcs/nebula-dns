@@ -41,7 +41,15 @@ func NewHandlers(policySvc *policy.Service, policyCache *cache.PolicyCache, ch *
 	}
 }
 
-// Health handles health check requests
+// Healthz handles simple liveness check for K8s probes (no dependency checks)
+func (h *Handlers) Healthz(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status": "ok",
+	})
+}
+
+// Health handles detailed health check requests
 func (h *Handlers) Health(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -51,26 +59,43 @@ func (h *Handlers) Health(w http.ResponseWriter, r *http.Request) {
 }
 
 // Ready handles readiness check requests for K8s probes
+// Verifies Redis connectivity (not just process existence)
 func (h *Handlers) Ready(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
 	// Check if policy service is initialized
-	ready := h.policySvc != nil
-	if ready {
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"ready":     true,
-			"timestamp": time.Now().UTC().Format(time.RFC3339),
-		})
-	} else {
+	if h.policySvc == nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"ready":     false,
+			"reason":    "policy service not initialized",
 			"timestamp": time.Now().UTC().Format(time.RFC3339),
 		})
+		return
 	}
+
+	// Verify Redis connectivity via cache
+	ctx := r.Context()
+	if err := h.cache.Ping(ctx); err != nil {
+		h.logger.Warn("Redis connectivity check failed", zap.Error(err))
+		w.WriteHeader(http.StatusServiceUnavailable)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"ready":     false,
+			"reason":    "redis unavailable",
+			"error":     err.Error(),
+			"timestamp": time.Now().UTC().Format(time.RFC3339),
+		})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"ready":     true,
+		"timestamp": time.Now().UTC().Format(time.RFC3339),
+	})
 }
 
-// Live handles liveness check requests for K8s probes
+// Live handles liveness check requests for K8s probes (simple process health)
 func (h *Handlers) Live(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
