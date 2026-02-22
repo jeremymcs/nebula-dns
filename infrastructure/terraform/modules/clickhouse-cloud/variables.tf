@@ -24,14 +24,20 @@ variable "tier" {
   default     = "development"
 }
 
+variable "admin_password" {
+  description = "ClickHouse admin password for the default user"
+  type        = string
+  sensitive   = true
+}
+
 variable "min_total_memory_gb" {
-  description = "Minimum memory in GB"
+  description = "Minimum memory in GB (required for production tier)"
   type        = number
   default     = 24
 }
 
 variable "max_total_memory_gb" {
-  description = "Maximum memory in GB"
+  description = "Maximum memory in GB (required for production tier)"
   type        = number
   default     = 48
 }

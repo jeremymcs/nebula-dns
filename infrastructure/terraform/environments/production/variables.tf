@@ -36,3 +36,9 @@ variable "clickhouse_token_secret" {
   type        = string
   sensitive   = true
 }
+
+variable "clickhouse_admin_password" {
+  description = "ClickHouse admin password for the default user"
+  type        = string
+  sensitive   = true
+}

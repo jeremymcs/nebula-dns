@@ -4,7 +4,7 @@
 resource "digitalocean_database_cluster" "valkey" {
   name                 = "${var.project_name}-${var.environment}-valkey"
   engine               = "valkey"
-  version              = "7"
+  version              = "8"
   size                 = var.valkey_node_size
   region               = var.region
   node_count           = var.valkey_node_count
