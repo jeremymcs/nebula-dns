@@ -40,7 +40,7 @@ module "doks" {
   environment        = var.environment
   region             = var.region
   vpc_uuid           = module.vpc.vpc_id
-  kubernetes_version = "1.30"
+  kubernetes_version = "1.32.10-do.3"
   node_size          = "s-4vcpu-8gb"
   node_count         = 3
   min_nodes          = 3
@@ -66,8 +66,9 @@ module "databases" {
 }
 
 module "clickhouse" {
-  source       = "../../modules/clickhouse-cloud"
-  service_name = "nebula-dns-${var.environment}"
-  tier         = "development" # Start with dev tier, upgrade for production traffic
-  region       = "us-east-1"   # ClickHouse Cloud region (not DO region)
+  source          = "../../modules/clickhouse-cloud"
+  service_name    = "nebula-dns-${var.environment}"
+  tier            = "production"
+  region          = "us-east-1"   # ClickHouse Cloud region (not DO region)
+  admin_password  = var.clickhouse_admin_password
 }

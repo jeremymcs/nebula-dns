@@ -34,6 +34,4 @@ cainjector:
       memory: 256Mi
 
 prometheus:
-  enabled: true
-  servicemonitor:
-    enabled: true
+  enabled: false

@@ -16,10 +16,12 @@ resource "clickhouse_service" "analytics" {
   region         = var.region
   tier           = var.tier
 
+  password = var.admin_password
+
   ip_access = [
     {
       source      = "0.0.0.0/0"
-      description = "Allow all (restrict after DOKS egress IP is known)"
+      description = "Allow all (restrict after DOKS egress IP is known - see Phase 14)"
     }
   ]
 
