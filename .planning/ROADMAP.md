@@ -212,12 +212,12 @@ Plans:
   4. HPA is configured with custom DNS query metrics for policy-svc auto-scaling
   5. PostgreSQL PITR and ClickHouse Cloud automated backups are verified working
   6. Production deployment and rollback runbook is documented
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 33-01: TBD
-- [ ] 33-02: TBD
-- [ ] 33-03: TBD
+- [ ] 33-01-PLAN.md — Health probes and graceful shutdown for all services
+- [ ] 33-02-PLAN.md — HPA custom DNS QPS metrics and backup verification
+- [ ] 33-03-PLAN.md — Incident runbooks and deployment/rollback procedures
 
 ## Progress
 
@@ -235,7 +235,7 @@ Phases execute in numeric order: 24 → 25 → 26 → 27 → 28 → 29 → 30 �
 | 30. UI Test Suite | v1.3 | 5/5 | ✓ Complete | 2026-02-14 |
 | 31. Load Testing & SLOs | v1.3 | 5/5 | ✓ Complete | 2026-02-14 |
 | 32. CI/CD Pipeline | v1.3 | Complete    | 2026-02-22 | - |
-| 33. Operational Readiness | v1.3 | 0/TBD | Not started | - |
+| 33. Operational Readiness | v1.3 | 0/3 | Not started | - |
 
 ---
 *Created: 2026-02-11*
