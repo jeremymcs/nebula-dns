@@ -2,6 +2,36 @@
 
 ## Shipped Milestones
 
+### v1.3 — Production Readiness
+**Shipped:** 2026-02-22
+**Duration:** 11 days (2026-02-11 to 2026-02-22)
+**Commits:** 149
+
+#### Core Value Delivered
+Platform fully deployable to DigitalOcean Kubernetes with managed databases, comprehensive test coverage, CI/CD pipeline, and operational tooling — ready to handle real DNS traffic at 100K-999K queries/day.
+
+#### Key Accomplishments
+1. **Infrastructure Provisioning** — Terraform modules for DOKS cluster (3-10 nodes), managed PostgreSQL with PgBouncer, managed Valkey with TLS, ClickHouse Cloud, cert-manager with DNS-01 wildcards, and external-dns
+2. **DNS Stack Deployment** — Full DNS resolution pipeline deployed to Kubernetes: dnsdist dual LoadBalancers → Policy Service (TLS to Valkey, HTTPS to ClickHouse Cloud) → Unbound StatefulSet with persistent cache
+3. **Control Plane Deployment** — API + UI + Admin UI Helm charts with runtime env vars, Ingress with TLS certificates, production values, and DNS automation via external-dns
+4. **Comprehensive Test Suite** — API unit/integration/E2E tests with Testcontainers, 264 Playwright UI specs across admin/MSP/billing/security flows, policy-svc table-driven Go tests, flakiness detection with <5% CI gate
+5. **SLO Monitoring & Load Testing** — k6 load tests with SLO-aligned thresholds, Prometheus burn rate alerting (99.9% availability), Blackbox Exporter synthetic monitoring, Grafana SLO dashboard with error budget tracking
+6. **CI/CD Pipeline** — 6-service parallel Docker builds, test gates, DOCR push, automatic staging deploy, manual production approval, atomic rollback, weekly image cleanup
+
+#### Stats
+- **Requirements:** 31/31 complete (13 DEPLOY, 8 TEST, 10 OPS)
+- **Phases:** 11/11 complete (Phases 24-34, including 1 gap closure)
+- **Plans:** 41 executed
+- **Files Modified:** 638
+- **Lines of Code:** ~97,244 added
+
+#### Archive
+- [v1.3-ROADMAP.md](milestones/v1.3-ROADMAP.md)
+- [v1.3-REQUIREMENTS.md](milestones/v1.3-REQUIREMENTS.md)
+- [v1.3-MILESTONE-AUDIT.md](milestones/v1.3-MILESTONE-AUDIT.md)
+
+---
+
 ### v1.2 — Admin Roles & Alerting
 **Shipped:** 2026-02-03
 **Duration:** ~60 days (2025-12-05 to 2026-02-02)
@@ -92,4 +122,5 @@ Enabled the ops team to handle support escalations quickly through tenant impers
 - [v1-MILESTONE-AUDIT.md](v1-MILESTONE-AUDIT.md)
 
 ---
-*Last updated: 2026-02-03 after v1.2 milestone*
+*Last updated: 2026-02-22 after v1.3 milestone*
+
