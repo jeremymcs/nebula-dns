@@ -1,0 +1,46 @@
+# Nebula DNS - Prometheus Adapter Configuration
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+#
+# Custom metric rules for exposing DNS query rate metrics to Kubernetes HPA.
+# This enables the Policy Service HPA to scale based on actual DNS QPS workload
+# instead of CPU utilization alone (which doesn't correlate well with DNS load
+# due to in-memory cache lookups).
+#
+# Installation:
+# helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+# helm upgrade --install prometheus-adapter prometheus-community/prometheus-adapter \
+#   --namespace monitoring \
+#   --values prometheus-adapter-values.yaml
+#
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-adapter-config
+  namespace: monitoring
+  labels:
+    app: prometheus-adapter
+data:
+  config.yaml: |
+    rules:
+      # Expose dns_queries_total counter as dns_queries_per_second rate metric
+      # This is the primary metric for Policy Service HPA scaling
+      - seriesQuery: 'dns_queries_total{namespace="nebula-dns",job="policy-svc"}'
+        resources:
+          overrides:
+            namespace: {resource: "namespace"}
+            pod: {resource: "pod"}
+        name:
+          matches: "^(.*)_total$"
+          as: "${1}_per_second"
+        metricsQuery: 'sum(rate(<<.Series>>{<<.LabelMatchers>>}[2m])) by (<<.GroupBy>>)'
+
+      # Expose policy evaluation rate as secondary metric
+      # Useful for understanding policy cache hit ratio and performance
+      - seriesQuery: 'policy_evaluation_duration_seconds_count{namespace="nebula-dns",job="policy-svc"}'
+        resources:
+          overrides:
+            namespace: {resource: "namespace"}
+            pod: {resource: "pod"}
+        name:
+          as: "policy_evaluations_per_second"
+        metricsQuery: 'sum(rate(<<.Series>>{<<.LabelMatchers>>}[2m])) by (<<.GroupBy>>)'
