@@ -103,7 +103,6 @@ func main() {
 
 	// Initialize ClickHouse client
 	chClient := clickhouse.NewClient(clickhouseURL, clickhouseDB, clickhouseUser, clickhousePassword, logger)
-	defer chClient.Close()
 	sugar.Infow("ClickHouse client initialized", "url", clickhouseURL, "database", clickhouseDB)
 
 	// Initialize policy service
@@ -122,6 +121,7 @@ func main() {
 	r.Use(middleware.Timeout(requestTimeout))
 
 	// Routes
+	r.Get("/healthz", h.Healthz)
 	r.Get("/health", h.Health)
 	r.Get("/ready", h.Ready)
 	r.Get("/live", h.Live)
@@ -163,12 +163,21 @@ func main() {
 
 	sugar.Info("Shutting down server...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// Graceful shutdown sequence:
+	// 1. Stop accepting new requests (30s timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		sugar.Fatalw("Server forced to shutdown", "error", err)
+		sugar.Warnw("Server shutdown timeout", "error", err)
+	} else {
+		sugar.Info("HTTP server drained successfully")
 	}
+
+	// 2. Flush pending ClickHouse batches before exit (no log loss)
+	sugar.Info("Flushing ClickHouse batches...")
+	chClient.Close()
+	sugar.Info("ClickHouse batches flushed")
 
 	sugar.Info("Server stopped")
 }

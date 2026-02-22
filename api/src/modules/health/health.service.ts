@@ -1,7 +1,7 @@
 // Nebula DNS - Health Check Service
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-import { Injectable, Optional } from '@nestjs/common';
+import { Injectable, Optional, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import { InjectDataSource } from '@nestjs/typeorm';
@@ -49,6 +49,7 @@ export interface EncryptionHealthStatus {
 
 @Injectable()
 export class HealthService {
+  private readonly logger = new Logger(HealthService.name);
   private readonly startTime = Date.now();
 
   constructor(
@@ -191,15 +192,23 @@ export class HealthService {
     ready: boolean;
     checks: Record<string, boolean>;
   }> {
-    const [postgres, redis] = await Promise.all([
+    const [postgres, redis, clickhouse] = await Promise.all([
       this.checkPostgres(),
       this.checkRedis(),
+      this.checkClickhouse(),
     ]);
 
     const checks = {
       postgres: postgres.status === 'healthy',
       redis: redis.status === 'healthy',
     };
+
+    // ClickHouse is non-critical - only log warning if degraded
+    if (clickhouse.status === 'unhealthy') {
+      this.logger.warn(
+        `ClickHouse is degraded but not failing readiness: ${clickhouse.error || 'unknown error'}`,
+      );
+    }
 
     const ready = checks.postgres && checks.redis;
 

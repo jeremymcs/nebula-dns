@@ -1,7 +1,7 @@
 // Nebula DNS - Health Check Controller
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { HealthService } from './health.service';
 
@@ -10,17 +10,17 @@ import { HealthService } from './health.service';
 export class HealthController {
   constructor(private readonly healthService: HealthService) {}
 
-  @Get()
-  @ApiOperation({ summary: 'Basic health check' })
-  @ApiResponse({ status: 200, description: 'Service is healthy' })
-  async check() {
-    return this.healthService.check();
+  @Get('healthz')
+  @ApiOperation({ summary: 'Simple liveness check for K8s probes' })
+  @ApiResponse({ status: 200, description: 'Service is alive' })
+  async healthz() {
+    return { status: 'ok' };
   }
 
-  @Get('detailed')
+  @Get()
   @ApiOperation({ summary: 'Detailed health check with dependencies' })
   @ApiResponse({ status: 200, description: 'Detailed health status' })
-  async checkDetailed() {
+  async check() {
     return this.healthService.checkDetailed();
   }
 
@@ -32,11 +32,15 @@ export class HealthController {
   })
   @ApiResponse({ status: 503, description: 'Service is not ready' })
   async ready() {
-    return this.healthService.checkReady();
+    const result = await this.healthService.checkReady();
+    if (!result.ready) {
+      throw new HttpException(result, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+    return result;
   }
 
   @Get('live')
-  @ApiOperation({ summary: 'Liveness check for K8s probes' })
+  @ApiOperation({ summary: 'Liveness check for K8s probes (backward compatibility)' })
   @ApiResponse({ status: 200, description: 'Service is alive' })
   async live() {
     return { status: 'alive', timestamp: new Date().toISOString() };
