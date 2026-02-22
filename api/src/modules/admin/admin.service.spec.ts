@@ -176,15 +176,17 @@ describe('AdminService', () => {
         {
           provide: ConfigService,
           useValue: {
-            get: jest.fn().mockImplementation((key: string, defaultValue?: any) => {
-              const config: Record<string, any> = {
-                ADMIN_MAX_FAILED_ATTEMPTS: 5,
-                ADMIN_LOCKOUT_DURATION_MINUTES: 30,
-                JWT_SECRET: 'test-jwt-secret',
-                ADMIN_JWT_SECRET: 'test-admin-jwt-secret',
-              };
-              return config[key] ?? defaultValue;
-            }),
+            get: jest
+              .fn()
+              .mockImplementation((key: string, defaultValue?: any) => {
+                const config: Record<string, any> = {
+                  ADMIN_MAX_FAILED_ATTEMPTS: 5,
+                  ADMIN_LOCKOUT_DURATION_MINUTES: 30,
+                  JWT_SECRET: 'test-jwt-secret',
+                  ADMIN_JWT_SECRET: 'test-admin-jwt-secret',
+                };
+                return config[key] ?? defaultValue;
+              }),
           },
         },
         {

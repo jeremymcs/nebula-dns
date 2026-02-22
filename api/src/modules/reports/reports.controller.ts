@@ -132,4 +132,12 @@ export class ReportsController {
   async getDataStatus() {
     return this.reportsService.getDataStatus();
   }
+
+  @Get('dashboard/home')
+  @Roles(Role.OWNER, Role.ADMIN, Role.ANALYST, Role.READONLY)
+  @ApiOperation({ summary: 'Get simplified home dashboard statistics' })
+  @ApiResponse({ status: 200, description: 'Home dashboard stats retrieved' })
+  async getHomeDashboard(@CurrentTenant() tenantId: string) {
+    return this.reportsService.getHomeDashboard(tenantId);
+  }
 }

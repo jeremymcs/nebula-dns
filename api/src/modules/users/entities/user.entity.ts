@@ -3,7 +3,7 @@ import { Exclude } from 'class-transformer';
 import { TenantScopedEntity } from '@/common/entities/base.entity';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 
-export type UserRole = 'owner' | 'admin' | 'analyst' | 'readonly';
+export type UserRole = 'owner' | 'admin' | 'analyst' | 'readonly' | 'member';
 export type UserStatus = 'active' | 'suspended' | 'pending';
 
 @Entity('users')

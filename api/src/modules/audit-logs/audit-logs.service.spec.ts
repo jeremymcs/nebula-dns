@@ -590,7 +590,7 @@ describe('AuditLogsService', () => {
         expect(data[0].previousHash).toBeNull();
       });
 
-      it('should export audit logs in CSV format', async () => {
+      it('should export audit logs in CSV format with hash fields', async () => {
         const mockLogs = [
           {
             id: 'log-001',
@@ -613,6 +613,10 @@ describe('AuditLogsService', () => {
         expect(result.contentType).toBe('text/csv');
         expect(result.data).toContain('Timestamp');
         expect(result.data).toContain('Action');
+        // Verify hash fields are included for integrity verification
+        expect(result.data).toContain('Previous Hash');
+        expect(result.data).toContain('Record Hash');
+        expect(result.data).toContain('hash-001');
       });
     });
   });

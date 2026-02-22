@@ -18,7 +18,11 @@ import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AdminRole } from '../enums/admin-role.enum';
 
-export type AdminInvitationStatus = 'pending' | 'accepted' | 'expired' | 'revoked';
+export type AdminInvitationStatus =
+  | 'pending'
+  | 'accepted'
+  | 'expired'
+  | 'revoked';
 
 /**
  * Create Admin Invitation DTO
@@ -67,7 +71,8 @@ export class AcceptAdminInvitationDto {
   name: string;
 
   @ApiProperty({
-    description: 'Password for the admin account (14+ chars, mixed case, numbers, symbols)',
+    description:
+      'Password for the admin account (14+ chars, mixed case, numbers, symbols)',
     example: 'SecureP@ssw0rd123!',
   })
   @IsString({ message: 'Password must be a string' })

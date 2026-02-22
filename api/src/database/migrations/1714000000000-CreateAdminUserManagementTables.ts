@@ -8,9 +8,7 @@
 
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateAdminUserManagementTables1714000000000
-  implements MigrationInterface
-{
+export class CreateAdminUserManagementTables1714000000000 implements MigrationInterface {
   name = 'CreateAdminUserManagementTables1714000000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

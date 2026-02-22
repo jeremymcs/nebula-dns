@@ -1,3 +1,8 @@
+// Nebula DNS - MSP Subscription Entity
+// Updated to use the unified tier system (US-022, US-023)
+// partnerId now references an MSP-tier tenant instead of the legacy Partner table
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 import {
   Entity,
   Column,
@@ -6,7 +11,7 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
-import { Partner } from '../../partners/entities/partner.entity';
+import { Tenant } from '../../tenants/entities/tenant.entity';
 
 export type MspSubscriptionStatus =
   | 'active'
@@ -17,6 +22,7 @@ export type MspSubscriptionStatus =
 /**
  * MspSubscription - MSP-level subscription with query quotas
  * Tracks the MSP's current balance and usage
+ * Note: partnerId now references an MSP-tier tenant (tenants.tier='msp')
  */
 @Entity('msp_subscriptions')
 @Index(['partnerId'])
@@ -24,12 +30,13 @@ export class MspSubscription {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  // Now references an MSP-tier tenant instead of the legacy Partner table
   @Column({ name: 'partner_id', type: 'uuid' })
   partnerId: string;
 
-  @ManyToOne(() => Partner)
+  @ManyToOne(() => Tenant)
   @JoinColumn({ name: 'partner_id' })
-  partner: Partner;
+  mspTenant: Tenant;
 
   @Column({ type: 'varchar', length: 20, default: 'active' })
   status: MspSubscriptionStatus;

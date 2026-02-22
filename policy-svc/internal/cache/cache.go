@@ -40,6 +40,10 @@ type PolicyCache struct {
 
 	categories   map[string]string // domain -> category
 	categoriesMu sync.RWMutex
+
+	// US-029: Subscription status cache for billing enforcement
+	subscriptionStatus   map[string]models.SubscriptionStatus // key: tenantId
+	subscriptionStatusMu sync.RWMutex
 }
 
 // TokenInfo contains validated token information
@@ -61,14 +65,15 @@ type IPRangeEntry struct {
 // NewPolicyCache creates a new policy cache
 func NewPolicyCache(redisClient *redis.Client, logger *zap.Logger, m *metrics.Metrics) *PolicyCache {
 	return &PolicyCache{
-		redis:         redisClient,
-		logger:        logger,
-		metrics:       m,
-		policies:      make(map[string]*models.CompiledPolicy),
-		tokens:        make(map[string]*TokenInfo),
-		ipRanges:      make([]IPRangeEntry, 0),
-		threatDomains: make(map[string]string),
-		categories:    make(map[string]string),
+		redis:              redisClient,
+		logger:             logger,
+		metrics:            m,
+		policies:           make(map[string]*models.CompiledPolicy),
+		tokens:             make(map[string]*TokenInfo),
+		ipRanges:           make([]IPRangeEntry, 0),
+		threatDomains:      make(map[string]string),
+		categories:         make(map[string]string),
+		subscriptionStatus: make(map[string]models.SubscriptionStatus),
 	}
 }
 
@@ -311,6 +316,13 @@ func (c *PolicyCache) handleInvalidation(payload string) {
 		// Reload IP ranges from Redis
 		go c.LoadIPRanges(context.Background())
 		c.logger.Debug("Reloading IP ranges cache")
+
+	case "subscription_status":
+		// US-029: Invalidate subscription status cache for affected tenants
+		c.subscriptionStatusMu.Lock()
+		c.subscriptionStatus = make(map[string]models.SubscriptionStatus)
+		c.subscriptionStatusMu.Unlock()
+		c.logger.Debug("Invalidated subscription status cache")
 	}
 }
 
@@ -400,4 +412,46 @@ func (c *PolicyCache) LoadIPRanges(ctx context.Context) error {
 
 	c.logger.Info("Loaded IP range mappings", zap.Int("count", len(entries)))
 	return nil
+}
+
+// GetSubscriptionStatus retrieves the subscription status for a tenant (US-029)
+// Returns the status and whether the tenant can resolve DNS queries
+func (c *PolicyCache) GetSubscriptionStatus(ctx context.Context, tenantID string) (models.SubscriptionStatus, bool) {
+	// Try in-memory cache first
+	c.subscriptionStatusMu.RLock()
+	status, exists := c.subscriptionStatus[tenantID]
+	c.subscriptionStatusMu.RUnlock()
+
+	if exists {
+		return status, status != models.SubscriptionSuspended
+	}
+
+	// Check Redis
+	key := "subscription_status:" + tenantID
+	statusStr, err := c.redis.Get(ctx, key).Result()
+	if err != nil {
+		if err == redis.Nil {
+			// No cached status - assume active (fail-open for missing data)
+			c.logger.Debug("No subscription status found, assuming active", zap.String("tenantId", tenantID))
+			return models.SubscriptionActive, true
+		}
+		c.logger.Error("Failed to get subscription status from Redis", zap.Error(err), zap.String("tenantId", tenantID))
+		// Fail-open on error
+		return models.SubscriptionActive, true
+	}
+
+	// Parse and cache status
+	status = models.SubscriptionStatus(statusStr)
+	c.subscriptionStatusMu.Lock()
+	c.subscriptionStatus[tenantID] = status
+	c.subscriptionStatusMu.Unlock()
+
+	c.logger.Debug("Retrieved subscription status", zap.String("tenantId", tenantID), zap.String("status", string(status)))
+	return status, status != models.SubscriptionSuspended
+}
+
+// IsTenantSuspended checks if a tenant's subscription is suspended (US-029)
+func (c *PolicyCache) IsTenantSuspended(ctx context.Context, tenantID string) bool {
+	status, _ := c.GetSubscriptionStatus(ctx, tenantID)
+	return status == models.SubscriptionSuspended
 }

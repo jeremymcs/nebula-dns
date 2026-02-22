@@ -31,7 +31,6 @@ import {
   Bars3Icon,
   XMarkIcon,
   ChevronDownIcon,
-  RocketLaunchIcon,
   MagnifyingGlassIcon,
   SparklesIcon,
   BoltIcon,
@@ -41,16 +40,12 @@ import {
 } from '@heroicons/react/24/outline'
 import { useCommandBar } from '@/components/command-bar'
 import { OrgSwitcher } from './OrgSwitcher'
-
-const navigation = [
-  { name: 'Mission Control', href: '/mission-control', icon: RocketLaunchIcon },
-  { name: 'Policies', href: '/dashboard/policies', icon: ShieldCheckIcon },
-  { name: 'Zones', href: '/dashboard/locations', icon: MapPinIcon },
-  { name: 'Investigate', href: '/dashboard/investigate', icon: MagnifyingGlassIcon },
-  { name: 'Reports', href: '/dashboard/reports', icon: ChartBarIcon },
-  { name: 'Insights', href: '/dashboard/insights', icon: SparklesIcon },
-  { name: 'Playbooks', href: '/dashboard/playbooks', icon: BoltIcon },
-]
+import { ClientSwitcher } from '@/components/msp/ClientSwitcher'
+import { hasFeature } from '@/lib/tier-features'
+import { WifiIcon } from '@heroicons/react/24/outline'
+// US-027: MSP Managed By Badge
+import { ManagedByBadge } from '@/components/msp/ManagedByBadge'
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus'
 
 const adminNavigation = [
   { name: 'Users', href: '/dashboard/users', icon: UsersIcon },
@@ -65,10 +60,26 @@ const mspNavigation = [
 
 export function TopNav() {
   const pathname = usePathname()
-  const { user, logout, isMsp } = useAuth()
+  const { user, logout, isMsp, tier } = useAuth()
   const { theme, setTheme } = useTheme()
   const { open: openCommandBar } = useCommandBar()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  // US-027: Get MSP managed info for badge
+  const { mspInfo } = useSubscriptionStatus()
+
+  // Build tier-specific navigation
+  // Note: Admin portal has been moved to separate admin-ui app on port 4012
+  const navigation = [
+    { name: 'Policies', href: '/dashboard/policies', icon: ShieldCheckIcon, featureKey: 'policies' },
+    // For home tier, show "Networks" instead of "Zones"
+    tier === 'home'
+      ? { name: 'Networks', href: '/dashboard/locations', icon: WifiIcon, featureKey: 'locations' }
+      : { name: 'Zones', href: '/dashboard/locations', icon: MapPinIcon, featureKey: 'locations' },
+    { name: 'Investigate', href: '/dashboard/investigate', icon: MagnifyingGlassIcon, featureKey: 'investigate' },
+    { name: 'Reports', href: '/dashboard/reports', icon: ChartBarIcon, featureKey: 'reports' },
+    { name: 'Insights', href: '/dashboard/insights', icon: SparklesIcon, featureKey: 'insights' },
+    { name: 'Playbooks', href: '/dashboard/playbooks', icon: BoltIcon, featureKey: 'playbooks' },
+  ].filter(item => !item.featureKey || hasFeature(tier, item.featureKey as any))
 
   const getInitials = (name: string) => {
     return name
@@ -105,6 +116,9 @@ export function TopNav() {
 
             {/* Organization Switcher for MSP users */}
             <OrgSwitcher />
+
+            {/* US-027: MSP Managed By Badge - shown for clients managed by an MSP */}
+            <ManagedByBadge mspInfo={mspInfo} className="hidden md:block" />
           </div>
 
           {/* Desktop Navigation */}
@@ -181,6 +195,9 @@ export function TopNav() {
 
           {/* Right section */}
           <div className="flex items-center gap-2">
+            {/* Client Context Switcher for MSP */}
+            <ClientSwitcher />
+
             {/* Command Bar Button */}
             <button
               onClick={openCommandBar}

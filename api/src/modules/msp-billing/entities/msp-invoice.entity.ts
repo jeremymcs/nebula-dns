@@ -1,3 +1,8 @@
+// Nebula DNS - MSP Invoice Entity
+// Updated to use the unified tier system (US-022, US-023)
+// partnerId now references an MSP-tier tenant instead of the legacy Partner table
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 import {
   Entity,
   Column,
@@ -6,12 +11,13 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
-import { Partner } from '../../partners/entities/partner.entity';
+import { Tenant } from '../../tenants/entities/tenant.entity';
 
 export type InvoiceStatus = 'draft' | 'pending' | 'paid' | 'failed' | 'void';
 
 /**
  * MspInvoice - Invoices for MSP billing (overages, purchases, etc.)
+ * Note: partnerId now references an MSP-tier tenant (tenants.tier='msp')
  */
 @Entity('msp_invoices')
 @Index(['partnerId'])
@@ -20,12 +26,13 @@ export class MspInvoice {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  // Now references an MSP-tier tenant instead of the legacy Partner table
   @Column({ name: 'partner_id', type: 'uuid' })
   partnerId: string;
 
-  @ManyToOne(() => Partner)
+  @ManyToOne(() => Tenant)
   @JoinColumn({ name: 'partner_id' })
-  partner: Partner;
+  mspTenant: Tenant;
 
   @Column({ name: 'invoice_number', type: 'varchar', length: 50, unique: true })
   invoiceNumber: string;

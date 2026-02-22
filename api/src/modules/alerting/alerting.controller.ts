@@ -72,7 +72,8 @@ export class AlertingController {
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Create Slack alert configuration',
-    description: 'Creates a new Slack webhook configuration for alert delivery.',
+    description:
+      'Creates a new Slack webhook configuration for alert delivery.',
   })
   @ApiResponse({
     status: 201,
@@ -199,7 +200,8 @@ export class AlertingController {
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Update alert configuration',
-    description: 'Updates alert configuration settings (name, filters, enabled).',
+    description:
+      'Updates alert configuration settings (name, filters, enabled).',
   })
   @ApiParam({ name: 'id', description: 'Configuration UUID' })
   @ApiResponse({

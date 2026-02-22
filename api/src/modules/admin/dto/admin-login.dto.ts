@@ -26,7 +26,8 @@ export class AdminLoginDto {
   email: string;
 
   @ApiProperty({
-    description: 'Admin password (14+ characters with mixed case, numbers, and symbols)',
+    description:
+      'Admin password (14+ characters with mixed case, numbers, and symbols)',
     example: 'AdminSecureP@ssw0rd123!',
   })
   @IsString({ message: 'Password must be a string' })

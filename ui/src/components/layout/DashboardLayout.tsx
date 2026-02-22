@@ -31,10 +31,10 @@ function Breadcrumbs() {
   if (segments.length <= 1) return null
 
   // Breadcrumb mapping - adjust for tier
+  // mission-control removed - admin functionality moved to separate admin-ui app (port 4012)
   const getBreadcrumbLabel = (segment: string): string => {
     const labels: Record<string, string> = {
       dashboard: 'Dashboard',
-      'mission-control': 'Mission Control',
       home: 'Home',
       policies: 'Policies',
       locations: tier === 'home' ? 'Networks' : 'Locations',

@@ -82,12 +82,19 @@ export class AdminUsersController {
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'List admin users',
-    description: 'Returns paginated list of all admin users with role and status.',
+    description:
+      'Returns paginated list of all admin users with role and status.',
   })
-  @ApiResponse({ status: 200, description: 'Admin list', type: ListAdminsResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Admin list',
+    type: ListAdminsResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Requires super_admin role' })
-  async listAdmins(@Query() query: ListAdminsQueryDto): Promise<ListAdminsResponseDto> {
+  async listAdmins(
+    @Query() query: ListAdminsQueryDto,
+  ): Promise<ListAdminsResponseDto> {
     return this.adminUsersService.listAdmins(query);
   }
 
@@ -104,9 +111,15 @@ export class AdminUsersController {
     description: 'Returns detailed admin profile including who invited them.',
   })
   @ApiParam({ name: 'id', description: 'Admin UUID' })
-  @ApiResponse({ status: 200, description: 'Admin profile', type: AdminDetailDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Admin profile',
+    type: AdminDetailDto,
+  })
   @ApiResponse({ status: 404, description: 'Admin not found' })
-  async getAdmin(@Param('id', ParseUUIDPipe) id: string): Promise<AdminDetailDto> {
+  async getAdmin(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<AdminDetailDto> {
     return this.adminUsersService.getAdminById(id);
   }
 
@@ -121,12 +134,16 @@ export class AdminUsersController {
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Suspend admin',
-    description: 'Suspends admin account, blocking login. Cannot suspend super_admin.',
+    description:
+      'Suspends admin account, blocking login. Cannot suspend super_admin.',
   })
   @ApiParam({ name: 'id', description: 'Admin UUID to suspend' })
   @ApiResponse({ status: 200, description: 'Admin suspended' })
   @ApiResponse({ status: 400, description: 'Already suspended' })
-  @ApiResponse({ status: 403, description: 'Cannot suspend self or super_admin' })
+  @ApiResponse({
+    status: 403,
+    description: 'Cannot suspend self or super_admin',
+  })
   @ApiResponse({ status: 404, description: 'Admin not found' })
   async suspendAdmin(
     @Param('id', ParseUUIDPipe) id: string,
@@ -135,7 +152,12 @@ export class AdminUsersController {
     @Ip() ip: string,
   ): Promise<AdminMessageResponseDto> {
     const admin = req.user as AdminUser;
-    await this.adminUsersService.suspendAdmin(admin.adminId, id, dto, this.getClientIp(req, ip));
+    await this.adminUsersService.suspendAdmin(
+      admin.adminId,
+      id,
+      dto,
+      this.getClientIp(req, ip),
+    );
     return { message: 'Admin suspended successfully' };
   }
 
@@ -162,7 +184,11 @@ export class AdminUsersController {
     @Ip() ip: string,
   ): Promise<AdminMessageResponseDto> {
     const admin = req.user as AdminUser;
-    await this.adminUsersService.reactivateAdmin(admin.adminId, id, this.getClientIp(req, ip));
+    await this.adminUsersService.reactivateAdmin(
+      admin.adminId,
+      id,
+      this.getClientIp(req, ip),
+    );
     return { message: 'Admin reactivated successfully' };
   }
 
@@ -178,7 +204,8 @@ export class AdminUsersController {
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Reset admin MFA',
-    description: 'Resets MFA for specified admin. Invalidates sessions and sends notification.',
+    description:
+      'Resets MFA for specified admin. Invalidates sessions and sends notification.',
   })
   @ApiParam({ name: 'id', description: 'Admin UUID' })
   @ApiResponse({ status: 200, description: 'MFA reset' })
@@ -190,8 +217,15 @@ export class AdminUsersController {
     @Ip() ip: string,
   ): Promise<AdminMessageResponseDto> {
     const admin = req.user as AdminUser;
-    await this.adminUsersService.resetAdminMfa(admin.adminId, id, this.getClientIp(req, ip));
-    return { message: 'MFA reset successfully. Admin will need to set up MFA on next login.' };
+    await this.adminUsersService.resetAdminMfa(
+      admin.adminId,
+      id,
+      this.getClientIp(req, ip),
+    );
+    return {
+      message:
+        'MFA reset successfully. Admin will need to set up MFA on next login.',
+    };
   }
 
   /**
@@ -204,17 +238,29 @@ export class AdminUsersController {
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Invite new admin',
-    description: 'Sends invitation email to create new admin account with specified role.',
+    description:
+      'Sends invitation email to create new admin account with specified role.',
   })
-  @ApiResponse({ status: 201, description: 'Invitation sent', type: CreateAdminInvitationResponseDto })
-  @ApiResponse({ status: 409, description: 'Email already exists or has pending invite' })
+  @ApiResponse({
+    status: 201,
+    description: 'Invitation sent',
+    type: CreateAdminInvitationResponseDto,
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Email already exists or has pending invite',
+  })
   async sendInvitation(
     @Body() dto: CreateAdminInvitationDto,
     @Req() req: Request,
     @Ip() ip: string,
   ): Promise<CreateAdminInvitationResponseDto> {
     const admin = req.user as AdminUser;
-    return this.adminInvitationsService.createInvitation(admin.adminId, dto, this.getClientIp(req, ip));
+    return this.adminInvitationsService.createInvitation(
+      admin.adminId,
+      dto,
+      this.getClientIp(req, ip),
+    );
   }
 
   /**
@@ -225,14 +271,23 @@ export class AdminUsersController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Accept admin invitation',
-    description: 'Accepts invitation using token from email. Creates admin account.',
+    description:
+      'Accepts invitation using token from email. Creates admin account.',
   })
   @ApiResponse({ status: 200, description: 'Account created successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid/expired token or invitation already used' })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid/expired token or invitation already used',
+  })
   @ApiResponse({ status: 404, description: 'Invitation not found' })
-  async acceptInvitation(@Body() dto: AcceptAdminInvitationDto): Promise<AdminMessageResponseDto> {
+  async acceptInvitation(
+    @Body() dto: AcceptAdminInvitationDto,
+  ): Promise<AdminMessageResponseDto> {
     await this.adminInvitationsService.acceptInvitation(dto);
-    return { message: 'Admin account created successfully. Please log in and set up MFA.' };
+    return {
+      message:
+        'Admin account created successfully. Please log in and set up MFA.',
+    };
   }
 
   /**
@@ -247,8 +302,14 @@ export class AdminUsersController {
     summary: 'List invitations',
     description: 'Returns paginated list of admin invitations with status.',
   })
-  @ApiResponse({ status: 200, description: 'Invitation list', type: ListInvitationsResponseDto })
-  async listInvitations(@Query() query: ListInvitationsQueryDto): Promise<ListInvitationsResponseDto> {
+  @ApiResponse({
+    status: 200,
+    description: 'Invitation list',
+    type: ListInvitationsResponseDto,
+  })
+  async listInvitations(
+    @Query() query: ListInvitationsQueryDto,
+  ): Promise<ListInvitationsResponseDto> {
     return this.adminInvitationsService.listInvitations(query);
   }
 
@@ -262,7 +323,8 @@ export class AdminUsersController {
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'Revoke invitation',
-    description: 'Revokes a pending invitation. Cannot revoke already accepted invitations.',
+    description:
+      'Revokes a pending invitation. Cannot revoke already accepted invitations.',
   })
   @ApiParam({ name: 'id', description: 'Invitation UUID' })
   @ApiResponse({ status: 200, description: 'Invitation revoked' })
@@ -274,7 +336,11 @@ export class AdminUsersController {
     @Ip() ip: string,
   ): Promise<AdminMessageResponseDto> {
     const admin = req.user as AdminUser;
-    await this.adminInvitationsService.revokeInvitation(admin.adminId, id, this.getClientIp(req, ip));
+    await this.adminInvitationsService.revokeInvitation(
+      admin.adminId,
+      id,
+      this.getClientIp(req, ip),
+    );
     return { message: 'Invitation revoked successfully' };
   }
 
@@ -290,8 +356,14 @@ export class AdminUsersController {
     summary: 'View activity logs',
     description: 'Returns paginated admin activity logs with optional filters.',
   })
-  @ApiResponse({ status: 200, description: 'Activity log', type: AdminActivityResponseDto })
-  async getActivityLog(@Query() query: AdminActivityQueryDto): Promise<AdminActivityResponseDto> {
+  @ApiResponse({
+    status: 200,
+    description: 'Activity log',
+    type: AdminActivityResponseDto,
+  })
+  async getActivityLog(
+    @Query() query: AdminActivityQueryDto,
+  ): Promise<AdminActivityResponseDto> {
     return this.adminActivityService.query(query);
   }
 
@@ -301,7 +373,9 @@ export class AdminUsersController {
   private getClientIp(req: Request, ip: string): string {
     const forwarded = req.headers['x-forwarded-for'];
     if (forwarded) {
-      const ips = Array.isArray(forwarded) ? forwarded[0] : forwarded.split(',')[0];
+      const ips = Array.isArray(forwarded)
+        ? forwarded[0]
+        : forwarded.split(',')[0];
       return ips.trim();
     }
     const realIp = req.headers['x-real-ip'];

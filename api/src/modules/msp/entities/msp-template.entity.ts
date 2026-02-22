@@ -1,6 +1,7 @@
 /**
  * Nebula DNS - MSP Template Entity
- * Represents policy templates owned by MSP partners
+ * Represents policy templates owned by MSP-tier tenants
+ * Updated to use the unified tier system (US-022, US-023)
  * Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
  */
 
@@ -14,7 +15,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Partner } from '../../partners/entities/partner.entity';
+import { Tenant } from '../../tenants/entities/tenant.entity';
 import { PolicyConfig } from '../../policies/entities/policy-version.entity';
 
 export interface MspTemplateConfig extends PolicyConfig {
@@ -28,6 +29,7 @@ export class MspTemplate {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  // Now references an MSP-tier tenant instead of the legacy Partner table
   @Column({ name: 'partner_id', type: 'uuid' })
   partnerId: string;
 
@@ -58,10 +60,10 @@ export class MspTemplate {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  // Relations
-  @ManyToOne(() => Partner)
+  // Relations - now references an MSP-tier tenant
+  @ManyToOne(() => Tenant)
   @JoinColumn({ name: 'partner_id' })
-  partner: Partner;
+  mspTenant: Tenant;
 
   @OneToMany(() => MspTemplateDeployment, (deployment) => deployment.template)
   deployments: MspTemplateDeployment[];

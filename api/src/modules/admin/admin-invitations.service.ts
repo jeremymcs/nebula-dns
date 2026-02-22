@@ -119,7 +119,9 @@ export class AdminInvitationsService {
       where: { email: normalizedEmail, status: 'pending' },
     });
     if (existingInvite) {
-      throw new ConflictException('An invitation has already been sent to this email');
+      throw new ConflictException(
+        'An invitation has already been sent to this email',
+      );
     }
 
     // 3. Generate token and hash
@@ -144,13 +146,22 @@ export class AdminInvitationsService {
     await this.activityService.log({
       adminId: invitedByAdminId,
       action: 'admin_invited',
-      metadata: { email: normalizedEmail, role: dto.role, invitationId: saved.id },
+      metadata: {
+        email: normalizedEmail,
+        role: dto.role,
+        invitationId: saved.id,
+      },
       ipAddress,
     });
 
     // 7. Send invitation email
-    const inviter = await this.adminRepository.findOne({ where: { id: invitedByAdminId } });
-    const adminUrl = this.configService.get<string>('ADMIN_URL', 'https://admin.nebuladns.com');
+    const inviter = await this.adminRepository.findOne({
+      where: { id: invitedByAdminId },
+    });
+    const adminUrl = this.configService.get<string>(
+      'ADMIN_URL',
+      'https://admin.nebuladns.com',
+    );
     const inviteUrl = `${adminUrl}/invite/accept?token=${token}`;
 
     let emailSent = false;
@@ -164,7 +175,9 @@ export class AdminInvitationsService {
         expiresAt,
       });
     } catch (error) {
-      this.logger.warn(`Failed to send invitation email: ${(error as Error).message}`);
+      this.logger.warn(
+        `Failed to send invitation email: ${(error as Error).message}`,
+      );
     }
 
     return {
@@ -205,7 +218,9 @@ export class AdminInvitationsService {
 
     // 3. Check status
     if (invitation.status !== 'pending') {
-      throw new BadRequestException('This invitation has already been used or revoked');
+      throw new BadRequestException(
+        'This invitation has already been used or revoked',
+      );
     }
 
     // 4. Check expiry
@@ -250,11 +265,15 @@ export class AdminInvitationsService {
             },
           });
         } catch (error) {
-          this.logger.warn(`Failed to log admin creation: ${(error as Error).message}`);
+          this.logger.warn(
+            `Failed to log admin creation: ${(error as Error).message}`,
+          );
         }
       });
 
-      this.logger.log(`Admin ${savedAdmin.email} created from invitation ${invitation.id}`);
+      this.logger.log(
+        `Admin ${savedAdmin.email} created from invitation ${invitation.id}`,
+      );
       return savedAdmin;
     });
   }
@@ -272,11 +291,14 @@ export class AdminInvitationsService {
    * @param query - Query parameters (limit, cursor, status filter)
    * @returns Paginated invitation list with metadata
    */
-  async listInvitations(query: ListInvitationsQueryDto): Promise<ListInvitationsResponseDto> {
+  async listInvitations(
+    query: ListInvitationsQueryDto,
+  ): Promise<ListInvitationsResponseDto> {
     const limit = query.limit ?? 20;
     const offset = query.cursor ? parseInt(query.cursor, 10) : 0;
 
-    const queryBuilder = this.invitationRepository.createQueryBuilder('inv')
+    const queryBuilder = this.invitationRepository
+      .createQueryBuilder('inv')
       .leftJoin('inv.invitedBy', 'inviter')
       .select([
         'inv.id',
@@ -303,9 +325,9 @@ export class AdminInvitationsService {
       .getMany();
 
     const hasMore = invitations.length > limit;
-    const data = invitations.slice(0, limit).map(inv =>
-      this.toResponseDto(inv, inv.invitedBy?.email || '')
-    );
+    const data = invitations
+      .slice(0, limit)
+      .map((inv) => this.toResponseDto(inv, inv.invitedBy?.email || ''));
 
     return {
       data,
@@ -353,7 +375,11 @@ export class AdminInvitationsService {
     await this.activityService.log({
       adminId: requesterId,
       action: 'invite_revoked',
-      metadata: { invitationId, email: invitation.email, role: invitation.role },
+      metadata: {
+        invitationId,
+        email: invitation.email,
+        role: invitation.role,
+      },
       ipAddress,
     });
 
@@ -368,7 +394,9 @@ export class AdminInvitationsService {
    * @param invitationId - ID of invitation to retrieve
    * @returns Invitation details with inviter email
    */
-  async getInvitationById(invitationId: string): Promise<AdminInvitationResponseDto> {
+  async getInvitationById(
+    invitationId: string,
+  ): Promise<AdminInvitationResponseDto> {
     const invitation = await this.invitationRepository.findOne({
       where: { id: invitationId },
       relations: ['invitedBy'],
@@ -393,7 +421,10 @@ export class AdminInvitationsService {
    * @param invitedByEmail - Email of inviting admin
    * @returns Invitation response DTO
    */
-  private toResponseDto(inv: AdminInvitation, invitedByEmail: string): AdminInvitationResponseDto {
+  private toResponseDto(
+    inv: AdminInvitation,
+    invitedByEmail: string,
+  ): AdminInvitationResponseDto {
     const now = new Date();
     return {
       id: inv.id,

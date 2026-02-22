@@ -1403,6 +1403,232 @@ X-RateLimit-Reset: 1718458320
 
 ---
 
+## 13. MSP Management (US-022, US-023, US-024)
+
+The MSP (Managed Service Provider) endpoints are available to users in MSP-tier tenants. These endpoints replace the deprecated partner portal API.
+
+### GET /msp/clients
+List all client organizations managed by the MSP.
+
+**Required Tier:** msp
+
+**Response (200):**
+```json
+{
+  "data": [
+    {
+      "id": "tnt_01H8CLIENT1",
+      "name": "Acme Corp",
+      "slug": "acme-corp",
+      "status": "active",
+      "plan": "enterprise",
+      "tier": "enterprise",
+      "locationCount": 5,
+      "userCount": 12,
+      "policyCount": 3,
+      "createdAt": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "pagination": { ... }
+}
+```
+
+### POST /msp/clients
+Create a new client organization.
+
+**Required Tier:** msp
+**Required Role:** admin, owner
+
+**Request:**
+```json
+{
+  "name": "New Client Inc",
+  "slug": "new-client",
+  "plan": "enterprise",
+  "contactEmail": "admin@newclient.com"
+}
+```
+
+**Response (201):**
+```json
+{
+  "id": "tnt_01H8NEWCLIENT",
+  "name": "New Client Inc",
+  "slug": "new-client",
+  "status": "active",
+  "plan": "enterprise",
+  "tier": "enterprise",
+  "locationCount": 0,
+  "userCount": 0,
+  "policyCount": 0,
+  "createdAt": "2024-06-15T10:30:00Z"
+}
+```
+
+### GET /msp/clients/:id
+Get client organization details.
+
+**Required Tier:** msp
+
+**Response (200):** Client organization object
+
+### PATCH /msp/clients/:id
+Update client organization.
+
+**Required Tier:** msp
+**Required Role:** admin, owner
+
+**Request:**
+```json
+{
+  "name": "Updated Client Name",
+  "status": "suspended"
+}
+```
+
+**Response (200):** Updated client object
+
+### DELETE /msp/clients/:id
+Delete client organization.
+
+**Required Tier:** msp
+**Required Role:** owner
+
+**Response (204):** No content
+
+### POST /msp/switch-context
+Switch to a client's context for management.
+
+**Required Tier:** msp
+
+**Request:**
+```json
+{
+  "clientId": "tnt_01H8CLIENT1"
+}
+```
+
+**Response (200):**
+```json
+{
+  "accessToken": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "clientName": "Acme Corp",
+  "clientTenantId": "tnt_01H8CLIENT1",
+  "tier": "enterprise"
+}
+```
+
+### POST /msp/switch-back
+Switch back from client context to MSP context.
+
+**Required:** Active client context (mspParentTenantId in JWT)
+
+**Response (200):**
+```json
+{
+  "accessToken": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "mspName": "Acme MSP",
+  "mspTenantId": "tnt_01H8MSP"
+}
+```
+
+### GET /msp/templates
+List MSP policy templates.
+
+**Required Tier:** msp
+
+**Response (200):**
+```json
+{
+  "data": [
+    {
+      "id": "tpl_01H8TEMPLATE",
+      "name": "Standard Security",
+      "description": "Standard security policy for all clients",
+      "version": 2,
+      "isDefault": false,
+      "category": "security",
+      "deployedTo": 12,
+      "createdAt": "2024-01-15T10:30:00Z"
+    }
+  ]
+}
+```
+
+### POST /msp/templates
+Create a new policy template.
+
+**Required Tier:** msp
+**Required Role:** admin, owner
+
+**Request:**
+```json
+{
+  "name": "Strict Security Template",
+  "description": "Enhanced security for high-risk clients",
+  "config": {
+    "blockCategories": ["malware", "phishing", "adult"],
+    "threatBlocking": { "enabled": true },
+    "safesearch": { "enabled": true }
+  }
+}
+```
+
+**Response (201):** Template object
+
+### POST /msp/templates/:id/deploy
+Deploy template to client organizations.
+
+**Required Tier:** msp
+**Required Role:** admin, owner
+
+**Request:**
+```json
+{
+  "tenantIds": ["tnt_01H8CLIENT1", "tnt_01H8CLIENT2"],
+  "mode": "overlay"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "totalTenants": 2,
+  "successfulDeployments": 2,
+  "failedDeployments": 0,
+  "results": [
+    {
+      "tenantId": "tnt_01H8CLIENT1",
+      "success": true,
+      "policiesCreated": 1
+    }
+  ]
+}
+```
+
+### GET /msp/billing/overview
+Get MSP billing overview.
+
+**Required Tier:** msp
+
+**Response (200):**
+```json
+{
+  "partnerId": "tnt_01H8MSP",
+  "status": "active",
+  "queryBalance": 5000000,
+  "totalPurchased": 10000000,
+  "totalUsed": 5000000,
+  "currentOverage": 0,
+  "overageRate": 0.50,
+  "usageThisMonth": 1234567,
+  "estimatedCost": 0
+}
+```
+
+---
+
 ## Webhooks (Future)
 
 Webhook support for events:

@@ -9,22 +9,23 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
 import {
-  RocketLaunchIcon,
+  HomeIcon,
   ShieldCheckIcon,
   MagnifyingGlassIcon,
   ChartBarIcon,
   Cog6ToothIcon,
 } from '@heroicons/react/24/outline'
 import {
-  RocketLaunchIcon as RocketLaunchIconSolid,
+  HomeIcon as HomeIconSolid,
   ShieldCheckIcon as ShieldCheckIconSolid,
   MagnifyingGlassIcon as MagnifyingGlassIconSolid,
   ChartBarIcon as ChartBarIconSolid,
   Cog6ToothIcon as Cog6ToothIconSolid,
 } from '@heroicons/react/24/solid'
 
+// Mission Control moved to separate admin-ui app (port 4012)
 const mobileNavigation = [
-  { name: 'Mission', href: '/mission-control', icon: RocketLaunchIcon, activeIcon: RocketLaunchIconSolid },
+  { name: 'Home', href: '/dashboard', icon: HomeIcon, activeIcon: HomeIconSolid },
   { name: 'Policies', href: '/dashboard/policies', icon: ShieldCheckIcon, activeIcon: ShieldCheckIconSolid },
   { name: 'Search', href: '/dashboard/investigate', icon: MagnifyingGlassIcon, activeIcon: MagnifyingGlassIconSolid },
   { name: 'Reports', href: '/dashboard/reports', icon: ChartBarIcon, activeIcon: ChartBarIconSolid },

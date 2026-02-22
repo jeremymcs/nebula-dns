@@ -45,7 +45,8 @@ export class SubscriptionsController {
   @Get('plans')
   @ApiOperation({
     summary: 'List available plans',
-    description: 'Returns all available subscription plans with pricing and feature information.',
+    description:
+      'Returns all available subscription plans with pricing and feature information.',
   })
   @ApiResponse({ status: 200, description: 'Plans retrieved successfully' })
   async getPlans() {
@@ -56,7 +57,8 @@ export class SubscriptionsController {
   @Get('plans/:id')
   @ApiOperation({
     summary: 'Get plan by ID',
-    description: 'Returns detailed information about a specific subscription plan.',
+    description:
+      'Returns detailed information about a specific subscription plan.',
   })
   @ApiParam({ name: 'id', description: 'Plan identifier', type: 'string' })
   @ApiResponse({ status: 200, description: 'Plan retrieved successfully' })
@@ -107,7 +109,8 @@ export class SubscriptionsController {
   @Post('signup/:id/complete')
   @ApiOperation({
     summary: 'Complete signup after payment',
-    description: 'Completes the signup process after successful payment. Creates the tenant and user account.',
+    description:
+      'Completes the signup process after successful payment. Creates the tenant and user account.',
   })
   @ApiParam({ name: 'id', description: 'Signup request ID', type: 'string' })
   @ApiResponse({ status: 200, description: 'Signup completed' })
@@ -151,7 +154,10 @@ export class SubscriptionsController {
     description: 'Returns the current subscription details for the tenant.',
   })
   @ApiResponse({ status: 200, description: 'Subscription retrieved' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing JWT token',
+  })
   async getSubscription(@CurrentTenant() tenantId: string) {
     const subscription =
       await this.subscriptionsService.getSubscription(tenantId);
@@ -166,8 +172,14 @@ export class SubscriptionsController {
     description:
       'Cancels the subscription at the end of the current billing period. The subscription remains active until then.',
   })
-  @ApiResponse({ status: 200, description: 'Subscription cancellation scheduled' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
+  @ApiResponse({
+    status: 200,
+    description: 'Subscription cancellation scheduled',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing JWT token',
+  })
   async cancelSubscription(@CurrentTenant() tenantId: string) {
     const subscription =
       await this.subscriptionsService.cancelSubscription(tenantId);
@@ -183,10 +195,14 @@ export class SubscriptionsController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Resume canceled subscription',
-    description: 'Resumes a subscription that was previously canceled but has not yet expired.',
+    description:
+      'Resumes a subscription that was previously canceled but has not yet expired.',
   })
   @ApiResponse({ status: 200, description: 'Subscription resumed' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing JWT token',
+  })
   @ApiResponse({ status: 400, description: 'Subscription cannot be resumed' })
   async resumeSubscription(@CurrentTenant() tenantId: string) {
     const subscription =

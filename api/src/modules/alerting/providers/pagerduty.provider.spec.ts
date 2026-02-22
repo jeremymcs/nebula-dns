@@ -3,7 +3,10 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { PagerDutyProvider } from './pagerduty.provider';
-import { AlertEvent, AlertSeverity } from '../interfaces/alert-provider.interface';
+import {
+  AlertEvent,
+  AlertSeverity,
+} from '../interfaces/alert-provider.interface';
 import * as https from 'https';
 
 // Mock https module
@@ -68,9 +71,7 @@ describe('PagerDutyProvider', () => {
     it('should use consistent format: nebuladns:source:type:identifier', () => {
       // Use private method via reflection
       const dedupKey = (provider as any).generateDedupKey(mockAlert);
-      expect(dedupKey).toBe(
-        'nebuladns:policy-svc:system_health:service_down',
-      );
+      expect(dedupKey).toBe('nebuladns:policy-svc:system_health:service_down');
     });
 
     it('should use alert.metadata.identifier when present', () => {

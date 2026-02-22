@@ -156,9 +156,8 @@ export class AlertDispatcherService {
     }
 
     // Get decrypted configuration
-    const { decrypted } = await this.alertingService.getDecryptedConfig(
-      configId,
-    );
+    const { decrypted } =
+      await this.alertingService.getDecryptedConfig(configId);
 
     // Call provider test method
     return provider.test(decrypted);

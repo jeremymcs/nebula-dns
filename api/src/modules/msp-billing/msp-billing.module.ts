@@ -1,3 +1,7 @@
+// Nebula DNS - MSP Billing Module
+// Updated to use the unified tier system (US-022, US-023)
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MspBillingController } from './msp-billing.controller';
@@ -9,7 +13,8 @@ import {
   MspUsage,
   MspInvoice,
 } from './entities';
-import { Partner } from '../partners/entities/partner.entity';
+// Partner entity removed - using unified tier system (US-022, US-023)
+// MSP billing now uses Tenant with tier='msp' as the "partner"
 import { Tenant } from '../tenants/entities/tenant.entity';
 import { ClickHouseModule } from '../clickhouse/clickhouse.module';
 import { EmailModule } from '../email/email.module';
@@ -22,7 +27,7 @@ import { EmailModule } from '../email/email.module';
       MspPurchase,
       MspUsage,
       MspInvoice,
-      Partner,
+      // Partner removed - using Tenant with tier='msp' instead
       Tenant,
     ]),
     ClickHouseModule,

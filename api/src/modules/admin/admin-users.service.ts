@@ -75,7 +75,8 @@ export class AdminUsersService {
     const limit = query.limit ?? 20;
     const offset = query.cursor ? parseInt(query.cursor, 10) : 0;
 
-    const queryBuilder = this.adminRepository.createQueryBuilder('admin')
+    const queryBuilder = this.adminRepository
+      .createQueryBuilder('admin')
       .select([
         'admin.id',
         'admin.email',
@@ -106,7 +107,7 @@ export class AdminUsersService {
       .getMany();
 
     const hasMore = admins.length > limit;
-    const data = admins.slice(0, limit).map(admin => this.toListItem(admin));
+    const data = admins.slice(0, limit).map((admin) => this.toListItem(admin));
 
     return {
       data,
@@ -181,14 +182,18 @@ export class AdminUsersService {
     }
 
     // 2. Find target admin
-    const target = await this.adminRepository.findOne({ where: { id: targetId } });
+    const target = await this.adminRepository.findOne({
+      where: { id: targetId },
+    });
     if (!target) {
       throw new NotFoundException('Admin not found');
     }
 
     // 3. Cannot suspend another super_admin (must demote first)
     if (target.role === AdminRole.SUPER_ADMIN) {
-      throw new ForbiddenException('Cannot suspend a super_admin. Demote them first.');
+      throw new ForbiddenException(
+        'Cannot suspend a super_admin. Demote them first.',
+      );
     }
 
     // 4. Check if already suspended
@@ -238,7 +243,9 @@ export class AdminUsersService {
     targetId: string,
     ipAddress?: string,
   ): Promise<void> {
-    const target = await this.adminRepository.findOne({ where: { id: targetId } });
+    const target = await this.adminRepository.findOne({
+      where: { id: targetId },
+    });
     if (!target) {
       throw new NotFoundException('Admin not found');
     }
@@ -296,11 +303,15 @@ export class AdminUsersService {
     // 1. Cannot reset own MFA through this method
     // (Must have working MFA to be logged in as super_admin)
     if (requesterId === targetId) {
-      throw new ForbiddenException('Cannot reset your own MFA through this endpoint');
+      throw new ForbiddenException(
+        'Cannot reset your own MFA through this endpoint',
+      );
     }
 
     // 2. Find target admin
-    const target = await this.adminRepository.findOne({ where: { id: targetId } });
+    const target = await this.adminRepository.findOne({
+      where: { id: targetId },
+    });
     if (!target) {
       throw new NotFoundException('Admin not found');
     }
@@ -315,7 +326,8 @@ export class AdminUsersService {
     });
 
     // 5. Invalidate all sessions (force re-login)
-    const revokedCount = await this.adminSessionService.revokeAllSessions(targetId);
+    const revokedCount =
+      await this.adminSessionService.revokeAllSessions(targetId);
 
     // 6. Log activity
     await this.activityService.log({
@@ -327,8 +339,13 @@ export class AdminUsersService {
     });
 
     // 7. Send notification email to target admin
-    const requester = await this.adminRepository.findOne({ where: { id: requesterId } });
-    const adminUrl = this.configService.get<string>('ADMIN_URL', 'https://admin.nebuladns.com');
+    const requester = await this.adminRepository.findOne({
+      where: { id: requesterId },
+    });
+    const adminUrl = this.configService.get<string>(
+      'ADMIN_URL',
+      'https://admin.nebuladns.com',
+    );
 
     try {
       await this.emailService.sendMfaResetNotification({
@@ -338,11 +355,15 @@ export class AdminUsersService {
         loginUrl: `${adminUrl}/login`,
       });
     } catch (error) {
-      this.logger.warn(`Failed to send MFA reset notification to ${target.email}: ${(error as Error).message}`);
+      this.logger.warn(
+        `Failed to send MFA reset notification to ${target.email}: ${(error as Error).message}`,
+      );
       // Don't fail the operation if email fails
     }
 
-    this.logger.log(`Admin ${targetId} MFA reset by ${requesterId}, ${revokedCount} sessions revoked`);
+    this.logger.log(
+      `Admin ${targetId} MFA reset by ${requesterId}, ${revokedCount} sessions revoked`,
+    );
   }
 
   /**

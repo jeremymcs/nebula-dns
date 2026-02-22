@@ -19,7 +19,11 @@ import {
   AlertConfigResponseDto,
 } from './dto/alert-config.dto';
 import { getEncryptionKey } from '../../config/encryption.config';
-import { encrypt, decrypt, deriveKey } from '../../common/utils/encryption.util';
+import {
+  encrypt,
+  decrypt,
+  deriveKey,
+} from '../../common/utils/encryption.util';
 
 @Injectable()
 export class AlertingService {
@@ -118,9 +122,7 @@ export class AlertingService {
   /**
    * Create PagerDuty alert configuration
    */
-  async createPagerDuty(
-    dto: CreatePagerDutyConfigDto,
-  ): Promise<AlertConfig> {
+  async createPagerDuty(dto: CreatePagerDutyConfigDto): Promise<AlertConfig> {
     // Validate routing key is exactly 32 characters
     if (dto.routingKey.length !== 32) {
       throw new BadRequestException(
@@ -194,10 +196,7 @@ export class AlertingService {
   /**
    * Update alert configuration
    */
-  async update(
-    id: string,
-    dto: UpdateAlertConfigDto,
-  ): Promise<AlertConfig> {
+  async update(id: string, dto: UpdateAlertConfigDto): Promise<AlertConfig> {
     const config = await this.findOne(id);
 
     // Update allowed fields
@@ -302,9 +301,7 @@ export class AlertingService {
       // Reset error tracking on success
       config.errorCount = 0;
       config.lastError = null;
-      this.logger.log(
-        `Alert delivered successfully: ${id} (${config.name})`,
-      );
+      this.logger.log(`Alert delivered successfully: ${id} (${config.name})`);
     } else {
       // Increment error count and record error
       config.errorCount++;

@@ -261,35 +261,19 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Demo Login Buttons */}
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={handleDemoLogin}
-                  disabled={loading}
-                  className="py-3 px-4 rounded-xl ring-1 ring-space-200 dark:ring-space-700 bg-space-50 dark:bg-space-800 hover:bg-space-100 dark:hover:bg-space-700 text-space-700 dark:text-space-300 font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  <svg className="w-4 h-4 text-accent-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="text-sm">Demo</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('admin@acmemsp.com')
-                    setPassword('partner123')
-                  }}
-                  disabled={loading}
-                  className="py-3 px-4 rounded-xl ring-1 ring-emerald-200 dark:ring-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  <span className="text-sm">MSP Demo</span>
-                </button>
-              </div>
+              {/* Demo Login Button */}
+              <button
+                type="button"
+                onClick={handleDemoLogin}
+                disabled={loading}
+                className="w-full py-3 px-4 rounded-xl ring-1 ring-space-200 dark:ring-space-700 bg-space-50 dark:bg-space-800 hover:bg-space-100 dark:hover:bg-space-700 text-space-700 dark:text-space-300 font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <svg className="w-4 h-4 text-accent-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-sm">Try Demo Account</span>
+              </button>
             </form>
           ) : (
             <form className="space-y-5" onSubmit={handleMfaSubmit}>

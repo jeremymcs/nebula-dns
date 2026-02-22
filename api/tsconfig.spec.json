@@ -1,0 +1,18 @@
+// Nebula DNS - TypeScript Configuration for Test Files
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["jest", "node"]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.e2e-spec.ts",
+    "test/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

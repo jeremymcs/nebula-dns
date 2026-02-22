@@ -1,3 +1,8 @@
+// Nebula DNS - MSP Billing Service
+// Updated to use the unified tier system (US-022, US-023)
+// The "partnerId" is now the tenant ID of an MSP-tier tenant
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 import {
   Injectable,
   Logger,
@@ -16,7 +21,6 @@ import {
   MspUsage,
   MspInvoice,
 } from './entities';
-import { Partner } from '../partners/entities/partner.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
 import { ClickHouseService } from '../clickhouse/clickhouse.service';
 import { EmailService } from '../email/email.service';
@@ -44,8 +48,6 @@ export class MspBillingService {
     private readonly usageRepository: Repository<MspUsage>,
     @InjectRepository(MspInvoice)
     private readonly invoiceRepository: Repository<MspInvoice>,
-    @InjectRepository(Partner)
-    private readonly partnerRepository: Repository<Partner>,
     @InjectRepository(Tenant)
     private readonly tenantRepository: Repository<Tenant>,
     private readonly clickHouseService: ClickHouseService,
@@ -107,16 +109,17 @@ export class MspBillingService {
 
   // ============================================
   // SUBSCRIPTION MANAGEMENT
+  // Note: partnerId is now the MSP tenant ID (tenant with tier='msp')
   // ============================================
 
-  async getOrCreateSubscription(partnerId: string): Promise<MspSubscription> {
+  async getOrCreateSubscription(mspTenantId: string): Promise<MspSubscription> {
     let subscription = await this.subscriptionRepository.findOne({
-      where: { partnerId },
+      where: { partnerId: mspTenantId },
     });
 
     if (!subscription) {
       subscription = this.subscriptionRepository.create({
-        partnerId,
+        partnerId: mspTenantId, // MSP tenant ID
         status: 'active',
         queryBalance: 0,
         overageRate: 0.5, // $0.50 per 1000 queries overage
@@ -127,15 +130,15 @@ export class MspBillingService {
     return subscription;
   }
 
-  async getBillingOverview(partnerId: string): Promise<BillingOverviewDto> {
-    const subscription = await this.getOrCreateSubscription(partnerId);
+  async getBillingOverview(mspTenantId: string): Promise<BillingOverviewDto> {
+    const subscription = await this.getOrCreateSubscription(mspTenantId);
 
     // Get usage this month
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const usageThisMonth = await this.getMonthlyUsage(
-      partnerId,
+      mspTenantId,
       startOfMonth,
       now,
     );
@@ -148,7 +151,7 @@ export class MspBillingService {
         : 0;
 
     return {
-      partnerId,
+      partnerId: mspTenantId,
       status: subscription.status,
       queryBalance: Number(subscription.queryBalance),
       totalPurchased: Number(subscription.totalPurchased),
@@ -167,10 +170,10 @@ export class MspBillingService {
   }
 
   async updateSubscriptionSettings(
-    partnerId: string,
+    mspTenantId: string,
     dto: UpdateSubscriptionSettingsDto,
   ): Promise<MspSubscription> {
-    const subscription = await this.getOrCreateSubscription(partnerId);
+    const subscription = await this.getOrCreateSubscription(mspTenantId);
 
     if (dto.overageRate !== undefined) {
       subscription.overageRate = dto.overageRate;
@@ -193,7 +196,7 @@ export class MspBillingService {
   // ============================================
 
   async purchaseBundle(
-    partnerId: string,
+    mspTenantId: string,
     bundleId: string,
   ): Promise<MspPurchase> {
     const bundle = await this.bundleRepository.findOne({
@@ -203,14 +206,14 @@ export class MspBillingService {
       throw new NotFoundException('Bundle not found or inactive');
     }
 
-    const subscription = await this.getOrCreateSubscription(partnerId);
+    const subscription = await this.getOrCreateSubscription(mspTenantId);
 
     // Create purchase record
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + bundle.validityDays);
 
     const purchase = this.purchaseRepository.create({
-      partnerId,
+      partnerId: mspTenantId,
       bundleId,
       status: 'completed', // In production, this would be 'pending' until payment confirmed
       queryCount: bundle.queryCount,
@@ -229,19 +232,19 @@ export class MspBillingService {
     await this.subscriptionRepository.save(subscription);
 
     this.logger.log(
-      `Partner ${partnerId} purchased bundle ${bundleId}: ${bundle.queryCount} queries`,
+      `MSP tenant ${mspTenantId} purchased bundle ${bundleId}: ${bundle.queryCount} queries`,
     );
 
     return purchase;
   }
 
   async getPurchaseHistory(
-    partnerId: string,
+    mspTenantId: string,
     limit = 20,
     offset = 0,
   ): Promise<{ purchases: MspPurchase[]; total: number }> {
     const [purchases, total] = await this.purchaseRepository.findAndCount({
-      where: { partnerId },
+      where: { partnerId: mspTenantId },
       relations: ['bundle'],
       order: { createdAt: 'DESC' },
       take: limit,
@@ -256,14 +259,14 @@ export class MspBillingService {
   // ============================================
 
   private async getMonthlyUsage(
-    partnerId: string,
+    mspTenantId: string,
     startDate: Date,
     endDate: Date,
   ): Promise<number> {
     const result = await this.usageRepository
       .createQueryBuilder('usage')
       .select('SUM(usage.queryCount)', 'total')
-      .where('usage.partnerId = :partnerId', { partnerId })
+      .where('usage.partnerId = :mspTenantId', { mspTenantId })
       .andWhere('usage.usageDate >= :startDate', { startDate })
       .andWhere('usage.usageDate <= :endDate', { endDate })
       .getRawOne();
@@ -272,14 +275,14 @@ export class MspBillingService {
   }
 
   async getUsageSummary(
-    partnerId: string,
+    mspTenantId: string,
     startDate: Date,
     endDate: Date,
     groupBy: 'day' | 'week' | 'month' = 'day',
   ): Promise<UsageSummaryDto[]> {
     const usage = await this.usageRepository.find({
       where: {
-        partnerId,
+        partnerId: mspTenantId,
         usageDate: Between(startDate, endDate),
       },
       order: { usageDate: 'ASC' },
@@ -323,7 +326,7 @@ export class MspBillingService {
   }
 
   async getUsageByTenant(
-    partnerId: string,
+    mspTenantId: string,
     startDate: Date,
     endDate: Date,
   ): Promise<
@@ -334,8 +337,9 @@ export class MspBillingService {
       percentage: number;
     }[]
   > {
+    // Get tenants managed by this MSP
     const tenants = await this.tenantRepository.find({
-      where: { partnerId },
+      where: { managedByMspId: mspTenantId },
     });
 
     const tenantMap = new Map(tenants.map((t) => [t.id, t.name]));
@@ -344,7 +348,7 @@ export class MspBillingService {
       .createQueryBuilder('usage')
       .select('usage.tenantId', 'tenantId')
       .addSelect('SUM(usage.queryCount)', 'queryCount')
-      .where('usage.partnerId = :partnerId', { partnerId })
+      .where('usage.partnerId = :mspTenantId', { mspTenantId })
       .andWhere('usage.usageDate >= :startDate', { startDate })
       .andWhere('usage.usageDate <= :endDate', { endDate })
       .groupBy('usage.tenantId')
@@ -369,12 +373,12 @@ export class MspBillingService {
   // ============================================
 
   async getInvoices(
-    partnerId: string,
+    mspTenantId: string,
     limit = 20,
     offset = 0,
   ): Promise<{ invoices: MspInvoice[]; total: number }> {
     const [invoices, total] = await this.invoiceRepository.findAndCount({
-      where: { partnerId },
+      where: { partnerId: mspTenantId },
       order: { createdAt: 'DESC' },
       take: limit,
       skip: offset,
@@ -384,11 +388,11 @@ export class MspBillingService {
   }
 
   async getInvoiceById(
-    partnerId: string,
+    mspTenantId: string,
     invoiceId: string,
   ): Promise<MspInvoice> {
     const invoice = await this.invoiceRepository.findOne({
-      where: { id: invoiceId, partnerId },
+      where: { id: invoiceId, partnerId: mspTenantId },
     });
 
     if (!invoice) {
@@ -405,15 +409,16 @@ export class MspBillingService {
   /**
    * Get real-time usage for today from ClickHouse (not yet persisted to PostgreSQL)
    */
-  async getRealTimeUsage(partnerId: string): Promise<{
+  async getRealTimeUsage(mspTenantId: string): Promise<{
     todayQueries: number;
     todayBlocked: number;
     todayThreats: number;
     lastHourQueries: number;
     byTenant: { tenantId: string; tenantName: string; queries: number }[];
   }> {
+    // Get tenants managed by this MSP
     const tenants = await this.tenantRepository.find({
-      where: { partnerId },
+      where: { managedByMspId: mspTenantId },
     });
 
     let todayQueries = 0;
@@ -494,19 +499,21 @@ export class MspBillingService {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Get all partners
-    const partners = await this.partnerRepository.find();
+    // Get all MSP-tier tenants (these are the "partners" in the new system)
+    const mspTenants = await this.tenantRepository.find({
+      where: { tier: 'msp' },
+    });
 
-    for (const partner of partners) {
+    for (const mspTenant of mspTenants) {
       try {
-        // Get tenants for this partner
-        const tenants = await this.tenantRepository.find({
-          where: { partnerId: partner.id },
+        // Get tenants managed by this MSP
+        const managedTenants = await this.tenantRepository.find({
+          where: { managedByMspId: mspTenant.id },
         });
 
-        let partnerTotalQueries = 0;
+        let mspTotalQueries = 0;
 
-        for (const tenant of tenants) {
+        for (const tenant of managedTenants) {
           // Query ClickHouse for this tenant's usage
           const stats = await this.clickHouseService.getSummaryStats(
             tenant.id,
@@ -522,7 +529,7 @@ export class MspBillingService {
             // Create or update usage record
             const existing = await this.usageRepository.findOne({
               where: {
-                partnerId: partner.id,
+                partnerId: mspTenant.id,
                 tenantId: tenant.id,
                 usageDate: yesterday,
               },
@@ -536,7 +543,7 @@ export class MspBillingService {
               await this.usageRepository.save(existing);
             } else {
               await this.usageRepository.save({
-                partnerId: partner.id,
+                partnerId: mspTenant.id,
                 tenantId: tenant.id,
                 usageDate: yesterday,
                 queryCount: totalQueries,
@@ -546,17 +553,17 @@ export class MspBillingService {
               });
             }
 
-            partnerTotalQueries += totalQueries;
+            mspTotalQueries += totalQueries;
           }
         }
 
-        // Deduct from partner's balance
-        if (partnerTotalQueries > 0) {
-          await this.deductUsage(partner.id, partnerTotalQueries);
+        // Deduct from MSP's balance
+        if (mspTotalQueries > 0) {
+          await this.deductUsage(mspTenant.id, mspTotalQueries);
         }
       } catch (error) {
         this.logger.error(
-          `Failed to aggregate usage for partner ${partner.id}:`,
+          `Failed to aggregate usage for MSP ${mspTenant.id}:`,
           error,
         );
       }
@@ -566,10 +573,10 @@ export class MspBillingService {
   }
 
   private async deductUsage(
-    partnerId: string,
+    mspTenantId: string,
     queryCount: number,
   ): Promise<void> {
-    const subscription = await this.getOrCreateSubscription(partnerId);
+    const subscription = await this.getOrCreateSubscription(mspTenantId);
 
     const currentBalance = Number(subscription.queryBalance);
 
@@ -594,7 +601,7 @@ export class MspBillingService {
       Number(subscription.queryBalance) < subscription.autoPurchaseThreshold
     ) {
       await this.triggerAutoPurchase(
-        partnerId,
+        mspTenantId,
         subscription.autoPurchaseBundleId,
       );
     }
@@ -606,62 +613,68 @@ export class MspBillingService {
       (!subscription.lastAlertAt ||
         Date.now() - subscription.lastAlertAt.getTime() > 24 * 60 * 60 * 1000)
     ) {
-      await this.sendLowBalanceAlert(partnerId);
+      await this.sendLowBalanceAlert(mspTenantId);
     }
   }
 
   private async triggerAutoPurchase(
-    partnerId: string,
+    mspTenantId: string,
     bundleId: string,
   ): Promise<void> {
-    this.logger.log(`Triggering auto-purchase for partner ${partnerId}`);
+    this.logger.log(`Triggering auto-purchase for MSP tenant ${mspTenantId}`);
 
     try {
-      const purchase = await this.purchaseBundle(partnerId, bundleId);
+      const purchase = await this.purchaseBundle(mspTenantId, bundleId);
       purchase.isAutoPurchase = true;
       await this.purchaseRepository.save(purchase);
     } catch (error) {
       this.logger.error(
-        `Auto-purchase failed for partner ${partnerId}:`,
+        `Auto-purchase failed for MSP tenant ${mspTenantId}:`,
         error,
       );
     }
   }
 
-  private async sendLowBalanceAlert(partnerId: string): Promise<void> {
-    this.logger.log(`Sending low balance alert to partner ${partnerId}`);
+  private async sendLowBalanceAlert(mspTenantId: string): Promise<void> {
+    this.logger.log(`Sending low balance alert to MSP tenant ${mspTenantId}`);
 
-    // Get partner info
-    const partner = await this.partnerRepository.findOne({
-      where: { id: partnerId },
+    // Get MSP tenant info (replaces the old partner lookup)
+    const mspTenant = await this.tenantRepository.findOne({
+      where: { id: mspTenantId },
     });
 
-    if (!partner) {
-      this.logger.warn(`Partner ${partnerId} not found for low balance alert`);
+    if (!mspTenant) {
+      this.logger.warn(
+        `MSP tenant ${mspTenantId} not found for low balance alert`,
+      );
       return;
     }
 
     // Get subscription info
     const subscription = await this.subscriptionRepository.findOne({
-      where: { partnerId },
+      where: { partnerId: mspTenantId },
     });
 
     // Update last alert time
     await this.subscriptionRepository.update(
-      { partnerId },
+      { partnerId: mspTenantId },
       { lastAlertAt: new Date() },
     );
 
     // Send email notification
     try {
-      await this.emailService.sendPaymentFailedEmail({
-        to: partner.billingEmail || partner.contactEmail,
-        companyName: partner.name,
-        updatePaymentUrl: `${this.configService.get('FRONTEND_URL')}/partner/billing`,
-      });
-      this.logger.log(
-        `Low balance alert sent to ${partner.billingEmail || partner.contactEmail}`,
-      );
+      const contactEmail =
+        mspTenant.contactEmail || mspTenant.settings?.contactEmail;
+      if (contactEmail) {
+        await this.emailService.sendPaymentFailedEmail({
+          to: contactEmail,
+          companyName: mspTenant.name,
+          updatePaymentUrl: `${this.configService.get('FRONTEND_URL')}/dashboard/billing`,
+        });
+        this.logger.log(`Low balance alert sent to ${contactEmail}`);
+      } else {
+        this.logger.warn(`No contact email for MSP tenant ${mspTenantId}`);
+      }
     } catch (error) {
       this.logger.error(`Failed to send low balance alert: ${error.message}`);
     }

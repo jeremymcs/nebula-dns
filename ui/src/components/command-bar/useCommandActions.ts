@@ -56,8 +56,8 @@ export function useCommandActions() {
   })
 
   const actions = useMemo<CommandAction[]>(() => [
-    // Navigation
-    { id: 'nav-mission-control', name: 'Mission Control', description: 'Dashboard overview', icon: HomeIcon, href: '/dashboard', category: 'Navigation', keywords: ['home', 'dashboard', 'overview'] },
+    // Navigation - Mission Control moved to separate admin-ui app (port 4012)
+    { id: 'nav-dashboard', name: 'Dashboard', description: 'Dashboard overview', icon: HomeIcon, href: '/dashboard', category: 'Navigation', keywords: ['home', 'dashboard', 'overview'] },
     { id: 'nav-policies', name: 'Policies', description: 'Manage security policies', icon: ShieldCheckIcon, href: '/dashboard/policies', category: 'Navigation', shortcut: 'G P' },
     { id: 'nav-zones', name: 'Protection Zones', description: 'Manage network locations', icon: MapPinIcon, href: '/dashboard/locations', category: 'Navigation', shortcut: 'G Z' },
     { id: 'nav-lists', name: 'Custom Lists', description: 'Allow & block lists', icon: ListBulletIcon, href: '/dashboard/lists', category: 'Navigation', shortcut: 'G L' },

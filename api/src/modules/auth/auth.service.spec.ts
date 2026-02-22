@@ -11,7 +11,7 @@ import { AuthService, LoginContext } from './auth.service';
 import { SessionService } from './session.service';
 import { User } from '../users/entities/user.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
-import { PartnerUser } from '../partners/entities/partner-user.entity';
+// PartnerUser removed - using unified tier system (US-022, US-023)
 import { MfaService } from '../mfa/mfa.service';
 import { LoginResponseDto, MfaRequiredResponseDto } from './dto/login.dto';
 
@@ -41,11 +41,10 @@ describe('AuthService', () => {
 
   const mockTenantRepository = {
     findOne: jest.fn(),
+    find: jest.fn(),
   };
 
-  const mockPartnerUserRepository = {
-    findOne: jest.fn(),
-  };
+  // PartnerUser repository removed - using unified tier system (US-022, US-023)
 
   const mockJwtService = {
     sign: jest.fn().mockReturnValue('mock-jwt-token'),
@@ -111,10 +110,7 @@ describe('AuthService', () => {
           provide: getRepositoryToken(Tenant),
           useValue: mockTenantRepository,
         },
-        {
-          provide: getRepositoryToken(PartnerUser),
-          useValue: mockPartnerUserRepository,
-        },
+        // PartnerUser repository removed - using unified tier system (US-022, US-023)
         {
           provide: JwtService,
           useValue: mockJwtService,

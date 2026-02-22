@@ -1,6 +1,8 @@
 /**
  * Nebula DNS - MSP Service
- * Handles business logic for MSP user operations
+ * Handles business logic for MSP user operations including context switching (US-007)
+ * Updated to use the unified tier system (US-022, US-023)
+ * Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
  */
 
 import {
@@ -8,15 +10,21 @@ import {
   ForbiddenException,
   NotFoundException,
   ConflictException,
+  BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tenant, TenantPlan } from '../tenants/entities/tenant.entity';
 import { User } from '../users/entities/user.entity';
-import { PartnerUser } from '../partners/entities/partner-user.entity';
 import { Policy } from '../policies/entities/policy.entity';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import {
+  ContextSwitchResponseDto,
+  SwitchBackResponseDto,
+} from './dto/context-switch.dto';
 
 export interface CreateClientDto {
   name: string;
@@ -59,60 +67,47 @@ export interface ClientOrganization {
 
 @Injectable()
 export class MspService {
+  private readonly logger = new Logger(MspService.name);
+
   constructor(
     @InjectRepository(Tenant)
     private readonly tenantRepository: Repository<Tenant>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(PartnerUser)
-    private readonly partnerUserRepository: Repository<PartnerUser>,
     @InjectRepository(Policy)
     private readonly policyRepository: Repository<Policy>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly auditLogsService: AuditLogsService,
   ) {}
 
   /**
    * Get all client organizations for an MSP user with detailed stats
+   * Uses the new tier-based system via managedByMspId
    */
   async getClientOrganizations(
     userId: string,
     tenantId: string,
   ): Promise<ClientOrganization[]> {
-    // Get the user to check their email
+    // Get the user and their tenant
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new ForbiddenException('User not found');
     }
 
-    // Check if this user's email matches a partner user
-    const partnerUser = await this.partnerUserRepository.findOne({
-      where: { email: user.email, status: 'active' },
+    // Get the tenant to check if it's an MSP
+    const tenant = await this.tenantRepository.findOne({
+      where: { id: tenantId },
     });
 
-    let partnerId: string | null = null;
-
-    if (partnerUser) {
-      partnerId = partnerUser.partnerId;
-    } else {
-      // Check if their current tenant belongs to a partner
-      const currentTenant = await this.tenantRepository.findOne({
-        where: { id: tenantId },
-      });
-
-      if (currentTenant?.partnerId) {
-        partnerId = currentTenant.partnerId;
-      }
-    }
-
-    if (!partnerId) {
+    if (!tenant || tenant.tier !== 'msp') {
       // Not an MSP user - return empty array
       return [];
     }
 
-    // Get all organizations for this partner with relations
+    // Get all organizations managed by this MSP tenant
     const organizations = await this.tenantRepository.find({
-      where: { partnerId },
+      where: { managedByMspId: tenantId },
       relations: ['locations', 'users'],
       order: { name: 'ASC' },
     });
@@ -158,44 +153,57 @@ export class MspService {
   }
 
   /**
-   * Get partner ID for the current user
+   * Verify the current user has MSP access and return their MSP tenant ID
+   * Uses the new tier-based system
    */
-  private async getPartnerId(
+  private async verifyMspAccess(
     userId: string,
     tenantId: string,
-  ): Promise<string> {
+  ): Promise<Tenant> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new ForbiddenException('User not found');
     }
 
-    const partnerUser = await this.partnerUserRepository.findOne({
-      where: { email: user.email, status: 'active' },
-    });
-
-    if (partnerUser) {
-      return partnerUser.partnerId;
-    }
-
     const tenant = await this.tenantRepository.findOne({
       where: { id: tenantId },
     });
-    if (tenant?.partnerId) {
-      return tenant.partnerId;
+
+    if (!tenant) {
+      throw new ForbiddenException('Tenant not found');
     }
 
-    throw new ForbiddenException('Not an MSP user');
+    if (tenant.tier !== 'msp') {
+      throw new ForbiddenException(
+        'Only MSP tier users can access this feature',
+      );
+    }
+
+    return tenant;
   }
 
   /**
    * Create a new client organization
+   * Uses the new tier-based system via managedByMspId
    */
   async createClient(
     userId: string,
     tenantId: string,
     dto: CreateClientDto,
   ): Promise<ClientOrganization> {
-    const partnerId = await this.getPartnerId(userId, tenantId);
+    const mspTenant = await this.verifyMspAccess(userId, tenantId);
+
+    // Check client limit
+    if (mspTenant.clientLimit !== null) {
+      const clientCount = await this.tenantRepository.count({
+        where: { managedByMspId: tenantId },
+      });
+      if (clientCount >= mspTenant.clientLimit) {
+        throw new ForbiddenException(
+          `Client limit reached (${mspTenant.clientLimit}). Please upgrade your plan.`,
+        );
+      }
+    }
 
     // Generate slug from name if not provided
     const slug =
@@ -214,10 +222,11 @@ export class MspService {
     }
 
     const tenant = this.tenantRepository.create({
-      partnerId,
+      managedByMspId: tenantId, // Link to MSP tenant
       name: dto.name,
       slug,
       plan: dto.plan || 'free',
+      tier: 'enterprise', // MSP clients default to enterprise tier
       status: 'active',
       contactEmail: dto.contactEmail,
       contactPhone: dto.contactPhone,
@@ -254,10 +263,10 @@ export class MspService {
     tenantId: string,
     clientId: string,
   ): Promise<ClientOrganization> {
-    const partnerId = await this.getPartnerId(userId, tenantId);
+    await this.verifyMspAccess(userId, tenantId);
 
     const client = await this.tenantRepository.findOne({
-      where: { id: clientId, partnerId },
+      where: { id: clientId, managedByMspId: tenantId },
       relations: ['locations', 'users'],
     });
 
@@ -294,10 +303,10 @@ export class MspService {
     clientId: string,
     dto: UpdateClientDto,
   ): Promise<ClientOrganization> {
-    const partnerId = await this.getPartnerId(userId, tenantId);
+    await this.verifyMspAccess(userId, tenantId);
 
     const client = await this.tenantRepository.findOne({
-      where: { id: clientId, partnerId },
+      where: { id: clientId, managedByMspId: tenantId },
     });
 
     if (!client) {
@@ -327,10 +336,10 @@ export class MspService {
     tenantId: string,
     clientId: string,
   ): Promise<void> {
-    const partnerId = await this.getPartnerId(userId, tenantId);
+    await this.verifyMspAccess(userId, tenantId);
 
     const client = await this.tenantRepository.findOne({
-      where: { id: clientId, partnerId },
+      where: { id: clientId, managedByMspId: tenantId },
     });
 
     if (!client) {
@@ -353,11 +362,11 @@ export class MspService {
     refreshToken: string;
     user: any;
   }> {
-    const partnerId = await this.getPartnerId(userId, currentTenantId);
+    await this.verifyMspAccess(userId, currentTenantId);
 
-    // Verify target org belongs to the same partner
+    // Verify target org is managed by this MSP
     const targetOrg = await this.tenantRepository.findOne({
-      where: { id: targetOrgId, partnerId },
+      where: { id: targetOrgId, managedByMspId: currentTenantId },
     });
 
     if (!targetOrg) {
@@ -408,6 +417,206 @@ export class MspService {
         tenantId: targetOrgId,
         tenantName: targetOrg.name,
       },
+    };
+  }
+
+  /**
+   * Switch into a client's context (US-007)
+   * Returns a new JWT scoped to the client tenant with MSP claims for attribution
+   */
+  async switchToClient(
+    userId: string,
+    mspTenantId: string,
+    clientId: string,
+    ipAddress?: string,
+  ): Promise<ContextSwitchResponseDto> {
+    // Verify the MSP tenant exists and is an MSP tier
+    const mspTenant = await this.tenantRepository.findOne({
+      where: { id: mspTenantId },
+    });
+
+    if (!mspTenant) {
+      throw new ForbiddenException('MSP tenant not found');
+    }
+
+    if (mspTenant.tier !== 'msp') {
+      throw new ForbiddenException(
+        'Only MSP tier tenants can switch to client context',
+      );
+    }
+
+    // Get the user's info
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new ForbiddenException('User not found');
+    }
+
+    // Verify client belongs to this MSP using managedByMspId relationship
+    const client = await this.tenantRepository.findOne({
+      where: { id: clientId, managedByMspId: mspTenantId },
+    });
+
+    if (!client) {
+      throw new NotFoundException('Client not found or not owned by this MSP');
+    }
+
+    // Generate new JWT with client tenantId and MSP context claims
+    const jti = crypto.randomUUID();
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      tenantId: client.id, // Client's tenant ID
+      role: 'admin', // MSP users get admin access to client tenant
+      jti,
+      mfaVerified: true, // Preserve MFA status from MSP session
+      // MSP context switch claims (US-007)
+      mspParentTenantId: mspTenantId, // Original MSP tenant ID
+      mspUserId: user.id, // Original MSP user ID for attribution
+      tier: client.tier, // Client's tier
+    };
+
+    const accessToken = this.jwtService.sign(payload, {
+      secret: this.configService.get('JWT_SECRET'),
+      expiresIn: this.configService.get('JWT_EXPIRES_IN') || '15m',
+    });
+
+    // Log audit event for context switch
+    await this.auditLogsService.log({
+      tenantId: mspTenantId, // Log under MSP tenant
+      userId: user.id,
+      action: 'msp_context_switch',
+      resourceType: 'tenant',
+      resourceId: client.id,
+      resourceName: client.name,
+      ipAddress: ipAddress || null,
+      metadata: {
+        direction: 'switch_to_client',
+        clientTenantId: client.id,
+        clientName: client.name,
+        clientTier: client.tier,
+        mspTenantId: mspTenantId,
+      },
+    });
+
+    this.logger.log(
+      `MSP user ${user.id} switched to client context: ${client.name} (${client.id})`,
+    );
+
+    return {
+      accessToken,
+      clientName: client.name,
+      clientTenantId: client.id,
+      tier: client.tier,
+    };
+  }
+
+  /**
+   * Switch back from client context to original MSP tenant (US-007)
+   * Extracts mspParentTenantId from current JWT to return to MSP context
+   */
+  async switchBackToMsp(
+    userId: string,
+    currentTenantId: string,
+    mspParentTenantId: string,
+    ipAddress?: string,
+  ): Promise<SwitchBackResponseDto> {
+    // Validate we have the MSP parent tenant ID (must be in switched context)
+    if (!mspParentTenantId) {
+      throw new BadRequestException(
+        'Not in a switched client context. No MSP parent tenant found.',
+      );
+    }
+
+    // Get the MSP tenant
+    const mspTenant = await this.tenantRepository.findOne({
+      where: { id: mspParentTenantId },
+    });
+
+    if (!mspTenant) {
+      throw new NotFoundException('MSP tenant not found');
+    }
+
+    if (mspTenant.tier !== 'msp') {
+      throw new ForbiddenException('Parent tenant is not an MSP tier');
+    }
+
+    // Get the user's info
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new ForbiddenException('User not found');
+    }
+
+    // Get the current client tenant for audit logging
+    const currentClient = await this.tenantRepository.findOne({
+      where: { id: currentTenantId },
+    });
+
+    // Generate new JWT for MSP tenant (no MSP context claims)
+    const jti = crypto.randomUUID();
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      tenantId: mspTenant.id, // Back to MSP tenant ID
+      role: user.role, // Restore original role
+      jti,
+      mfaVerified: true, // Preserve MFA status
+      // No MSP context claims - back to normal MSP context
+    };
+
+    const accessToken = this.jwtService.sign(payload, {
+      secret: this.configService.get('JWT_SECRET'),
+      expiresIn: this.configService.get('JWT_EXPIRES_IN') || '15m',
+    });
+
+    // Log audit event for switch back
+    await this.auditLogsService.log({
+      tenantId: mspParentTenantId, // Log under MSP tenant
+      userId: user.id,
+      action: 'msp_context_switch',
+      resourceType: 'tenant',
+      resourceId: mspTenant.id,
+      resourceName: mspTenant.name,
+      ipAddress: ipAddress || null,
+      metadata: {
+        direction: 'switch_back_to_msp',
+        previousClientTenantId: currentTenantId,
+        previousClientName: currentClient?.name || 'Unknown',
+        mspTenantId: mspTenant.id,
+      },
+    });
+
+    this.logger.log(
+      `MSP user ${user.id} switched back to MSP context: ${mspTenant.name} (${mspTenant.id})`,
+    );
+
+    return {
+      accessToken,
+      mspName: mspTenant.name,
+      mspTenantId: mspTenant.id,
+    };
+  }
+
+  /**
+   * Verify if the current user is in a switched client context
+   */
+  isInSwitchedContext(user: any): boolean {
+    return !!user.mspParentTenantId;
+  }
+
+  /**
+   * Get MSP context info from current user
+   */
+  getMspContextInfo(user: any): {
+    isInSwitchedContext: boolean;
+    mspParentTenantId?: string;
+    mspUserId?: string;
+    clientTier?: string;
+  } {
+    return {
+      isInSwitchedContext: !!user.mspParentTenantId,
+      mspParentTenantId: user.mspParentTenantId,
+      mspUserId: user.mspUserId,
+      clientTier: user.tier,
     };
   }
 }

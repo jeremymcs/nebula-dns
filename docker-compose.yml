@@ -26,10 +26,16 @@ services:
       CLICKHOUSE_USER: nebula
       CLICKHOUSE_PASSWORD: nebula
       JWT_SECRET: dev-jwt-secret-change-in-production
+      ADMIN_JWT_SECRET: dev-admin-jwt-secret-change-in-production
       JWT_REFRESH_SECRET: dev-jwt-refresh-secret-change-in-production
       JWT_EXPIRES_IN: 15m
       JWT_REFRESH_EXPIRES_IN: 7d
       CORS_ORIGINS: http://localhost:4011,http://localhost:4012,http://localhost:3000
+      MFA_ENCRYPTION_KEY: dev-mfa-encryption-key-change-in-production-32bytes!
+      SSO_ENCRYPTION_KEY: dev-sso-encryption-key-change-in-production-32bytes!
+      SIEM_ENCRYPTION_KEY: dev-siem-encryption-key-change-in-production-32byte!
+      ALERTING_ENCRYPTION_KEY: dev-alerting-encryption-key-production-32bytes!
+      INTERNAL_SERVICE_KEY: dev-internal-service-key-change-in-production
     depends_on:
       postgres:
         condition: service_healthy
@@ -55,10 +61,31 @@ services:
     environment:
       PORT: 3000
       NEXT_PUBLIC_API_URL: http://localhost:4010
+      NEXT_PUBLIC_ADMIN_UI_URL: http://localhost:4012
     depends_on:
       - api
     volumes:
       - ./ui:/app
+      - /app/node_modules
+    networks:
+      - dnsfilter-network
+
+  admin-ui:
+    build:
+      context: ./admin-ui
+      dockerfile: Dockerfile
+      target: development
+    container_name: dnsfilter-admin-ui
+    ports:
+      - "4012:4012"
+    environment:
+      PORT: 4012
+      NEXT_PUBLIC_API_URL: http://localhost:4010
+      NEXT_PUBLIC_TENANT_UI_URL: http://localhost:4011
+    depends_on:
+      - api
+    volumes:
+      - ./admin-ui:/app
       - /app/node_modules
     networks:
       - dnsfilter-network

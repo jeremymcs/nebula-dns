@@ -1,6 +1,7 @@
 /**
  * Nebula DNS - MSP Controller
  * Provides endpoints for MSP users to manage their client organizations and templates
+ * Including versioning (US-034), rollback (US-035), and client application (US-036)
  * Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
  */
 
@@ -46,6 +47,21 @@ import {
   MspTemplateResponseDto,
   DeploymentResultDto,
 } from './dto/template.dto';
+import {
+  TemplateVersionResponseDto,
+  TemplateVersionListResponseDto,
+  RollbackTemplateDto,
+  RollbackResponseDto,
+  ApplyTemplateToClientsDto,
+  ApplyJobResponseDto,
+  ClientsUsingTemplateResponseDto,
+  ConfigDiffResponseDto,
+  RetryApplicationDto,
+} from './dto/template-version.dto';
+import {
+  ContextSwitchResponseDto,
+  SwitchBackResponseDto,
+} from './dto/context-switch.dto';
 import { MspTemplateDeployment } from './entities/msp-template.entity';
 
 @ApiTags('msp')
@@ -157,6 +173,98 @@ export class MspController {
       tenantId,
       body.organizationId,
     );
+  }
+
+  // ============================================
+  // Context Switch Endpoints (US-007)
+  // ============================================
+
+  @Post('clients/:id/switch')
+  @ApiOperation({
+    summary: 'Switch into a client context (US-007)',
+    description:
+      'Returns a new JWT scoped to the client tenant with MSP attribution claims. ' +
+      'The new token includes mspParentTenantId, mspUserId, and tier claims.',
+  })
+  @ApiParam({ name: 'id', description: 'Client tenant ID to switch to' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully switched to client context',
+    type: ContextSwitchResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Not an MSP tier tenant or not authorized',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Client not found or not owned by this MSP',
+  })
+  async switchToClient(
+    @CurrentUser() user: any,
+    @CurrentTenant() tenantId: string,
+    @Param('id') clientId: string,
+    @Req() req: Request,
+  ): Promise<ContextSwitchResponseDto> {
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+    return this.mspService.switchToClient(
+      user.id,
+      tenantId,
+      clientId,
+      ipAddress,
+    );
+  }
+
+  @Post('switch-back')
+  @ApiOperation({
+    summary: 'Switch back to MSP context (US-007)',
+    description:
+      'Returns a new JWT scoped to the original MSP tenant. ' +
+      'Must be called from a switched client context (token must have mspParentTenantId claim).',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully switched back to MSP context',
+    type: SwitchBackResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Not in a switched client context' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'MSP tenant not found' })
+  async switchBackToMsp(
+    @CurrentUser() user: any,
+    @CurrentTenant() tenantId: string,
+    @Req() req: Request,
+  ): Promise<SwitchBackResponseDto> {
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+    // Extract mspParentTenantId from the user object (set by JWT strategy)
+    const mspParentTenantId = user.mspParentTenantId;
+    return this.mspService.switchBackToMsp(
+      user.id,
+      tenantId,
+      mspParentTenantId,
+      ipAddress,
+    );
+  }
+
+  @Get('context')
+  @ApiOperation({
+    summary: 'Get current MSP context info',
+    description:
+      'Returns information about the current MSP context, including whether ' +
+      'the user is in a switched client context.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Current MSP context information',
+  })
+  async getMspContext(@CurrentUser() user: any): Promise<{
+    isInSwitchedContext: boolean;
+    mspParentTenantId?: string;
+    mspUserId?: string;
+    clientTier?: string;
+  }> {
+    return this.mspService.getMspContextInfo(user);
   }
 
   // ============================================
@@ -332,5 +440,264 @@ export class MspController {
       limit,
     );
     return { deployments };
+  }
+
+  // ============================================
+  // Template Version Endpoints (US-034)
+  // ============================================
+
+  @Get('templates/:id/versions')
+  @ApiOperation({
+    summary: 'Get all versions for a template (US-034)',
+    description: 'Returns version history with timestamps and creators',
+  })
+  @ApiParam({ name: 'id', description: 'Template ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Version list retrieved',
+    type: TemplateVersionListResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Not an MSP user' })
+  @ApiResponse({ status: 404, description: 'Template not found' })
+  async getTemplateVersions(
+    @CurrentUser() user: any,
+    @CurrentTenant() tenantId: string,
+    @Param('id') templateId: string,
+  ): Promise<TemplateVersionListResponseDto> {
+    return this.mspTemplatesService.getVersions(user.id, tenantId, templateId);
+  }
+
+  @Get('templates/:id/versions/:versionId')
+  @ApiOperation({
+    summary: 'Get a specific version (US-034)',
+    description: 'Returns detailed information about a specific version',
+  })
+  @ApiParam({ name: 'id', description: 'Template ID' })
+  @ApiParam({ name: 'versionId', description: 'Version ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Version retrieved',
+    type: TemplateVersionResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Not an MSP user' })
+  @ApiResponse({ status: 404, description: 'Template or version not found' })
+  async getTemplateVersion(
+    @CurrentUser() user: any,
+    @CurrentTenant() tenantId: string,
+    @Param('id') templateId: string,
+    @Param('versionId') versionId: string,
+  ): Promise<TemplateVersionResponseDto> {
+    return this.mspTemplatesService.getVersion(
+      user.id,
+      tenantId,
+      templateId,
+      versionId,
+    );
+  }
+
+  @Get('templates/:id/versions/:versionNumber/diff')
+  @ApiOperation({
+    summary: 'Get diff between a version and current (US-034)',
+    description:
+      'Returns structured diff showing added, removed, and changed fields',
+  })
+  @ApiParam({ name: 'id', description: 'Template ID' })
+  @ApiParam({ name: 'versionNumber', description: 'Version number to compare' })
+  @ApiResponse({
+    status: 200,
+    description: 'Diff retrieved',
+    type: ConfigDiffResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Not an MSP user' })
+  @ApiResponse({ status: 404, description: 'Template or version not found' })
+  async getVersionDiff(
+    @CurrentUser() user: any,
+    @CurrentTenant() tenantId: string,
+    @Param('id') templateId: string,
+    @Param('versionNumber') versionNumber: number,
+  ): Promise<ConfigDiffResponseDto> {
+    return this.mspTemplatesService.getVersionDiff(
+      user.id,
+      tenantId,
+      templateId,
+      versionNumber,
+    );
+  }
+
+  // ============================================
+  // Template Rollback Endpoints (US-035)
+  // ============================================
+
+  @Post('templates/:id/rollback/:versionId')
+  @ApiOperation({
+    summary: 'Rollback template to a previous version (US-035)',
+    description:
+      'Creates a new version with the configuration from the target version. ' +
+      'Optionally re-applies the template to all clients using it.',
+  })
+  @ApiParam({ name: 'id', description: 'Template ID' })
+  @ApiParam({ name: 'versionId', description: 'Version ID to rollback to' })
+  @ApiResponse({
+    status: 200,
+    description: 'Rollback successful',
+    type: RollbackResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Cannot rollback to current version',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Not an MSP user' })
+  @ApiResponse({ status: 404, description: 'Template or version not found' })
+  async rollbackTemplate(
+    @CurrentUser() user: any,
+    @CurrentTenant() tenantId: string,
+    @Param('id') templateId: string,
+    @Param('versionId') versionId: string,
+    @Body() dto: RollbackTemplateDto,
+    @Req() req: Request,
+  ): Promise<RollbackResponseDto> {
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+    return this.mspTemplatesService.rollbackToVersion(
+      user.id,
+      tenantId,
+      templateId,
+      versionId,
+      dto.reapplyToClients || false,
+      ipAddress,
+    );
+  }
+
+  // ============================================
+  // Template Client Application Endpoints (US-036)
+  // ============================================
+
+  @Get('templates/:id/clients')
+  @ApiOperation({
+    summary: 'Get clients using this template (US-036)',
+    description:
+      'Returns list of clients with their current applied version and status',
+  })
+  @ApiParam({ name: 'id', description: 'Template ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Clients list retrieved',
+    type: ClientsUsingTemplateResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Not an MSP user' })
+  @ApiResponse({ status: 404, description: 'Template not found' })
+  async getClientsUsingTemplate(
+    @CurrentUser() user: any,
+    @CurrentTenant() tenantId: string,
+    @Param('id') templateId: string,
+  ): Promise<ClientsUsingTemplateResponseDto> {
+    return this.mspTemplatesService.getClientsUsingTemplate(
+      user.id,
+      tenantId,
+      templateId,
+    );
+  }
+
+  @Post('templates/:id/apply')
+  @ApiOperation({
+    summary: 'Apply template to clients (US-036)',
+    description:
+      'Starts an async job to apply the current template version to selected clients. ' +
+      'Use "all" to apply to all clients currently using this template.',
+  })
+  @ApiParam({ name: 'id', description: 'Template ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Apply job started',
+    type: ApplyJobResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'No clients specified or no clients using template',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Not an MSP user' })
+  @ApiResponse({ status: 404, description: 'Template not found' })
+  async applyTemplateToClients(
+    @CurrentUser() user: any,
+    @CurrentTenant() tenantId: string,
+    @Param('id') templateId: string,
+    @Body() dto: ApplyTemplateToClientsDto,
+    @Req() req: Request,
+  ): Promise<ApplyJobResponseDto> {
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+    return this.mspTemplatesService.startApplyJob(
+      user.id,
+      tenantId,
+      templateId,
+      dto.clientIds || 'all',
+      ipAddress,
+    );
+  }
+
+  @Get('templates/:id/apply/:jobId')
+  @ApiOperation({
+    summary: 'Get apply job status (US-036)',
+    description: 'Returns current status and progress of an apply job',
+  })
+  @ApiParam({ name: 'id', description: 'Template ID' })
+  @ApiParam({ name: 'jobId', description: 'Apply job ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Job status retrieved',
+    type: ApplyJobResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Not an MSP user' })
+  @ApiResponse({ status: 404, description: 'Template or job not found' })
+  async getApplyJobStatus(
+    @CurrentUser() user: any,
+    @CurrentTenant() tenantId: string,
+    @Param('id') templateId: string,
+    @Param('jobId') jobId: string,
+  ): Promise<ApplyJobResponseDto> {
+    return this.mspTemplatesService.getApplyJobStatus(
+      user.id,
+      tenantId,
+      templateId,
+      jobId,
+    );
+  }
+
+  @Post('templates/:id/retry')
+  @ApiOperation({
+    summary: 'Retry failed applications (US-036)',
+    description:
+      'Retries applying the template to clients that previously failed',
+  })
+  @ApiParam({ name: 'id', description: 'Template ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Retry job started',
+    type: ApplyJobResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'No failed applications found' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Not an MSP user' })
+  @ApiResponse({ status: 404, description: 'Template not found' })
+  async retryFailedApplications(
+    @CurrentUser() user: any,
+    @CurrentTenant() tenantId: string,
+    @Param('id') templateId: string,
+    @Body() dto: RetryApplicationDto,
+    @Req() req: Request,
+  ): Promise<ApplyJobResponseDto> {
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+    return this.mspTemplatesService.retryFailedApplications(
+      user.id,
+      tenantId,
+      templateId,
+      dto.clientIds,
+      ipAddress,
+    );
   }
 }

@@ -26,6 +26,7 @@ describe('SsoService', () => {
     create: jest.fn(),
     save: jest.fn(),
     delete: jest.fn(),
+    createQueryBuilder: jest.fn(),
   };
 
   const mockTenantRepository = {
@@ -37,6 +38,7 @@ describe('SsoService', () => {
     findOne: jest.fn(),
     create: jest.fn(),
     save: jest.fn(),
+    update: jest.fn(),
   };
 
   const mockConfigService = {
@@ -303,6 +305,204 @@ describe('SsoService', () => {
         const result = await service.configureOidc(tenantId, dto as any);
 
         expect(result.pkceRequired).toBe(false);
+      });
+    });
+
+    describe('handleOidcCallback with PKCE', () => {
+      let decryptSecretSpy: jest.SpyInstance;
+
+      beforeEach(() => {
+        // Mock the private decryptSecret method to return a test secret
+        decryptSecretSpy = jest
+          .spyOn(service as any, 'decryptSecret')
+          .mockReturnValue('test-client-secret');
+      });
+
+      afterEach(() => {
+        decryptSecretSpy.mockRestore();
+      });
+
+      it('should retrieve and include code_verifier when PKCE is enabled', async () => {
+        const tenantSlug = 'test-tenant';
+        const state = `${tenantSlug}:random-state`;
+        const pkceKey = `pkce:${state}`;
+        const mockVerifier =
+          'test-verifier-12345678901234567890123456789012345';
+        const mockTenant = {
+          id: 'tenant-123',
+          slug: tenantSlug,
+        };
+        const mockConfig = {
+          id: 'config-123',
+          tenantId: 'tenant-123',
+          providerType: 'oidc',
+          isEnabled: true,
+          pkceRequired: true,
+          oidcIssuer: 'https://auth.example.com',
+          oidcClientId: 'client-123',
+          oidcClientSecretEncrypted: 'encrypted-secret',
+          oidcScopes: 'openid profile email',
+          oidcTokenUrl: 'https://auth.example.com/token',
+          oidcUserinfoUrl: 'https://auth.example.com/userinfo',
+          autoProvisionUsers: true,
+          defaultRole: 'readonly',
+          attributeMapping: { email: 'email', name: 'name' },
+        };
+
+        mockTenantRepository.findOne.mockResolvedValue(mockTenant as any);
+        mockSsoConfigRepository.findOne.mockResolvedValue(mockConfig as any);
+        mockRedisService.get.mockResolvedValue(mockVerifier);
+        mockRedisService.del.mockResolvedValue(undefined);
+
+        // Mock token endpoint response
+        global.fetch = jest.fn().mockImplementation((url: string) => {
+          if (url.includes('/token')) {
+            return Promise.resolve({
+              ok: true,
+              json: () =>
+                Promise.resolve({
+                  access_token: 'mock-access-token',
+                  id_token: 'mock-id-token',
+                }),
+            });
+          }
+          // Mock userinfo endpoint
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                email: 'user@example.com',
+                name: 'Test User',
+              }),
+          });
+        });
+
+        mockUserRepository.findOne.mockResolvedValue({
+          id: 'user-123',
+          email: 'user@example.com',
+          tenantId: 'tenant-123',
+          role: 'readonly',
+        } as any);
+        mockUserRepository.update.mockResolvedValue({ affected: 1 });
+
+        await service.handleOidcCallback('auth-code', state);
+
+        // Verify code_verifier was retrieved from Redis
+        expect(mockRedisService.get).toHaveBeenCalledWith(pkceKey);
+
+        // Verify code_verifier was deleted after use (one-time use)
+        expect(mockRedisService.del).toHaveBeenCalledWith(pkceKey);
+
+        // Verify token request included code_verifier
+        const tokenCall = (global.fetch as jest.Mock).mock.calls.find(
+          (call: string[]) => call[0].includes('/token'),
+        );
+        expect(tokenCall).toBeDefined();
+        // body is a URLSearchParams object, convert to string for assertion
+        expect(tokenCall[1].body.toString()).toContain(
+          'code_verifier=' + mockVerifier,
+        );
+      });
+
+      it('should throw UnauthorizedException when code_verifier is missing/expired', async () => {
+        const tenantSlug = 'test-tenant';
+        const state = `${tenantSlug}:random-state`;
+        const mockTenant = {
+          id: 'tenant-123',
+          slug: tenantSlug,
+        };
+        const mockConfig = {
+          id: 'config-123',
+          tenantId: 'tenant-123',
+          providerType: 'oidc',
+          isEnabled: true,
+          pkceRequired: true,
+          oidcIssuer: 'https://auth.example.com',
+          oidcClientId: 'client-123',
+          oidcClientSecretEncrypted: 'encrypted-secret',
+          oidcScopes: 'openid profile email',
+          oidcTokenUrl: 'https://auth.example.com/token',
+        };
+
+        mockTenantRepository.findOne.mockResolvedValue(mockTenant as any);
+        mockSsoConfigRepository.findOne.mockResolvedValue(mockConfig as any);
+        mockRedisService.get.mockResolvedValue(null); // code_verifier not found
+
+        await expect(
+          service.handleOidcCallback('auth-code', state),
+        ).rejects.toThrow('PKCE verification failed');
+      });
+
+      it('should not require code_verifier when PKCE is disabled', async () => {
+        const tenantSlug = 'test-tenant';
+        const state = `${tenantSlug}:random-state`;
+        const mockTenant = {
+          id: 'tenant-123',
+          slug: tenantSlug,
+        };
+        const mockConfig = {
+          id: 'config-123',
+          tenantId: 'tenant-123',
+          providerType: 'oidc',
+          isEnabled: true,
+          pkceRequired: false, // PKCE disabled
+          oidcIssuer: 'https://auth.example.com',
+          oidcClientId: 'client-123',
+          oidcClientSecretEncrypted: 'encrypted-secret',
+          oidcScopes: 'openid profile email',
+          oidcTokenUrl: 'https://auth.example.com/token',
+          oidcUserinfoUrl: 'https://auth.example.com/userinfo',
+          autoProvisionUsers: true,
+          defaultRole: 'readonly',
+          attributeMapping: { email: 'email', name: 'name' },
+        };
+
+        mockTenantRepository.findOne.mockResolvedValue(mockTenant as any);
+        mockSsoConfigRepository.findOne.mockResolvedValue(mockConfig as any);
+
+        // Mock token endpoint response
+        global.fetch = jest.fn().mockImplementation((url: string) => {
+          if (url.includes('/token')) {
+            return Promise.resolve({
+              ok: true,
+              json: () =>
+                Promise.resolve({
+                  access_token: 'mock-access-token',
+                  id_token: 'mock-id-token',
+                }),
+            });
+          }
+          // Mock userinfo endpoint
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                email: 'user@example.com',
+                name: 'Test User',
+              }),
+          });
+        });
+
+        mockUserRepository.findOne.mockResolvedValue({
+          id: 'user-123',
+          email: 'user@example.com',
+          tenantId: 'tenant-123',
+          role: 'readonly',
+        } as any);
+        mockUserRepository.update.mockResolvedValue({ affected: 1 });
+
+        await service.handleOidcCallback('auth-code', state);
+
+        // Verify code_verifier was NOT retrieved from Redis
+        expect(mockRedisService.get).not.toHaveBeenCalled();
+
+        // Verify token request did NOT include code_verifier
+        const tokenCall = (global.fetch as jest.Mock).mock.calls.find(
+          (call: string[]) => call[0].includes('/token'),
+        );
+        expect(tokenCall).toBeDefined();
+        // body is a URLSearchParams object, convert to string for assertion
+        expect(tokenCall[1].body.toString()).not.toContain('code_verifier');
       });
     });
 
@@ -590,6 +790,186 @@ describe('SsoService', () => {
         expect(metadata).toContain('SPSSODescriptor');
         expect(metadata).toContain('AuthnRequestsSigned="false"');
         expect(metadata).not.toContain('KeyDescriptor');
+      });
+    });
+
+    describe('buildSignedAuthnRequest', () => {
+      it('should build unsigned AuthnRequest when signing is disabled', async () => {
+        const tenantId = 'tenant-123';
+        mockSsoConfigRepository.findOne.mockResolvedValue({
+          id: 'config-123',
+          tenantId,
+          providerType: 'saml',
+          samlSsoUrl: 'https://idp.example.com/sso',
+          samlSignRequests: false,
+          samlSigningCert: null,
+          samlSigningKeyEncrypted: null,
+        } as any);
+
+        const result = await service.buildSignedAuthnRequest(
+          tenantId,
+          'test-relay-state',
+        );
+
+        expect(result.signedXml).toContain('samlp:AuthnRequest');
+        expect(result.signedXml).not.toContain('<ds:Signature');
+        expect(result.redirectUrl).toContain('https://idp.example.com/sso');
+        expect(result.redirectUrl).toContain('SAMLRequest=');
+        expect(result.redirectUrl).toContain('RelayState=test-relay-state');
+      });
+
+      it('should throw error if SAML SSO URL is not configured', async () => {
+        const tenantId = 'tenant-123';
+        mockSsoConfigRepository.findOne.mockResolvedValue({
+          id: 'config-123',
+          tenantId,
+          providerType: 'saml',
+          samlSsoUrl: null,
+        } as any);
+
+        await expect(
+          service.buildSignedAuthnRequest(tenantId, 'test-relay-state'),
+        ).rejects.toThrow('SAML SSO URL not configured');
+      });
+
+      it('should throw error for non-SAML configuration', async () => {
+        const tenantId = 'tenant-123';
+        mockSsoConfigRepository.findOne.mockResolvedValue({
+          id: 'config-123',
+          tenantId,
+          providerType: 'oidc',
+        } as any);
+
+        await expect(
+          service.buildSignedAuthnRequest(tenantId, 'test-relay-state'),
+        ).rejects.toThrow('SAML configuration not found');
+      });
+    });
+
+    describe('buildSignedLogoutRequest', () => {
+      it('should build unsigned LogoutRequest when signing is disabled', async () => {
+        const tenantId = 'tenant-123';
+        mockSsoConfigRepository.findOne.mockResolvedValue({
+          id: 'config-123',
+          tenantId,
+          providerType: 'saml',
+          samlSloUrl: 'https://idp.example.com/slo',
+          samlSignRequests: false,
+          samlSigningCert: null,
+          samlSigningKeyEncrypted: null,
+        } as any);
+
+        const result = await service.buildSignedLogoutRequest(
+          tenantId,
+          'user@example.com',
+          '_session-123',
+        );
+
+        expect(result.signedXml).toContain('samlp:LogoutRequest');
+        expect(result.signedXml).toContain('user@example.com');
+        expect(result.signedXml).toContain('_session-123');
+        expect(result.signedXml).not.toContain('<ds:Signature');
+        expect(result.redirectUrl).toContain('https://idp.example.com/slo');
+        expect(result.redirectUrl).toContain('SAMLRequest=');
+      });
+
+      it('should throw error if SAML SLO URL is not configured', async () => {
+        const tenantId = 'tenant-123';
+        mockSsoConfigRepository.findOne.mockResolvedValue({
+          id: 'config-123',
+          tenantId,
+          providerType: 'saml',
+          samlSloUrl: null,
+        } as any);
+
+        await expect(
+          service.buildSignedLogoutRequest(
+            tenantId,
+            'user@example.com',
+            '_session-123',
+          ),
+        ).rejects.toThrow('SAML SLO URL not configured');
+      });
+    });
+
+    describe('getSigningCertificate', () => {
+      it('should return signing certificate by config ID', async () => {
+        const configId = 'config-123';
+        const mockCert =
+          '-----BEGIN CERTIFICATE-----\nMIIC...\n-----END CERTIFICATE-----';
+        mockSsoConfigRepository.findOne.mockResolvedValue({
+          id: configId,
+          samlSigningCert: mockCert,
+        } as any);
+
+        const result = await service.getSigningCertificate(configId);
+
+        expect(result).toBe(mockCert);
+        expect(mockSsoConfigRepository.findOne).toHaveBeenCalledWith({
+          where: { id: configId },
+        });
+      });
+
+      it('should return null if config not found', async () => {
+        const configId = 'nonexistent-config';
+        mockSsoConfigRepository.findOne.mockResolvedValue(null);
+
+        const result = await service.getSigningCertificate(configId);
+
+        expect(result).toBeNull();
+      });
+
+      it('should return null if no signing certificate exists', async () => {
+        const configId = 'config-123';
+        mockSsoConfigRepository.findOne.mockResolvedValue({
+          id: configId,
+          samlSigningCert: null,
+        } as any);
+
+        const result = await service.getSigningCertificate(configId);
+
+        expect(result).toBeNull();
+      });
+    });
+
+    describe('cleanupExpiredPreviousCertificates', () => {
+      it('should cleanup expired previous certificates', async () => {
+        const mockQueryBuilder = {
+          update: jest.fn().mockReturnThis(),
+          set: jest.fn().mockReturnThis(),
+          where: jest.fn().mockReturnThis(),
+          andWhere: jest.fn().mockReturnThis(),
+          execute: jest.fn().mockResolvedValue({ affected: 2 }),
+        };
+        mockSsoConfigRepository.createQueryBuilder = jest
+          .fn()
+          .mockReturnValue(mockQueryBuilder);
+
+        const result = await service.cleanupExpiredPreviousCertificates();
+
+        expect(result).toBe(2);
+        expect(mockQueryBuilder.update).toHaveBeenCalled();
+        expect(mockQueryBuilder.set).toHaveBeenCalledWith({
+          samlPreviousSigningCert: null,
+          samlPreviousCertExpiresAt: null,
+        });
+      });
+
+      it('should return 0 if no expired certificates', async () => {
+        const mockQueryBuilder = {
+          update: jest.fn().mockReturnThis(),
+          set: jest.fn().mockReturnThis(),
+          where: jest.fn().mockReturnThis(),
+          andWhere: jest.fn().mockReturnThis(),
+          execute: jest.fn().mockResolvedValue({ affected: 0 }),
+        };
+        mockSsoConfigRepository.createQueryBuilder = jest
+          .fn()
+          .mockReturnValue(mockQueryBuilder);
+
+        const result = await service.cleanupExpiredPreviousCertificates();
+
+        expect(result).toBe(0);
       });
     });
   });

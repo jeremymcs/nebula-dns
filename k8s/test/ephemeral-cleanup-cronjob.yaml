@@ -1,0 +1,50 @@
+# Nebula DNS - Ephemeral Namespace Cleanup CronJob
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ephemeral-namespace-cleanup
+  namespace: nebula-dns
+spec:
+  schedule: "0 */2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: namespace-cleanup
+          restartPolicy: OnFailure
+          containers:
+            - name: cleanup
+              image: bitnami/kubectl:1.30
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  MAX_AGE_SECONDS=$((4 * 3600))
+                  CURRENT_TIME=$(date +%s)
+                  
+                  NAMESPACES=$(kubectl get namespaces -l ephemeral=true -o json)
+                  
+                  for ns in $(echo "$NAMESPACES" | jq -r '.items[] | @base64'); do
+                    NS_NAME=$(echo "$ns" | base64 -d | jq -r '.metadata.name')
+                    CREATED_AT=$(echo "$ns" | base64 -d | jq -r '.metadata.labels["created-at"] // 0')
+                    
+                    AGE=$((CURRENT_TIME - CREATED_AT))
+                    
+                    if [ "$AGE" -gt "$MAX_AGE_SECONDS" ]; then
+                      echo "Deleting stale namespace: ${NS_NAME}"
+                      kubectl delete namespace "$NS_NAME" --wait=false
+                    fi
+                  done
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 100m
+                  memory: 128Mi

@@ -258,7 +258,9 @@ export class AdminSessionService {
       const client = this.redisService.getClient();
       await client.srem(adminSessionsKey, sessionId);
 
-      this.logger.log(`Revoked admin session ${sessionId} for admin ${adminId}`);
+      this.logger.log(
+        `Revoked admin session ${sessionId} for admin ${adminId}`,
+      );
     } catch (error) {
       if (
         error instanceof NotFoundException ||

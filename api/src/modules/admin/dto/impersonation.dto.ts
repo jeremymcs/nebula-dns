@@ -52,7 +52,8 @@ export class StartImpersonationResponseDto {
  */
 export class EndImpersonationResponseDto {
   @ApiProperty({
-    description: 'Confirmation message that the impersonation session has ended',
+    description:
+      'Confirmation message that the impersonation session has ended',
     example: 'Impersonation session ended',
   })
   message: string;

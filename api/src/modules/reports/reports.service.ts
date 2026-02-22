@@ -1029,4 +1029,79 @@ export class ReportsService {
         : 'Analytics data is simulated (ClickHouse not connected)',
     };
   }
+
+  /**
+   * Get simplified dashboard statistics for Home tier
+   */
+  async getHomeDashboard(tenantId: string): Promise<{
+    threatsBlockedToday: number;
+    threatsBlockedThisWeek: number;
+    activeNetworks: number;
+    topBlockedCategories: Array<{ category: string; count: number }>;
+    protectionStatus: 'active' | 'warning' | 'inactive';
+  }> {
+    try {
+      // Get threats blocked today
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999);
+
+      const todayQuery: ReportQueryDto = {
+        period: 'custom',
+        startDate: todayStart.toISOString(),
+        endDate: todayEnd.toISOString(),
+      };
+
+      const todayStats = await this.getSummary(tenantId, todayQuery);
+
+      // Get threats blocked this week
+      const weekQuery: ReportQueryDto = {
+        period: '7d',
+      };
+
+      const weekStats = await this.getSummary(tenantId, weekQuery);
+
+      // Get top blocked categories
+      const categoryStats = await this.getBlocksByCategory(
+        tenantId,
+        todayQuery,
+      );
+
+      // Get active networks (locations)
+      const locationsResult = await this.locationsService.findAll(tenantId, {
+        limit: 100,
+      });
+      const locations = locationsResult.data;
+      const activeNetworks = locations.filter(
+        (l) => l.status === 'active',
+      ).length;
+
+      // Determine protection status
+      let protectionStatus: 'active' | 'warning' | 'inactive' = 'active';
+      if (activeNetworks === 0) {
+        protectionStatus = 'inactive';
+      } else if (activeNetworks < locations.length) {
+        protectionStatus = 'warning';
+      }
+
+      return {
+        threatsBlockedToday: todayStats.blockedQueries,
+        threatsBlockedThisWeek: weekStats.blockedQueries,
+        activeNetworks,
+        topBlockedCategories: categoryStats.slice(0, 5),
+        protectionStatus,
+      };
+    } catch (error) {
+      this.logger.error(`Failed to get home dashboard stats: ${error.message}`);
+      // Return safe defaults
+      return {
+        threatsBlockedToday: 0,
+        threatsBlockedThisWeek: 0,
+        activeNetworks: 0,
+        topBlockedCategories: [],
+        protectionStatus: 'inactive',
+      };
+    }
+  }
 }

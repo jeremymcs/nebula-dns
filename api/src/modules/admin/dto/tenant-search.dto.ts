@@ -13,10 +13,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  TenantStatus,
-  TenantTier,
-} from '../../tenants/entities/tenant.entity';
+import { TenantStatus, TenantTier } from '../../tenants/entities/tenant.entity';
 
 /**
  * Tenant Search Query DTO

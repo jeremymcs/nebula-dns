@@ -3,29 +3,83 @@
 
 import { Page } from '@playwright/test'
 
+type TenantTier = 'home' | 'enterprise' | 'msp'
+
 /**
  * Login helper for E2E tests
  * Sets up authentication token in localStorage
  */
-export async function login(page: Page) {
+export async function login(page: Page, tier: TenantTier = 'enterprise') {
   await page.goto('/login')
-  await page.evaluate(() => {
+  await page.evaluate(({ tier }) => {
+    const tierConfig = {
+      home: {
+        id: 'home-tenant-1',
+        email: 'home_user@test.com',
+        name: 'Home User',
+        tenantName: 'Home Family'
+      },
+      enterprise: {
+        id: 'enterprise-tenant-1',
+        email: 'enterprise_user@test.com',
+        name: 'Enterprise User',
+        tenantName: 'Enterprise Corp'
+      },
+      msp: {
+        id: 'msp-tenant-1',
+        email: 'msp_user@test.com',
+        name: 'MSP Admin',
+        tenantName: 'MSP Provider Inc'
+      }
+    }
+
+    const config = tierConfig[tier]
+
     localStorage.setItem('token', 'test-token-for-e2e')
     localStorage.setItem('user', JSON.stringify({
-      id: '1',
-      email: 'test@example.com',
-      name: 'Test User',
+      id: `user-${tier}-1`,
+      email: config.email,
+      name: config.name,
       role: 'admin',
-      tenantId: 'test-tenant-1'
+      tenantId: config.id
     }))
-  })
+    localStorage.setItem('tenant', JSON.stringify({
+      id: config.id,
+      name: config.tenantName,
+      tier: tier,
+      subscriptionStatus: 'active',
+      locationLimit: tier === 'home' ? 5 : tier === 'enterprise' ? 50 : null,
+      clientLimit: tier === 'msp' ? null : undefined
+    }))
+  }, { tier })
+}
+
+/**
+ * Login as Home tier user
+ */
+export async function loginAsHome(page: Page) {
+  await login(page, 'home')
+}
+
+/**
+ * Login as Enterprise tier user
+ */
+export async function loginAsEnterprise(page: Page) {
+  await login(page, 'enterprise')
+}
+
+/**
+ * Login as MSP tier user
+ */
+export async function loginAsMSP(page: Page) {
+  await login(page, 'msp')
 }
 
 /**
  * Login and navigate to a specific dashboard page
  */
-export async function loginAndNavigate(page: Page, path: string) {
-  await login(page)
+export async function loginAndNavigate(page: Page, path: string, tier: TenantTier = 'enterprise') {
+  await login(page, tier)
   await page.goto(path)
 }
 

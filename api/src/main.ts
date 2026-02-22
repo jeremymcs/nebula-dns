@@ -5,6 +5,10 @@
  * API Bootstrap Entry Point
  */
 
+// Load environment variables before anything else
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';

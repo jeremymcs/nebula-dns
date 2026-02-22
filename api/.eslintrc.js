@@ -1,7 +1,10 @@
+// Nebula DNS - ESLint Configuration
+// Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
 module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: 'tsconfig.json',
+    project: ['tsconfig.json', 'tsconfig.spec.json'],
     tsconfigRootDir: __dirname,
     sourceType: 'module',
   },

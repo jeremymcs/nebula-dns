@@ -5,6 +5,8 @@ import {
   Controller,
   Get,
   Delete,
+  Put,
+  Patch,
   Query,
   Res,
   UseGuards,
@@ -161,6 +163,44 @@ export class AuditLogsController {
       `attachment; filename="${result.filename}"`,
     );
     res.send(result.data);
+  }
+
+  @Put()
+  @Put(':id')
+  @HttpCode(HttpStatus.FORBIDDEN)
+  @ApiOperation({
+    summary: 'Update audit logs (not permitted)',
+    description:
+      'PUT operations are not permitted on audit logs. Audit logs are immutable for compliance and security purposes.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Audit logs cannot be modified',
+  })
+  async updateAuditLogPut(): Promise<never> {
+    throw new ForbiddenException(
+      'UPDATE operations are not permitted on audit logs. ' +
+        'Audit logs are immutable for compliance and security purposes.',
+    );
+  }
+
+  @Patch()
+  @Patch(':id')
+  @HttpCode(HttpStatus.FORBIDDEN)
+  @ApiOperation({
+    summary: 'Modify audit logs (not permitted)',
+    description:
+      'PATCH operations are not permitted on audit logs. Audit logs are immutable for compliance and security purposes.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Audit logs cannot be modified',
+  })
+  async updateAuditLogPatch(): Promise<never> {
+    throw new ForbiddenException(
+      'UPDATE operations are not permitted on audit logs. ' +
+        'Audit logs are immutable for compliance and security purposes.',
+    );
   }
 
   @Delete()

@@ -35,8 +35,7 @@ export class CreateMspTenantDto {
   name: string;
 
   @ApiPropertyOptional({
-    description:
-      'URL-friendly slug (auto-generated from name if not provided)',
+    description: 'URL-friendly slug (auto-generated from name if not provided)',
     example: 'acme-managed-services',
     minLength: 2,
     maxLength: 100,

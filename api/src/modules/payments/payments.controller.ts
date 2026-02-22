@@ -24,6 +24,8 @@ import { PaymentsService } from './payments.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { EmailService } from '../email/email.service';
 import { ConfigService } from '@nestjs/config';
+// US-028: Grace period management for MSP subscription lapses
+import { SubscriptionLapseService } from '../subscription-lapse/subscription-lapse.service';
 
 @ApiTags('payments')
 @Controller('payments')
@@ -36,6 +38,8 @@ export class PaymentsController {
     private readonly subscriptionsService: SubscriptionsService,
     private readonly emailService: EmailService,
     private readonly configService: ConfigService,
+    // US-028: Inject subscription lapse service for grace period management
+    private readonly subscriptionLapseService: SubscriptionLapseService,
   ) {
     this.frontendUrl =
       this.configService.get('FRONTEND_URL') || 'http://localhost:4001';
@@ -171,11 +175,39 @@ export class PaymentsController {
     const { tenantId } = subscription.metadata || {};
 
     if (tenantId) {
+      const mappedStatus = this.mapStripeStatus(subscription.status);
+
       await this.subscriptionsService.updateSubscription(tenantId, {
-        status: this.mapStripeStatus(subscription.status),
+        status: mappedStatus,
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
       });
+
+      // US-028: Handle grace period for MSP subscription lapse
+      if (mappedStatus === 'past_due') {
+        this.logger.log(`Starting grace period check for tenant ${tenantId}`);
+        try {
+          await this.subscriptionLapseService.startGracePeriod(tenantId);
+        } catch (error) {
+          this.logger.warn(
+            `Grace period start skipped for ${tenantId}:`,
+            error,
+          );
+        }
+      } else if (mappedStatus === 'active') {
+        // US-029: Restore subscription when payment is successful
+        this.logger.log(
+          `Checking for subscription restoration for tenant ${tenantId}`,
+        );
+        try {
+          await this.subscriptionLapseService.restoreSubscription(tenantId);
+        } catch (error) {
+          this.logger.warn(
+            `Subscription restore skipped for ${tenantId}:`,
+            error,
+          );
+        }
+      }
     }
   }
 
