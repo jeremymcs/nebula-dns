@@ -24,7 +24,7 @@ import { ALL_TEST_ENTITIES } from '../../../test/all-entities';
  * - Trial expiration
  * - Trial cancellation
  *
- * Uses in-memory database for isolation.
+ * Uses PostgreSQL container via Testcontainers (started in globalSetup).
  */
 describe('TrialsService Integration', () => {
   let module: TestingModule;
@@ -36,15 +36,20 @@ describe('TrialsService Integration', () => {
   let paymentsService: PaymentsService;
 
   beforeAll(async () => {
+    const databaseUrl =
+      process.env.DATABASE_URL ||
+      'postgresql://test:test@localhost:5432/nebula_test';
+
     module = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
         TypeOrmModule.forRoot({
-          type: 'sqlite',
-          database: ':memory:',
+          type: 'postgres',
+          url: databaseUrl,
           entities: ALL_TEST_ENTITIES,
           synchronize: true,
           dropSchema: true,
+          ssl: false,
         }),
         TypeOrmModule.forFeature([TrialHistory, Tenant, Subscription]),
       ],
