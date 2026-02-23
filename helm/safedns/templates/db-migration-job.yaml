@@ -68,10 +68,7 @@ spec:
 
           command:
             - 'node'
-            - './node_modules/typeorm/cli.js'
-            - 'migration:run'
-            - '-d'
-            - 'dist/database/data-source.js'
+            - 'dist/database/migrate.js'
 
           env:
             - name: NODE_ENV
