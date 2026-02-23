@@ -1,9 +1,8 @@
 # Nebula DNS - Deployment Workflow
 # Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 #
-# Main CI/CD pipeline: Test → Build → Deploy to Staging → Deploy to Production (manual approval)
-# Builds all 6 services (API, UI, Admin UI, Policy Service, dnsdist, Unbound)
-# Pushes to DigitalOcean Container Registry and deploys to DOKS via Helm
+# Builds all 6 Docker images and deploys to production via Helm.
+# CI and Security scans run independently on push via their own workflows.
 
 name: Deploy
 
@@ -11,20 +10,6 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-    inputs:
-      skip_tests:
-        description: 'Skip test gates (emergency deploys only)'
-        required: false
-        default: false
-        type: boolean
-      environment:
-        description: 'Target environment'
-        required: false
-        default: 'staging'
-        type: choice
-        options:
-          - staging
-          - production
 
 env:
   DOCR_REGISTRY: registry.digitalocean.com/nebula-dns
@@ -34,24 +19,9 @@ permissions:
   actions: read
 
 jobs:
-  # Test Gate - Run All Tests
-  run-tests:
-    name: Run Tests
-    if: ${{ inputs.skip_tests != true }}
-    uses: ./.github/workflows/ci.yml
-
-  # Security Gate - Run Security Scans
-  run-security-scan:
-    name: Run Security Scan
-    if: ${{ inputs.skip_tests != true }}
-    uses: ./.github/workflows/security-scan.yml
-    secrets: inherit
-
   # Build and Push API Image
   build-api:
     name: Build API
-    needs: [run-tests, run-security-scan]
-    if: always() && (needs.run-tests.result == 'success' || inputs.skip_tests == true) && (needs.run-security-scan.result == 'success' || inputs.skip_tests == true)
     uses: ./.github/workflows/_build-push-image.yml
     with:
       service: api
@@ -64,8 +34,6 @@ jobs:
   # Build and Push UI Image
   build-ui:
     name: Build UI
-    needs: [run-tests, run-security-scan]
-    if: always() && (needs.run-tests.result == 'success' || inputs.skip_tests == true) && (needs.run-security-scan.result == 'success' || inputs.skip_tests == true)
     uses: ./.github/workflows/_build-push-image.yml
     with:
       service: ui
@@ -78,8 +46,6 @@ jobs:
   # Build and Push Admin UI Image
   build-admin-ui:
     name: Build Admin UI
-    needs: [run-tests, run-security-scan]
-    if: always() && (needs.run-tests.result == 'success' || inputs.skip_tests == true) && (needs.run-security-scan.result == 'success' || inputs.skip_tests == true)
     uses: ./.github/workflows/_build-push-image.yml
     with:
       service: admin-ui
@@ -92,8 +58,6 @@ jobs:
   # Build and Push Policy Service Image
   build-policy-svc:
     name: Build Policy Service
-    needs: [run-tests, run-security-scan]
-    if: always() && (needs.run-tests.result == 'success' || inputs.skip_tests == true) && (needs.run-security-scan.result == 'success' || inputs.skip_tests == true)
     uses: ./.github/workflows/_build-push-image.yml
     with:
       service: policy-svc
@@ -106,8 +70,6 @@ jobs:
   # Build and Push dnsdist Image
   build-dnsdist:
     name: Build dnsdist
-    needs: [run-tests, run-security-scan]
-    if: always() && (needs.run-tests.result == 'success' || inputs.skip_tests == true) && (needs.run-security-scan.result == 'success' || inputs.skip_tests == true)
     uses: ./.github/workflows/_build-push-image.yml
     with:
       service: dnsdist
@@ -120,8 +82,6 @@ jobs:
   # Build and Push Unbound Image
   build-unbound:
     name: Build Unbound
-    needs: [run-tests, run-security-scan]
-    if: always() && (needs.run-tests.result == 'success' || inputs.skip_tests == true) && (needs.run-security-scan.result == 'success' || inputs.skip_tests == true)
     uses: ./.github/workflows/_build-push-image.yml
     with:
       service: unbound
@@ -131,86 +91,10 @@ jobs:
     secrets:
       DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
-  # Deploy to Staging
-  deploy-staging:
-    name: Deploy to Staging
-    needs: [build-api, build-ui, build-admin-ui, build-policy-svc, build-dnsdist, build-unbound]
-    runs-on: ubuntu-latest
-    environment: staging
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install doctl
-        uses: digitalocean/action-doctl@v2
-        with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-
-      - name: Configure kubectl for staging cluster
-        run: doctl kubernetes cluster kubeconfig save ${{ secrets.DOKS_CLUSTER_ID_STAGING }}
-
-      - name: Install Helm
-        uses: azure/setup-helm@v4
-
-      - name: Deploy to staging via Helm
-        run: |
-          helm upgrade nebula-dns ./helm/safedns \
-            --install \
-            --namespace nebula-dns-staging \
-            --create-namespace \
-            --atomic \
-            --wait \
-            --timeout 10m \
-            --history-max 10 \
-            --set global.imageRegistry=${{ env.DOCR_REGISTRY }} \
-            --set api.image.tag=${{ github.sha }} \
-            --set ui.image.tag=${{ github.sha }} \
-            --set adminUi.image.tag=${{ github.sha }} \
-            --set policySvc.image.tag=${{ github.sha }} \
-            --set dnsdist.image.tag=${{ github.sha }} \
-            --set unbound.image.tag=${{ github.sha }} \
-            -f ./helm/safedns/values-staging.yaml
-
-      - name: Verify API deployment
-        run: kubectl rollout status deployment/api -n nebula-dns-staging --timeout=5m
-
-      - name: Verify UI deployment
-        run: kubectl rollout status deployment/ui -n nebula-dns-staging --timeout=5m
-
-      - name: Verify Admin UI deployment
-        run: kubectl rollout status deployment/admin-ui -n nebula-dns-staging --timeout=5m
-
-      - name: Generate deployment summary
-        run: |
-          echo "# Staging Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Environment:** staging" >> $GITHUB_STEP_SUMMARY
-          echo "**Namespace:** nebula-dns-staging" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Deployed Services" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Service | Image Tag |" >> $GITHUB_STEP_SUMMARY
-          echo "|---------|-----------|" >> $GITHUB_STEP_SUMMARY
-          echo "| API | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| UI | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Admin UI | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Policy Service | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| dnsdist | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Unbound | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Endpoints" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **UI:** https://app-staging.nebuladns.io" >> $GITHUB_STEP_SUMMARY
-          echo "- **Admin UI:** https://admin-staging.nebuladns.io" >> $GITHUB_STEP_SUMMARY
-          echo "- **API:** https://api-staging.nebuladns.io" >> $GITHUB_STEP_SUMMARY
-
-  # Deploy to Production (Manual Approval Required)
+  # Deploy to Production
   deploy-production:
     name: Deploy to Production
-    needs: deploy-staging
-    if: github.ref == 'refs/heads/main'
+    needs: [build-api, build-ui, build-admin-ui, build-policy-svc, build-dnsdist, build-unbound]
     runs-on: ubuntu-latest
     environment: production
 
@@ -247,54 +131,22 @@ jobs:
             --set unbound.image.tag=${{ github.sha }} \
             -f ./helm/safedns/values-production.yaml
 
-      - name: Verify API deployment
-        run: kubectl rollout status deployment/api -n nebula-dns --timeout=5m
-
-      - name: Verify UI deployment
-        run: kubectl rollout status deployment/ui -n nebula-dns --timeout=5m
-
-      - name: Verify Admin UI deployment
-        run: kubectl rollout status deployment/admin-ui -n nebula-dns --timeout=5m
-
-      - name: Verify Policy Service deployment
-        run: kubectl rollout status deployment/policy-svc -n nebula-dns --timeout=5m
-
-      - name: Verify dnsdist deployment
-        run: kubectl rollout status deployment/dnsdist -n nebula-dns --timeout=5m
-
-      - name: Verify Unbound deployment
-        run: kubectl rollout status statefulset/unbound -n nebula-dns --timeout=5m
+      - name: Verify deployments
+        run: |
+          kubectl rollout status deployment/api -n nebula-dns --timeout=5m
+          kubectl rollout status deployment/ui -n nebula-dns --timeout=5m
+          kubectl rollout status deployment/admin-ui -n nebula-dns --timeout=5m
+          kubectl rollout status deployment/policy-svc -n nebula-dns --timeout=5m
+          kubectl rollout status deployment/dnsdist -n nebula-dns --timeout=5m
+          kubectl rollout status statefulset/unbound -n nebula-dns --timeout=5m
 
       - name: Run smoke test
         run: |
           kubectl exec -n nebula-dns deployment/api -- curl -f http://localhost:4010/health || exit 1
-          echo "✓ API health check passed"
+          echo "API health check passed"
 
       - name: Generate deployment summary
         run: |
-          echo "# Production Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Production Deployment" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Environment:** production" >> $GITHUB_STEP_SUMMARY
-          echo "**Namespace:** nebula-dns" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Deployed Services" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Service | Image Tag |" >> $GITHUB_STEP_SUMMARY
-          echo "|---------|-----------|" >> $GITHUB_STEP_SUMMARY
-          echo "| API | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| UI | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Admin UI | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Policy Service | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| dnsdist | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Unbound | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Endpoints" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **UI:** https://app.nebuladns.io" >> $GITHUB_STEP_SUMMARY
-          echo "- **Admin UI:** https://admin.nebuladns.io" >> $GITHUB_STEP_SUMMARY
-          echo "- **API:** https://api.nebuladns.io" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Health Checks" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- ✓ API smoke test passed" >> $GITHUB_STEP_SUMMARY
+          echo "**Endpoints:** https://app.nebuladns.io | https://api.nebuladns.io | https://admin.nebuladns.io" >> $GITHUB_STEP_SUMMARY
