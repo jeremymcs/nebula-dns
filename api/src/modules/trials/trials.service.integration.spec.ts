@@ -8,15 +8,12 @@ import { TrialsService } from './trials.service';
 import { TrialHistory, TrialStatus } from './entities/trial-history.entity';
 import { Tenant, TenantTier } from '../tenants/entities/tenant.entity';
 import { Subscription } from '../subscriptions/entities/subscription.entity';
-import { Policy } from '../policies/entities/policy.entity';
-import { PolicyVersion } from '../policies/entities/policy-version.entity';
-import { Location } from '../locations/entities/location.entity';
-import { LocationToken } from '../locations/entities/location-token.entity';
 import { EmailService } from '../email/email.service';
 import { PaymentsService } from '../payments/payments.service';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { ALL_TEST_ENTITIES } from '../../test/all-entities';
 
 /**
  * TrialsService Integration Tests
@@ -45,7 +42,7 @@ describe('TrialsService Integration', () => {
         TypeOrmModule.forRoot({
           type: 'sqlite',
           database: ':memory:',
-          entities: [TrialHistory, Tenant, Subscription, Policy, PolicyVersion, Location, LocationToken],
+          entities: ALL_TEST_ENTITIES,
           synchronize: true,
           dropSchema: true,
         }),

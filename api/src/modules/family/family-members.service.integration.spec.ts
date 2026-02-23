@@ -8,14 +8,11 @@ import { FamilyMembersService } from './family-members.service';
 import { FamilyInvitation } from './entities/family-invitation.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
 import { User } from '../users/entities/user.entity';
-import { Policy } from '../policies/entities/policy.entity';
-import { PolicyVersion } from '../policies/entities/policy-version.entity';
-import { Location } from '../locations/entities/location.entity';
-import { LocationToken } from '../locations/entities/location-token.entity';
 import { EmailService } from '../email/email.service';
 import { LimitsService } from '../limits/limits.service';
 import { DataSource, Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { ALL_TEST_ENTITIES } from '../../test/all-entities';
 import {
   BadRequestException,
   ConflictException,
@@ -57,15 +54,7 @@ describe('FamilyMembersService Integration', () => {
         TypeOrmModule.forRoot({
           type: 'postgres',
           url: databaseUrl,
-          entities: [
-            FamilyInvitation,
-            Tenant,
-            User,
-            Policy,
-            PolicyVersion,
-            Location,
-            LocationToken,
-          ],
+          entities: ALL_TEST_ENTITIES,
           synchronize: true,
           dropSchema: true,
           ssl: false,
