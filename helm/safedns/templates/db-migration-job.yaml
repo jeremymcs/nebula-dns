@@ -33,6 +33,9 @@ spec:
 
       serviceAccountName: {{ include "safedns.fullname" . }}-db-migration
 
+      imagePullSecrets:
+        - name: registry-nebula-dns
+
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
