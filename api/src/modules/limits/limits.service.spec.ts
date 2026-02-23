@@ -375,6 +375,7 @@ describe('LimitsService', () => {
   describe('canCreateClient', () => {
     const mockMspTenant = {
       ...mockTenant,
+      tier: 'msp',
       partnerId: 'partner-123',
     };
 
@@ -511,6 +512,7 @@ describe('LimitsService', () => {
   describe('getRemainingClients', () => {
     const mockMspTenant = {
       ...mockTenant,
+      tier: 'msp',
       partnerId: 'partner-123',
     };
 
