@@ -71,6 +71,19 @@ describe('ClickHouse Integration Tests', () => {
 
     service = module.get<ClickHouseService>(ClickHouseService);
 
+    // Ensure the target database exists before creating a client scoped to it.
+    // ClickHouse rejects queries when the configured default database is missing.
+    const bootstrapClient = createClient({
+      host: `http://${clickHouseHost}:${clickHousePort}`,
+      username: clickHouseUser,
+      password: clickHousePassword,
+      database: 'default',
+    });
+    await bootstrapClient.query({
+      query: `CREATE DATABASE IF NOT EXISTS ${clickHouseDatabase}`,
+    });
+    await bootstrapClient.close();
+
     // Create a separate client for test setup/teardown using environment
     client = createClient({
       host: `http://${clickHouseHost}:${clickHousePort}`,

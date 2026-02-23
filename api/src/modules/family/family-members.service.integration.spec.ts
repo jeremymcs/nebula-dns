@@ -111,10 +111,11 @@ describe('FamilyMembersService Integration', () => {
   });
 
   beforeEach(async () => {
-    // Clear database (use clear() - delete({}) disallowed with empty criteria in TypeORM v0.3+)
-    await invitationRepository.clear();
-    await userRepository.clear();
-    await tenantRepository.clear();
+    // Delete in FK-safe order (children before parents).
+    // clear() uses TRUNCATE which PostgreSQL rejects when FK constraints exist.
+    await invitationRepository.createQueryBuilder().delete().execute();
+    await userRepository.createQueryBuilder().delete().execute();
+    await tenantRepository.createQueryBuilder().delete().execute();
     jest.clearAllMocks();
   });
 
