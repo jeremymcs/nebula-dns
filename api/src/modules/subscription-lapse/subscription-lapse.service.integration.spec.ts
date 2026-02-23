@@ -25,7 +25,7 @@ import { ALL_TEST_ENTITIES } from '../../../test/all-entities';
  * - Subscription restoration
  * - DNS blocking for suspended tenants
  *
- * Uses in-memory database and mocked Redis/Email for isolation.
+ * Uses PostgreSQL container via Testcontainers (started in globalSetup) and mocked Redis/Email for isolation.
  */
 describe('SubscriptionLapseService Integration', () => {
   let module: TestingModule;
@@ -41,15 +41,20 @@ describe('SubscriptionLapseService Integration', () => {
   const mockRedisCache = new Map<string, string>();
 
   beforeAll(async () => {
+    const databaseUrl =
+      process.env.DATABASE_URL ||
+      'postgresql://test:test@localhost:5432/nebula_test';
+
     module = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
         TypeOrmModule.forRoot({
-          type: 'sqlite',
-          database: ':memory:',
+          type: 'postgres',
+          url: databaseUrl,
           entities: ALL_TEST_ENTITIES,
           synchronize: true,
           dropSchema: true,
+          ssl: false,
         }),
         TypeOrmModule.forFeature([Tenant, User, Subscription, MspClient]),
       ],

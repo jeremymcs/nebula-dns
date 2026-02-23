@@ -25,7 +25,7 @@ import { ALL_TEST_ENTITIES } from '../../../test/all-entities';
  * - canCreateLocation() for each tier
  * - canCreateClient() for MSP tier
  *
- * Uses in-memory database and mocked Redis for isolation.
+ * Uses PostgreSQL container via Testcontainers (started in globalSetup) and mocked Redis for isolation.
  */
 describe('LimitsService Integration', () => {
   let module: TestingModule;
@@ -40,15 +40,20 @@ describe('LimitsService Integration', () => {
   const mockRedisCache = new Map<string, string>();
 
   beforeAll(async () => {
+    const databaseUrl =
+      process.env.DATABASE_URL ||
+      'postgresql://test:test@localhost:5432/nebula_test';
+
     module = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
         TypeOrmModule.forRoot({
-          type: 'sqlite',
-          database: ':memory:',
+          type: 'postgres',
+          url: databaseUrl,
           entities: ALL_TEST_ENTITIES,
           synchronize: true,
           dropSchema: true,
+          ssl: false,
         }),
         TypeOrmModule.forFeature([
           Tenant,
