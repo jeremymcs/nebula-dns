@@ -412,6 +412,7 @@ describe('AlertingService', () => {
       };
 
       // Mock decrypt to throw error
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { decrypt } = require('../../common/utils/encryption.util');
       decrypt.mockImplementationOnce(() => {
         throw new Error('Decryption failed');
