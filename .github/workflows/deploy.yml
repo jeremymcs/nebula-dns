@@ -141,6 +141,16 @@ jobs:
             --set unbound.image.tag=${{ github.sha }} \
             -f ./helm/safedns/values-production.yaml
 
+      - name: Capture migration job logs on failure
+        if: failure()
+        run: |
+          echo "=== Migration Job Status ==="
+          kubectl get job -n nebula-dns -l app.kubernetes.io/component=db-migration -o wide || true
+          echo "=== Migration Pod Logs ==="
+          kubectl logs -n nebula-dns -l app.kubernetes.io/component=db-migration --tail=200 --prefix || true
+          echo "=== Migration Pod Events ==="
+          kubectl describe pod -n nebula-dns -l app.kubernetes.io/component=db-migration 2>&1 | tail -40 || true
+
       - name: Verify deployments
         run: |
           kubectl rollout status deployment/api -n nebula-dns --timeout=5m
