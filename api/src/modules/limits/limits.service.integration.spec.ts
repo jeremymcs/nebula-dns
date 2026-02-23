@@ -7,9 +7,12 @@ import { ConfigModule } from '@nestjs/config';
 import { LimitsService } from './limits.service';
 import { Tenant } from '../tenants/entities/tenant.entity';
 import { Location } from '../locations/entities/location.entity';
+import { LocationToken } from '../locations/entities/location-token.entity';
 import { FamilyMember } from '../family/entities/family-member.entity';
 import { SubscriptionPlan } from '../subscriptions/entities/subscription-plan.entity';
 import { Subscription } from '../subscriptions/entities/subscription.entity';
+import { Policy } from '../policies/entities/policy.entity';
+import { PolicyVersion } from '../policies/entities/policy-version.entity';
 import { RedisService } from '../redis/redis.service';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -48,9 +51,12 @@ describe('LimitsService Integration', () => {
           entities: [
             Tenant,
             Location,
+            LocationToken,
             FamilyMember,
             SubscriptionPlan,
             Subscription,
+            Policy,
+            PolicyVersion,
           ],
           synchronize: true,
           dropSchema: true,
