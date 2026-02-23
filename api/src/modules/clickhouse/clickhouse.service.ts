@@ -152,6 +152,8 @@ export class ClickHouseService implements OnModuleInit {
     try {
       // Try a simple ping query to check connection
       await this.client.query({ query: 'SELECT 1', format: 'JSONEachRow' });
+      // Re-run schema init in case it failed on first connect
+      await this.initializeSchema();
       this.isConnected = true;
       this.consecutiveFailures = 0;
       this.logger.log('ClickHouse reconnection successful');
@@ -244,7 +246,7 @@ export class ClickHouseService implements OnModuleInit {
         ) ENGINE = MergeTree()
         PARTITION BY toYYYYMMDD(timestamp)
         ORDER BY (tenant_id, timestamp)
-        TTL timestamp + INTERVAL 90 DAY
+        TTL toDateTime(timestamp) + INTERVAL 90 DAY
       `,
     });
 

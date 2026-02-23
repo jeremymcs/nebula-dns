@@ -14,7 +14,7 @@ import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { RedisService } from '../redis/redis.service';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ALL_TEST_ENTITIES } from '../../test/all-entities';
+import { ALL_TEST_ENTITIES } from '../../../test/all-entities';
 
 /**
  * SubscriptionLapseService Integration Tests

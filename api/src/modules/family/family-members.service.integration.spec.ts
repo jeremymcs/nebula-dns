@@ -12,7 +12,7 @@ import { EmailService } from '../email/email.service';
 import { LimitsService } from '../limits/limits.service';
 import { DataSource, Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ALL_TEST_ENTITIES } from '../../test/all-entities';
+import { ALL_TEST_ENTITIES } from '../../../test/all-entities';
 import {
   BadRequestException,
   ConflictException,
