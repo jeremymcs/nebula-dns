@@ -43,7 +43,9 @@ describe('FamilyMembersService Integration', () => {
 
   beforeAll(async () => {
     // Use DATABASE_URL from global Testcontainers setup
-    const databaseUrl = process.env.DATABASE_URL || 'postgresql://test:test@localhost:5432/nebula_test';
+    const databaseUrl =
+      process.env.DATABASE_URL ||
+      'postgresql://test:test@localhost:5432/nebula_test';
 
     module = await Test.createTestingModule({
       imports: [
@@ -284,7 +286,7 @@ describe('FamilyMembersService Integration', () => {
       // Get token from the invitation (we need to mock this since it's hashed)
       // For testing, we'll create a new invitation with a known token
       const testToken = 'test-token-12345';
-      const crypto = require('crypto');
+      const crypto = require('crypto'); // eslint-disable-line @typescript-eslint/no-var-requires
       const tokenHash = crypto
         .createHash('sha256')
         .update(testToken)
@@ -337,7 +339,7 @@ describe('FamilyMembersService Integration', () => {
       await tenantRepository.save(tenant);
 
       const testToken = 'expired-token-123';
-      const crypto = require('crypto');
+      const crypto = require('crypto'); // eslint-disable-line @typescript-eslint/no-var-requires
       const tokenHash = crypto
         .createHash('sha256')
         .update(testToken)
@@ -372,7 +374,7 @@ describe('FamilyMembersService Integration', () => {
       await tenantRepository.save(tenant);
 
       const testToken = 'used-token-123';
-      const crypto = require('crypto');
+      const crypto = require('crypto'); // eslint-disable-line @typescript-eslint/no-var-requires
       const tokenHash = crypto
         .createHash('sha256')
         .update(testToken)
@@ -425,7 +427,7 @@ describe('FamilyMembersService Integration', () => {
       await userRepository.save(existingUser);
 
       const testToken = 'test-token-123';
-      const crypto = require('crypto');
+      const crypto = require('crypto'); // eslint-disable-line @typescript-eslint/no-var-requires
       const tokenHash = crypto
         .createHash('sha256')
         .update(testToken)
@@ -712,7 +714,7 @@ describe('FamilyMembersService Integration', () => {
       await tenantRepository.save(tenant);
 
       const testToken = 'test-token-123';
-      const crypto = require('crypto');
+      const crypto = require('crypto'); // eslint-disable-line @typescript-eslint/no-var-requires
       const tokenHash = crypto
         .createHash('sha256')
         .update(testToken)

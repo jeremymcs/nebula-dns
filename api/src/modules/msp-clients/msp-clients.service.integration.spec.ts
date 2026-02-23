@@ -42,7 +42,9 @@ describe('MspClientsService Integration', () => {
 
   beforeAll(async () => {
     // Use DATABASE_URL from global Testcontainers setup
-    const databaseUrl = process.env.DATABASE_URL || 'postgresql://test:test@localhost:5432/nebula_test';
+    const databaseUrl =
+      process.env.DATABASE_URL ||
+      'postgresql://test:test@localhost:5432/nebula_test';
 
     module = await Test.createTestingModule({
       imports: [

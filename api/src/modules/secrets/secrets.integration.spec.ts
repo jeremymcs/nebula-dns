@@ -66,7 +66,7 @@ describe('SecretsService Integration Tests', () => {
           SecretsManagerClient,
           CreateSecretCommand,
           PutSecretValueCommand,
-        } = require('@aws-sdk/client-secrets-manager');
+        } = require('@aws-sdk/client-secrets-manager'); // eslint-disable-line @typescript-eslint/no-var-requires
 
         awsSecretsManager = new SecretsManagerClient({
           region: LOCALSTACK_REGION,
@@ -213,7 +213,7 @@ describe('SecretsService Integration Tests', () => {
 
       // Set up Vault client
       try {
-        const vault = require('node-vault');
+        const vault = require('node-vault'); // eslint-disable-line @typescript-eslint/no-var-requires
         vaultClient = vault({
           endpoint: VAULT_ADDR,
           token: VAULT_TOKEN,

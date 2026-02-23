@@ -84,16 +84,18 @@ func (h *Handlers) Ready(w http.ResponseWriter, r *http.Request) {
 
 	// Verify Redis connectivity via cache
 	ctx := r.Context()
-	if err := h.cache.Ping(ctx); err != nil {
-		h.logger.Warn("Redis connectivity check failed", zap.Error(err))
-		w.WriteHeader(http.StatusServiceUnavailable)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"ready":     false,
-			"reason":    "redis unavailable",
-			"error":     err.Error(),
-			"timestamp": time.Now().UTC().Format(time.RFC3339),
-		})
-		return
+	if h.cache != nil {
+		if err := h.cache.Ping(ctx); err != nil {
+			h.logger.Warn("Redis connectivity check failed", zap.Error(err))
+			w.WriteHeader(http.StatusServiceUnavailable)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"ready":     false,
+				"reason":    "redis unavailable",
+				"error":     err.Error(),
+				"timestamp": time.Now().UTC().Format(time.RFC3339),
+			})
+			return
+		}
 	}
 
 	w.WriteHeader(http.StatusOK)

@@ -39,13 +39,11 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
     });
 
     it('should require authentication for creating user', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/users')
-        .send({
-          email: 'newuser@example.com',
-          name: 'New User',
-          role: 'readonly',
-        });
+      const response = await request(app.getHttpServer()).post('/users').send({
+        email: 'newuser@example.com',
+        name: 'New User',
+        role: 'readonly',
+      });
       expect(response.status).toBe(401);
     });
 
@@ -57,7 +55,9 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
     });
 
     it('should require authentication for deleting user', async () => {
-      const response = await request(app.getHttpServer()).delete('/users/test-id');
+      const response = await request(app.getHttpServer()).delete(
+        '/users/test-id',
+      );
       expect(response.status).toBe(401);
     });
   });
@@ -71,13 +71,13 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .get('/users')
           .set('Authorization', `Bearer ${token}`);
 
         expect([200, 404]).toContain(response.status);
-        
+
         if (response.status === 200) {
           expect(response.body).toHaveProperty('data');
           expect(response.body).toHaveProperty('pagination');
@@ -92,13 +92,13 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .get('/users?limit=5')
           .set('Authorization', `Bearer ${token}`);
 
         expect([200, 404]).toContain(response.status);
-        
+
         if (response.status === 200) {
           expect(response.body.data).toBeInstanceOf(Array);
         }
@@ -112,7 +112,7 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .get('/users?limit=-1')
           .set('Authorization', `Bearer ${token}`);
@@ -131,7 +131,7 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/users')
           .set('Authorization', `Bearer ${token}`)
@@ -153,7 +153,7 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/users')
           .set('Authorization', `Bearer ${token}`)
@@ -174,7 +174,7 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/users')
           .set('Authorization', `Bearer ${token}`)
@@ -195,7 +195,7 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         // Try to create user with existing email
         const response = await request(app.getHttpServer())
           .post('/users')
@@ -219,7 +219,7 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         // First get list of users
         const listResponse = await request(app.getHttpServer())
           .get('/users')
@@ -227,7 +227,7 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
         if (listResponse.status === 200 && listResponse.body.data?.length > 0) {
           const userId = listResponse.body.data[0].id;
-          
+
           const updateResponse = await request(app.getHttpServer())
             .patch(`/users/${userId}`)
             .set('Authorization', `Bearer ${token}`)
@@ -245,7 +245,7 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .patch('/users/non-existent-id')
           .set('Authorization', `Bearer ${token}`)
@@ -264,7 +264,7 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .delete('/users/test-id')
           .set('Authorization', `Bearer ${token}`);
@@ -281,7 +281,7 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         // Get current user ID from token context
         const response = await request(app.getHttpServer())
           .get('/users')
@@ -289,9 +289,9 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
         if (response.status === 200 && response.body.data?.length > 0) {
           const currentUser = response.body.data.find(
-            (u: any) => u.email === 'admin@example.com'
+            (u: any) => u.email === 'admin@example.com',
           );
-          
+
           if (currentUser) {
             const deleteResponse = await request(app.getHttpServer())
               .delete(`/users/${currentUser.id}`)
@@ -312,7 +312,7 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/users/test-id/suspend')
           .set('Authorization', `Bearer ${token}`);
@@ -328,7 +328,7 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/users/test-id/reactivate')
           .set('Authorization', `Bearer ${token}`);
@@ -340,8 +340,9 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
   describe('Impersonation - Start Session', () => {
     it('should require admin auth to start impersonation', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/admin/impersonate/test-tenant-id');
+      const response = await request(app.getHttpServer()).post(
+        '/admin/impersonate/test-tenant-id',
+      );
 
       expect(response.status).toBe(401);
     });
@@ -354,7 +355,7 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const userToken = loginResponse.body.accessToken;
-        
+
         // Try to use admin impersonation endpoint with user token
         const response = await request(app.getHttpServer())
           .post('/admin/impersonate/test-tenant-id')
@@ -372,7 +373,7 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/admin/impersonate/non-existent-tenant-id')
           .set('Authorization', `Bearer ${token}`);
@@ -384,8 +385,9 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
   describe('Impersonation - End Session', () => {
     it('should require authentication to end impersonation', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/admin/impersonate/end');
+      const response = await request(app.getHttpServer()).post(
+        '/admin/impersonate/end',
+      );
 
       expect(response.status).toBe(401);
     });
@@ -397,7 +399,7 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         // Regular token should not be an impersonation token
         const response = await request(app.getHttpServer())
           .post('/admin/impersonate/end')
@@ -415,15 +417,16 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
       // 1. Start impersonation as admin
       // 2. Query audit logs for admin_impersonation_start event
       // 3. Verify the event contains correct admin and tenant info
-      
+
       const loginResponse = await request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'admin@example.com', password: 'AdminPassword123!' });
 
       if (loginResponse.status === 200) {
         // Audit logging exists - verify endpoint requires auth
-        const auditResponse = await request(app.getHttpServer())
-          .get('/audit-logs?action=admin_impersonation_start');
+        const auditResponse = await request(app.getHttpServer()).get(
+          '/audit-logs?action=admin_impersonation_start',
+        );
 
         expect(auditResponse.status).toBe(401);
       }
@@ -438,13 +441,13 @@ describe('Admin E2E Tests - User Management and Impersonation', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .get('/users/me')
           .set('Authorization', `Bearer ${token}`);
 
         expect([200, 404]).toContain(response.status);
-        
+
         if (response.status === 200) {
           expect(response.body).toHaveProperty('email');
           expect(response.body).toHaveProperty('role');

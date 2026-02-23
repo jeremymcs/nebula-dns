@@ -6,17 +6,28 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { AlertingService } from './alerting.service';
 import { AlertConfig } from './entities/alert-config.entity';
-import { AlertSeverity, AlertEventType } from './interfaces/alert-provider.interface';
+import {
+  AlertSeverity,
+  AlertEventType,
+} from './interfaces/alert-provider.interface';
 
 // Mock the encryption module
 jest.mock('../../config/encryption.config', () => ({
-  getEncryptionKey: jest.fn().mockReturnValue('test-encryption-key-for-alerting'),
+  getEncryptionKey: jest
+    .fn()
+    .mockReturnValue('test-encryption-key-for-alerting'),
 }));
 
 jest.mock('../../common/utils/encryption.util', () => ({
   encrypt: jest.fn().mockImplementation((text: string) => `encrypted_${text}`),
-  decrypt: jest.fn().mockImplementation((text: string) => text.replace('encrypted_', '')),
-  deriveKey: jest.fn().mockImplementation((key: string, salt: string) => Buffer.from(`${key}_${salt}`)),
+  decrypt: jest
+    .fn()
+    .mockImplementation((text: string) => text.replace('encrypted_', '')),
+  deriveKey: jest
+    .fn()
+    .mockImplementation((key: string, salt: string) =>
+      Buffer.from(`${key}_${salt}`),
+    ),
 }));
 
 describe('AlertingService', () => {
@@ -24,21 +35,22 @@ describe('AlertingService', () => {
   let alertConfigRepository: any;
 
   const mockAlertConfig: Required<AlertConfig> = {
-  id: 'alert-config-123',
-  name: 'Test Slack',
-  providerType: 'slack',
-  isEnabled: true,
-  severityFilter: ['critical', 'error'],
-  eventTypes: ['system_health', 'billing'],
-  configEncrypted: {
-    webhookUrl: 'encrypted_https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
-  },
-  errorCount: 0,
-  lastSentAt: null,
-  lastError: null,
-  createdAt: new Date('2026-01-01'),
-  updatedAt: new Date('2026-01-01'),
-} as Required<AlertConfig>;
+    id: 'alert-config-123',
+    name: 'Test Slack',
+    providerType: 'slack',
+    isEnabled: true,
+    severityFilter: ['critical', 'error'],
+    eventTypes: ['system_health', 'billing'],
+    configEncrypted: {
+      webhookUrl:
+        'encrypted_https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
+    },
+    errorCount: 0,
+    lastSentAt: null,
+    lastError: null,
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-01'),
+  } as Required<AlertConfig>;
 
   const mockRepository = {
     create: jest.fn(),
@@ -69,7 +81,8 @@ describe('AlertingService', () => {
     it('should create Slack alert config with encrypted webhook URL', async () => {
       const createDto = {
         name: 'Production Slack',
-        webhookUrl: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
+        webhookUrl:
+          'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
         severityFilter: ['critical', 'error'] as AlertSeverity[],
         eventTypes: ['system_health'] as AlertEventType[],
       };
@@ -99,23 +112,29 @@ describe('AlertingService', () => {
         webhookUrl: 'https://example.com/webhook', // Not a Slack URL
       };
 
-      await expect(service.createSlack(createDto)).rejects.toThrow(BadRequestException);
+      await expect(service.createSlack(createDto)).rejects.toThrow(
+        BadRequestException,
+      );
       expect(mockRepository.create).not.toHaveBeenCalled();
     });
 
     it('should throw BadRequestException for non-HTTPS Slack webhook URL', async () => {
       const createDto = {
         name: 'Non-HTTPS Slack',
-        webhookUrl: 'http://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
+        webhookUrl:
+          'http://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
       };
 
-      await expect(service.createSlack(createDto)).rejects.toThrow(BadRequestException);
+      await expect(service.createSlack(createDto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should use default severity filter when not provided', async () => {
       const createDto = {
         name: 'Slack without severity',
-        webhookUrl: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
+        webhookUrl:
+          'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
       };
 
       mockRepository.create.mockImplementation((data) => data);
@@ -164,7 +183,9 @@ describe('AlertingService', () => {
         routingKey: 'too-short', // Not 32 characters
       };
 
-      await expect(service.createPagerDuty(createDto)).rejects.toThrow(BadRequestException);
+      await expect(service.createPagerDuty(createDto)).rejects.toThrow(
+        BadRequestException,
+      );
       expect(mockRepository.create).not.toHaveBeenCalled();
     });
 
@@ -174,7 +195,9 @@ describe('AlertingService', () => {
         routingKey: 'a'.repeat(31),
       };
 
-      await expect(service.createPagerDuty(createDto)).rejects.toThrow(BadRequestException);
+      await expect(service.createPagerDuty(createDto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw BadRequestException for 33 character routing key', async () => {
@@ -183,7 +206,9 @@ describe('AlertingService', () => {
         routingKey: 'a'.repeat(33),
       };
 
-      await expect(service.createPagerDuty(createDto)).rejects.toThrow(BadRequestException);
+      await expect(service.createPagerDuty(createDto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should use default severity filter excluding warning', async () => {
@@ -209,8 +234,18 @@ describe('AlertingService', () => {
   describe('findAll', () => {
     it('should return all alert configs ordered by createdAt descending', async () => {
       const configs = [
-        { ...mockAlertConfig, id: 'config-1', name: 'First Config', createdAt: new Date('2026-01-02') },
-        { ...mockAlertConfig, id: 'config-2', name: 'Second Config', createdAt: new Date('2026-01-01') },
+        {
+          ...mockAlertConfig,
+          id: 'config-1',
+          name: 'First Config',
+          createdAt: new Date('2026-01-02'),
+        },
+        {
+          ...mockAlertConfig,
+          id: 'config-2',
+          name: 'Second Config',
+          createdAt: new Date('2026-01-01'),
+        },
       ];
 
       mockRepository.find.mockResolvedValue(configs);
@@ -259,7 +294,9 @@ describe('AlertingService', () => {
     it('should throw NotFoundException for non-existent config', async () => {
       mockRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.findOne('non-existent')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('non-existent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -287,7 +324,9 @@ describe('AlertingService', () => {
       mockRepository.findOne.mockResolvedValue({ ...mockAlertConfig });
       mockRepository.save.mockImplementation((data) => Promise.resolve(data));
 
-      const result = await service.update(mockAlertConfig.id, { name: 'Updated Name' });
+      const result = await service.update(mockAlertConfig.id, {
+        name: 'Updated Name',
+      });
 
       expect(result.name).toBe('Updated Name');
       expect(mockRepository.save).toHaveBeenCalled();
@@ -297,7 +336,9 @@ describe('AlertingService', () => {
       mockRepository.findOne.mockResolvedValue({ ...mockAlertConfig });
       mockRepository.save.mockImplementation((data) => Promise.resolve(data));
 
-      const result = await service.update(mockAlertConfig.id, { isEnabled: false });
+      const result = await service.update(mockAlertConfig.id, {
+        isEnabled: false,
+      });
 
       expect(result.isEnabled).toBe(false);
     });
@@ -321,7 +362,11 @@ describe('AlertingService', () => {
         eventTypes: ['billing', 'security', 'system_health'],
       });
 
-      expect(result.eventTypes).toEqual(['billing', 'security', 'system_health']);
+      expect(result.eventTypes).toEqual([
+        'billing',
+        'security',
+        'system_health',
+      ]);
     });
 
     it('should throw NotFoundException for non-existent config', async () => {
@@ -355,13 +400,18 @@ describe('AlertingService', () => {
     it('should throw NotFoundException for non-existent config', async () => {
       mockRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.enable('non-existent')).rejects.toThrow(NotFoundException);
+      await expect(service.enable('non-existent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
   describe('disable', () => {
     it('should disable alert config', async () => {
-      mockRepository.findOne.mockResolvedValue({ ...mockAlertConfig, isEnabled: true });
+      mockRepository.findOne.mockResolvedValue({
+        ...mockAlertConfig,
+        isEnabled: true,
+      });
       mockRepository.save.mockImplementation((data) => Promise.resolve(data));
 
       const result = await service.disable(mockAlertConfig.id);
@@ -372,7 +422,9 @@ describe('AlertingService', () => {
     it('should throw NotFoundException for non-existent config', async () => {
       mockRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.disable('non-existent')).rejects.toThrow(NotFoundException);
+      await expect(service.disable('non-existent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -388,7 +440,9 @@ describe('AlertingService', () => {
     it('should throw NotFoundException for non-existent config', async () => {
       mockRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.delete('non-existent')).rejects.toThrow(NotFoundException);
+      await expect(service.delete('non-existent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -400,7 +454,9 @@ describe('AlertingService', () => {
 
       expect(result.config).toBeDefined();
       expect(result.decrypted).toBeDefined();
-      expect(result.decrypted.webhookUrl).toBe('https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX');
+      expect(result.decrypted.webhookUrl).toBe(
+        'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX',
+      );
     });
 
     it('should handle decryption errors gracefully', async () => {
@@ -437,7 +493,10 @@ describe('AlertingService', () => {
 
   describe('updateDeliveryStatus', () => {
     it('should update status on successful delivery', async () => {
-      mockRepository.findOne.mockResolvedValue({ ...mockAlertConfig, errorCount: 3 });
+      mockRepository.findOne.mockResolvedValue({
+        ...mockAlertConfig,
+        errorCount: 3,
+      });
       mockRepository.save.mockImplementation((data) => Promise.resolve(data));
 
       await service.updateDeliveryStatus(mockAlertConfig.id, true);
@@ -449,10 +508,17 @@ describe('AlertingService', () => {
     });
 
     it('should increment error count on failed delivery', async () => {
-      mockRepository.findOne.mockResolvedValue({ ...mockAlertConfig, errorCount: 3 });
+      mockRepository.findOne.mockResolvedValue({
+        ...mockAlertConfig,
+        errorCount: 3,
+      });
       mockRepository.save.mockImplementation((data) => Promise.resolve(data));
 
-      await service.updateDeliveryStatus(mockAlertConfig.id, false, 'Network error');
+      await service.updateDeliveryStatus(
+        mockAlertConfig.id,
+        false,
+        'Network error',
+      );
 
       const saveCall = mockRepository.save.mock.calls[0][0];
       expect(saveCall.errorCount).toBe(4);
@@ -460,10 +526,17 @@ describe('AlertingService', () => {
     });
 
     it('should auto-disable after 10 consecutive failures', async () => {
-      mockRepository.findOne.mockResolvedValue({ ...mockAlertConfig, errorCount: 9 });
+      mockRepository.findOne.mockResolvedValue({
+        ...mockAlertConfig,
+        errorCount: 9,
+      });
       mockRepository.save.mockImplementation((data) => Promise.resolve(data));
 
-      await service.updateDeliveryStatus(mockAlertConfig.id, false, 'Persistent error');
+      await service.updateDeliveryStatus(
+        mockAlertConfig.id,
+        false,
+        'Persistent error',
+      );
 
       const saveCall = mockRepository.save.mock.calls[0][0];
       expect(saveCall.errorCount).toBe(10);

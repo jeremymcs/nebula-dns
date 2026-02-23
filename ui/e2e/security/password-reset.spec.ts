@@ -40,7 +40,7 @@ test.describe('Password Reset - Request', () => {
     
     // Either shows error or input is marked invalid
     const emailInput = page.getByLabel(/email/i)
-    const isInvalid = await emailInput.isInvalid()
+    const isInvalid = await emailInput.evaluate(el => el.getAttribute('aria-invalid') === 'true')
     
     expect(hasError || isInvalid).toBeTruthy()
   })
@@ -59,7 +59,7 @@ test.describe('Password Reset - Request', () => {
     const hasError = await errorMessage.isVisible({ timeout: 3000 }).catch(() => false)
     
     // Or input should be invalid
-    const isInvalid = await emailInput.isInvalid()
+    const isInvalid = await emailInput.evaluate(el => el.getAttribute('aria-invalid') === 'true')
     
     expect(hasError || isInvalid).toBeTruthy()
   })
@@ -196,7 +196,7 @@ test.describe('Password Reset - Email Link', () => {
       
       // Should show error
       const passwordInput = page.getByLabel(/new.*password/i)
-      const isInvalid = await passwordInput.isInvalid()
+      const isInvalid = await passwordInput.evaluate(el => el.getAttribute('aria-invalid') === 'true')
       
       const errorMessage = page.getByText(/required|enter.*password|password.*required/i)
       const hasError = await errorMessage.isVisible({ timeout: 2000 }).catch(() => false)
@@ -225,7 +225,7 @@ test.describe('Password Reset - Email Link', () => {
       
       // Or confirm field should be invalid
       const confirmInput = page.getByLabel(/confirm.*password/i)
-      const isInvalid = await confirmInput.isInvalid()
+      const isInvalid = await confirmInput.evaluate(el => el.getAttribute('aria-invalid') === 'true')
       
       expect(hasError || isInvalid).toBeTruthy()
     }
@@ -249,7 +249,7 @@ test.describe('Password Reset - Email Link', () => {
       const hasError = await errorMessage.isVisible({ timeout: 2000 }).catch(() => false)
       
       // Either shows strength meter or validation error
-      expect(hasStrength || hasError || (await passwordInput.isInvalid())).toBeTruthy()
+      expect(hasStrength || hasError || (await passwordInput.evaluate(el => el.getAttribute('aria-invalid') === 'true'))).toBeTruthy()
     }
   })
 

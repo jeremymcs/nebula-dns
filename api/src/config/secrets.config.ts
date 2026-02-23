@@ -71,11 +71,10 @@ async function getSecretFromAWS(
   versionStage?: string,
 ): Promise<Record<string, string> | undefined> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const {
       SecretsManagerClient,
       GetSecretValueCommand,
-    } = require('@aws-sdk/client-secrets-manager');
+    } = require('@aws-sdk/client-secrets-manager'); // eslint-disable-line @typescript-eslint/no-var-requires
 
     const client = new SecretsManagerClient({ region });
     const command = new GetSecretValueCommand({
