@@ -111,10 +111,10 @@ describe('FamilyMembersService Integration', () => {
   });
 
   beforeEach(async () => {
-    // Clear database
-    await invitationRepository.delete({});
-    await userRepository.delete({});
-    await tenantRepository.delete({});
+    // Clear database (use clear() - delete({}) disallowed with empty criteria in TypeORM v0.3+)
+    await invitationRepository.clear();
+    await userRepository.clear();
+    await tenantRepository.clear();
     jest.clearAllMocks();
   });
 
