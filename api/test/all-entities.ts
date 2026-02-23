@@ -17,7 +17,7 @@ import { AccessRequest } from '../src/modules/block-pages/entities/access-reques
 import { BlockPage } from '../src/modules/block-pages/entities/block-page.entity';
 import { FamilyInvitation } from '../src/modules/family/entities/family-invitation.entity';
 import { FamilyMember } from '../src/modules/family/entities/family-member.entity';
-import { Group } from '../src/modules/groups/entities/group.entity';
+import { UserGroup } from '../src/modules/groups/entities/group.entity';
 import { Invitation } from '../src/modules/invitations/entities/invitation.entity';
 import { CustomList } from '../src/modules/lists/entities/custom-list.entity';
 import { CustomListEntry } from '../src/modules/lists/entities/custom-list-entry.entity';
@@ -52,7 +52,7 @@ import { TrialHistory } from '../src/modules/trials/entities/trial-history.entit
 import { User } from '../src/modules/users/entities/user.entity';
 import { Webhook } from '../src/modules/webhooks/entities/webhook.entity';
 import { WebhookDelivery } from '../src/modules/webhooks/entities/webhook-delivery.entity';
-import { WebhookIdempotency } from '../src/modules/webhooks/entities/webhook-idempotency.entity';
+import { WebhookIdempotencyKey } from '../src/modules/webhooks/entities/webhook-idempotency.entity';
 
 export const ALL_TEST_ENTITIES = [
   Admin,
@@ -68,7 +68,7 @@ export const ALL_TEST_ENTITIES = [
   BlockPage,
   FamilyInvitation,
   FamilyMember,
-  Group,
+  UserGroup,
   Invitation,
   CustomList,
   CustomListEntry,
@@ -103,5 +103,5 @@ export const ALL_TEST_ENTITIES = [
   User,
   Webhook,
   WebhookDelivery,
-  WebhookIdempotency,
+  WebhookIdempotencyKey,
 ];
