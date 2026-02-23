@@ -1,0 +1,40 @@
+# Nebula DNS - ingress-nginx Helm Values
+# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+
+controller:
+  service:
+    type: LoadBalancer
+    annotations:
+      # DigitalOcean load balancer annotations
+      service.beta.kubernetes.io/do-loadbalancer-name: "nebula-dns-ingress"
+      service.beta.kubernetes.io/do-loadbalancer-protocol: "tcp"
+      service.beta.kubernetes.io/do-loadbalancer-healthcheck-path: "/healthz"
+      service.beta.kubernetes.io/do-loadbalancer-healthcheck-port: "10254"
+      service.beta.kubernetes.io/do-loadbalancer-healthcheck-protocol: "http"
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  config:
+    use-forwarded-headers: "true"
+    compute-full-forwarded-for: "true"
+    use-proxy-protocol: "false"
+
+  replicaCount: 2
+
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - ingress-nginx
+          topologyKey: kubernetes.io/hostname

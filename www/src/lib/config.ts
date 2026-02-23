@@ -3,4 +3,4 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4010'
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:4011'
+export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.nebuladns.io'

@@ -56,20 +56,17 @@ Gather these credentials (you'll need them in Phase 4):
 
 | Service | Where to Get | Keys Needed |
 |---------|-------------|-------------|
-| **Stripe** | https://dashboard.stripe.com/apikeys | Secret key (`sk_live_...`), Webhook secret (`whsec_...`) |
-| **SendGrid** | https://app.sendgrid.com/settings/api_keys | API key (`SG.xxx`) |
-| **Sentry** | https://sentry.io → Project Settings → Client Keys | DSN (`https://xxx@sentry.io/xxx`) |
+| **Stripe** | https://dashboard.stripe.com/apikeys | ✅ Have pub + secret key — need webhook secret (`whsec_...`) after deploying |
+| **SendGrid** | https://app.sendgrid.com/settings/api_keys | ✅ Have API key |
+| **Sentry** | https://sentry.io → Project Settings → Client Keys | ✅ Have DSN |
 
 ### 1.5 Domain Configuration
-1. Ensure `nebuladns.io` is registered
-2. Point nameservers to DigitalOcean:
-   - `ns1.digitalocean.com`
-   - `ns2.digitalocean.com`
-   - `ns3.digitalocean.com`
-3. Add the domain to your DigitalOcean account:
-   ```bash
-   doctl compute domain create nebuladns.io
-   ```
+DNS remains at **Cloudflare** — do NOT transfer nameservers to DigitalOcean.
+
+1. Ensure `nebuladns.io` is registered and Cloudflare is the authoritative DNS
+2. All DNS records (`app`, `api`, `admin`, `dns1`, `dns2`, `www`) will be created manually in Cloudflare (see Phase 12)
+3. **Do not** run `doctl compute domain create` — DigitalOcean DNS is not used
+4. **Do not** install `external-dns` with DigitalOcean provider — it will not manage these records
 
 ---
 
@@ -77,9 +74,9 @@ Gather these credentials (you'll need them in Phase 4):
 
 ### 2.1 Set Environment Variables
 ```bash
-export AWS_ACCESS_KEY_ID="your_spaces_access_key"
-export AWS_SECRET_ACCESS_KEY="your_spaces_secret_key"
-export DIGITALOCEAN_TOKEN="dop_v1_your_token"
+export AWS_ACCESS_KEY_ID="DO8012ZT4RCR7J9EAAW9"
+export AWS_SECRET_ACCESS_KEY="0hbw7jkbJYREoU7o8joiQGcrlcGF5Rhcti3anMVT7dY"
+export DIGITALOCEAN_TOKEN="dop_v1_86491adb384f2a5c2cae2d12fb09c6a6c2963139ee6b6a9dd96ef4a237661e08"
 ```
 
 ### 2.2 Configure Terraform Variables
@@ -91,7 +88,7 @@ cp terraform.tfvars.example terraform.tfvars
 Edit `terraform.tfvars` with your actual values:
 ```hcl
 # DigitalOcean
-do_token = "dop_v1_..."
+do_token = "dop_v1_86491adb384f2a5c2cae2d12fb09c6a6c2963139ee6b6a9dd96ef4a237661e08"
 
 # Region
 region = "nyc3"
@@ -100,9 +97,9 @@ region = "nyc3"
 environment = "production"
 
 # ClickHouse Cloud
-clickhouse_org_id       = "org_..."
-clickhouse_token_key    = "key_..."
-clickhouse_token_secret = "secret_..."
+clickhouse_org_id       = "a8f51311-c348-49d3-8d63-f83c7b18b2d8"
+clickhouse_token_key    = "yCeUVLN0iDKYas0IzVun"
+clickhouse_token_secret = "4b1d3e9GZLQtxJg32s43mF5f3DSlNojjjlkwSZXNoU"
 ```
 
 ### 2.3 Initialize and Apply
@@ -145,24 +142,42 @@ kubectl get nodes  # Should show 3 nodes in Ready state
 
 ## Phase 3: Install Kubernetes Operators (15-20 minutes)
 
-### 3.1 Install cert-manager and external-dns
+### 3.1 Install cert-manager
 ```bash
 cd infrastructure/kubernetes/operators
 ./install-operators.sh
 ```
 
 This installs:
-- **cert-manager** - Automates TLS certificate issuance via Let's Encrypt (DNS-01 challenge)
-- **external-dns** - Automatically creates DigitalOcean DNS records from Kubernetes resources
+- **cert-manager** - Automates TLS certificate issuance via Let's Encrypt (DNS-01 challenge via Cloudflare)
 - **ClusterIssuers** - `letsencrypt-staging` and `letsencrypt-prod`
 
-### 3.2 Verify Operators
+> **Note:** `external-dns` is NOT installed. DNS is managed in Cloudflare manually (see Phase 12).
+
+### 3.2 Configure cert-manager for Cloudflare DNS-01
+cert-manager needs a Cloudflare API token to complete DNS-01 challenges:
+
+```bash
+# Create Cloudflare API token secret for cert-manager
+kubectl -n cert-manager create secret generic cloudflare-api-token \
+  --from-literal=api-token='-2178wr3dfOe8kjL1s10J4T2sj9PGwPyzP20bcEC'
+```
+
+Ensure the ClusterIssuer references Cloudflare (not DigitalOcean):
+```yaml
+# In your ClusterIssuer spec:
+solvers:
+  - dns01:
+      cloudflare:
+        apiTokenSecretRef:
+          name: cloudflare-api-token
+          key: api-token
+```
+
+### 3.3 Verify Operators
 ```bash
 # cert-manager pods running
 kubectl get pods -n cert-manager
-
-# external-dns running
-kubectl get pods -n kube-system -l app=external-dns
 
 # ClusterIssuers ready
 kubectl get clusterissuer
@@ -206,22 +221,23 @@ This auto-generates:
 ```bash
 # Stripe
 kubectl -n nebula-dns create secret generic stripe-secrets \
-  --from-literal=secret-key='sk_live_...' \
+  --from-literal=public-key='pk_live_40QzKbfVdgeSngVVnCI1dBtUs6JMVxUgYOL4OS3NRFzI9XesnUGeueSVG49NvB9fzN5jKPm5pjBanv2PAGnVeZIyp00g0euAqu5' \
+  --from-literal=secret-key='sk_zutGTkiNRy62M9sxRIVIUnIk0M2HZ' \
   --from-literal=webhook-secret='whsec_...'
 
 # SendGrid
 kubectl -n nebula-dns create secret generic sendgrid-secrets \
-  --from-literal=api-key='SG.xxx'
+  --from-literal=api-key='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'
 
 # Sentry
 kubectl -n nebula-dns create secret generic sentry-secrets \
-  --from-literal=dsn='https://xxx@sentry.io/xxx'
+  --from-literal=dsn='https://67cbeb22d2bb88b33fe4537fe556339f@o4510930329600000.ingest.us.sentry.io/4510932037926912'
 ```
 
-### 4.3 Create DigitalOcean DNS Token (for cert-manager)
+### 4.3 Create Cloudflare API Token (for cert-manager DNS-01)
 ```bash
-kubectl -n cert-manager create secret generic digitalocean-dns \
-  --from-literal=access-token='dop_v1_your_token'
+kubectl -n cert-manager create secret generic cloudflare-api-token \
+  --from-literal=api-token='-2178wr3dfOe8kjL1s10J4T2sj9PGwPyzP20bcEC'
 ```
 
 ---
@@ -411,34 +427,41 @@ curl -s 'https://dns1.nebuladns.io/dns-query?name=google.com&type=A' \
 
 ---
 
-## Phase 12: DNS Records Verification (10 minutes)
+## Phase 12: DNS Records in Cloudflare (10 minutes)
 
-external-dns should auto-create these, but verify:
+DNS is managed in **Cloudflare** — records must be created manually in the Cloudflare dashboard or via the Cloudflare API. `external-dns` is not used.
 
-```
-app.nebuladns.io      A    → Ingress LoadBalancer IP
-api.nebuladns.io      A    → Ingress LoadBalancer IP
-admin.nebuladns.io    A    → Ingress LoadBalancer IP
-dns1.nebuladns.io     A    → dnsdist LB #1 IP
-dns2.nebuladns.io     A    → dnsdist LB #2 IP
-```
-
-Check with:
-```bash
-doctl compute domain records list nebuladns.io
-```
-
-If external-dns hasn't created them, add manually:
+### 12.1 Get IPs from Kubernetes
 ```bash
 INGRESS_IP=$(kubectl get svc -n nebula-dns nginx-ingress -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 DNS1_IP=$(kubectl get svc -n nebula-dns dnsdist-dns1 -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 DNS2_IP=$(kubectl get svc -n nebula-dns dnsdist-dns2 -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
-doctl compute domain records create nebuladns.io --record-type A --record-name app --record-data $INGRESS_IP
-doctl compute domain records create nebuladns.io --record-type A --record-name api --record-data $INGRESS_IP
-doctl compute domain records create nebuladns.io --record-type A --record-name admin --record-data $INGRESS_IP
-doctl compute domain records create nebuladns.io --record-type A --record-name dns1 --record-data $DNS1_IP
-doctl compute domain records create nebuladns.io --record-type A --record-name dns2 --record-data $DNS2_IP
+echo "Ingress: $INGRESS_IP"
+echo "DNS1:    $DNS1_IP"
+echo "DNS2:    $DNS2_IP"
+```
+
+### 12.2 Create Records in Cloudflare
+
+Go to **Cloudflare Dashboard → nebuladns.io → DNS → Records** and add:
+
+| Type | Name | Value | Proxy |
+|------|------|-------|-------|
+| A | `app` | `$INGRESS_IP` | DNS only (grey cloud) |
+| A | `api` | `$INGRESS_IP` | DNS only (grey cloud) |
+| A | `admin` | `$INGRESS_IP` | DNS only (grey cloud) |
+| A | `dns1` | `$DNS1_IP` | DNS only (grey cloud) — **must be unproxied** |
+| A | `dns2` | `$DNS2_IP` | DNS only (grey cloud) — **must be unproxied** |
+| CNAME | `www` | `nebula-dns-www.vercel.app` | Proxied or DNS only |
+
+> **Important:** `dns1` and `dns2` must be **DNS only** (not proxied). Cloudflare cannot proxy raw DNS (UDP/TCP port 53), DoT (853), or DoH in passthrough mode.
+
+### 12.3 Verify Records Resolve
+```bash
+dig app.nebuladns.io
+dig api.nebuladns.io
+dig dns1.nebuladns.io
 ```
 
 ---

@@ -4,6 +4,7 @@
 import type { Metadata } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import Link from 'next/link'
+import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { APP_URL } from '@/lib/config'
 
@@ -211,6 +212,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </footer>
 
         </div>
+        <Analytics />
       </body>
     </html>
   )
