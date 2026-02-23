@@ -15,17 +15,5 @@ maintainers:
 home: https://nebuladns.io
 sources:
   - https://github.com/fluxlabs/dns-filter
-dependencies:
-  - name: postgresql
-    version: "12.x.x"
-    repository: https://charts.bitnami.com/bitnami
-    condition: postgresql.enabled
-  - name: redis
-    version: "17.x.x"
-    repository: https://charts.bitnami.com/bitnami
-    condition: redis.enabled
-  - name: clickhouse
-    version: "4.x.x"
-    repository: https://charts.altinity.com
-    condition: clickhouse.enabled
+# No chart dependencies — PostgreSQL, Redis, and ClickHouse are managed external services
 
