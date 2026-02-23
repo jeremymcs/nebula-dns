@@ -9,7 +9,7 @@
 api:
   replicaCount: 2
   image:
-    repository: registry.digitalocean.com/nebula-dns/api
+    repository: registry.digitalocean.com/nebula-dns/nebula-dns-api
     pullPolicy: IfNotPresent
   env:
     NODE_ENV: production
@@ -25,7 +25,7 @@ api:
 ui:
   replicaCount: 2
   image:
-    repository: registry.digitalocean.com/nebula-dns/ui
+    repository: registry.digitalocean.com/nebula-dns/nebula-dns-ui
     pullPolicy: IfNotPresent
   env:
     API_URL: "http://nebula-dns-safedns-api.nebula-dns.svc.cluster.local:80"
@@ -39,7 +39,7 @@ adminUi:
   enabled: true
   replicaCount: 2
   image:
-    repository: registry.digitalocean.com/nebula-dns/admin-ui
+    repository: registry.digitalocean.com/nebula-dns/nebula-dns-admin-ui
     pullPolicy: IfNotPresent
   env:
     API_URL: "http://nebula-dns-safedns-api.nebula-dns.svc.cluster.local:80"
@@ -119,3 +119,21 @@ migrations:
 # Service Monitor
 serviceMonitor:
   enabled: false  # Enable after Prometheus is deployed
+
+# Policy Service - Production
+policySvc:
+  image:
+    repository: registry.digitalocean.com/nebula-dns/nebula-dns-policy-svc
+    pullPolicy: IfNotPresent
+
+# dnsdist - Production
+dnsdist:
+  image:
+    repository: registry.digitalocean.com/nebula-dns/nebula-dns-dnsdist
+    pullPolicy: IfNotPresent
+
+# Unbound - Production
+unbound:
+  image:
+    repository: registry.digitalocean.com/nebula-dns/nebula-dns-unbound
+    pullPolicy: IfNotPresent
