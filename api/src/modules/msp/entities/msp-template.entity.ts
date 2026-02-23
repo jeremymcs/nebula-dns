@@ -51,7 +51,7 @@ export class MspTemplate {
   @Column({ type: 'varchar', length: 100, nullable: true })
   category: string;
 
-  @Column({ type: 'varchar', array: true, default: [] })
+  @Column({ type: 'varchar', array: true, default: () => "'{}'" })
   tags: string[];
 
   @CreateDateColumn({ name: 'created_at' })

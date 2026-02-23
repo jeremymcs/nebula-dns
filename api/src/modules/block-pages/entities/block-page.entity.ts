@@ -51,8 +51,8 @@ export class BlockPage extends BaseEntity {
 
   @Column({
     type: 'text',
-    default:
-      "This website has been blocked by your organization's security policy.",
+    default: () =>
+      `'This website has been blocked by your organization''s security policy.'`,
   })
   message: string;
 

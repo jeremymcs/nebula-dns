@@ -79,6 +79,16 @@ describe('MspClientsService Integration', () => {
               limit: 50,
               remaining: 50,
             }),
+            getTenantLimits: jest.fn().mockResolvedValue({
+              tier: 'msp_professional',
+              clientLimit: 50,
+              locationLimit: null,
+              familyMemberLimit: null,
+              userLimit: null,
+              policyLimit: null,
+              customListLimit: null,
+              queriesPerMonth: null,
+            }),
             invalidateLimitsCache: jest.fn(),
           },
         },
@@ -113,10 +123,10 @@ describe('MspClientsService Integration', () => {
   });
 
   beforeEach(async () => {
-    // Clear database
-    await mspClientRepository.delete({});
-    await userRepository.delete({});
-    await tenantRepository.delete({});
+    // Clear database (children before parents to respect FK constraints)
+    await mspClientRepository.createQueryBuilder().delete().where('1=1').execute();
+    await userRepository.createQueryBuilder().delete().where('1=1').execute();
+    await tenantRepository.createQueryBuilder().delete().where('1=1').execute();
 
     // Clear mocks
     jest.clearAllMocks();
@@ -611,7 +621,7 @@ describe('MspClientsService Integration', () => {
   describe('Error handling', () => {
     it('should throw NotFoundException for non-existent MSP', async () => {
       await expect(
-        mspClientsService.create('non-existent-msp', {
+        mspClientsService.create('00000000-0000-0000-0000-000000000000', {
           name: 'Client',
           adminEmail: 'admin@client.com',
         }),

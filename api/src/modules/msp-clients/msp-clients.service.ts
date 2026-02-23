@@ -483,6 +483,8 @@ export class MspClientsService {
 
     // Optionally delete the client tenant
     if (deleteClient && mspClient.clientTenant) {
+      // Delete users first to satisfy FK constraints
+      await this.userRepository.delete({ tenantId: mspClient.clientTenant.id });
       await this.tenantRepository.remove(mspClient.clientTenant);
       this.logger.log(`Deleted client tenant ${clientTenantId}`);
     }
