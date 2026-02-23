@@ -92,9 +92,20 @@ describe('ClickHouse Integration Tests', () => {
       database: clickHouseDatabase,
     });
 
-    // Wait for service to become healthy (up to 15 seconds)
-    for (let i = 0; i < 30; i++) {
-      if (service.isHealthy()) break;
+    // Wait for service to become healthy AND for schema tables to be created (up to 30s)
+    for (let i = 0; i < 60; i++) {
+      if (service.isHealthy()) {
+        try {
+          const result = await client.query({
+            query: `SELECT count() FROM system.tables WHERE database = '${clickHouseDatabase}' AND name = 'query_logs'`,
+            format: 'JSONEachRow',
+          });
+          const rows = (await result.json()) as any[];
+          if (rows[0]?.['count()'] === '1' || rows[0]?.['count()'] === 1) break;
+        } catch {
+          // not ready yet
+        }
+      }
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
   });

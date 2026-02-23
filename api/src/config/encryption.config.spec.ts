@@ -41,6 +41,7 @@ describe('Encryption Configuration', () => {
       process.env.MFA_ENCRYPTION_KEY = 'this-is-a-valid-32-byte-test-key';
       process.env.SSO_ENCRYPTION_KEY = 'another-valid-32-byte-test-key!!';
       process.env.SIEM_ENCRYPTION_KEY = 'yet-another-valid-32-byte-key!!!';
+      process.env.ALERTING_ENCRYPTION_KEY = 'alerting-valid-32-byte-test-key';
 
       const status = getEncryptionConfigStatus();
 
@@ -56,6 +57,8 @@ describe('Encryption Configuration', () => {
       process.env.SSO_ENCRYPTION_KEY =
         'K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=';
       process.env.SIEM_ENCRYPTION_KEY =
+        'K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=';
+      process.env.ALERTING_ENCRYPTION_KEY =
         'K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=';
 
       const status = getEncryptionConfigStatus();
@@ -112,6 +115,7 @@ describe('Encryption Configuration', () => {
       process.env.MFA_ENCRYPTION_KEY = 'this-is-a-valid-32-byte-test-key';
       process.env.SSO_ENCRYPTION_KEY = 'another-valid-32-byte-test-key!!';
       process.env.SIEM_ENCRYPTION_KEY = 'yet-another-valid-32-byte-key!!!';
+      process.env.ALERTING_ENCRYPTION_KEY = 'alerting-valid-32-byte-test-key';
 
       expect(() => validateEncryptionConfig()).not.toThrow();
     });

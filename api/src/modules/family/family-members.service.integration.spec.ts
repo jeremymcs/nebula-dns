@@ -116,6 +116,28 @@ describe('FamilyMembersService Integration', () => {
     await invitationRepository.createQueryBuilder().delete().execute();
     await userRepository.createQueryBuilder().delete().execute();
     await tenantRepository.createQueryBuilder().delete().execute();
+
+    // Seed a tenant + owner user with known UUIDs so tests that create
+    // invitations directly (bypassing the service) have a valid invitedById FK.
+    const seedTenant = tenantRepository.create({
+      name: 'Seed Tenant',
+      slug: 'seed-tenant',
+      tier: 'home',
+    });
+    seedTenant.id = '00000000-0000-0000-0000-000000000000';
+    await tenantRepository.save(seedTenant);
+
+    const seedOwner = userRepository.create({
+      tenantId: seedTenant.id,
+      email: 'seed-owner@test.com',
+      name: 'Seed Owner',
+      passwordHash: await bcrypt.hash('password', 4),
+      role: 'owner',
+      status: 'active',
+    });
+    seedOwner.id = '00000000-0000-0000-0000-000000000001';
+    await userRepository.save(seedOwner);
+
     jest.clearAllMocks();
   });
 
