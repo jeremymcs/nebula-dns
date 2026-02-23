@@ -97,8 +97,8 @@ secrets:
 # Managed PostgreSQL via DigitalOcean
 postgresql:
   enabled: false  # Using managed DO PostgreSQL, not Helm-installed
-  host: "private-nebula-dns-pg-do-user-xxxxx.db.ondigitalocean.com"
-  port: 25060
+  host: "nebula-dns-production-pg-do-user-3535429-0.a.db.ondigitalocean.com"
+  port: 25061
 
 # Managed Valkey via DigitalOcean
 redis:
