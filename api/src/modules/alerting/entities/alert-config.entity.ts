@@ -40,7 +40,7 @@ export class AlertConfig extends BaseEntity {
     name: 'severity_filter',
     type: 'varchar',
     array: true,
-    default: ['critical', 'error'],
+    default: () => "'{\"critical\",\"error\"}'",
   })
   severityFilter: AlertSeverity[];
 
@@ -48,7 +48,7 @@ export class AlertConfig extends BaseEntity {
    * Which event types to send (empty = all types)
    * Default: [] (all types)
    */
-  @Column({ name: 'event_types', type: 'varchar', array: true, default: [] })
+  @Column({ name: 'event_types', type: 'varchar', array: true, default: () => "'{}'" })
   eventTypes: AlertEventType[];
 
   @Column({ name: 'last_sent_at', type: 'timestamptz', nullable: true })

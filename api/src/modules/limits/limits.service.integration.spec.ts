@@ -97,11 +97,11 @@ describe('LimitsService Integration', () => {
   });
 
   beforeEach(async () => {
-    // Clear database
-    await locationRepository.delete({});
-    await subscriptionRepository.delete({});
-    await tenantRepository.delete({});
-    await planRepository.delete({});
+    // Clear database (children before parents to respect FK constraints)
+    await locationRepository.createQueryBuilder().delete().where('1=1').execute();
+    await subscriptionRepository.createQueryBuilder().delete().where('1=1').execute();
+    await tenantRepository.createQueryBuilder().delete().where('1=1').execute();
+    await planRepository.createQueryBuilder().delete().where('1=1').execute();
 
     // Clear Redis mock cache
     mockRedisCache.clear();
@@ -114,6 +114,8 @@ describe('LimitsService Integration', () => {
       const freePlan = planRepository.create({
         id: 'free',
         name: 'Free',
+        priceMonthly: 0,
+        priceYearly: 0,
         limits: {
           locations: 1,
           queries_per_month: 100000,
@@ -147,6 +149,8 @@ describe('LimitsService Integration', () => {
       const freePlan = planRepository.create({
         id: 'free',
         name: 'Free',
+        priceMonthly: 0,
+        priceYearly: 0,
         limits: {
           locations: 1,
           queries_per_month: 100000,
@@ -187,6 +191,8 @@ describe('LimitsService Integration', () => {
       const proPlan = planRepository.create({
         id: 'pro',
         name: 'Pro',
+        priceMonthly: 9.99,
+        priceYearly: 99.99,
         limits: {
           locations: 10,
           queries_per_month: 10000000,
@@ -241,6 +247,8 @@ describe('LimitsService Integration', () => {
       const enterprisePlan = planRepository.create({
         id: 'enterprise',
         name: 'Enterprise',
+        priceMonthly: 29.99,
+        priceYearly: 299.99,
         limits: {
           locations: -1, // Unlimited
           queries_per_month: -1,
@@ -313,7 +321,7 @@ describe('LimitsService Integration', () => {
         slug: 'msp-tenant',
         plan: 'enterprise' as any,
         tier: 'msp',
-        clientLimit: 50,
+        settings: { limitOverrides: { clients: 50 } } as any,
       });
       await tenantRepository.save(mspTenant);
 
@@ -336,23 +344,24 @@ describe('LimitsService Integration', () => {
     });
 
     it('should block creating client when limit exceeded', async () => {
-      // Create MSP tenant with small limit
+      // Create MSP tenant with small limit (limit enforced via settings override)
       const mspTenant = tenantRepository.create({
         name: 'MSP Tenant',
         slug: 'msp-tenant',
         plan: 'enterprise' as any,
         tier: 'msp',
-        clientLimit: 2,
+        settings: { limitOverrides: { clients: 2 } } as any,
       });
       await tenantRepository.save(mspTenant);
 
-      // Create 2 client tenants
+      // Create 2 client tenants linked to MSP (counts toward the limit)
       for (let i = 0; i < 2; i++) {
         const client = tenantRepository.create({
           name: `Client ${i}`,
           slug: `client-${i}`,
           plan: 'pro',
           tier: 'enterprise',
+          managedByMspId: mspTenant.id,
         });
         await tenantRepository.save(client);
       }
@@ -370,6 +379,8 @@ describe('LimitsService Integration', () => {
       const plan = planRepository.create({
         id: 'pro',
         name: 'Pro',
+        priceMonthly: 9.99,
+        priceYearly: 99.99,
         limits: {
           locations: 10,
           queries_per_month: 10000000,
@@ -405,6 +416,8 @@ describe('LimitsService Integration', () => {
       const plan = planRepository.create({
         id: 'pro',
         name: 'Pro',
+        priceMonthly: 9.99,
+        priceYearly: 99.99,
         limits: {
           locations: 10,
           queries_per_month: 10000000,
@@ -464,6 +477,8 @@ describe('LimitsService Integration', () => {
       const plan = planRepository.create({
         id: 'pro',
         name: 'Pro',
+        priceMonthly: 9.99,
+        priceYearly: 99.99,
         limits: {
           locations: 5,
           queries_per_month: 10000000,
@@ -503,6 +518,8 @@ describe('LimitsService Integration', () => {
       const plan = planRepository.create({
         id: 'enterprise',
         name: 'Enterprise',
+        priceMonthly: 29.99,
+        priceYearly: 299.99,
         limits: {
           locations: -1,
           queries_per_month: -1,
@@ -534,6 +551,8 @@ describe('LimitsService Integration', () => {
       const plan = planRepository.create({
         id: 'pro',
         name: 'Pro',
+        priceMonthly: 9.99,
+        priceYearly: 99.99,
         limits: {
           locations: 10,
           queries_per_month: 10000000,
@@ -567,9 +586,10 @@ describe('LimitsService Integration', () => {
 
   describe('Error handling', () => {
     it('should throw NotFoundException for non-existent tenant', async () => {
+      const nonExistentId = '00000000-0000-0000-0000-000000000000';
       await expect(
-        limitsService.getTenantLimits('non-existent-id'),
-      ).rejects.toThrow('Tenant non-existent-id not found');
+        limitsService.getTenantLimits(nonExistentId),
+      ).rejects.toThrow(`Tenant ${nonExistentId} not found`);
     });
 
     it('should provide helpful upgrade message in exception', async () => {
@@ -577,6 +597,8 @@ describe('LimitsService Integration', () => {
       const freePlan = planRepository.create({
         id: 'free',
         name: 'Free',
+        priceMonthly: 0,
+        priceYearly: 0,
         limits: {
           locations: 1,
           queries_per_month: 100000,
@@ -609,8 +631,9 @@ describe('LimitsService Integration', () => {
         fail('Should have thrown LimitExceededException');
       } catch (error) {
         expect(error).toBeInstanceOf(LimitExceededException);
-        expect(error.upgradeMessage).toContain('Upgrade');
-        expect(error.tier).toBe('free');
+        const details = (error as LimitExceededException).getDetails();
+        expect(details.upgradeMessage).toContain('Upgrade');
+        expect(details.tier).toBe('free');
       }
     });
   });

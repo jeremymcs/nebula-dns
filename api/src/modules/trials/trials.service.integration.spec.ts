@@ -8,6 +8,7 @@ import { TrialsService } from './trials.service';
 import { TrialHistory, TrialStatus } from './entities/trial-history.entity';
 import { Tenant, TenantTier } from '../tenants/entities/tenant.entity';
 import { Subscription } from '../subscriptions/entities/subscription.entity';
+import { SubscriptionPlan } from '../subscriptions/entities/subscription-plan.entity';
 import { EmailService } from '../email/email.service';
 import { PaymentsService } from '../payments/payments.service';
 import { Repository } from 'typeorm';
@@ -32,6 +33,7 @@ describe('TrialsService Integration', () => {
   let trialHistoryRepository: Repository<TrialHistory>;
   let tenantRepository: Repository<Tenant>;
   let subscriptionRepository: Repository<Subscription>;
+  let subscriptionPlanRepository: Repository<SubscriptionPlan>;
   let emailService: EmailService;
   let paymentsService: PaymentsService;
 
@@ -51,7 +53,7 @@ describe('TrialsService Integration', () => {
           dropSchema: true,
           ssl: false,
         }),
-        TypeOrmModule.forFeature([TrialHistory, Tenant, Subscription]),
+        TypeOrmModule.forFeature([TrialHistory, Tenant, Subscription, SubscriptionPlan]),
       ],
       providers: [
         TrialsService,
@@ -87,7 +89,16 @@ describe('TrialsService Integration', () => {
     trialHistoryRepository = module.get(getRepositoryToken(TrialHistory));
     tenantRepository = module.get(getRepositoryToken(Tenant));
     subscriptionRepository = module.get(getRepositoryToken(Subscription));
+    subscriptionPlanRepository = module.get(getRepositoryToken(SubscriptionPlan));
     emailService = module.get<EmailService>(EmailService);
+
+    // Seed plans required by subscription FK
+    const planBase = { currency: 'USD', features: { dns_filtering: true }, limits: { locations: 1, queries_per_month: 10000, users: 1, policies: 1, custom_lists: 0 } };
+    await subscriptionPlanRepository.save([
+      subscriptionPlanRepository.create({ id: 'free', name: 'Free', priceMonthly: 0, priceYearly: 0, ...planBase }),
+      subscriptionPlanRepository.create({ id: 'pro', name: 'Pro', priceMonthly: 9.99, priceYearly: 99.99, ...planBase }),
+      subscriptionPlanRepository.create({ id: 'enterprise', name: 'Enterprise', priceMonthly: 29.99, priceYearly: 299.99, ...planBase }),
+    ]);
     paymentsService = module.get<PaymentsService>(PaymentsService);
   });
 
@@ -98,10 +109,10 @@ describe('TrialsService Integration', () => {
   });
 
   beforeEach(async () => {
-    // Clear database
-    await trialHistoryRepository.delete({});
-    await subscriptionRepository.delete({});
-    await tenantRepository.delete({});
+    // Clear database (delete children before parents to respect FK constraints)
+    await trialHistoryRepository.createQueryBuilder().delete().where('1=1').execute();
+    await subscriptionRepository.createQueryBuilder().delete().where('1=1').execute();
+    await tenantRepository.createQueryBuilder().delete().where('1=1').execute();
     jest.clearAllMocks();
   });
 
@@ -625,7 +636,7 @@ describe('TrialsService Integration', () => {
   describe('Error handling', () => {
     it('should throw NotFoundException for non-existent tenant', async () => {
       await expect(
-        trialsService.startTrial('non-existent-id', {
+        trialsService.startTrial('00000000-0000-0000-0000-000000000000', {
           tier: 'enterprise',
           billingCycle: 'monthly',
         }),

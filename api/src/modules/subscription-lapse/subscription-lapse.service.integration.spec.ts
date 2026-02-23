@@ -125,10 +125,10 @@ describe('SubscriptionLapseService Integration', () => {
   });
 
   beforeEach(async () => {
-    // Clear database
-    await mspClientRepository.delete({});
-    await userRepository.delete({});
-    await tenantRepository.delete({});
+    // Clear database (children before parents to respect FK constraints)
+    await mspClientRepository.createQueryBuilder().delete().where('1=1').execute();
+    await userRepository.createQueryBuilder().delete().where('1=1').execute();
+    await tenantRepository.createQueryBuilder().delete().where('1=1').execute();
 
     // Clear Redis mock cache
     mockRedisCache.clear();
