@@ -64,6 +64,19 @@ export class ClickHouseService implements OnModuleInit {
     const password = this.configService.get<string>('CLICKHOUSE_PASSWORD', '');
 
     try {
+      // Bootstrap with 'default' database to create our database if needed,
+      // then re-initialize with the target database.
+      const bootstrapClient = createClient({
+        host: `http://${host}:${port}`,
+        database: 'default',
+        username,
+        password,
+      });
+      await bootstrapClient.query({
+        query: `CREATE DATABASE IF NOT EXISTS ${database}`,
+      });
+      await bootstrapClient.close();
+
       this.client = createClient({
         host: `http://${host}:${port}`,
         database,
@@ -210,11 +223,6 @@ export class ClickHouseService implements OnModuleInit {
   }
 
   private async initializeSchema() {
-    // Create database if not exists
-    await this.client.query({
-      query: `CREATE DATABASE IF NOT EXISTS nebula_dns`,
-    });
-
     // Create query logs table
     await this.client.query({
       query: `
