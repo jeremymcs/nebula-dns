@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "nebuladns.dnsdist.fullname" . }}
+  name: {{ include "safedns.dnsdist.fullname" . }}
   labels:
-    {{- include "nebuladns.labels" . | nindent 4 }}
+    {{- include "safedns.labels" . | nindent 4 }}
     app.kubernetes.io/component: dnsdist
 spec:
   replicas: {{ .Values.dnsdist.replicaCount }}
   selector:
     matchLabels:
-      {{- include "nebuladns.selectorLabels" . | nindent 6 }}
+      {{- include "safedns.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: dnsdist
   template:
     metadata:
       labels:
-        {{- include "nebuladns.selectorLabels" . | nindent 8 }}
+        {{- include "safedns.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: dnsdist
     spec:
       {{- if eq .Values.dnsdist.antiAffinity "hard" }}
@@ -23,7 +23,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
                 matchLabels:
-                  {{- include "nebuladns.selectorLabels" . | nindent 18 }}
+                  {{- include "safedns.selectorLabels" . | nindent 18 }}
                   app.kubernetes.io/component: dnsdist
               topologyKey: kubernetes.io/hostname
       {{- end }}
@@ -58,7 +58,7 @@ spec:
             {{- toYaml .Values.dnsdist.resources | nindent 12 }}
           env:
             - name: POLICY_SVC_URL
-              value: "http://{{ include "nebuladns.policy-svc.fullname" . }}:{{ .Values.policySvc.service.port }}"
+              value: "http://{{ include "safedns.policy-svc.fullname" . }}:{{ .Values.policySvc.service.port }}"
           volumeMounts:
             - name: certs
               mountPath: /etc/dnsdist/certs
@@ -66,14 +66,14 @@ spec:
       volumes:
         - name: certs
           secret:
-            secretName: {{ include "nebuladns.fullname" . }}-dnsdist-certs
+            secretName: {{ include "safedns.fullname" . }}-dnsdist-certs
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "nebuladns.dnsdist.fullname" . }}
+  name: {{ include "safedns.dnsdist.fullname" . }}
   labels:
-    {{- include "nebuladns.labels" . | nindent 4 }}
+    {{- include "safedns.labels" . | nindent 4 }}
     app.kubernetes.io/component: dnsdist
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: nlb
@@ -98,6 +98,6 @@ spec:
       protocol: TCP
       name: doh
   selector:
-    {{- include "nebuladns.selectorLabels" . | nindent 4 }}
+    {{- include "safedns.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: dnsdist
 
