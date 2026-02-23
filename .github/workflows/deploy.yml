@@ -114,6 +114,15 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
 
+      - name: Unblock stuck Helm release
+        run: |
+          STATUS=$(helm status nebula-dns -n nebula-dns -o json 2>/dev/null | jq -r '.info.status' || echo "not-found")
+          echo "Current Helm release status: $STATUS"
+          if [[ "$STATUS" == "pending-upgrade" || "$STATUS" == "pending-install" || "$STATUS" == "pending-rollback" ]]; then
+            echo "Release is stuck in $STATUS — rolling back to unblock..."
+            helm rollback nebula-dns 0 -n nebula-dns || kubectl delete secret -n nebula-dns -l "owner=helm,name=nebula-dns,status=$STATUS" || true
+          fi
+
       - name: Deploy to production via Helm
         run: |
           helm upgrade nebula-dns ./helm/safedns \
