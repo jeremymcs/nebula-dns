@@ -272,7 +272,7 @@ test.describe('API Keys - Management', () => {
       
       // Should show confirmation dialog
       const confirmDialog = page.getByText(/are you sure|confirm|revoke|delete.*api.*key|cannot.*undo/i)
-      expect(await confirmDialog.isVisible({ timeout: 3000 }).toBeTruthy())
+      expect(await confirmDialog.isVisible({ timeout: 3000 })).toBeTruthy()
       
       // Should have cancel button
       const cancelButton = page.getByRole('button', { name: /cancel|no/i })

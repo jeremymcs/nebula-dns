@@ -40,7 +40,9 @@ export class HealthController {
   }
 
   @Get('live')
-  @ApiOperation({ summary: 'Liveness check for K8s probes (backward compatibility)' })
+  @ApiOperation({
+    summary: 'Liveness check for K8s probes (backward compatibility)',
+  })
   @ApiResponse({ status: 200, description: 'Service is alive' })
   async live() {
     return { status: 'alive', timestamp: new Date().toISOString() };

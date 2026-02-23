@@ -8,7 +8,7 @@ export interface GapAnalysis {
   phase: string;
   plan: string;
   analyzed_at: string;
-  
+
   current_coverage: {
     auth: {
       file: string;
@@ -31,13 +31,13 @@ export interface GapAnalysis {
       status: 'complete' | 'partial' | 'missing';
     };
   };
-  
+
   gaps_identified: {
     category: string;
     missing_flows: string[];
     priority: 'critical' | 'high' | 'medium';
   }[];
-  
+
   recommendations: string[];
 }
 
@@ -45,7 +45,7 @@ export const gapAnalysis: GapAnalysis = {
   phase: '29-api-test-suite',
   plan: '03',
   analyzed_at: new Date().toISOString(),
-  
+
   current_coverage: {
     auth: {
       file: 'api/test/auth.e2e-spec.ts',
@@ -56,29 +56,27 @@ export const gapAnalysis: GapAnalysis = {
         'Password reset flow',
         'MFA setup/verification',
         'Password change flow',
-        'Account lockout after failed attempts'
+        'Account lockout after failed attempts',
       ],
-      status: 'complete'
+      status: 'complete',
     },
     admin: {
       file: 'api/test/app.e2e-spec.ts (basic)',
-      covered: [
-        'Protected routes require auth (basic)'
-      ],
-      status: 'partial'
+      covered: ['Protected routes require auth (basic)'],
+      status: 'partial',
     },
     billing: {
       file: 'none',
       covered: [],
-      status: 'missing'
+      status: 'missing',
     },
     msp: {
       file: 'none',
       covered: [],
-      status: 'missing'
-    }
+      status: 'missing',
+    },
   },
-  
+
   gaps_identified: [
     {
       category: 'Admin User Management',
@@ -87,18 +85,18 @@ export const gapAnalysis: GapAnalysis = {
         'Create new user',
         'Update user details',
         'Delete user',
-        'Suspend/reactivate user'
+        'Suspend/reactivate user',
       ],
-      priority: 'critical'
+      priority: 'critical',
     },
     {
       category: 'Admin Impersonation',
       missing_flows: [
         'Start impersonation session',
         'End impersonation session',
-        'Verify audit trail for impersonation'
+        'Verify audit trail for impersonation',
       ],
-      priority: 'critical'
+      priority: 'critical',
     },
     {
       category: 'Billing',
@@ -109,9 +107,9 @@ export const gapAnalysis: GapAnalysis = {
         'List invoices',
         'Download invoice PDF',
         'Get subscription status',
-        'Billing permissions by role'
+        'Billing permissions by role',
       ],
-      priority: 'high'
+      priority: 'high',
     },
     {
       category: 'MSP Client Management',
@@ -120,17 +118,17 @@ export const gapAnalysis: GapAnalysis = {
         'Create new client',
         'Update client settings',
         'Apply policy template',
-        'Client DNS analytics'
+        'Client DNS analytics',
       ],
-      priority: 'high'
-    }
+      priority: 'high',
+    },
   ],
-  
+
   recommendations: [
     'Create admin.e2e-spec.ts for user management and impersonation flows',
     'Create billing.e2e-spec.ts for payment methods, invoices, subscriptions',
     'Create msp.e2e-spec.ts for client management flows',
     'Ensure tests use setup.ts bootstrap pattern for consistency',
-    'All tests should handle missing database state gracefully'
-  ]
+    'All tests should handle missing database state gracefully',
+  ],
 };

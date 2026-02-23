@@ -32,8 +32,9 @@ describe('MSP E2E Tests - Client Management', () => {
 
   describe('Admin: List MSP Tenants', () => {
     it('should require admin authentication', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/admin/msp/tenants');
+      const response = await request(app.getHttpServer()).get(
+        '/admin/msp/tenants',
+      );
 
       expect(response.status).toBe(401);
     });
@@ -45,13 +46,13 @@ describe('MSP E2E Tests - Client Management', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .get('/admin/msp/tenants?limit=10')
           .set('Authorization', `Bearer ${token}`);
 
         expect([200, 403]).toContain(response.status);
-        
+
         if (response.status === 200) {
           expect(response.body).toHaveProperty('data');
           expect(response.body).toHaveProperty('pagination');
@@ -66,7 +67,7 @@ describe('MSP E2E Tests - Client Management', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .get('/admin/msp/tenants?status=active')
           .set('Authorization', `Bearer ${token}`);
@@ -82,7 +83,7 @@ describe('MSP E2E Tests - Client Management', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .get('/admin/msp/tenants?limit=-1')
           .set('Authorization', `Bearer ${token}`);
@@ -94,8 +95,9 @@ describe('MSP E2E Tests - Client Management', () => {
 
   describe('Admin: Get MSP Tenant Details', () => {
     it('should require admin authentication', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/admin/msp/tenants/test-msp-id');
+      const response = await request(app.getHttpServer()).get(
+        '/admin/msp/tenants/test-msp-id',
+      );
 
       expect(response.status).toBe(401);
     });
@@ -107,13 +109,13 @@ describe('MSP E2E Tests - Client Management', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .get('/admin/msp/tenants/test-msp-id')
           .set('Authorization', `Bearer ${token}`);
 
         expect([200, 400, 404]).toContain(response.status);
-        
+
         if (response.status === 200) {
           expect(response.body).toHaveProperty('id');
           expect(response.body).toHaveProperty('name');
@@ -128,7 +130,7 @@ describe('MSP E2E Tests - Client Management', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .get('/admin/msp/tenants/regular-tenant-id')
           .set('Authorization', `Bearer ${token}`);
@@ -144,7 +146,7 @@ describe('MSP E2E Tests - Client Management', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .get('/admin/msp/tenants/non-existent-id')
           .set('Authorization', `Bearer ${token}`);
@@ -156,8 +158,9 @@ describe('MSP E2E Tests - Client Management', () => {
 
   describe('Admin: List MSP Clients', () => {
     it('should require admin authentication', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/admin/msp/tenants/test-msp-id/clients');
+      const response = await request(app.getHttpServer()).get(
+        '/admin/msp/tenants/test-msp-id/clients',
+      );
 
       expect(response.status).toBe(401);
     });
@@ -169,13 +172,13 @@ describe('MSP E2E Tests - Client Management', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .get('/admin/msp/tenants/test-msp-id/clients?limit=10')
           .set('Authorization', `Bearer ${token}`);
 
         expect([200, 400, 404]).toContain(response.status);
-        
+
         if (response.status === 200) {
           expect(response.body).toHaveProperty('data');
           expect(response.body).toHaveProperty('pagination');
@@ -190,7 +193,7 @@ describe('MSP E2E Tests - Client Management', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .get('/admin/msp/tenants/test-msp-id/clients?cursor=abc123')
           .set('Authorization', `Bearer ${token}`);
@@ -206,7 +209,7 @@ describe('MSP E2E Tests - Client Management', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .get('/admin/msp/tenants/test-msp-id/clients?status=active')
           .set('Authorization', `Bearer ${token}`);
@@ -236,7 +239,7 @@ describe('MSP E2E Tests - Client Management', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/admin/msp/tenants')
           .set('Authorization', `Bearer ${token}`)
@@ -257,7 +260,7 @@ describe('MSP E2E Tests - Client Management', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/admin/msp/tenants')
           .set('Authorization', `Bearer ${token}`)
@@ -278,7 +281,7 @@ describe('MSP E2E Tests - Client Management', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/admin/msp/tenants')
           .set('Authorization', `Bearer ${token}`)
@@ -299,7 +302,7 @@ describe('MSP E2E Tests - Client Management', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/admin/msp/tenants')
           .set('Authorization', `Bearer ${token}`)
@@ -315,8 +318,9 @@ describe('MSP E2E Tests - Client Management', () => {
 
   describe('Admin: Search Tenants', () => {
     it('should require admin authentication', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/admin/tenants/search?q=test');
+      const response = await request(app.getHttpServer()).get(
+        '/admin/tenants/search?q=test',
+      );
 
       expect(response.status).toBe(401);
     });
@@ -328,13 +332,13 @@ describe('MSP E2E Tests - Client Management', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .get('/admin/tenants/search?q=test')
           .set('Authorization', `Bearer ${token}`);
 
         expect([200, 403]).toContain(response.status);
-        
+
         if (response.status === 200) {
           expect(response.body).toHaveProperty('data');
         }
@@ -348,7 +352,7 @@ describe('MSP E2E Tests - Client Management', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .get('/admin/tenants/search?q=a')
           .set('Authorization', `Bearer ${token}`);
@@ -364,7 +368,7 @@ describe('MSP E2E Tests - Client Management', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         // Valid UUID format
         const response = await request(app.getHttpServer())
           .get('/admin/tenants/search?q=550e8400-e29b-41d4-a716-446655440000')
@@ -388,7 +392,7 @@ describe('MSP E2E Tests - Client Management', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         // Try common tenant MSP endpoint patterns
         const response = await request(app.getHttpServer())
           .get('/msp/clients')
@@ -406,7 +410,7 @@ describe('MSP E2E Tests - Client Management', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/msp/clients')
           .set('Authorization', `Bearer ${token}`)
@@ -431,14 +435,14 @@ describe('MSP E2E Tests - Client Management', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         // Viewer should be able to read
         const readResponse = await request(app.getHttpServer())
           .get('/admin/msp/tenants')
           .set('Authorization', `Bearer ${token}`);
 
         expect([200, 403]).toContain(readResponse.status);
-        
+
         // But not create
         const createResponse = await request(app.getHttpServer())
           .post('/admin/msp/tenants')

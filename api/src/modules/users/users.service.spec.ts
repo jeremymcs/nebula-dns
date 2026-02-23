@@ -79,7 +79,7 @@ describe('UsersService', () => {
       expect(result.data[0].email).toBe(mockUser.email);
       expect(result.data[0].id).toBe(mockUser.id);
       expect(result.data[0].tenantId).toBe(mockTenantId);
-      
+
       // Verify pagination structure exists
       expect(result.pagination).toBeDefined();
       expect(result.pagination.hasMore).toBe(false);
@@ -101,7 +101,7 @@ describe('UsersService', () => {
 
       // Verify hasMore is true when more results exist
       expect(result.pagination.hasMore).toBe(true);
-      
+
       // Verify cursor is set when hasMore is true
       expect(result.pagination.cursor).toBeDefined();
       expect(typeof result.pagination.cursor).toBe('string');
@@ -201,10 +201,10 @@ describe('UsersService', () => {
       expect(result.email).toBe(createDto.email);
       expect(result.name).toBe(createDto.name);
       expect(result.role).toBe('analyst');
-      
+
       // Verify save was called
       expect(mockUserRepository.save).toHaveBeenCalled();
-      
+
       // Verify created user has tenantId
       const savedUser = mockUserRepository.save.mock.calls[0][0];
       expect(savedUser.tenantId).toBe(mockTenantId);
@@ -221,16 +221,21 @@ describe('UsersService', () => {
 
       mockUserRepository.findOne.mockResolvedValue(null);
       mockUserRepository.create.mockImplementation((data) => data);
-      mockUserRepository.save.mockImplementation((user) => Promise.resolve(user));
+      mockUserRepository.save.mockImplementation((user) =>
+        Promise.resolve(user),
+      );
 
       await service.create(mockTenantId, createDto, 'owner');
 
       // Verify password was hashed
       const savedUser = mockUserRepository.save.mock.calls[0][0];
       expect(savedUser.passwordHash).toMatch(/^\$2b\$/);
-      
+
       // Verify bcrypt hash verification works
-      const isValid = await bcrypt.compare('SecureP@ss123', savedUser.passwordHash);
+      const isValid = await bcrypt.compare(
+        'SecureP@ss123',
+        savedUser.passwordHash,
+      );
       expect(isValid).toBe(true);
     });
 
@@ -244,7 +249,9 @@ describe('UsersService', () => {
 
       mockUserRepository.findOne.mockResolvedValue(null);
       mockUserRepository.create.mockImplementation((data) => data);
-      mockUserRepository.save.mockImplementation((user) => Promise.resolve(user));
+      mockUserRepository.save.mockImplementation((user) =>
+        Promise.resolve(user),
+      );
 
       await service.create(mockTenantId, createDto, 'owner');
 
@@ -297,7 +304,9 @@ describe('UsersService', () => {
 
       mockUserRepository.findOne.mockResolvedValue(null);
       mockUserRepository.create.mockImplementation((data) => data);
-      mockUserRepository.save.mockImplementation((user) => Promise.resolve(user));
+      mockUserRepository.save.mockImplementation((user) =>
+        Promise.resolve(user),
+      );
 
       const result = await service.create(mockTenantId, createDto, 'admin');
 
@@ -318,7 +327,7 @@ describe('UsersService', () => {
 
       // Verify name was updated
       expect(result.name).toBe('Updated Name');
-      
+
       // Verify save was called
       expect(mockUserRepository.save).toHaveBeenCalled();
     });
@@ -407,8 +416,13 @@ describe('UsersService', () => {
 
   describe('suspend', () => {
     it('should suspend user by setting status to suspended', async () => {
-      mockUserRepository.findOne.mockResolvedValue({ ...mockUser, status: 'active' });
-      mockUserRepository.save.mockImplementation((user) => Promise.resolve(user));
+      mockUserRepository.findOne.mockResolvedValue({
+        ...mockUser,
+        status: 'active',
+      });
+      mockUserRepository.save.mockImplementation((user) =>
+        Promise.resolve(user),
+      );
 
       await service.suspend(mockTenantId, mockUser.id);
 
@@ -438,7 +452,9 @@ describe('UsersService', () => {
         lockedUntil: new Date(),
       };
       mockUserRepository.findOne.mockResolvedValue(suspendedUser);
-      mockUserRepository.save.mockImplementation((user) => Promise.resolve(user));
+      mockUserRepository.save.mockImplementation((user) =>
+        Promise.resolve(user),
+      );
 
       await service.reactivate(mockTenantId, mockUser.id);
 

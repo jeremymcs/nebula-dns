@@ -257,7 +257,7 @@ export class SecretsService implements OnModuleInit {
       const {
         SecretsManagerClient,
         GetSecretValueCommand,
-      } = require('@aws-sdk/client-secrets-manager');
+      } = require('@aws-sdk/client-secrets-manager'); // eslint-disable-line @typescript-eslint/no-var-requires
 
       this.awsClient = new SecretsManagerClient({
         region: this.config.aws!.region,
@@ -278,7 +278,7 @@ export class SecretsService implements OnModuleInit {
    */
   private async initializeVaultClient(): Promise<void> {
     try {
-      const vault = require('node-vault');
+      const vault = require('node-vault'); // eslint-disable-line @typescript-eslint/no-var-requires
 
       const vaultOptions: any = {
         endpoint: this.config.vault!.address,
@@ -339,7 +339,7 @@ export class SecretsService implements OnModuleInit {
     try {
       const {
         GetSecretValueCommand,
-      } = require('@aws-sdk/client-secrets-manager');
+      } = require('@aws-sdk/client-secrets-manager'); // eslint-disable-line @typescript-eslint/no-var-requires
 
       const command = new GetSecretValueCommand({
         SecretId: this.config.aws!.secretName,
@@ -711,7 +711,7 @@ export class SecretsService implements OnModuleInit {
     try {
       const {
         DescribeSecretCommand,
-      } = require('@aws-sdk/client-secrets-manager');
+      } = require('@aws-sdk/client-secrets-manager'); // eslint-disable-line @typescript-eslint/no-var-requires
 
       const command = new DescribeSecretCommand({
         SecretId: this.config.aws!.secretName,

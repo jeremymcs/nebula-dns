@@ -1,9 +1,15 @@
 // Nebula DNS - Testcontainers Setup
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-import { PostgreSqlContainer, StartedPostgreSqlContainer } from "@testcontainers/postgresql";
-import { RedisContainer, StartedRedisContainer } from "@testcontainers/redis";
-import { ClickHouseContainer, StartedClickHouseContainer } from "@testcontainers/clickhouse";
+import {
+  PostgreSqlContainer,
+  StartedPostgreSqlContainer,
+} from '@testcontainers/postgresql';
+import { RedisContainer, StartedRedisContainer } from '@testcontainers/redis';
+import {
+  ClickHouseContainer,
+  StartedClickHouseContainer,
+} from '@testcontainers/clickhouse';
 
 let postgresContainer: StartedPostgreSqlContainer | null = null;
 let redisContainer: StartedRedisContainer | null = null;
@@ -49,10 +55,10 @@ export class TestContainersManager {
   }
 
   private static async startPostgres(): Promise<string> {
-    const pgContainer = await new PostgreSqlContainer("postgres:16")
-      .withDatabase("nebula_test")
-      .withUsername("test")
-      .withPassword("test")
+    const pgContainer = await new PostgreSqlContainer('postgres:16')
+      .withDatabase('nebula_test')
+      .withUsername('test')
+      .withPassword('test')
       .start();
 
     postgresContainer = pgContainer;
@@ -64,7 +70,7 @@ export class TestContainersManager {
   }
 
   private static async startRedis(): Promise<string> {
-    const redis = await new RedisContainer("redis:7-alpine").start();
+    const redis = await new RedisContainer('redis:7-alpine').start();
 
     redisContainer = redis;
 
@@ -81,10 +87,12 @@ export class TestContainersManager {
     user: string;
     password: string;
   }> {
-    const ch = await new ClickHouseContainer("clickhouse/clickhouse-server:24.1")
-      .withDatabase("nebula_dns")
-      .withUsername("nebula")
-      .withPassword("nebula")
+    const ch = await new ClickHouseContainer(
+      'clickhouse/clickhouse-server:24.1',
+    )
+      .withDatabase('nebula_dns')
+      .withUsername('nebula')
+      .withPassword('nebula')
       .start();
 
     clickhouseContainer = ch;
@@ -95,9 +103,9 @@ export class TestContainersManager {
     return {
       host,
       port,
-      database: "nebula_dns",
-      user: "nebula",
-      password: "nebula",
+      database: 'nebula_dns',
+      user: 'nebula',
+      password: 'nebula',
     };
   }
 
@@ -115,7 +123,7 @@ export class TestContainersManager {
 
   static async resetDatabases(): Promise<void> {
     if (!postgresContainer || !redisContainer || !clickhouseContainer) {
-      throw new Error("Containers not started. Call startAll() first.");
+      throw new Error('Containers not started. Call startAll() first.');
     }
 
     const pgHost = postgresContainer.getHost();
@@ -134,21 +142,24 @@ export class TestContainersManager {
     ]);
   }
 
-  private static async resetPostgres(host: string, port: number): Promise<void> {
-    const { Client } = await import("pg");
+  private static async resetPostgres(
+    host: string,
+    port: number,
+  ): Promise<void> {
+    const { Client } = await import('pg');
 
     const conn = new Client({
       host,
       port,
-      database: "nebula_test",
-      user: "test",
-      password: "test",
+      database: 'nebula_test',
+      user: 'test',
+      password: 'test',
     });
 
     await conn.connect();
 
     const result = await conn.query(
-      `SELECT tablename FROM pg_tables WHERE schemaname = 'public'`
+      `SELECT tablename FROM pg_tables WHERE schemaname = 'public'`,
     );
 
     for (const row of result.rows) {
@@ -159,7 +170,7 @@ export class TestContainersManager {
   }
 
   private static async resetRedis(host: string, port: number): Promise<void> {
-    const { default: Redis } = await import("ioredis");
+    const { default: Redis } = await import('ioredis');
     const redis = new Redis({ host, port });
     await redis.flushall();
     await redis.quit();
@@ -167,14 +178,14 @@ export class TestContainersManager {
 
   private static async resetClickHouse(
     host: string,
-    port: number
+    port: number,
   ): Promise<void> {
     const response = await fetch(
       `http://${host}:${port}/?user=nebula&password=nebula`,
       {
-        method: "POST",
-        body: "DROP DATABASE IF EXISTS nebula_dns",
-      }
+        method: 'POST',
+        body: 'DROP DATABASE IF EXISTS nebula_dns',
+      },
     );
 
     if (!response.ok) {
@@ -182,8 +193,8 @@ export class TestContainersManager {
     }
 
     await fetch(`http://${host}:${port}/?user=nebula&password=nebula`, {
-      method: "POST",
-      body: "CREATE DATABASE IF NOT EXISTS nebula_dns",
+      method: 'POST',
+      body: 'CREATE DATABASE IF NOT EXISTS nebula_dns',
     });
   }
 }

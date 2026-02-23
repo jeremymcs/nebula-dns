@@ -47,7 +47,7 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/payments/checkout')
           .set('Authorization', `Bearer ${token}`)
@@ -64,7 +64,7 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/payments/checkout')
           .set('Authorization', `Bearer ${token}`)
@@ -75,13 +75,16 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
     });
 
     it('should create checkout session with valid parameters', async () => {
-      const loginResponse = await request(app.getHttpServer('/auth/login')
-())
-        .post        .send({ email: 'admin@example.com', password: 'AdminPassword123!' });
+      const loginResponse = await request(
+        app.getHttpServer('/auth/login')(),
+      ).post.send({
+        email: 'admin@example.com',
+        password: 'AdminPassword123!',
+      });
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/payments/checkout')
           .set('Authorization', `Bearer ${token}`)
@@ -89,7 +92,7 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
         // Should succeed or return 400 if Stripe not configured
         expect([200, 400, 500]).toContain(response.status);
-        
+
         if (response.status === 200) {
           expect(response.body).toHaveProperty('url');
         }
@@ -101,8 +104,9 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
   describe('Billing Portal', () => {
     it('should require authentication for portal access', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/payments/portal');
+      const response = await request(app.getHttpServer()).post(
+        '/payments/portal',
+      );
 
       expect(response.status).toBe(401);
     });
@@ -114,14 +118,14 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/payments/portal')
           .set('Authorization', `Bearer ${token}`);
 
         // Either success with URL or error if no billing info
         expect([200, 400, 404]).toContain(response.status);
-        
+
         if (response.status === 200) {
           expect(response.body).toHaveProperty('url');
         }
@@ -167,8 +171,9 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
   describe('Admin: Get Subscription Status', () => {
     it('should require admin authentication', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/admin/tenants/test-tenant-id/billing/subscription');
+      const response = await request(app.getHttpServer()).get(
+        '/admin/tenants/test-tenant-id/billing/subscription',
+      );
 
       expect(response.status).toBe(401);
     });
@@ -180,13 +185,13 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .get('/admin/tenants/test-tenant-id/billing/subscription')
           .set('Authorization', `Bearer ${token}`);
 
         expect([200, 404]).toContain(response.status);
-        
+
         if (response.status === 200) {
           expect(response.body).toHaveProperty('status');
         }
@@ -196,8 +201,9 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
   describe('Admin: List Invoices', () => {
     it('should require admin authentication', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/admin/tenants/test-tenant-id/billing/invoices');
+      const response = await request(app.getHttpServer()).get(
+        '/admin/tenants/test-tenant-id/billing/invoices',
+      );
 
       expect(response.status).toBe(401);
     });
@@ -209,13 +215,13 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .get('/admin/tenants/test-tenant-id/billing/invoices?limit=10')
           .set('Authorization', `Bearer ${token}`);
 
         expect([200, 404]).toContain(response.status);
-        
+
         if (response.status === 200) {
           expect(response.body).toHaveProperty('invoices');
           expect(response.body).toHaveProperty('pagination');
@@ -230,7 +236,7 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .get('/admin/tenants/test-tenant-id/billing/invoices?status=paid')
           .set('Authorization', `Bearer ${token}`);
@@ -242,8 +248,9 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
   describe('Admin: Download Invoice PDF', () => {
     it('should require admin authentication', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/admin/tenants/test-tenant-id/billing/invoices/inv_123/pdf');
+      const response = await request(app.getHttpServer()).get(
+        '/admin/tenants/test-tenant-id/billing/invoices/inv_123/pdf',
+      );
 
       expect(response.status).toBe(401);
     });
@@ -255,9 +262,11 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
-          .get('/admin/tenants/test-tenant-id/billing/invoices/non_existent/pdf')
+          .get(
+            '/admin/tenants/test-tenant-id/billing/invoices/non_existent/pdf',
+          )
           .set('Authorization', `Bearer ${token}`);
 
         expect([404, 500]).toContain(response.status);
@@ -267,8 +276,9 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
   describe('Admin: List Payment Methods', () => {
     it('should require admin authentication', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/admin/tenants/test-tenant-id/billing/payment-methods');
+      const response = await request(app.getHttpServer()).get(
+        '/admin/tenants/test-tenant-id/billing/payment-methods',
+      );
 
       expect(response.status).toBe(401);
     });
@@ -280,13 +290,13 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .get('/admin/tenants/test-tenant-id/billing/payment-methods')
           .set('Authorization', `Bearer ${token}`);
 
         expect([200, 404]).toContain(response.status);
-        
+
         if (response.status === 200) {
           expect(response.body).toHaveProperty('paymentMethods');
           expect(response.body.paymentMethods).toBeInstanceOf(Array);
@@ -297,8 +307,9 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
   describe('Admin: Create SetupIntent', () => {
     it('should require admin authentication', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/admin/tenants/test-tenant-id/billing/payment-methods');
+      const response = await request(app.getHttpServer()).post(
+        '/admin/tenants/test-tenant-id/billing/payment-methods',
+      );
 
       expect(response.status).toBe(401);
     });
@@ -310,14 +321,14 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/admin/tenants/test-tenant-id/billing/payment-methods')
           .set('Authorization', `Bearer ${token}`);
 
         // Should succeed or fail based on permissions
         expect([201, 403, 404]).toContain(response.status);
-        
+
         if (response.status === 201) {
           expect(response.body).toHaveProperty('clientSecret');
         }
@@ -341,9 +352,11 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
-          .patch('/admin/tenants/test-tenant-id/billing/payment-methods/default')
+          .patch(
+            '/admin/tenants/test-tenant-id/billing/payment-methods/default',
+          )
           .set('Authorization', `Bearer ${token}`)
           .send({ paymentMethodId: 'invalid-pm' });
 
@@ -354,8 +367,9 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
   describe('Admin: Delete Payment Method', () => {
     it('should require admin authentication', async () => {
-      const response = await request(app.getHttpServer())
-        .delete('/admin/tenants/test-tenant-id/billing/payment-methods/pm_123');
+      const response = await request(app.getHttpServer()).delete(
+        '/admin/tenants/test-tenant-id/billing/payment-methods/pm_123',
+      );
 
       expect(response.status).toBe(401);
     });
@@ -367,9 +381,11 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
-          .delete('/admin/tenants/test-tenant-id/billing/payment-methods/pm_default')
+          .delete(
+            '/admin/tenants/test-tenant-id/billing/payment-methods/pm_default',
+          )
           .set('Authorization', `Bearer ${token}`);
 
         expect([400, 403, 404]).toContain(response.status);
@@ -393,7 +409,7 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/admin/tenants/test-tenant-id/billing/credits')
           .set('Authorization', `Bearer ${token}`)
@@ -410,7 +426,7 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/admin/tenants/test-tenant-id/billing/credits')
           .set('Authorization', `Bearer ${token}`)
@@ -427,7 +443,7 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         // Maximum is $10,000 (100000 cents)
         const response = await request(app.getHttpServer())
           .post('/admin/tenants/test-tenant-id/billing/credits')
@@ -455,7 +471,7 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/admin/tenants/test-tenant-id/billing/tier')
           .set('Authorization', `Bearer ${token}`)
@@ -472,7 +488,7 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/admin/tenants/test-tenant-id/billing/tier')
           .set('Authorization', `Bearer ${token}`)
@@ -499,7 +515,7 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/admin/tenants/test-tenant-id/billing/trial/extend')
           .set('Authorization', `Bearer ${token}`)
@@ -516,7 +532,7 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/admin/tenants/test-tenant-id/billing/trial/extend')
           .set('Authorization', `Bearer ${token}`)
@@ -544,7 +560,7 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         const response = await request(app.getHttpServer())
           .post('/admin/tenants/test-tenant-id/billing/grace/extend')
           .set('Authorization', `Bearer ${token}`)
@@ -566,14 +582,14 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;
-        
+
         // Read operations should work for all roles
         const readResponse = await request(app.getHttpServer())
           .get('/admin/tenants/test-tenant-id/billing/subscription')
           .set('Authorization', `Bearer ${token}`);
 
         expect([200, 403, 404]).toContain(readResponse.status);
-        
+
         // Write operations should require admin/owner
         const writeResponse = await request(app.getHttpServer())
           .post('/admin/tenants/test-tenant-id/billing/credits')

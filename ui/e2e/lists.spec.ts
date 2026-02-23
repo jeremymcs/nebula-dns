@@ -120,7 +120,7 @@ test.describe('Lists - Create New List', () => {
     // Select allowlist type
     const typeSelector = page.getByLabel(/list type|type/i)
     if (await typeSelector.isVisible()) {
-      await typeSelector.selectOption({ label: /allow/i })
+      await typeSelector.selectOption({ label: 'allow' })
     }
 
     // Submit
