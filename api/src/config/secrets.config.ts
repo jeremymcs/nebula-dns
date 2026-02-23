@@ -71,6 +71,7 @@ async function getSecretFromAWS(
   versionStage?: string,
 ): Promise<Record<string, string> | undefined> {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const {
       SecretsManagerClient,
       GetSecretValueCommand,
@@ -114,6 +115,7 @@ async function getSecretFromVault(
   secretId?: string,
 ): Promise<Record<string, string> | undefined> {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const vault = require('node-vault');
 
     const vaultOptions: any = {
