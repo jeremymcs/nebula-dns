@@ -37,13 +37,13 @@ jobs:
   # Test Gate - Run All Tests
   run-tests:
     name: Run Tests
-    if: ${{ !inputs.skip_tests }}
+    if: ${{ inputs.skip_tests != true }}
     uses: ./.github/workflows/ci.yml
 
   # Security Gate - Run Security Scans
   run-security-scan:
     name: Run Security Scan
-    if: ${{ !inputs.skip_tests }}
+    if: ${{ inputs.skip_tests != true }}
     uses: ./.github/workflows/security-scan.yml
     secrets: inherit
 
@@ -51,7 +51,7 @@ jobs:
   build-api:
     name: Build API
     needs: [run-tests, run-security-scan]
-    if: always() && (needs.run-tests.result == 'success' || inputs.skip_tests) && (needs.run-security-scan.result == 'success' || inputs.skip_tests)
+    if: always() && (needs.run-tests.result == 'success' || inputs.skip_tests == true) && (needs.run-security-scan.result == 'success' || inputs.skip_tests == true)
     uses: ./.github/workflows/_build-push-image.yml
     with:
       service: api
@@ -65,7 +65,7 @@ jobs:
   build-ui:
     name: Build UI
     needs: [run-tests, run-security-scan]
-    if: always() && (needs.run-tests.result == 'success' || inputs.skip_tests) && (needs.run-security-scan.result == 'success' || inputs.skip_tests)
+    if: always() && (needs.run-tests.result == 'success' || inputs.skip_tests == true) && (needs.run-security-scan.result == 'success' || inputs.skip_tests == true)
     uses: ./.github/workflows/_build-push-image.yml
     with:
       service: ui
@@ -79,7 +79,7 @@ jobs:
   build-admin-ui:
     name: Build Admin UI
     needs: [run-tests, run-security-scan]
-    if: always() && (needs.run-tests.result == 'success' || inputs.skip_tests) && (needs.run-security-scan.result == 'success' || inputs.skip_tests)
+    if: always() && (needs.run-tests.result == 'success' || inputs.skip_tests == true) && (needs.run-security-scan.result == 'success' || inputs.skip_tests == true)
     uses: ./.github/workflows/_build-push-image.yml
     with:
       service: admin-ui
@@ -93,7 +93,7 @@ jobs:
   build-policy-svc:
     name: Build Policy Service
     needs: [run-tests, run-security-scan]
-    if: always() && (needs.run-tests.result == 'success' || inputs.skip_tests) && (needs.run-security-scan.result == 'success' || inputs.skip_tests)
+    if: always() && (needs.run-tests.result == 'success' || inputs.skip_tests == true) && (needs.run-security-scan.result == 'success' || inputs.skip_tests == true)
     uses: ./.github/workflows/_build-push-image.yml
     with:
       service: policy-svc
@@ -107,7 +107,7 @@ jobs:
   build-dnsdist:
     name: Build dnsdist
     needs: [run-tests, run-security-scan]
-    if: always() && (needs.run-tests.result == 'success' || inputs.skip_tests) && (needs.run-security-scan.result == 'success' || inputs.skip_tests)
+    if: always() && (needs.run-tests.result == 'success' || inputs.skip_tests == true) && (needs.run-security-scan.result == 'success' || inputs.skip_tests == true)
     uses: ./.github/workflows/_build-push-image.yml
     with:
       service: dnsdist
@@ -121,7 +121,7 @@ jobs:
   build-unbound:
     name: Build Unbound
     needs: [run-tests, run-security-scan]
-    if: always() && (needs.run-tests.result == 'success' || inputs.skip_tests) && (needs.run-security-scan.result == 'success' || inputs.skip_tests)
+    if: always() && (needs.run-tests.result == 'success' || inputs.skip_tests == true) && (needs.run-security-scan.result == 'success' || inputs.skip_tests == true)
     uses: ./.github/workflows/_build-push-image.yml
     with:
       service: unbound
