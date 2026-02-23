@@ -308,7 +308,6 @@ describe('LimitsService Integration', () => {
         slug: 'msp-tenant',
         plan: 'enterprise' as any,
         tier: 'msp',
-        partnerId: 'partner-123',
         clientLimit: 50,
       });
       await tenantRepository.save(mspTenant);
@@ -338,7 +337,6 @@ describe('LimitsService Integration', () => {
         slug: 'msp-tenant',
         plan: 'enterprise' as any,
         tier: 'msp',
-        partnerId: 'partner-123',
         clientLimit: 2,
       });
       await tenantRepository.save(mspTenant);
@@ -350,7 +348,6 @@ describe('LimitsService Integration', () => {
           slug: `client-${i}`,
           plan: 'pro',
           tier: 'enterprise',
-          partnerId: 'partner-123',
         });
         await tenantRepository.save(client);
       }
