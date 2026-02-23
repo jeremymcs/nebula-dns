@@ -67,9 +67,11 @@ spec:
           imagePullPolicy: {{ .Values.api.image.pullPolicy }}
 
           command:
-            - 'npm'
-            - 'run'
+            - 'node'
+            - './node_modules/typeorm/cli.js'
             - 'migration:run'
+            - '-d'
+            - 'dist/database/data-source.js'
 
           env:
             - name: NODE_ENV
