@@ -92,8 +92,11 @@ describe('ClickHouse Integration Tests', () => {
       database: clickHouseDatabase,
     });
 
-    // Wait for service to initialize
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    // Wait for service to become healthy (up to 15 seconds)
+    for (let i = 0; i < 30; i++) {
+      if (service.isHealthy()) break;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
   });
 
   afterAll(async () => {

@@ -361,7 +361,7 @@ describe('FamilyMembersService Integration', () => {
       // Create expired invitation
       const expiredInvitation = invitationRepository.create({
         tenantId: tenant.id,
-        invitedById: 'owner-id',
+        invitedById: '00000000-0000-0000-0000-000000000001',
         email: 'expired@smith.com',
         tokenHash,
         status: 'pending',
@@ -396,7 +396,7 @@ describe('FamilyMembersService Integration', () => {
       // Create accepted invitation
       const usedInvitation = invitationRepository.create({
         tenantId: tenant.id,
-        invitedById: 'owner-id',
+        invitedById: '00000000-0000-0000-0000-000000000001',
         email: 'used@smith.com',
         tokenHash,
         status: 'accepted',
@@ -448,7 +448,7 @@ describe('FamilyMembersService Integration', () => {
 
       const invitation = invitationRepository.create({
         tenantId: tenant.id,
-        invitedById: 'owner-id',
+        invitedById: '00000000-0000-0000-0000-000000000001',
         email: 'existing@smith.com',
         tokenHash,
         status: 'pending',
@@ -650,7 +650,7 @@ describe('FamilyMembersService Integration', () => {
 
       const acceptedInvitation = invitationRepository.create({
         tenantId: tenant.id,
-        invitedById: 'owner-id',
+        invitedById: '00000000-0000-0000-0000-000000000001',
         email: 'test@smith.com',
         tokenHash: 'hash',
         status: 'accepted',
@@ -735,7 +735,7 @@ describe('FamilyMembersService Integration', () => {
 
       const invitation = invitationRepository.create({
         tenantId: tenant.id,
-        invitedById: 'owner-id',
+        invitedById: '00000000-0000-0000-0000-000000000001',
         email: 'jane@smith.com',
         displayName: 'Jane',
         tokenHash,

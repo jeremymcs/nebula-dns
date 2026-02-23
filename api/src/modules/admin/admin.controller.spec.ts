@@ -14,6 +14,8 @@ import { AdminService } from './admin.service';
 import { AdminHealthService } from './admin-health.service';
 import { AdminBillingService } from './admin-billing.service';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
+import { AdminRolesGuard } from './guards/admin-roles.guard';
+import { ConfigService } from '@nestjs/config';
 import {
   CreateMspTenantDto,
   MspTenantCreatedResponseDto,
@@ -118,10 +120,16 @@ describe('AdminController', () => {
           provide: AdminBillingService,
           useValue: mockAdminBillingService,
         },
+        {
+          provide: ConfigService,
+          useValue: { get: jest.fn(() => null) },
+        },
       ],
     })
       .overrideGuard(AdminAuthGuard)
       .useValue(mockAdminAuthGuard)
+      .overrideGuard(AdminRolesGuard)
+      .useValue({ canActivate: jest.fn().mockReturnValue(true) })
       .compile();
 
     controller = module.get<AdminController>(AdminController);
