@@ -9,15 +9,12 @@ import { Tenant, SubscriptionStatus } from '../tenants/entities/tenant.entity';
 import { User } from '../users/entities/user.entity';
 import { Subscription } from '../subscriptions/entities/subscription.entity';
 import { MspClient } from '../msp-clients/entities/msp-client.entity';
-import { Policy } from '../policies/entities/policy.entity';
-import { PolicyVersion } from '../policies/entities/policy-version.entity';
-import { Location } from '../locations/entities/location.entity';
-import { LocationToken } from '../locations/entities/location-token.entity';
 import { EmailService } from '../email/email.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { RedisService } from '../redis/redis.service';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { ALL_TEST_ENTITIES } from '../../test/all-entities';
 
 /**
  * SubscriptionLapseService Integration Tests
@@ -50,7 +47,7 @@ describe('SubscriptionLapseService Integration', () => {
         TypeOrmModule.forRoot({
           type: 'sqlite',
           database: ':memory:',
-          entities: [Tenant, User, Subscription, MspClient, Policy, PolicyVersion, Location, LocationToken],
+          entities: ALL_TEST_ENTITIES,
           synchronize: true,
           dropSchema: true,
         }),

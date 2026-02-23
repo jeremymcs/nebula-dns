@@ -12,15 +12,13 @@ import { LimitsService } from '../limits/limits.service';
 import { BillingMeterService } from '../billing-meter/billing-meter.service';
 import { MspTemplatesService } from '../msp/msp-templates.service';
 import { Location } from '../locations/entities/location.entity';
-import { LocationToken } from '../locations/entities/location-token.entity';
 import { FamilyMember } from '../family/entities/family-member.entity';
 import { SubscriptionPlan } from '../subscriptions/entities/subscription-plan.entity';
 import { Subscription } from '../subscriptions/entities/subscription.entity';
-import { Policy } from '../policies/entities/policy.entity';
-import { PolicyVersion } from '../policies/entities/policy-version.entity';
 import { DataSource, Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConflictException, NotFoundException } from '@nestjs/common';
+import { ALL_TEST_ENTITIES } from '../../test/all-entities';
 
 /**
  * MspClientsService Integration Tests
@@ -55,18 +53,7 @@ describe('MspClientsService Integration', () => {
         TypeOrmModule.forRoot({
           type: 'postgres',
           url: databaseUrl,
-          entities: [
-            MspClient,
-            Tenant,
-            User,
-            Location,
-            LocationToken,
-            FamilyMember,
-            SubscriptionPlan,
-            Subscription,
-            Policy,
-            PolicyVersion,
-          ],
+          entities: ALL_TEST_ENTITIES,
           synchronize: true,
           dropSchema: true,
           ssl: false,
