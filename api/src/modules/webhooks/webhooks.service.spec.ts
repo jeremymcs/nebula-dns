@@ -610,6 +610,19 @@ describe('WebhooksService', () => {
         mockRedisService.get.mockResolvedValue('0');
         mockRedisClient.incr.mockResolvedValue(1);
 
+        // Mock idempotency check so deliver() doesn't hit the DB for this
+        mockIdempotencyRepository.findOne.mockResolvedValue(null);
+        mockIdempotencyRepository.create.mockReturnValue({});
+        mockIdempotencyRepository.save.mockResolvedValue({});
+        mockDeliveryRepository.create.mockReturnValue({});
+        mockDeliveryRepository.save.mockResolvedValue({});
+        mockWebhookRepository.save.mockResolvedValue({});
+
+        // Mock httpPost to avoid real network requests
+        const httpPostSpy = jest
+          .spyOn(service as any, 'httpPost')
+          .mockResolvedValue({ statusCode: 200, body: 'ok' });
+
         await service.trigger(mockTenantId, 'policy.created' as WebhookEvent, {
           id: 'policy-123',
         });
@@ -619,6 +632,11 @@ describe('WebhooksService', () => {
         expect(mockWebhookRepository.find).toHaveBeenCalledWith({
           where: { tenantId: mockTenantId, isEnabled: true },
         });
+
+        // httpPost called once for webhook1 only
+        expect(httpPostSpy).toHaveBeenCalledTimes(1);
+
+        httpPostSpy.mockRestore();
       });
     });
   });
@@ -662,18 +680,40 @@ describe('WebhooksService', () => {
         isEnabled: true,
       };
 
-      mockWebhookRepository.findOne.mockResolvedValue(failingWebhook);
+      mockWebhookRepository.find.mockResolvedValue([failingWebhook]);
       mockWebhookRepository.save.mockImplementation((w) => Promise.resolve(w));
       mockRedisService.get.mockResolvedValue('0');
       mockRedisClient.incr.mockResolvedValue(1);
+      mockIdempotencyRepository.findOne.mockResolvedValue(null);
+      mockIdempotencyRepository.create.mockReturnValue({});
+      mockIdempotencyRepository.save.mockResolvedValue({});
+      mockDeliveryRepository.create.mockReturnValue({});
+      mockDeliveryRepository.save.mockResolvedValue({});
 
-      // Trigger a failure (URL doesn't exist, will fail)
+      // Mock httpPost to simulate a server-side failure (503) without retries
+      // Use status 400 (client error) so it does not retry and fails immediately
+      const httpPostSpy = jest
+        .spyOn(service as any, 'httpPost')
+        .mockResolvedValue({ statusCode: 503, body: 'Service Unavailable' });
+
+      // Override maxRetries to 0 so the test doesn't wait on retry delays
+      (service as any).maxRetries = 0;
+
       await service.trigger(mockTenantId, 'policy.created' as WebhookEvent, {
         id: 'policy-123',
       });
 
       // The webhook save should have been called with isEnabled = false
-      // This depends on delivery actually failing, which it will since URL doesn't exist
+      // after failureCount reaches 10 (was 9, incremented to 10)
+      expect(mockWebhookRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isEnabled: false,
+          failureCount: 10,
+        }),
+      );
+
+      httpPostSpy.mockRestore();
+      (service as any).maxRetries = 3;
     });
   });
 
@@ -696,12 +736,20 @@ describe('WebhooksService', () => {
     it('should test webhook without recording delivery', async () => {
       mockWebhookRepository.findOne.mockResolvedValue(mockWebhook);
 
+      // Mock httpPost to avoid real network request
+      const httpPostSpy = jest
+        .spyOn(service as any, 'httpPost')
+        .mockResolvedValue({ statusCode: 200, body: 'ok' });
+
       // Test webhook - should not call deliveryRepository.save
       const result = await service.test(mockTenantId, mockWebhook.id!);
 
       expect(result).toHaveProperty('success');
       expect(result).toHaveProperty('responseTimeMs');
       // deliveryRepository.save should NOT be called for test deliveries
+      expect(mockDeliveryRepository.save).not.toHaveBeenCalled();
+
+      httpPostSpy.mockRestore();
     });
   });
 
