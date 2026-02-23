@@ -73,7 +73,8 @@ jobs:
     uses: ./.github/workflows/_build-push-image.yml
     with:
       service: dnsdist
-      context: ./dnsdist
+      context: .
+      dockerfile: ./dnsdist/Dockerfile
       registry: registry.digitalocean.com/nebula-dns
       image_name: nebula-dns-dnsdist
     secrets:

@@ -25,6 +25,11 @@ on:
         description: 'Full image name (e.g., nebula-dns-api)'
         required: true
         type: string
+      dockerfile:
+        description: 'Path to Dockerfile (optional, defaults to Dockerfile in context)'
+        required: false
+        type: string
+        default: ''
     secrets:
       DIGITALOCEAN_ACCESS_TOKEN:
         description: 'DigitalOcean API token for DOCR authentication'
@@ -63,6 +68,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ${{ inputs.context }}
+          file: ${{ inputs.dockerfile != '' && inputs.dockerfile || '' }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
