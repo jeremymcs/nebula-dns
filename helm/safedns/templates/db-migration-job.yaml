@@ -63,7 +63,7 @@ spec:
 
       containers:
         - name: migration
-          image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.api.image.repository }}:latest"
           imagePullPolicy: {{ .Values.api.image.pullPolicy }}
 
           command:
