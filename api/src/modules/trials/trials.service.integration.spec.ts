@@ -13,7 +13,7 @@ import { PaymentsService } from '../payments/payments.service';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { ALL_TEST_ENTITIES } from '../../test/all-entities';
+import { ALL_TEST_ENTITIES } from '../../../test/all-entities';
 
 /**
  * TrialsService Integration Tests

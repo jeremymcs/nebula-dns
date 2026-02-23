@@ -14,7 +14,7 @@ import { RedisService } from '../redis/redis.service';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { LimitExceededException } from './exceptions/limit-exceeded.exception';
-import { ALL_TEST_ENTITIES } from '../../test/all-entities';
+import { ALL_TEST_ENTITIES } from '../../../test/all-entities';
 
 /**
  * LimitsService Integration Tests

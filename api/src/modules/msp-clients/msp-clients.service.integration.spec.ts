@@ -18,7 +18,7 @@ import { Subscription } from '../subscriptions/entities/subscription.entity';
 import { DataSource, Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { ALL_TEST_ENTITIES } from '../../test/all-entities';
+import { ALL_TEST_ENTITIES } from '../../../test/all-entities';
 
 /**
  * MspClientsService Integration Tests
@@ -129,7 +129,6 @@ describe('MspClientsService Integration', () => {
         name: 'MSP Company',
         slug: 'msp-company',
         tier: 'msp',
-        partnerId: 'partner-123',
         contactEmail: 'msp@example.com',
       });
       await tenantRepository.save(mspTenant);
@@ -176,7 +175,6 @@ describe('MspClientsService Integration', () => {
         name: 'MSP Company',
         slug: 'msp-company',
         tier: 'msp',
-        partnerId: 'partner-123',
       });
       await tenantRepository.save(mspTenant);
 
@@ -195,7 +193,6 @@ describe('MspClientsService Integration', () => {
         name: 'MSP Company',
         slug: 'msp-company',
         tier: 'msp',
-        partnerId: 'partner-123',
       });
       await tenantRepository.save(mspTenant);
 
@@ -220,7 +217,6 @@ describe('MspClientsService Integration', () => {
         name: 'MSP Company',
         slug: 'msp-company',
         tier: 'msp',
-        partnerId: 'partner-123',
       });
       await tenantRepository.save(mspTenant);
 
@@ -251,7 +247,6 @@ describe('MspClientsService Integration', () => {
         name: 'MSP Company',
         slug: 'msp-company',
         tier: 'msp',
-        partnerId: 'partner-123',
       });
       await tenantRepository.save(mspTenant);
 
@@ -272,7 +267,6 @@ describe('MspClientsService Integration', () => {
         name: 'MSP Company',
         slug: 'msp-company',
         tier: 'msp',
-        partnerId: 'partner-123',
       });
       await tenantRepository.save(mspTenant);
 
@@ -298,7 +292,6 @@ describe('MspClientsService Integration', () => {
         name: 'MSP Company',
         slug: 'msp-company',
         tier: 'msp',
-        partnerId: 'partner-123',
       });
       await tenantRepository.save(mspTenant);
 
@@ -333,7 +326,6 @@ describe('MspClientsService Integration', () => {
         name: 'MSP 1',
         slug: 'msp-1',
         tier: 'msp',
-        partnerId: 'partner-1',
       });
       await tenantRepository.save(msp1);
 
@@ -341,7 +333,6 @@ describe('MspClientsService Integration', () => {
         name: 'MSP 2',
         slug: 'msp-2',
         tier: 'msp',
-        partnerId: 'partner-2',
       });
       await tenantRepository.save(msp2);
 
@@ -370,7 +361,6 @@ describe('MspClientsService Integration', () => {
         name: 'MSP Company',
         slug: 'msp-company',
         tier: 'msp',
-        partnerId: 'partner-123',
       });
       await tenantRepository.save(mspTenant);
 
@@ -393,7 +383,6 @@ describe('MspClientsService Integration', () => {
         name: 'MSP Company',
         slug: 'msp-company',
         tier: 'msp',
-        partnerId: 'partner-123',
       });
       await tenantRepository.save(mspTenant);
 
@@ -418,7 +407,6 @@ describe('MspClientsService Integration', () => {
         name: 'MSP Company',
         slug: 'msp-company',
         tier: 'msp',
-        partnerId: 'partner-123',
       });
       await tenantRepository.save(mspTenant);
 
@@ -450,7 +438,6 @@ describe('MspClientsService Integration', () => {
         name: 'MSP Company',
         slug: 'msp-company',
         tier: 'msp',
-        partnerId: 'partner-123',
       });
       await tenantRepository.save(mspTenant);
 
@@ -482,7 +469,6 @@ describe('MspClientsService Integration', () => {
         name: 'MSP Company',
         slug: 'msp-company',
         tier: 'msp',
-        partnerId: 'partner-123',
       });
       await tenantRepository.save(mspTenant);
 
@@ -507,7 +493,6 @@ describe('MspClientsService Integration', () => {
         name: 'MSP Company',
         slug: 'msp-company',
         tier: 'msp',
-        partnerId: 'partner-123',
       });
       await tenantRepository.save(mspTenant);
 
@@ -536,7 +521,6 @@ describe('MspClientsService Integration', () => {
         name: 'MSP Company',
         slug: 'msp-company',
         tier: 'msp',
-        partnerId: 'partner-123',
       });
       await tenantRepository.save(mspTenant);
 
@@ -560,7 +544,6 @@ describe('MspClientsService Integration', () => {
         name: 'MSP Company',
         slug: 'msp-company',
         tier: 'msp',
-        partnerId: 'partner-123',
       });
       await tenantRepository.save(mspTenant);
 
@@ -598,7 +581,6 @@ describe('MspClientsService Integration', () => {
         name: 'MSP Company',
         slug: 'msp-company',
         tier: 'msp',
-        partnerId: 'partner-123',
       });
       await tenantRepository.save(mspTenant);
 
