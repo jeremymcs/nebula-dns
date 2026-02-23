@@ -144,12 +144,19 @@ jobs:
       - name: Capture migration job logs on failure
         if: failure()
         run: |
+          JOB=$(kubectl get job -n nebula-dns -l app.kubernetes.io/component=db-migration -o name 2>/dev/null | head -1)
           echo "=== Migration Job Status ==="
           kubectl get job -n nebula-dns -l app.kubernetes.io/component=db-migration -o wide || true
-          echo "=== Migration Pod Logs ==="
-          kubectl logs -n nebula-dns -l app.kubernetes.io/component=db-migration --tail=200 --prefix || true
+          echo "=== Migration Pod Logs (via job) ==="
+          if [[ -n "$JOB" ]]; then
+            kubectl logs -n nebula-dns "$JOB" --all-containers --tail=300 2>/dev/null || true
+          fi
+          echo "=== Migration Pod Logs (via label) ==="
+          kubectl logs -n nebula-dns -l app.kubernetes.io/component=db-migration --all-containers --tail=300 --prefix 2>/dev/null || true
+          echo "=== All pods in namespace ==="
+          kubectl get pods -n nebula-dns -o wide || true
           echo "=== Migration Pod Events ==="
-          kubectl describe pod -n nebula-dns -l app.kubernetes.io/component=db-migration 2>&1 | tail -40 || true
+          kubectl get events -n nebula-dns --sort-by='.lastTimestamp' | tail -30 || true
 
       - name: Verify deployments
         run: |

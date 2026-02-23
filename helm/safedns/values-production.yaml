@@ -115,7 +115,7 @@ clickhouse:
 migrations:
   enabled: true
   backoffLimit: 1
-  activeDeadlineSeconds: 300
+  activeDeadlineSeconds: 120
 
 # Service Monitor
 serviceMonitor:
