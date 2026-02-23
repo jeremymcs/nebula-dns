@@ -59,7 +59,7 @@ export class MspSubscription {
     type: 'decimal',
     precision: 10,
     scale: 4,
-    default: 0.5,
+    default: () => '0.5',
   })
   overageRate: number;
 
