@@ -308,6 +308,7 @@ describe('SubscriptionLapseService Integration', () => {
         slug: 'msp-company',
         tier: 'msp',
         subscriptionStatus: 'grace',
+        contactEmail: 'billing@msp.com',
       });
       await tenantRepository.save(mspTenant);
 
