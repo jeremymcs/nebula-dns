@@ -5,4 +5,4 @@ COPY config/dnsdist/ /etc/dnsdist/
 
 EXPOSE 53/udp 53/tcp 443/tcp 853/tcp
 
-CMD ["dnsdist", "--uid=dnsdist", "--gid=dnsdist", "--supervised", "--disable-syslog"]
+CMD ["dnsdist", "--supervised", "--disable-syslog", "--log-timestamps"]
