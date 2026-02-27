@@ -130,6 +130,32 @@ export class FixSchemaInconsistencies1707000000000 implements MigrationInterface
           SET "plan_id_new" = 'free'
           WHERE "plan_id_new" IS NULL
         `);
+
+        // Also convert subscription_plans.id from UUID to varchar(50) using code as PK.
+        // The entity defines SubscriptionPlan.id as @PrimaryColumn({ type: 'varchar', length: 50 })
+        // so the plan code IS the primary key in the target schema.
+        await queryRunner.query(`
+          ALTER TABLE "subscription_plans" ADD COLUMN "id_new" varchar(50)
+        `);
+        await queryRunner.query(`
+          UPDATE "subscription_plans" SET "id_new" = code
+        `);
+        await queryRunner.query(`
+          ALTER TABLE "subscription_plans" DROP CONSTRAINT "PK_subscription_plans"
+        `);
+        await queryRunner.query(`
+          ALTER TABLE "subscription_plans" DROP COLUMN "id"
+        `);
+        await queryRunner.query(`
+          ALTER TABLE "subscription_plans" RENAME COLUMN "id_new" TO "id"
+        `);
+        await queryRunner.query(`
+          ALTER TABLE "subscription_plans" ALTER COLUMN "id" SET NOT NULL
+        `);
+        await queryRunner.query(`
+          ALTER TABLE "subscription_plans"
+          ADD CONSTRAINT "PK_subscription_plans" PRIMARY KEY ("id")
+        `);
       } else {
         // New schema: subscription_plans.id is already varchar(50)
         // Direct copy should work
@@ -156,7 +182,7 @@ export class FixSchemaInconsistencies1707000000000 implements MigrationInterface
         ALTER COLUMN "plan_id" SET NOT NULL
       `);
 
-      // Add the foreign key constraint back
+      // Add the foreign key constraint back (both sides are now varchar(50))
       await queryRunner.query(`
         ALTER TABLE "subscriptions"
         ADD CONSTRAINT "FK_subscriptions_plan"
