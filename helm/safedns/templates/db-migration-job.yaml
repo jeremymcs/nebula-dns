@@ -63,8 +63,8 @@ spec:
 
       containers:
         - name: migration
-          image: "{{ .Values.api.image.repository }}:latest"
-          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag | default "latest" }}"
+          imagePullPolicy: Always
 
           command:
             - 'node'
