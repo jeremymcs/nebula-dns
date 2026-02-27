@@ -126,6 +126,26 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.api.secrets.name | default "api-secrets" }}
                   key: encryption-key
+            - name: MFA_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.secrets.name | default "api-secrets" }}
+                  key: mfa-encryption-key
+            - name: SSO_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.secrets.name | default "api-secrets" }}
+                  key: sso-encryption-key
+            - name: SIEM_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.secrets.name | default "api-secrets" }}
+                  key: siem-encryption-key
+            - name: ALERTING_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.secrets.name | default "api-secrets" }}
+                  key: alerting-encryption-key
             - name: FRONTEND_URL
               value: {{ .Values.api.env.FRONTEND_URL | default "https://app.nebuladns.io" | quote }}
             - name: STRIPE_SECRET_KEY
