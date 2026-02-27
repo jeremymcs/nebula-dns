@@ -49,7 +49,7 @@ import { AuditLogsModule } from '../audit-logs/audit-logs.module';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET'),
+        secret: configService.get('jwt.secret'),
         signOptions: {
           expiresIn: configService.get('JWT_EXPIRES_IN') || '15m',
         },

@@ -136,7 +136,7 @@ export class AuthService {
 
     try {
       const payload = this.jwtService.verify(tempToken, {
-        secret: this.configService.get<string>('JWT_SECRET'),
+        secret: this.configService.get<string>('jwt.secret'),
       });
 
       if (payload.type !== 'mfa_pending') {
@@ -187,7 +187,7 @@ export class AuthService {
   ): Promise<LoginResponseDto> {
     try {
       const payload = this.jwtService.verify(refreshToken, {
-        secret: this.configService.get<string>('JWT_SECRET'),
+        secret: this.configService.get<string>('jwt.secret'),
       });
 
       if (payload.type !== 'refresh') {

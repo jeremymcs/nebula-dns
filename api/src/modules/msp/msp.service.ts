@@ -389,7 +389,7 @@ export class MspService {
     };
 
     const accessToken = this.jwtService.sign(payload, {
-      secret: this.configService.get('JWT_SECRET'),
+      secret: this.configService.get('jwt.secret'),
       expiresIn: this.configService.get('JWT_EXPIRES_IN') || '15m',
     });
 
@@ -476,7 +476,7 @@ export class MspService {
     };
 
     const accessToken = this.jwtService.sign(payload, {
-      secret: this.configService.get('JWT_SECRET'),
+      secret: this.configService.get('jwt.secret'),
       expiresIn: this.configService.get('JWT_EXPIRES_IN') || '15m',
     });
 
@@ -564,7 +564,7 @@ export class MspService {
     };
 
     const accessToken = this.jwtService.sign(payload, {
-      secret: this.configService.get('JWT_SECRET'),
+      secret: this.configService.get('jwt.secret'),
       expiresIn: this.configService.get('JWT_EXPIRES_IN') || '15m',
     });
 
