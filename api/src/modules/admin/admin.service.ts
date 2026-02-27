@@ -1028,7 +1028,7 @@ export class AdminService {
     // Sign with tenant secret (JWT_SECRET, NOT ADMIN_JWT_SECRET)
     // Use 1-hour expiry for impersonation (shorter than admin's 8h)
     const accessToken = this.jwtService.sign(payload, {
-      secret: this.configService.get<string>('JWT_SECRET'),
+      secret: this.configService.get<string>('jwt.secret'),
       expiresIn: '1h',
       issuer: 'nebula-dns', // Tenant issuer, not nebula-admin
     });
@@ -1123,7 +1123,7 @@ export class AdminService {
     let payload: any;
     try {
       payload = this.jwtService.verify(impersonationToken, {
-        secret: this.configService.get<string>('JWT_SECRET'),
+        secret: this.configService.get<string>('jwt.secret'),
       });
     } catch (error) {
       throw new UnauthorizedException('Invalid or expired impersonation token');

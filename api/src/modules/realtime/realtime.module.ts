@@ -10,7 +10,7 @@ import { ClickHouseModule } from '../clickhouse/clickhouse.module';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
+        secret: configService.get<string>('jwt.secret'),
       }),
       inject: [ConfigService],
     }),
