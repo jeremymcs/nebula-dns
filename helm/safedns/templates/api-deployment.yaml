@@ -123,6 +123,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.api.secrets.name | default "api-secrets" }}
                   key: jwt-secret
+            - name: ADMIN_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.secrets.name | default "api-secrets" }}
+                  key: admin-jwt-secret
             - name: ENCRYPTION_KEY
               valueFrom:
                 secretKeyRef:
