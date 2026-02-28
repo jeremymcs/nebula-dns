@@ -14,6 +14,15 @@ const nextConfig = {
   turbopack: {
     root: __dirname,
   },
+  async rewrites() {
+    const apiUrl = process.env.API_URL || 'http://localhost:4010';
+    return [
+      {
+        source: '/backend/:path*',
+        destination: `${apiUrl}/:path*`,
+      },
+    ];
+  },
 };
 
 module.exports = withMDX(nextConfig);

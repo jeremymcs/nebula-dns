@@ -6,12 +6,12 @@
 const nextConfig = {
   output: 'standalone',
 
-  // Proxy API requests to the backend in development
   async rewrites() {
+    const apiUrl = process.env.API_URL || 'http://localhost:4010';
     return [
       {
-        source: '/api/:path*',
-        destination: 'http://localhost:4010/api/:path*',
+        source: '/backend/:path*',
+        destination: `${apiUrl}/:path*`,
       },
     ];
   },
