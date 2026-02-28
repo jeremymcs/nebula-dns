@@ -24,13 +24,14 @@ export class SeedDemoTenant1738100000000 implements MigrationInterface {
     // 1. Create demo tenant
     const tenantResult = await queryRunner.query(
       `
-      INSERT INTO "tenants" ("id", "name", "slug", "status", "plan", "settings")
+      INSERT INTO "tenants" ("id", "name", "slug", "status", "plan", "tier", "settings")
       VALUES (
         gen_random_uuid(),
         'Demo Organization',
         'demo',
         'active',
         'enterprise',
+        'msp',
         '{"demo": true}'::jsonb
       )
       RETURNING id
