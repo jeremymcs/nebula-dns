@@ -9,6 +9,20 @@ const nextConfig = {
     root: __dirname,
   },
 
+  // Proxy client-side API calls through Next.js so the browser never needs
+  // to reach the backend directly. API_URL is a server-side env var (no
+  // NEXT_PUBLIC_ prefix) so client code can't read it — rewrites solve this
+  // by letting the Next.js server forward /backend/* to the real API.
+  async rewrites() {
+    const apiUrl = process.env.API_URL || 'http://localhost:4010';
+    return [
+      {
+        source: '/backend/:path*',
+        destination: `${apiUrl}/:path*`,
+      },
+    ];
+  },
+
   // Redirect legacy partner portal routes to new dashboard locations
   // The partner portal has been deprecated in favor of the unified tier system
   // MSP users now access client management through /dashboard/clients
