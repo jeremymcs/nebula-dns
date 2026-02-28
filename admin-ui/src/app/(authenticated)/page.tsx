@@ -45,18 +45,18 @@ function StatCard({
   return (
     <Link
       href={href}
-      className="block bg-white dark:bg-space-800 rounded-xl border border-space-200 dark:border-space-700 p-6 hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-700 transition-all"
+      className="block bg-white dark:bg-space-900 rounded-2xl border border-space-200 dark:border-space-800 p-8 hover:shadow-xl hover:border-primary-400 dark:hover:border-primary-600 transition-all group"
     >
       <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-space-500 dark:text-space-400">{title}</p>
-          <p className="text-3xl font-bold text-space-900 dark:text-white mt-2">{value}</p>
+        <div className="space-y-2">
+          <p className="text-xs font-bold text-space-500 dark:text-space-400 uppercase tracking-widest">{title}</p>
+          <p className="text-4xl font-black text-space-900 dark:text-white tracking-tight">{value}</p>
           {subtitle && (
-            <p className="text-sm text-space-500 dark:text-space-400 mt-1">{subtitle}</p>
+            <p className="text-sm font-medium text-space-500 dark:text-space-400">{subtitle}</p>
           )}
         </div>
-        <div className={`p-3 rounded-xl ${colorStyles[color]}`}>
-          <Icon className="h-6 w-6" />
+        <div className={`p-4 rounded-2xl transition-transform group-hover:scale-110 duration-300 ${colorStyles[color]}`}>
+          <Icon className="h-7 w-7" />
         </div>
       </div>
     </Link>
@@ -78,14 +78,14 @@ function ActionCard({
   return (
     <Link
       href={href}
-      className="flex items-center gap-4 bg-white dark:bg-space-800 rounded-xl border border-space-200 dark:border-space-700 p-4 hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 transition-all"
+      className="flex items-center gap-6 bg-white dark:bg-space-900 rounded-2xl border border-space-200 dark:border-space-800 p-6 hover:shadow-lg hover:border-primary-400 dark:hover:border-primary-600 transition-all group"
     >
-      <div className="p-3 rounded-lg bg-space-100 dark:bg-space-700">
-        <Icon className="h-5 w-5 text-space-600 dark:text-space-300" />
+      <div className="p-4 rounded-xl bg-space-100 dark:bg-space-800 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20 transition-colors">
+        <Icon className="h-6 w-6 text-space-600 dark:text-space-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors" />
       </div>
       <div>
-        <p className="font-medium text-space-900 dark:text-white">{title}</p>
-        <p className="text-sm text-space-500 dark:text-space-400">{description}</p>
+        <p className="font-bold text-space-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{title}</p>
+        <p className="text-sm font-medium text-space-500 dark:text-space-400">{description}</p>
       </div>
     </Link>
   )
@@ -114,19 +114,19 @@ export default function DashboardPage() {
   const { admin } = useAuth()
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8">
+    <div className="p-6 lg:p-8 space-y-10 max-w-[1600px] mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-space-900 dark:text-white">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-3xl font-bold tracking-tight text-space-900 dark:text-white">
           Welcome back, {admin?.name || 'Admin'}
         </h1>
-        <p className="text-space-500 dark:text-space-400 mt-1">
-          Mission Control Admin Dashboard
+        <p className="text-lg text-space-500 dark:text-space-400">
+          Mission Control <span className="mx-2 text-space-300 dark:text-space-700">•</span> Admin overview and system health
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         <StatCard
           title="Total MSPs"
           value="24"
@@ -161,11 +161,11 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Quick Actions */}
-        <div className="lg:col-span-2">
-          <h2 className="text-lg font-semibold text-space-900 dark:text-white mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="lg:col-span-2 space-y-6">
+          <h2 className="text-xl font-bold text-space-900 dark:text-white">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ActionCard
               title="Manage MSPs"
               description="View and manage MSP accounts"
@@ -194,10 +194,10 @@ export default function DashboardPage() {
         </div>
 
         {/* System Status Panel */}
-        <div>
-          <h2 className="text-lg font-semibold text-space-900 dark:text-white mb-4">System Status</h2>
-          <div className="bg-white dark:bg-space-800 rounded-xl border border-space-200 dark:border-space-700 p-4">
-            <div className="divide-y divide-space-200 dark:divide-space-700">
+        <div className="space-y-6">
+          <h2 className="text-xl font-bold text-space-900 dark:text-white">System Status</h2>
+          <div className="bg-white dark:bg-space-900 rounded-2xl border border-space-200 dark:border-space-800 p-6 shadow-sm">
+            <div className="divide-y divide-space-100 dark:divide-space-800">
               <StatusIndicator status="healthy" label="API Services" />
               <StatusIndicator status="healthy" label="DNS Resolution" />
               <StatusIndicator status="healthy" label="Database" />
@@ -206,7 +206,7 @@ export default function DashboardPage() {
             </div>
             <Link
               href="/health"
-              className="block mt-4 text-center text-sm text-primary-600 dark:text-primary-400 hover:underline"
+              className="block mt-6 text-center text-sm font-bold text-primary-600 dark:text-primary-400 hover:text-primary-500 uppercase tracking-wider"
             >
               View detailed health →
             </Link>
@@ -215,20 +215,22 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Activity */}
-      <div className="mt-8">
-        <h2 className="text-lg font-semibold text-space-900 dark:text-white mb-4">Recent Activity</h2>
-        <div className="bg-white dark:bg-space-800 rounded-xl border border-space-200 dark:border-space-700 overflow-hidden">
-          <div className="divide-y divide-space-200 dark:divide-space-700">
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold text-space-900 dark:text-white">Recent Activity</h2>
+        <div className="bg-white dark:bg-space-900 rounded-2xl border border-space-200 dark:border-space-800 overflow-hidden shadow-sm">
+          <div className="divide-y divide-space-100 dark:divide-space-800">
             {[
               { icon: CheckCircleIcon, color: 'text-success-500', text: 'MSP "TechCorp Solutions" approved', time: '5 min ago' },
               { icon: UsersIcon, color: 'text-primary-500', text: 'New tenant signup: "Acme Inc"', time: '23 min ago' },
               { icon: ExclamationTriangleIcon, color: 'text-warning-500', text: 'Payment retry scheduled for tenant #1234', time: '1 hour ago' },
               { icon: ClockIcon, color: 'text-space-500', text: 'System maintenance completed', time: '3 hours ago' },
             ].map((item, i) => (
-              <div key={i} className="flex items-center gap-4 px-4 py-3">
-                <item.icon className={`h-5 w-5 ${item.color}`} />
-                <span className="flex-1 text-space-700 dark:text-space-300">{item.text}</span>
-                <span className="text-sm text-space-500 dark:text-space-400">{item.time}</span>
+              <div key={i} className="flex items-center gap-6 px-6 py-4 hover:bg-space-50 dark:hover:bg-space-800/50 transition-colors">
+                <div className={`p-2 rounded-lg bg-space-100 dark:bg-space-800 ${item.color.replace('text', 'bg').replace('500', '500/10')}`}>
+                  <item.icon className={`h-5 w-5 ${item.color}`} />
+                </div>
+                <span className="flex-1 font-medium text-space-700 dark:text-space-300">{item.text}</span>
+                <span className="text-sm font-bold text-space-400 dark:text-space-500 uppercase tracking-tight">{item.time}</span>
               </div>
             ))}
           </div>
@@ -237,3 +239,4 @@ export default function DashboardPage() {
     </div>
   )
 }
+

@@ -164,7 +164,7 @@ export function DashboardLayout({ children, showBreadcrumbs = true }: DashboardL
             <TopNav />
           </ErrorBoundary>
 
-          <main className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 pt-4 pb-20 lg:pb-6">
+          <main className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 pt-8 pb-20 lg:pb-12">
             {showBreadcrumbs && <Breadcrumbs />}
             <AnimatePresence mode="wait">
               <motion.div
