@@ -50,11 +50,14 @@ export class UpdateScheduledReportsSchema1738000000000 implements MigrationInter
     `);
 
     // Migrate recipients text[] → jsonb
+    // Must drop the old default first; PostgreSQL can't auto-cast text[] default to jsonb.
+    await queryRunner.query(`ALTER TABLE "scheduled_reports" ALTER COLUMN "recipients" DROP DEFAULT`);
     await queryRunner.query(`
       ALTER TABLE "scheduled_reports"
         ALTER COLUMN "recipients" TYPE jsonb
         USING to_jsonb("recipients")
     `);
+    await queryRunner.query(`ALTER TABLE "scheduled_reports" ALTER COLUMN "recipients" SET DEFAULT '[]'`);
 
     // Drop old columns no longer in the entity
     await queryRunner.query(`
