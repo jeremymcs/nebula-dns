@@ -51,8 +51,7 @@ export class ClickHouseService implements OnModuleInit {
   constructor(private configService: ConfigService) {}
 
   async onModuleInit() {
-    const host = this.configService.get<string>('CLICKHOUSE_HOST', 'localhost');
-    const port = this.configService.get<number>('CLICKHOUSE_PORT', 8123);
+    const clickhouseUrl = this.configService.get<string>('CLICKHOUSE_URL', '');
     const database = this.configService.get<string>(
       'CLICKHOUSE_DATABASE',
       'nebula_dns',
@@ -63,22 +62,37 @@ export class ClickHouseService implements OnModuleInit {
     );
     const password = this.configService.get<string>('CLICKHOUSE_PASSWORD', '');
 
+    // Resolve the host URL: prefer CLICKHOUSE_URL (supports HTTPS for ClickHouse Cloud),
+    // fall back to constructing from CLICKHOUSE_HOST + CLICKHOUSE_PORT.
+    let host: string;
+    if (clickhouseUrl) {
+      host = clickhouseUrl;
+    } else {
+      const rawHost = this.configService.get<string>('CLICKHOUSE_HOST', 'localhost');
+      const port = this.configService.get<number>('CLICKHOUSE_PORT', 8123);
+      host = `http://${rawHost}:${port}`;
+    }
+
+    // ClickHouse Cloud databases are pre-created — skip the bootstrap CREATE DATABASE step.
+    const isCloud = host.startsWith('https://');
+
     try {
-      // Bootstrap with 'default' database to create our database if needed,
-      // then re-initialize with the target database.
-      const bootstrapClient = createClient({
-        host: `http://${host}:${port}`,
-        database: 'default',
-        username,
-        password,
-      });
-      await bootstrapClient.query({
-        query: `CREATE DATABASE IF NOT EXISTS ${database}`,
-      });
-      await bootstrapClient.close();
+      if (!isCloud) {
+        // Self-hosted: bootstrap with 'default' database to create our database if needed.
+        const bootstrapClient = createClient({
+          host,
+          database: 'default',
+          username,
+          password,
+        });
+        await bootstrapClient.query({
+          query: `CREATE DATABASE IF NOT EXISTS ${database}`,
+        });
+        await bootstrapClient.close();
+      }
 
       this.client = createClient({
-        host: `http://${host}:${port}`,
+        host,
         database,
         username,
         password,
