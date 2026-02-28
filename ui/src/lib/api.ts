@@ -1,5 +1,11 @@
-// Runtime configuration - prefers runtime env vars over build-time NEXT_PUBLIC_ vars
-export const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4010'
+// API_URL is server-side only (no NEXT_PUBLIC_ prefix). On the client, we
+// route through the Next.js /backend proxy (see next.config.js rewrites) so
+// the browser never needs to reach the API directly.
+export const API_URL =
+  typeof window === 'undefined'
+    ? process.env.API_URL || 'http://localhost:4010'
+    : '/backend'
+
 export const APP_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:4011'
 export const ADMIN_UI_URL = process.env.ADMIN_UI_URL || process.env.NEXT_PUBLIC_ADMIN_UI_URL || 'http://localhost:4012'
 

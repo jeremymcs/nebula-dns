@@ -28,7 +28,7 @@ ui:
     repository: registry.digitalocean.com/nebula-dns/nebula-dns-ui
     pullPolicy: IfNotPresent
   env:
-    API_URL: "http://nebula-dns-safedns-api.nebula-dns.svc.cluster.local:80"
+    API_URL: "http://nebula-dns-nebuladns-api.nebula-dns.svc.cluster.local:4000"
     APP_URL: "https://app.nebuladns.io"
     ADMIN_UI_URL: "https://admin.nebuladns.io"
     MARKETING_DOMAIN: "nebuladns.io"
@@ -42,7 +42,7 @@ adminUi:
     repository: registry.digitalocean.com/nebula-dns/nebula-dns-admin-ui
     pullPolicy: IfNotPresent
   env:
-    API_URL: "http://nebula-dns-safedns-api.nebula-dns.svc.cluster.local:80"
+    API_URL: "http://nebula-dns-nebuladns-api.nebula-dns.svc.cluster.local:4000"
     APP_URL: "https://app.nebuladns.io"
     TENANT_UI_URL: "https://app.nebuladns.io"
 
