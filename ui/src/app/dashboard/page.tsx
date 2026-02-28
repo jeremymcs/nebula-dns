@@ -25,8 +25,11 @@ import {
   ShieldExclamationIcon,
   DocumentTextIcon,
   MapPinIcon,
+  EyeIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { ADMIN_UI_URL } from '@/lib/api'
+import { Button } from '@/components/ui'
 
 /**
  * Check if current session is an admin impersonation
@@ -50,28 +53,31 @@ function EnterpriseDashboard() {
   const isImpersonating = useIsImpersonating()
 
   return (
-    <div className="space-y-6">
+    <div className="pb-12 space-y-12">
       {/* Impersonation Banner */}
       {isImpersonating && (
-        <div className="bg-warning-100 dark:bg-warning-900/30 border border-warning-300 dark:border-warning-700 rounded-xl p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-warning-500/20 flex items-center justify-center">
-                <svg className="w-5 h-5 text-warning-600 dark:text-warning-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
+        <div className="relative overflow-hidden bg-warning-100 dark:bg-warning-900/30 border border-warning-300 dark:border-warning-700 rounded-2xl p-6 shadow-lg shadow-warning-500/10">
+          {/* Decoration */}
+          <div className="absolute -right-8 -top-8 w-32 h-32 bg-warning-500/10 rounded-full blur-2xl" />
+          
+          <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div className="flex items-start sm:items-center gap-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-warning-500/20 flex items-center justify-center">
+                <EyeIcon className="w-6 h-6 text-warning-600 dark:text-warning-400" />
               </div>
               <div>
-                <p className="font-medium text-warning-800 dark:text-warning-200">
+                <h3 className="font-bold text-warning-900 dark:text-warning-100">
                   Admin Impersonation Mode
-                </p>
-                <p className="text-sm text-warning-600 dark:text-warning-400">
-                  You are viewing this tenant as an admin. Actions are logged.
+                </h3>
+                <p className="text-sm text-warning-700 dark:text-warning-300">
+                  You are viewing this tenant as an administrator. All actions performed are logged and monitored.
                 </p>
               </div>
             </div>
-            <button
+            <Button
+              variant="accent"
+              className="bg-warning-600 hover:bg-warning-700 text-white border-0 shadow-warning-600/20"
+              leftIcon={<XMarkIcon className="w-5 h-5" />}
               onClick={() => {
                 // Clear impersonation and return to Admin UI (separate app on port 4012)
                 const adminUiUrl = ADMIN_UI_URL
@@ -81,26 +87,25 @@ function EnterpriseDashboard() {
                 localStorage.removeItem('user')
                 window.location.href = adminUiUrl
               }}
-              className="px-4 py-2 text-sm font-medium bg-warning-500 text-white rounded-lg hover:bg-warning-600 transition-colors"
             >
               End Impersonation
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-space-900 dark:text-white">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-3xl font-bold tracking-tight text-space-900 dark:text-white">
           Dashboard
         </h1>
-        <p className="text-space-500 dark:text-space-400">
-          {user?.tenantName || 'Overview'} - DNS security at a glance
+        <p className="text-lg text-space-500 dark:text-space-400">
+          {user?.tenantName || 'Overview'} <span className="mx-2 text-space-300 dark:text-space-700">•</span> DNS security at a glance
         </p>
       </div>
 
       {/* Hero Metrics */}
-      <HeroMetricsGrid>
+      <HeroMetricsGrid columns={4}>
         <HeroMetric
           title="Total Queries"
           value="--"
@@ -133,19 +138,41 @@ function EnterpriseDashboard() {
       </HeroMetricsGrid>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <QueryTrendsChart data={[]} isLoading={true} />
         <CategoryBreakdownChart data={[]} isLoading={true} />
       </div>
 
       {/* Activity Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TopBlockedList data={[]} isLoading={true} />
-        <ActivityFeed data={[]} isLoading={true} />
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <div className="xl:col-span-1">
+          <TopBlockedList data={[]} isLoading={true} />
+        </div>
+        <div className="xl:col-span-2">
+          <ActivityFeed data={[]} isLoading={true} />
+        </div>
       </div>
     </div>
   )
 }
+
+export default function DashboardPage() {
+  const { user, loading, tier } = useAuth()
+  const isImpersonating = useIsImpersonating()
+
+  if (loading) {
+    return <FullPageLoading />
+  }
+
+  // For home tier (and not impersonating), show simplified home dashboard
+  if (tier === 'home' && !isImpersonating) {
+    return <HomeDashboard />
+  }
+
+  // For enterprise/MSP tiers or admin impersonation, show full dashboard
+  return <EnterpriseDashboard />
+}
+
 
 export default function DashboardPage() {
   const { user, loading, tier } = useAuth()

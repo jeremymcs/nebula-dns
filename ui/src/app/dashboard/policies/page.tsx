@@ -585,22 +585,22 @@ export default function PoliciesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="pb-12 space-y-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-space-900 dark:text-white">Policies</h1>
-          <p className="mt-1 text-space-500 dark:text-space-400">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-3xl font-bold tracking-tight text-space-900 dark:text-white">Policies</h1>
+          <p className="text-lg text-space-500 dark:text-space-400">
             Manage DNS filtering policies for your locations
           </p>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/dashboard/policy-builder">
-            <Button variant="secondary" leftIcon={<Squares2X2Icon className="h-5 w-5" />}>
+            <Button variant="secondary" size="lg" leftIcon={<Squares2X2Icon className="h-5 w-5" />}>
               Visual Builder
             </Button>
           </Link>
-          <Button onClick={openCreateModal} leftIcon={<PlusIcon className="h-5 w-5" />}>
+          <Button variant="primary" size="lg" onClick={openCreateModal} leftIcon={<PlusIcon className="h-5 w-5" />}>
             Create Policy
           </Button>
         </div>
@@ -608,20 +608,27 @@ export default function PoliciesPage() {
 
       {/* Demo Data Notice */}
       {usingDemoData && !isLoading && (
-        <div className="flex items-center justify-between gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-          <div className="flex items-center gap-3">
-            <ShieldCheckIcon className="h-5 w-5 text-amber-500 flex-shrink-0" />
-            <p className="text-sm text-amber-700 dark:text-amber-300">
-              Showing sample policies. Import them to use as starting templates.
-            </p>
+        <div className="flex items-center justify-between gap-6 p-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
+              <ShieldCheckIcon className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div>
+              <p className="font-bold text-amber-900 dark:text-amber-100">
+                Sample Policies
+              </p>
+              <p className="text-sm text-amber-700 dark:text-amber-300">
+                Showing sample policies. Import them to use as starting templates for your organization.
+              </p>
+            </div>
           </div>
           <Button
-            variant="secondary"
-            size="sm"
+            variant="accent"
+            size="md"
             onClick={handleImportSamples}
             disabled={importing}
             leftIcon={<ArrowDownTrayIcon className="h-4 w-4" />}
-            className="bg-amber-500 hover:bg-amber-600 text-white border-0 whitespace-nowrap"
+            className="bg-amber-500 hover:bg-amber-600 text-white border-0 shadow-amber-500/20 whitespace-nowrap"
           >
             {importing ? 'Importing...' : 'Import Samples'}
           </Button>
@@ -629,33 +636,33 @@ export default function PoliciesPage() {
       )}
 
       {isLoading ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="skeleton h-64 rounded-2xl" />
+            <div key={i} className="skeleton h-80 rounded-2xl" />
           ))}
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {policies.map((policy) => (
             <Card
               key={policy.id}
               variant="interactive"
               padding="none"
-              className="group overflow-hidden"
+              className="group overflow-hidden flex flex-col h-full"
             >
               {/* Card Header with gradient */}
               <div className={clsx(
-                'p-4 relative overflow-hidden',
+                'p-6 relative overflow-hidden',
                 policy.isDefault
                   ? 'bg-gradient-to-br from-primary-600 to-accent-600'
                   : 'bg-gradient-to-br from-space-100 to-space-50 dark:from-space-800 dark:to-space-900'
               )}>
                 {/* Background decoration */}
-                <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-xl" />
+                <div className="absolute -right-4 -top-4 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
 
                 <div className="relative flex items-start justify-between">
                   <div className={clsx(
-                    'p-3 rounded-xl',
+                    'p-3.5 rounded-xl transition-transform group-hover:scale-110 duration-300',
                     policy.isDefault ? 'bg-white/20' : 'bg-white dark:bg-space-700 shadow-sm'
                   )}>
                     <ShieldCheckIcon className={clsx(
@@ -664,76 +671,77 @@ export default function PoliciesPage() {
                     )} />
                   </div>
                   {policy.isDefault && (
-                    <Badge variant="primary" className="bg-white/20 text-white border-0">
+                    <Badge variant="primary" className="bg-white/20 text-white border-0 font-bold uppercase tracking-wider text-[10px]">
                       Default
                     </Badge>
                   )}
                 </div>
 
                 <h3 className={clsx(
-                  'mt-4 text-lg font-semibold',
+                  'mt-6 text-xl font-bold leading-tight',
                   policy.isDefault ? 'text-white' : 'text-space-900 dark:text-white'
                 )}>
                   {policy.name}
                 </h3>
                 <p className={clsx(
-                  'mt-1 text-sm line-clamp-2',
+                  'mt-2 text-sm line-clamp-2 leading-relaxed',
                   policy.isDefault ? 'text-white/80' : 'text-space-500 dark:text-space-400'
                 )}>
-                  {policy.description || 'No description'}
+                  {policy.description || 'Baseline security policy with threat protection enabled'}
                 </p>
               </div>
 
               {/* Card Body */}
-              <div className="p-4 space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-space-500 dark:text-space-400">Version</span>
-                  <Badge variant="neutral">v{policy.currentVersion}</Badge>
+              <div className="p-6 space-y-4 flex-1">
+                <div className="flex items-center justify-between py-1 border-b border-space-100 dark:border-space-800">
+                  <span className="text-sm font-medium text-space-500 dark:text-space-400">Version</span>
+                  <Badge variant="neutral" className="font-mono">v{policy.currentVersion}</Badge>
                 </div>
 
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-space-500 dark:text-space-400">Threat Protection</span>
-                  <Badge variant={policy.currentConfig?.threatBlocking?.enabled ? 'success' : 'neutral'}>
-                    {policy.currentConfig?.threatBlocking?.enabled ? 'Enabled' : 'Disabled'}
+                <div className="flex items-center justify-between py-1 border-b border-space-100 dark:border-space-800">
+                  <span className="text-sm font-medium text-space-500 dark:text-space-400">Threat Protection</span>
+                  <Badge variant={policy.currentConfig?.threatBlocking?.enabled ? 'success' : 'neutral'} className="font-bold">
+                    {policy.currentConfig?.threatBlocking?.enabled ? 'ACTIVE' : 'INACTIVE'}
                   </Badge>
                 </div>
 
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-space-500 dark:text-space-400">SafeSearch</span>
-                  <Badge variant={policy.currentConfig?.safesearch?.enabled ? 'success' : 'neutral'}>
-                    {policy.currentConfig?.safesearch?.enabled ? 'Enabled' : 'Disabled'}
+                <div className="flex items-center justify-between py-1 border-b border-space-100 dark:border-space-800">
+                  <span className="text-sm font-medium text-space-500 dark:text-space-400">SafeSearch</span>
+                  <Badge variant={policy.currentConfig?.safesearch?.enabled ? 'success' : 'neutral'} className="font-bold">
+                    {policy.currentConfig?.safesearch?.enabled ? 'ACTIVE' : 'INACTIVE'}
                   </Badge>
                 </div>
 
-                <div>
-                  <span className="text-sm text-space-500 dark:text-space-400">Blocked Categories</span>
-                  <div className="mt-1.5 flex flex-wrap gap-1">
+                <div className="pt-2">
+                  <span className="text-xs font-bold text-space-400 dark:text-space-500 uppercase tracking-widest">Blocked Categories</span>
+                  <div className="mt-3 flex flex-wrap gap-2">
                     {(policy.currentConfig?.blockCategories || []).slice(0, 3).map((cat) => (
-                      <Badge key={cat} variant="danger" size="sm">
+                      <Badge key={cat} variant="danger" size="sm" className="font-semibold px-2">
                         {cat.replace('_', ' ')}
                       </Badge>
                     ))}
                     {(policy.currentConfig?.blockCategories?.length || 0) > 3 && (
-                      <Badge variant="neutral" size="sm">
+                      <Badge variant="neutral" size="sm" className="font-bold">
                         +{(policy.currentConfig?.blockCategories?.length || 0) - 3}
                       </Badge>
                     )}
                     {(policy.currentConfig?.blockCategories?.length || 0) === 0 && (
-                      <span className="text-xs text-space-400">None configured</span>
+                      <span className="text-sm text-space-400 dark:text-space-600 italic">None configured</span>
                     )}
                   </div>
                 </div>
               </div>
 
               {/* Card Footer */}
-              <div className="px-4 py-3 flex items-center justify-between border-t border-space-100 dark:border-space-700 bg-space-50/50 dark:bg-space-900/50">
-                <span className="text-xs text-space-500 dark:text-space-400">
-                  Updated {new Date(policy.updatedAt).toLocaleDateString()}
+              <div className="px-6 py-4 flex items-center justify-between border-t border-space-100 dark:border-space-700 bg-space-50/50 dark:bg-space-900/50">
+                <span className="text-[11px] font-medium text-space-400 dark:text-space-500 uppercase tracking-wider">
+                  Modified {new Date(policy.updatedAt).toLocaleDateString()}
                 </span>
                 <div className="flex gap-1">
                   <Button
                     variant="ghost"
                     size="sm"
+                    className="h-8 px-2"
                     onClick={() => openHistoryModal(policy)}
                     leftIcon={<ClockIcon className="h-4 w-4" />}
                   >
@@ -742,6 +750,7 @@ export default function PoliciesPage() {
                   <Button
                     variant="ghost"
                     size="sm"
+                    className="h-8 px-2"
                     onClick={() => openEditModal(policy)}
                     leftIcon={<PencilIcon className="h-4 w-4" />}
                   >
@@ -751,8 +760,8 @@ export default function PoliciesPage() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      className="h-8 px-2 text-danger-600 hover:text-danger-700 hover:bg-danger-50 dark:hover:bg-danger-900/20"
                       onClick={() => handleDelete(policy)}
-                      className="text-danger-600 hover:text-danger-700 hover:bg-danger-50 dark:hover:bg-danger-900/20"
                       leftIcon={<TrashIcon className="h-4 w-4" />}
                     >
                       Delete
@@ -795,9 +804,9 @@ export default function PoliciesPage() {
           {/* Main Content - Horizontal Split */}
           <div className="flex-1 flex overflow-hidden">
             {/* Left Sidebar - Settings */}
-            <div className="w-80 flex-shrink-0 border-r border-space-200 dark:border-space-700 overflow-y-auto p-4 space-y-4 bg-space-50/50 dark:bg-space-900/30">
+            <div className="w-80 flex-shrink-0 border-r border-space-200 dark:border-space-700 overflow-y-auto p-6 space-y-8 bg-space-50/50 dark:bg-space-900/30">
               {/* Basic Info */}
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <Input
                   label="Policy Name"
                   required
@@ -807,7 +816,7 @@ export default function PoliciesPage() {
                 />
                 <Textarea
                   label="Description"
-                  rows={2}
+                  rows={3}
                   placeholder="Policy description"
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -815,40 +824,40 @@ export default function PoliciesPage() {
               </div>
 
               {/* Quick Presets - Compact */}
-              <div>
-                <label className="block text-xs font-semibold text-space-500 dark:text-space-400 uppercase tracking-wide mb-2">
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-space-400 dark:text-space-500 uppercase tracking-widest">
                   Quick Presets
                 </label>
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-2 gap-2">
                   {Object.entries(POLICY_PRESETS).map(([name, preset]) => (
                     <button
                       key={name}
                       type="button"
                       onClick={() => applyPreset(name)}
-                      className="text-left p-2 rounded-lg border border-space-200 dark:border-space-700 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all"
+                      className="text-left p-3 rounded-xl border border-space-200 dark:border-space-700 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-white dark:hover:bg-space-800 hover:shadow-md transition-all group"
                     >
-                      <span className="text-xs font-medium text-space-900 dark:text-white block truncate">{name}</span>
+                      <span className="text-xs font-bold text-space-700 dark:text-space-300 group-hover:text-primary-600 dark:group-hover:text-primary-400 block truncate">{name}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
               {/* Threat Protection - Compact */}
-              <div>
-                <label className="block text-xs font-semibold text-space-500 dark:text-space-400 uppercase tracking-wide mb-2">
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-space-400 dark:text-space-500 uppercase tracking-widest">
                   Threat Protection
                 </label>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-2">
                   {THREAT_FEEDS.map((feed) => (
                     <button
                       key={feed}
                       type="button"
                       onClick={() => toggleThreatFeed(feed)}
                       className={clsx(
-                        'px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all',
+                        'px-3 py-2 rounded-lg text-xs font-bold transition-all uppercase tracking-wide',
                         form.threatBlocking.feeds.includes(feed)
-                          ? 'bg-primary-500 text-white'
-                          : 'bg-space-100 dark:bg-space-800 text-space-600 dark:text-space-400 hover:bg-space-200 dark:hover:bg-space-700'
+                          ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/20'
+                          : 'bg-white dark:bg-space-800 text-space-600 dark:text-space-400 border border-space-200 dark:border-space-700 hover:bg-space-50 dark:hover:bg-space-700'
                       )}
                     >
                       {feed}
@@ -858,55 +867,57 @@ export default function PoliciesPage() {
               </div>
 
               {/* SafeSearch - Compact */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-xs font-semibold text-space-500 dark:text-space-400 uppercase tracking-wide">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-space-400 dark:text-space-500 uppercase tracking-widest">
                     SafeSearch
                   </label>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1.5">
                     <button
                       type="button"
                       onClick={() => setAllEngines('strict')}
-                      className="px-1.5 py-0.5 text-[10px] rounded bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400"
+                      className="px-2 py-1 text-[10px] font-bold rounded-md bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400 uppercase tracking-wider"
                     >
-                      Strict
+                      MAX
                     </button>
                     <button
                       type="button"
                       onClick={() => setAllEngines('off')}
-                      className="px-1.5 py-0.5 text-[10px] rounded bg-space-200 text-space-600 dark:bg-space-700 dark:text-space-400"
+                      className="px-2 py-1 text-[10px] font-bold rounded-md bg-space-200 text-space-600 dark:bg-space-700 dark:text-space-400 uppercase tracking-wider"
                     >
-                      Off
+                      OFF
                     </button>
                   </div>
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-2">
                   {SEARCH_ENGINES.map((engine) => {
                     const currentLevel = form.safesearch.settings[engine.id as keyof SafeSearchSettings]
                     const LogoComponent = SEARCH_ENGINE_LOGOS[engine.id]
                     return (
                       <div
                         key={engine.id}
-                        className="flex items-center justify-between p-2 rounded-lg bg-white dark:bg-space-800 border border-space-200 dark:border-space-700"
+                        className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-space-800 border border-space-200 dark:border-space-700 shadow-sm"
                       >
-                        <div className="flex items-center gap-2">
-                          {LogoComponent && <LogoComponent />}
-                          <span className="text-xs font-medium text-space-900 dark:text-white">{engine.name}</span>
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-5 h-5 flex-shrink-0">
+                            {LogoComponent && <LogoComponent />}
+                          </div>
+                          <span className="text-xs font-bold text-space-700 dark:text-space-300">{engine.name}</span>
                         </div>
-                        <div className="flex rounded overflow-hidden border border-space-200 dark:border-space-600">
+                        <div className="flex rounded-lg overflow-hidden border border-space-200 dark:border-space-600">
                           {(['off', 'moderate', 'strict'] as const).map((level) => (
                             <button
                               key={level}
                               type="button"
                               onClick={() => updateSearchEngineSafety(engine.id as keyof SafeSearchSettings, level)}
                               className={clsx(
-                                'px-2 py-1 text-[10px] font-medium transition-colors',
+                                'px-2.5 py-1.5 text-[10px] font-bold transition-all uppercase tracking-wider',
                                 level !== 'off' && 'border-l border-space-200 dark:border-space-600',
                                 currentLevel === level
-                                  ? level === 'strict' ? 'bg-danger-500 text-white'
-                                    : level === 'moderate' ? 'bg-warning-500 text-white'
-                                    : 'bg-space-600 text-white dark:bg-space-500'
-                                  : 'bg-space-100 text-space-600 dark:bg-space-800 dark:text-space-400'
+                                  ? level === 'strict' ? 'bg-danger-600 text-white'
+                                    : level === 'moderate' ? 'bg-warning-600 text-white'
+                                    : 'bg-space-700 text-white dark:bg-space-500'
+                                  : 'bg-space-50 text-space-400 dark:bg-space-900 dark:text-space-500 hover:bg-space-100 dark:hover:bg-space-700'
                               )}
                             >
                               {level === 'off' ? 'Off' : level === 'moderate' ? 'Med' : 'Max'}
@@ -921,78 +932,70 @@ export default function PoliciesPage() {
             </div>
 
             {/* Right Panel - Categories */}
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-space-950">
               {/* Categories Header */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-space-200 dark:border-space-700 bg-white dark:bg-space-800">
-                <div className="flex items-center gap-4">
-                  <h3 className="text-sm font-semibold text-space-900 dark:text-white">Content Categories</h3>
-                  <div className="flex items-center gap-3 text-xs">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded bg-danger-500"></span>
-                      <span className="text-space-500">Block</span>
+              <div className="flex items-center justify-between px-8 py-4 border-b border-space-200 dark:border-space-700 bg-white dark:bg-space-900/50 backdrop-blur-md">
+                <div className="flex items-center gap-6">
+                  <h3 className="text-base font-bold text-space-900 dark:text-white">Content Categories</h3>
+                  <div className="flex items-center gap-4 text-xs">
+                    <span className="flex items-center gap-2 font-medium">
+                      <span className="w-3 h-3 rounded-md bg-danger-500 shadow-lg shadow-danger-500/20"></span>
+                      <span className="text-space-500 uppercase tracking-widest">Block</span>
                     </span>
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded bg-warning-500"></span>
-                      <span className="text-space-500">Warn</span>
+                    <span className="flex items-center gap-2 font-medium">
+                      <span className="w-3 h-3 rounded-md bg-warning-500 shadow-lg shadow-warning-500/20"></span>
+                      <span className="text-space-500 uppercase tracking-widest">Warn</span>
                     </span>
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded bg-space-300 dark:bg-space-600"></span>
-                      <span className="text-space-500">Allow</span>
+                    <span className="flex items-center gap-2 font-medium">
+                      <span className="w-3 h-3 rounded-md bg-space-200 dark:bg-space-700"></span>
+                      <span className="text-space-500 uppercase tracking-widest">Allow</span>
                     </span>
                   </div>
                 </div>
                 {/* Summary Stats */}
-                <div className="flex items-center gap-3 text-xs">
-                  <span className="px-2 py-1 rounded-full bg-danger-100 dark:bg-danger-900/30 text-danger-700 dark:text-danger-300 font-medium">
+                <div className="flex items-center gap-4 text-xs">
+                  <span className="px-3 py-1.5 rounded-full bg-danger-100 dark:bg-danger-900/30 text-danger-700 dark:text-danger-300 font-bold uppercase tracking-wide">
                     {form.blockCategories.length} blocked
                   </span>
-                  <span className="px-2 py-1 rounded-full bg-warning-100 dark:bg-warning-900/30 text-warning-700 dark:text-warning-300 font-medium">
+                  <span className="px-3 py-1.5 rounded-full bg-warning-100 dark:bg-warning-900/30 text-warning-700 dark:text-warning-300 font-bold uppercase tracking-wide">
                     {form.warnCategories.length} warned
                   </span>
                 </div>
               </div>
 
               {/* Categories Grid - Scrollable */}
-              <div className="flex-1 overflow-auto p-4">
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
+              <div className="flex-1 overflow-auto p-8 custom-scrollbar">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
                   {Object.entries(CATEGORY_GROUPS).map(([groupName, group]) => (
                     <div
                       key={groupName}
-                      className="p-3 rounded-xl border border-space-200 dark:border-space-700 bg-white dark:bg-space-800"
+                      className="flex flex-col rounded-2xl border border-space-200 dark:border-space-800 bg-white dark:bg-space-900 shadow-sm overflow-hidden transition-all hover:shadow-md hover:border-space-300 dark:hover:border-space-700"
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-xs font-semibold text-space-900 dark:text-white flex items-center gap-1.5">
-                          <span>{group.icon}</span>
+                      <div className="px-4 py-3 border-b border-space-100 dark:border-space-800 bg-space-50/50 dark:bg-space-800/50 flex items-center justify-between">
+                        <h4 className="text-[11px] font-bold text-space-900 dark:text-white flex items-center gap-2 uppercase tracking-widest">
+                          <span className="text-base">{group.icon}</span>
                           {groupName}
                         </h4>
-                        <div className="flex gap-0.5">
+                        <div className="flex gap-1">
                           <button
                             type="button"
                             onClick={() => toggleGroupCategories(groupName, 'block')}
-                            className="p-1 rounded text-[10px] hover:bg-danger-100 dark:hover:bg-danger-900/30"
+                            className="p-1.5 rounded-md hover:bg-danger-100 dark:hover:bg-danger-900/30 transition-colors"
                             title="Block all"
                           >
-                            🚫
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => toggleGroupCategories(groupName, 'warn')}
-                            className="p-1 rounded text-[10px] hover:bg-warning-100 dark:hover:bg-warning-900/30"
-                            title="Warn all"
-                          >
-                            ⚠️
+                            <ShieldExclamationIcon className="w-3.5 h-3.5 text-danger-600" />
                           </button>
                           <button
                             type="button"
                             onClick={() => toggleGroupCategories(groupName, 'none')}
-                            className="p-1 rounded text-[10px] hover:bg-space-100 dark:hover:bg-space-700"
+                            className="p-1.5 rounded-md hover:bg-space-100 dark:hover:bg-space-700 transition-colors"
                             title="Allow all"
                           >
-                            ✓
+                            <ShieldCheckIcon className="w-3.5 h-3.5 text-space-400" />
                           </button>
                         </div>
                       </div>
-                      <div className="space-y-1">
+                      <div className="p-3 space-y-1.5">
                         {group.categories.map((category) => {
                           const state = getCategoryState(category)
                           return (
@@ -1001,14 +1004,14 @@ export default function PoliciesPage() {
                               type="button"
                               onClick={() => cycleCategory(category)}
                               className={clsx(
-                                'w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs transition-all',
-                                state === 'block' && 'bg-danger-100 dark:bg-danger-900/30 text-danger-700 dark:text-danger-300',
-                                state === 'warn' && 'bg-warning-100 dark:bg-warning-900/30 text-warning-700 dark:text-warning-300',
-                                state === 'none' && 'bg-space-50 dark:bg-space-900 text-space-600 dark:text-space-400 hover:bg-space-100 dark:hover:bg-space-700'
+                                'w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all uppercase tracking-wide',
+                                state === 'block' && 'bg-danger-600 text-white shadow-lg shadow-danger-500/20',
+                                state === 'warn' && 'bg-warning-500 text-white shadow-lg shadow-warning-500/20',
+                                state === 'none' && 'bg-white dark:bg-space-900 text-space-600 dark:text-space-400 border border-space-100 dark:border-space-800 hover:border-space-300 dark:hover:border-space-600'
                               )}
                             >
-                              <span className="capitalize truncate">{category.replace(/_/g, ' ')}</span>
-                              <span className="text-[10px] flex-shrink-0 ml-1">
+                              <span className="truncate">{category.replace(/_/g, ' ')}</span>
+                              <span className="flex-shrink-0 ml-2">
                                 {state === 'block' && '🚫'}
                                 {state === 'warn' && '⚠️'}
                                 {state === 'none' && '—'}
@@ -1025,15 +1028,20 @@ export default function PoliciesPage() {
           </div>
 
           {/* Footer - Fixed */}
-          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-space-200 dark:border-space-700 bg-space-50 dark:bg-space-800/50">
+          <div className="flex items-center justify-end gap-4 px-8 py-5 border-t border-space-200 dark:border-space-700 bg-space-50 dark:bg-space-900/80 backdrop-blur-md">
             <Button
               variant="secondary"
+              size="lg"
+              className="px-8"
               onClick={() => setShowCreateModal(false)}
               disabled={saving}
             >
               Cancel
             </Button>
             <Button
+              variant="primary"
+              size="lg"
+              className="px-8 shadow-xl"
               onClick={handleSave}
               isLoading={saving}
             >
