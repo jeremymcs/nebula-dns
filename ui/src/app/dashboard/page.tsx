@@ -172,21 +172,3 @@ export default function DashboardPage() {
   // For enterprise/MSP tiers or admin impersonation, show full dashboard
   return <EnterpriseDashboard />
 }
-
-
-export default function DashboardPage() {
-  const { user, loading, tier } = useAuth()
-  const isImpersonating = useIsImpersonating()
-
-  if (loading) {
-    return <FullPageLoading />
-  }
-
-  // For home tier (and not impersonating), show simplified home dashboard
-  if (tier === 'home' && !isImpersonating) {
-    return <HomeDashboard />
-  }
-
-  // For enterprise/MSP tiers or admin impersonation, show full dashboard
-  return <EnterpriseDashboard />
-}

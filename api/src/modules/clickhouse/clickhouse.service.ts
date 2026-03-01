@@ -1,6 +1,6 @@
 /**
  * Nebula DNS - Enterprise DNS Security Platform
- * Copyright (c) 2024 Jeremy McSpadden <jeremy@fluxlabs.net>
+ * Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
  *
  * ClickHouse Service for Query Logging and Analytics
  */
@@ -114,16 +114,10 @@ export class ClickHouseService implements OnModuleInit {
     }
   }
 
-  /**
-   * Check if ClickHouse is healthy and connected
-   */
   isHealthy(): boolean {
     return this.isConnected;
   }
 
-  /**
-   * Get connection status details for health checks
-   */
   getConnectionStatus(): {
     connected: boolean;
     lastAttempt: Date | null;
@@ -138,16 +132,10 @@ export class ClickHouseService implements OnModuleInit {
     };
   }
 
-  /**
-   * Check if currently returning mock data instead of real analytics
-   */
   isUsingMockData(): boolean {
     return !this.isConnected;
   }
 
-  /**
-   * Schedule a reconnection attempt
-   */
   private scheduleReconnect(): void {
     setTimeout(async () => {
       if (!this.isConnected) {
@@ -157,16 +145,11 @@ export class ClickHouseService implements OnModuleInit {
     }, this.connectionRetryIntervalMs);
   }
 
-  /**
-   * Attempt to reconnect to ClickHouse
-   */
   private async attemptReconnect(): Promise<void> {
     this.lastConnectionAttempt = new Date();
 
     try {
-      // Try a simple ping query to check connection
       await this.client.query({ query: 'SELECT 1', format: 'JSONEachRow' });
-      // Re-run schema init in case it failed on first connect
       await this.initializeSchema();
       this.isConnected = true;
       this.consecutiveFailures = 0;
@@ -177,11 +160,10 @@ export class ClickHouseService implements OnModuleInit {
         `ClickHouse reconnection attempt failed (${this.consecutiveFailures}/${this.maxConsecutiveFailures}): ${error.message}`,
       );
 
-      // Exponential backoff for retries
       const backoffMs = Math.min(
         this.connectionRetryIntervalMs *
           Math.pow(2, this.consecutiveFailures - 1),
-        300000, // Max 5 minutes
+        300000,
       );
 
       if (this.consecutiveFailures < this.maxConsecutiveFailures) {
@@ -193,18 +175,14 @@ export class ClickHouseService implements OnModuleInit {
         this.logger.error(
           `ClickHouse reconnection failed after ${this.maxConsecutiveFailures} attempts. Will continue using mock data.`,
         );
-        // Reset and try again after a longer interval
         setTimeout(() => {
           this.consecutiveFailures = 0;
           this.attemptReconnect();
-        }, 600000); // 10 minutes
+        }, 600000);
       }
     }
   }
 
-  /**
-   * Safely execute a ClickHouse query with error handling
-   */
   private async safeQuery<T>(
     queryFn: () => Promise<T>,
     fallbackFn: () => T,
@@ -216,7 +194,6 @@ export class ClickHouseService implements OnModuleInit {
 
     try {
       const result = await queryFn();
-      // Reset failure counter on success
       if (this.consecutiveFailures > 0) {
         this.consecutiveFailures = 0;
       }
@@ -225,7 +202,6 @@ export class ClickHouseService implements OnModuleInit {
       this.consecutiveFailures++;
       this.logger.error(`ClickHouse ${operationName} failed: ${error.message}`);
 
-      // If we're seeing consistent failures, mark as disconnected
       if (this.consecutiveFailures >= 3) {
         this.logger.warn(
           'Multiple consecutive ClickHouse failures detected, marking as disconnected',
@@ -239,7 +215,6 @@ export class ClickHouseService implements OnModuleInit {
   }
 
   private async initializeSchema() {
-    // Create query logs table
     await this.client.query({
       query: `
         CREATE TABLE IF NOT EXISTS nebula_dns.query_logs (
@@ -264,7 +239,6 @@ export class ClickHouseService implements OnModuleInit {
       `,
     });
 
-    // Create materialized view for hourly aggregates
     await this.client.query({
       query: `
         CREATE TABLE IF NOT EXISTS nebula_dns.hourly_stats (
@@ -283,7 +257,6 @@ export class ClickHouseService implements OnModuleInit {
       `,
     });
 
-    // Create materialized view for category stats
     await this.client.query({
       query: `
         CREATE TABLE IF NOT EXISTS nebula_dns.category_stats (
@@ -297,7 +270,6 @@ export class ClickHouseService implements OnModuleInit {
       `,
     });
 
-    // Create materialized view for domain stats
     await this.client.query({
       query: `
         CREATE TABLE IF NOT EXISTS nebula_dns.domain_stats (
@@ -378,6 +350,45 @@ export class ClickHouseService implements OnModuleInit {
     }
   }
 
+  /**
+   * Build parameterized WHERE clause from filter.
+   * Returns { clause, params } where clause uses {param:Type} placeholders.
+   */
+  private buildFilterClause(filter: QueryLogFilter): {
+    clause: string;
+    params: Record<string, unknown>;
+  } {
+    const conditions: string[] = ['tenant_id = {tenantId:UUID}'];
+    const params: Record<string, unknown> = { tenantId: filter.tenantId };
+
+    if (filter.locationId) {
+      conditions.push('location_id = {locationId:UUID}');
+      params.locationId = filter.locationId;
+    }
+    if (filter.action) {
+      conditions.push("action = {action:Enum8('allow' = 1, 'block' = 2, 'rewrite' = 3)}");
+      params.action = filter.action;
+    }
+    if (filter.domain) {
+      conditions.push('domain LIKE {domainPattern:String}');
+      params.domainPattern = `%${filter.domain}%`;
+    }
+    if (filter.queryType) {
+      conditions.push('query_type = {queryType:String}');
+      params.queryType = filter.queryType;
+    }
+    if (filter.dateFrom) {
+      conditions.push('timestamp >= {dateFrom:DateTime64(3)}');
+      params.dateFrom = filter.dateFrom;
+    }
+    if (filter.dateTo) {
+      conditions.push('timestamp <= {dateTo:DateTime64(3)}');
+      params.dateTo = filter.dateTo;
+    }
+
+    return { clause: conditions.join(' AND '), params };
+  }
+
   async getQueryLogs(filter: QueryLogFilter): Promise<{
     data: any[];
     total: number;
@@ -388,29 +399,11 @@ export class ClickHouseService implements OnModuleInit {
 
     return this.safeQuery(
       async () => {
-        let whereClause = `tenant_id = '${filter.tenantId}'`;
-
-        if (filter.locationId) {
-          whereClause += ` AND location_id = '${filter.locationId}'`;
-        }
-        if (filter.action) {
-          whereClause += ` AND action = '${filter.action}'`;
-        }
-        if (filter.domain) {
-          whereClause += ` AND domain LIKE '%${filter.domain}%'`;
-        }
-        if (filter.queryType) {
-          whereClause += ` AND query_type = '${filter.queryType}'`;
-        }
-        if (filter.dateFrom) {
-          whereClause += ` AND timestamp >= '${filter.dateFrom}'`;
-        }
-        if (filter.dateTo) {
-          whereClause += ` AND timestamp <= '${filter.dateTo}'`;
-        }
+        const { clause, params } = this.buildFilterClause(filter);
 
         const countResult = await this.client.query({
-          query: `SELECT count() as total FROM query_logs WHERE ${whereClause}`,
+          query: `SELECT count() as total FROM query_logs WHERE ${clause}`,
+          query_params: params,
           format: 'JSONEachRow',
         });
         const countData = (await countResult.json()) as any[];
@@ -419,26 +412,16 @@ export class ClickHouseService implements OnModuleInit {
         const result = await this.client.query({
           query: `
             SELECT
-              timestamp,
-              tenant_id,
-              location_id,
-              location_name,
-              domain,
-              query_type,
-              client_ip,
-              action,
-              reason,
-              category,
-              response_time_ms,
-              cached,
-              threat_type,
-              policy_id
+              timestamp, tenant_id, location_id, location_name,
+              domain, query_type, client_ip, action, reason,
+              category, response_time_ms, cached, threat_type, policy_id
             FROM query_logs
-            WHERE ${whereClause}
+            WHERE ${clause}
             ORDER BY timestamp DESC
-            LIMIT ${limit}
-            OFFSET ${offset}
+            LIMIT {limit:UInt32}
+            OFFSET {offset:UInt32}
           `,
+          query_params: { ...params, limit, offset },
           format: 'JSONEachRow',
         });
 
@@ -488,8 +471,9 @@ export class ClickHouseService implements OnModuleInit {
               avg(response_time_ms) as avg_response_time,
               countIf(cached = 1) as cached_queries
             FROM query_logs
-            WHERE tenant_id = '${tenantId}' AND ${dateFilter}
+            WHERE tenant_id = {tenantId:UUID} AND ${dateFilter}
           `,
+          query_params: { tenantId },
           format: 'JSONEachRow',
         });
 
@@ -532,13 +516,14 @@ export class ClickHouseService implements OnModuleInit {
               any(category) as category,
               count() as count
             FROM query_logs
-            WHERE tenant_id = '${tenantId}'
+            WHERE tenant_id = {tenantId:UUID}
               AND action = 'block'
               AND ${dateFilter}
             GROUP BY domain
             ORDER BY count DESC
-            LIMIT ${limit}
+            LIMIT {limit:UInt32}
           `,
+          query_params: { tenantId, limit },
           format: 'JSONEachRow',
         });
 
@@ -549,7 +534,6 @@ export class ClickHouseService implements OnModuleInit {
     );
   }
 
-  // Alias for getTopBlocked - used by realtime gateway
   async getTopBlockedDomains(
     tenantId: string,
     period: string,
@@ -569,12 +553,13 @@ export class ClickHouseService implements OnModuleInit {
               ifNull(category, 'unknown') as category,
               count() as count
             FROM query_logs
-            WHERE tenant_id = '${tenantId}'
+            WHERE tenant_id = {tenantId:UUID}
               AND action = 'block'
               AND ${dateFilter}
             GROUP BY category
             ORDER BY count DESC
           `,
+          query_params: { tenantId },
           format: 'JSONEachRow',
         });
 
@@ -609,10 +594,11 @@ export class ClickHouseService implements OnModuleInit {
               count() as total_queries,
               countIf(action = 'block') as blocked_queries
             FROM query_logs
-            WHERE tenant_id = '${tenantId}' AND ${dateFilter}
+            WHERE tenant_id = {tenantId:UUID} AND ${dateFilter}
             GROUP BY location_id
             ORDER BY total_queries DESC
           `,
+          query_params: { tenantId },
           format: 'JSONEachRow',
         });
 
@@ -649,12 +635,13 @@ export class ClickHouseService implements OnModuleInit {
               toHour(timestamp) as hour,
               count() as value
             FROM query_logs
-            WHERE tenant_id = '${tenantId}'
+            WHERE tenant_id = {tenantId:UUID}
               AND action = 'block'
               AND ${dateFilter}
             GROUP BY day, hour
             ORDER BY day, hour
           `,
+          query_params: { tenantId },
           format: 'JSONEachRow',
         });
 
@@ -681,10 +668,11 @@ export class ClickHouseService implements OnModuleInit {
               toStartOfHour(timestamp) as hour,
               countIf(threat_type IS NOT NULL) as threat_count
             FROM query_logs
-            WHERE tenant_id = '${tenantId}' AND ${dateFilter}
+            WHERE tenant_id = {tenantId:UUID} AND ${dateFilter}
             GROUP BY hour
             ORDER BY hour
           `,
+          query_params: { tenantId },
           format: 'JSONEachRow',
         });
 
@@ -716,11 +704,12 @@ export class ClickHouseService implements OnModuleInit {
               count() as queryCount,
               countIf(action = 'block') as blockedCount
             FROM query_logs
-            WHERE tenant_id = '${tenantId}' AND ${dateFilter}
+            WHERE tenant_id = {tenantId:UUID} AND ${dateFilter}
             GROUP BY client_ip
             ORDER BY queryCount DESC
             LIMIT 1000
           `,
+          query_params: { tenantId },
           format: 'JSONEachRow',
         });
 
@@ -749,7 +738,6 @@ export class ClickHouseService implements OnModuleInit {
     }
   }
 
-  // Mock data methods for when ClickHouse is not available
   private getMockQueryLogs(filter: QueryLogFilter) {
     const actions = ['allow', 'block', 'rewrite'] as const;
     const queryTypes = ['A', 'AAAA', 'MX', 'TXT', 'CNAME'];
@@ -886,9 +874,6 @@ export class ClickHouseService implements OnModuleInit {
     ];
   }
 
-  /**
-   * Get time-series query trends for charts
-   */
   async getQueryTrends(
     tenantId: string,
     period: string,
@@ -900,7 +885,6 @@ export class ClickHouseService implements OnModuleInit {
       blocked: number;
     }>
   > {
-    // Determine grouping interval based on period
     let interval: string;
     let dateFilter: string;
 
@@ -936,10 +920,11 @@ export class ClickHouseService implements OnModuleInit {
               countIf(action = 'allow') as allowed,
               countIf(action = 'block') as blocked
             FROM query_logs
-            WHERE tenant_id = '${tenantId}' AND ${dateFilter}
+            WHERE tenant_id = {tenantId:UUID} AND ${dateFilter}
             GROUP BY ts
             ORDER BY ts
           `,
+          query_params: { tenantId },
           format: 'JSONEachRow',
         });
 
@@ -976,19 +961,19 @@ export class ClickHouseService implements OnModuleInit {
     switch (period) {
       case '24h':
         points = 24;
-        intervalMs = 60 * 60 * 1000; // 1 hour
+        intervalMs = 60 * 60 * 1000;
         break;
       case '7d':
         points = 7;
-        intervalMs = 24 * 60 * 60 * 1000; // 1 day
+        intervalMs = 24 * 60 * 60 * 1000;
         break;
       case '30d':
         points = 30;
-        intervalMs = 24 * 60 * 60 * 1000; // 1 day
+        intervalMs = 24 * 60 * 60 * 1000;
         break;
       case '90d':
         points = 90;
-        intervalMs = 24 * 60 * 60 * 1000; // 1 day
+        intervalMs = 24 * 60 * 60 * 1000;
         break;
       default:
         points = 7;
@@ -998,7 +983,7 @@ export class ClickHouseService implements OnModuleInit {
     for (let i = points - 1; i >= 0; i--) {
       const timestamp = new Date(now.getTime() - i * intervalMs);
       const baseTotal = 300000 + Math.floor(Math.random() * 100000);
-      const blockRate = 0.04 + Math.random() * 0.02; // 4-6% block rate
+      const blockRate = 0.04 + Math.random() * 0.02;
       const blocked = Math.floor(baseTotal * blockRate);
 
       data.push({
