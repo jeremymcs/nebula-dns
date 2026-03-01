@@ -359,11 +359,21 @@ func (c *PolicyCache) GetPolicyCacheSize() int {
 
 // LoadIPRanges loads all IP range mappings from Redis
 func (c *PolicyCache) LoadIPRanges(ctx context.Context) error {
-	// Get all IP range keys from Redis
-	keys, err := c.redis.Keys(ctx, "ip_range:*").Result()
-	if err != nil {
-		c.logger.Error("Failed to get IP range keys from Redis", zap.Error(err))
-		return err
+	// Scan for all IP range keys (SCAN is non-blocking, unlike KEYS)
+	var keys []string
+	var cursor uint64
+	for {
+		var batch []string
+		var err error
+		batch, cursor, err = c.redis.Scan(ctx, cursor, "ip_range:*", 100).Result()
+		if err != nil {
+			c.logger.Error("Failed to scan IP range keys from Redis", zap.Error(err))
+			return err
+		}
+		keys = append(keys, batch...)
+		if cursor == 0 {
+			break
+		}
 	}
 
 	entries := make([]IPRangeEntry, 0, len(keys))

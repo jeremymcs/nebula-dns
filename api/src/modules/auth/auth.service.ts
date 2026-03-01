@@ -72,12 +72,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Check if account is locked
+    // Check if account is locked (generic message to prevent user enumeration)
     if (user.lockedUntil && user.lockedUntil > new Date()) {
-      this.logger.warn(`Login attempt for locked account: ${email}`);
-      throw new UnauthorizedException(
-        `Account locked. Try again after ${user.lockedUntil.toISOString()}`,
-      );
+      this.logger.warn(`Login attempt for locked account: ${email}, locked until: ${user.lockedUntil.toISOString()}`);
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     // Verify password
@@ -263,7 +261,10 @@ export class AuthService {
       passwordHash: hashedPassword,
     });
 
-    this.logger.log(`Password changed for user ${userId}`);
+    // Revoke all existing sessions to force re-authentication
+    await this.sessionService.revokeAllSessions(userId);
+
+    this.logger.log(`Password changed for user ${userId}, all sessions revoked`);
   }
 
   async validateUser(userId: string, tenantId: string): Promise<User | null> {

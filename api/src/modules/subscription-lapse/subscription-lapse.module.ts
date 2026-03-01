@@ -4,7 +4,6 @@
 
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
 import { SubscriptionLapseController } from './subscription-lapse.controller';
 import { SubscriptionLapseService } from './subscription-lapse.service';
@@ -21,7 +20,6 @@ import { RedisModule } from '../redis/redis.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Tenant, User, Subscription, MspClient]),
-    ScheduleModule.forRoot(),
     ConfigModule,
     EmailModule,
     AuditLogsModule,

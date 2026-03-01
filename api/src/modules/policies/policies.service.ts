@@ -58,18 +58,45 @@ export class PoliciesService {
       policies.pop();
     }
 
-    // Fetch current config for each policy
-    const policiesWithConfig = await Promise.all(
-      policies.map(async (policy) => {
-        const currentVersionRecord = await this.versionRepository.findOne({
-          where: { policyId: policy.id, version: policy.currentVersion },
-        });
-        return {
-          ...policy,
-          currentConfig: currentVersionRecord?.config,
-        };
-      }),
-    );
+    // Fetch current configs in a single query instead of N+1
+    let policiesWithConfig: Array<Policy & { currentConfig?: PolicyConfig }>;
+    if (policies.length > 0) {
+      const versions = await this.versionRepository
+        .createQueryBuilder('v')
+        .where(
+          'v.policy_id IN (:...policyIds)',
+          { policyIds: policies.map((p) => p.id) },
+        )
+        .andWhere(
+          '(v.policy_id, v.version) IN (' +
+            policies
+              .map((_, i) => `(:pid${i}, :pver${i})`)
+              .join(', ') +
+            ')',
+          policies.reduce(
+            (params, p, i) => ({
+              ...params,
+              [`pid${i}`]: p.id,
+              [`pver${i}`]: p.currentVersion,
+            }),
+            {},
+          ),
+        )
+        .getMany();
+
+      const versionMap = new Map(
+        versions.map((v) => [`${v.policyId}:${v.version}`, v.config]),
+      );
+
+      policiesWithConfig = policies.map((policy) => ({
+        ...policy,
+        currentConfig: versionMap.get(
+          `${policy.id}:${policy.currentVersion}`,
+        ),
+      }));
+    } else {
+      policiesWithConfig = [];
+    }
 
     const nextCursor =
       hasMore && policies.length > 0

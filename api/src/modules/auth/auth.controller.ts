@@ -36,6 +36,7 @@ import {
   CurrentUser,
   CurrentTenant,
 } from '@/common/decorators/tenant.decorator';
+import { StrictRateLimit } from '../rate-limit/decorators/rate-limit.decorator';
 
 /**
  * Extended user payload with JTI
@@ -55,6 +56,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @StrictRateLimit(10, 60000) // 10 attempts per minute per IP
   @ApiOperation({
     summary: 'Authenticate user and get tokens',
     description:
@@ -109,6 +111,7 @@ export class AuthController {
 
   @Post('mfa/verify')
   @HttpCode(HttpStatus.OK)
+  @StrictRateLimit(5, 60000) // 5 attempts per minute per IP
   @ApiOperation({
     summary: 'Verify MFA code and complete login',
     description:
@@ -130,6 +133,7 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
+  @StrictRateLimit(20, 60000) // 20 per minute per IP
   @ApiOperation({
     summary: 'Refresh access token',
     description:

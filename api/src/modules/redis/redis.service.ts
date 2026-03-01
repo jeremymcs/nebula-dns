@@ -4,9 +4,9 @@ import Redis from 'ioredis';
 
 export interface CacheInvalidationMessage {
   type: 'policy' | 'token' | 'list' | 'threat' | 'category' | 'ip_ranges';
-  locationId?: string;
+  location_id?: string;
   token?: string;
-  tenantId?: string;
+  tenant_id?: string;
 }
 
 export interface IPRangeMapping {
@@ -84,7 +84,7 @@ export class RedisService implements OnModuleDestroy {
   async invalidatePolicy(locationId: string): Promise<void> {
     const message: CacheInvalidationMessage = {
       type: 'policy',
-      locationId,
+      location_id: locationId,
     };
     await this.publish(this.INVALIDATION_CHANNEL, JSON.stringify(message));
     this.logger.debug(
@@ -104,25 +104,25 @@ export class RedisService implements OnModuleDestroy {
   async invalidateList(tenantId: string, locationId?: string): Promise<void> {
     const message: CacheInvalidationMessage = {
       type: 'list',
-      tenantId,
-      locationId,
+      tenant_id: tenantId,
+      location_id: locationId,
     };
     await this.publish(this.INVALIDATION_CHANNEL, JSON.stringify(message));
     this.logger.debug(`Published list invalidation for tenant: ${tenantId}`);
   }
 
-  // Compiled policy storage
+  // Compiled policy storage (key matches policy-svc expectation: "policy:{locationId}")
   async storeCompiledPolicy(
     locationId: string,
     policy: object,
-    ttlSeconds = 3600,
+    ttlSeconds = 300,
   ): Promise<void> {
-    const key = `policy:compiled:${locationId}`;
+    const key = `policy:${locationId}`;
     await this.set(key, JSON.stringify(policy), ttlSeconds);
   }
 
   async getCompiledPolicy(locationId: string): Promise<object | null> {
-    const key = `policy:compiled:${locationId}`;
+    const key = `policy:${locationId}`;
     const data = await this.get(key);
     return data ? JSON.parse(data) : null;
   }
@@ -174,18 +174,26 @@ export class RedisService implements OnModuleDestroy {
   }
 
   async getAllIPRanges(): Promise<IPRangeMapping[]> {
-    const keys = await this.client.keys('ip_range:*');
-    if (keys.length === 0) {
-      return [];
-    }
-
     const mappings: IPRangeMapping[] = [];
-    for (const key of keys) {
-      const data = await this.get(key);
-      if (data) {
-        mappings.push(JSON.parse(data));
+    let cursor = '0';
+
+    do {
+      const [nextCursor, keys] = await this.client.scan(
+        cursor,
+        'MATCH',
+        'ip_range:*',
+        'COUNT',
+        100,
+      );
+      cursor = nextCursor;
+
+      for (const key of keys) {
+        const data = await this.get(key);
+        if (data) {
+          mappings.push(JSON.parse(data));
+        }
       }
-    }
+    } while (cursor !== '0');
 
     return mappings;
   }
