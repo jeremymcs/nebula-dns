@@ -176,25 +176,29 @@ Response includes pagination metadata:
 
   const document = SwaggerModule.createDocument(app, config);
 
-  // Export OpenAPI spec as JSON endpoint
-  SwaggerModule.setup('api/docs', app, document, {
-    swaggerOptions: {
-      persistAuthorization: true,
-      displayRequestDuration: true,
-      filter: true,
-      showExtensions: true,
-      showCommonExtensions: true,
-      tagsSorter: 'alpha',
-      operationsSorter: 'alpha',
-    },
-    customSiteTitle: 'Nebula DNS API Documentation',
-  });
+  // Only expose Swagger UI in non-production environments
+  if (process.env.NODE_ENV !== 'production') {
+    SwaggerModule.setup('api/docs', app, document, {
+      swaggerOptions: {
+        persistAuthorization: true,
+        displayRequestDuration: true,
+        filter: true,
+        showExtensions: true,
+        showCommonExtensions: true,
+        tagsSorter: 'alpha',
+        operationsSorter: 'alpha',
+      },
+      customSiteTitle: 'Nebula DNS API Documentation',
+    });
+  }
 
   const port = process.env.PORT || 4010;
   await app.listen(port);
 
-  logger.log(`🚀 Nebula DNS API running on port ${port}`);
-  logger.log(`📚 Swagger docs available at http://localhost:${port}/api/docs`);
+  logger.log(`Nebula DNS API running on port ${port}`);
+  if (process.env.NODE_ENV !== 'production') {
+    logger.log(`Swagger docs available at http://localhost:${port}/api/docs`);
+  }
 }
 
 bootstrap();

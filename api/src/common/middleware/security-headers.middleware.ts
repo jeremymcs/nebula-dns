@@ -32,8 +32,8 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
     // Strict CSP that prevents XSS and data injection attacks
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Needed for some UI frameworks
-      "style-src 'self' 'unsafe-inline'",
+      "script-src 'self'", // API serves JSON — no inline scripts needed
+      "style-src 'self'",
       "img-src 'self' data: https:",
       "font-src 'self' data:",
       "connect-src 'self' https:",

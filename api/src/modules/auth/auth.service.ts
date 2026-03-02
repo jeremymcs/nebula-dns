@@ -185,7 +185,7 @@ export class AuthService {
   ): Promise<LoginResponseDto> {
     try {
       const payload = this.jwtService.verify(refreshToken, {
-        secret: this.configService.get<string>('jwt.secret'),
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       });
 
       if (payload.type !== 'refresh') {
@@ -402,6 +402,7 @@ export class AuthService {
         tenantId: targetTenantId,
       },
       {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
         expiresIn:
           this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d',
       },
@@ -474,6 +475,7 @@ export class AuthService {
         tenantId: user.tenantId,
       },
       {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
         expiresIn:
           this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d',
       },

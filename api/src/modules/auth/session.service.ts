@@ -325,11 +325,11 @@ export class SessionService {
       const result = await this.redisService.get(blacklistKey);
       return result !== null;
     } catch (error) {
-      // Fail open - if Redis is unavailable, allow the token
-      this.logger.warn(
-        `Failed to check token blacklist: ${(error as Error).message}. Allowing token.`,
+      // Fail closed - if Redis is unavailable, treat token as blacklisted to force re-auth
+      this.logger.error(
+        `Failed to check token blacklist: ${(error as Error).message}. Rejecting token (fail-closed).`,
       );
-      return false;
+      return true;
     }
   }
 

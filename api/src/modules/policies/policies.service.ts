@@ -289,12 +289,6 @@ export class PoliciesService {
     return policy;
   }
 
-  async findByLocationId(locationId: string): Promise<PolicyVersion | null> {
-    // This would be used by the policy service to get compiled policy
-    // Implementation depends on location-policy relationship
-    return null;
-  }
-
   /**
    * Invalidate Redis cache and recompile policies for all locations using a specific policy
    */

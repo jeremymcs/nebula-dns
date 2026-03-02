@@ -50,7 +50,6 @@
     "@node-saml/node-saml": "^5.1.0",
     "@sendgrid/mail": "^8.1.6",
     "@sentry/node": "^10.29.0",
-    "@types/stripe": "^8.0.416",
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
