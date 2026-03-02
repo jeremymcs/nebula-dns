@@ -89,7 +89,7 @@ export class UsersService {
     });
 
     if (existingUser) {
-      throw new BadRequestException('Email already in use');
+      throw new BadRequestException('Unable to create user with this email');
     }
 
     // Prevent non-owners from creating owner accounts

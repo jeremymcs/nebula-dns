@@ -161,10 +161,7 @@ export class ApiKeyGuard implements CanActivate {
       return apiKeyHeader;
     }
 
-    // Check query parameter (less secure, but sometimes needed)
-    if (request.query?.api_key) {
-      return request.query.api_key;
-    }
+    // Query parameter support removed — API keys in URLs leak via logs, referrers, and browser history
 
     return null;
   }
