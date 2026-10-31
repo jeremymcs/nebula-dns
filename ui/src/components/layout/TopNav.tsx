@@ -43,6 +43,9 @@ import { hasFeature } from '@/lib/tier-features'
 import { WifiIcon } from '@heroicons/react/24/outline'
 // US-027: MSP Managed By Badge
 import { ManagedByBadge } from '@/components/msp/ManagedByBadge'
+import { ModuleSwitcher } from './ModuleSwitcher'
+import { ProductWordmark } from '@/components/ui/ProductWordmark'
+import { ShieldMark } from '@/components/ui/ShieldMark'
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus'
 import { AccountMenu } from './AccountMenu'
 
@@ -107,20 +110,18 @@ export function TopNav() {
       {/* Glass effect background — must not intercept taps (Safari mobile) */}
       <div className="pointer-events-none absolute inset-0 bg-white/80 dark:bg-space-900/80 backdrop-blur-xl border-b border-space-200 dark:border-space-800" />
       
-      <nav className="relative mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+      <nav className="relative mx-auto max-w-[1600px] px-3 sm:px-4 lg:px-8">
+        <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
           {/* Logo and Org Switcher */}
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="flex items-center gap-3 group">
-              <div className="relative h-10 w-10 rounded-xl bg-gradient-to-br from-primary-600 to-accent-500 flex items-center justify-center shadow-lg shadow-primary-500/25 group-hover:shadow-primary-500/40 transition-shadow">
-                <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-              </div>
-              <span className="hidden sm:block text-xl font-bold text-space-900 dark:text-white">
-                Nebula<span className="text-gradient"> DNS</span>
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+            <Link href="/dashboard" className="flex items-center gap-2 sm:gap-3 group shrink-0">
+              <ShieldMark className="h-9 w-9 sm:h-10 sm:w-10" iconClassName="h-5 w-5 sm:h-6 sm:w-6" />
+              <span className="hidden sm:block text-lg sm:text-xl font-bold text-space-900 dark:text-white truncate">
+                <ProductWordmark />
               </span>
             </Link>
+
+            <ModuleSwitcher />
 
             {/* Organization Switcher for MSP users */}
             <OrgSwitcher />
@@ -202,7 +203,7 @@ export function TopNav() {
           </div>
 
           {/* Right section */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {/* Client Context Switcher for MSP */}
             <ClientSwitcher />
 

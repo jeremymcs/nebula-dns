@@ -1,4 +1,4 @@
-// Nebula DNS - Privacy Policy Page
+// Flux Shield - Privacy Policy Page
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import Link from 'next/link'
@@ -27,7 +27,7 @@ export default function PrivacyPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Intro Callout */}
         <div className="bg-primary-900/30 border border-primary-800/50 rounded-xl p-4 mb-12 text-space-300">
-          At Nebula DNS, we take your privacy seriously. This Privacy Policy explains how we collect,
+          At Flux Shield, we take your privacy seriously. This Privacy Policy explains how we collect,
           use, disclose, and safeguard your information when you use our DNS security and content
           filtering service.
         </div>
@@ -244,8 +244,8 @@ export default function PrivacyPage() {
           </ul>
           <p className="text-space-400">
             To exercise these rights, contact us at{' '}
-            <a href="mailto:privacy@nebuladns.io" className="text-primary-400 hover:text-primary-300 transition-colors">
-              privacy@nebuladns.io
+            <a href="mailto:privacy@shield.fluxlabs.net" className="text-primary-400 hover:text-primary-300 transition-colors">
+              privacy@shield.fluxlabs.net
             </a>
           </p>
         </section>
@@ -314,14 +314,14 @@ export default function PrivacyPage() {
           <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6">
             <p className="text-space-300 mb-2">
               <strong className="text-white">Email:</strong>{' '}
-              <a href="mailto:privacy@nebuladns.io" className="text-primary-400 hover:text-primary-300 transition-colors">
-                privacy@nebuladns.io
+              <a href="mailto:privacy@shield.fluxlabs.net" className="text-primary-400 hover:text-primary-300 transition-colors">
+                privacy@shield.fluxlabs.net
               </a>
             </p>
             <p className="text-space-300 mb-2">
               <strong className="text-white">Data Protection Officer:</strong>{' '}
-              <a href="mailto:dpo@nebuladns.io" className="text-primary-400 hover:text-primary-300 transition-colors">
-                dpo@nebuladns.io
+              <a href="mailto:dpo@shield.fluxlabs.net" className="text-primary-400 hover:text-primary-300 transition-colors">
+                dpo@shield.fluxlabs.net
               </a>
             </p>
             <p className="text-space-300">

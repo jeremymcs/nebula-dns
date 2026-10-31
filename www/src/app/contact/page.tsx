@@ -1,4 +1,4 @@
-// Nebula DNS - Contact Page
+// Flux Shield - Contact Page
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 'use client'
@@ -99,7 +99,7 @@ export default function ContactPage() {
             </span>
           </h1>
           <p className="mt-4 text-lg text-space-400 max-w-2xl mx-auto">
-            Have questions about Nebula DNS? We&apos;re here to help. Send us a message and our team will get back to you shortly.
+            Have questions about Flux Shield? We&apos;re here to help. Send us a message and our team will get back to you shortly.
           </p>
         </div>
       </section>
@@ -253,10 +253,10 @@ export default function ContactPage() {
                       Questions about plans, pricing, or enterprise options?
                     </p>
                     <a
-                      href="mailto:sales@nebuladns.io"
+                      href="mailto:sales@shield.fluxlabs.net"
                       className="text-primary-400 text-sm hover:text-primary-300 transition-colors"
                     >
-                      sales@nebuladns.io
+                      sales@shield.fluxlabs.net
                     </a>
                   </div>
                 </div>
@@ -276,10 +276,10 @@ export default function ContactPage() {
                       Technical issues or account help?
                     </p>
                     <a
-                      href="mailto:support@nebuladns.io"
+                      href="mailto:support@shield.fluxlabs.net"
                       className="text-accent-400 text-sm hover:text-accent-300 transition-colors"
                     >
-                      support@nebuladns.io
+                      support@shield.fluxlabs.net
                     </a>
                   </div>
                 </div>

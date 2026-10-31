@@ -1,4 +1,4 @@
-// Nebula DNS - API Reference Page
+// Flux Shield - API Reference Page
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import Link from 'next/link'
@@ -182,7 +182,7 @@ export default function ApiReferencePage() {
             </span>
           </h1>
           <p className="text-xl text-space-400 max-w-3xl mx-auto">
-            Complete REST API documentation for integrating Nebula DNS into your applications,
+            Complete REST API documentation for integrating Flux Shield into your applications,
             automation workflows, and custom security tools.
           </p>
         </div>
@@ -200,7 +200,7 @@ export default function ApiReferencePage() {
               Base URL
             </h2>
             <div className="bg-space-900 border border-space-700 rounded-xl p-4 font-mono text-accent-400 text-sm mb-4 overflow-x-auto">
-              https://api.nebuladns.io/api/v1
+              https://api.shield.fluxlabs.net/v1
             </div>
             <p className="text-space-400 text-sm">
               All API requests should be made to this base URL. All requests must use HTTPS.
@@ -235,7 +235,7 @@ export default function ApiReferencePage() {
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-white mb-3">Authentication</h2>
               <p className="text-space-400 mb-5">
-                The Nebula DNS API uses Bearer token authentication. Include your API token in the{' '}
+                The Flux Shield API uses Bearer token authentication. Include your API token in the{' '}
                 <code className="bg-space-900 border border-space-700 px-1.5 py-0.5 rounded text-xs text-accent-400 font-mono">Authorization</code>{' '}
                 header of every request.
               </p>
@@ -338,7 +338,7 @@ export default function ApiReferencePage() {
               <div className="p-4 overflow-x-auto">
                 <pre className="text-sm text-space-300 font-mono leading-relaxed">
                   <code>{`curl -X GET \\
-  https://api.nebuladns.io/api/v1/policies \\
+  https://api.shield.fluxlabs.net/v1/policies \\
   -H "Authorization: Bearer YOUR_API_TOKEN" \\
   -H "Content-Type: application/json"`}</code>
                 </pre>
@@ -421,7 +421,7 @@ export default function ApiReferencePage() {
               <ul className="space-y-4">
                 {[
                   {
-                    href: 'https://api.nebuladns.io/api/docs',
+                    href: 'https://api.shield.fluxlabs.net/docs',
                     external: true,
                     label: 'Interactive Swagger UI',
                     description: 'Try endpoints directly in the browser',
@@ -485,7 +485,7 @@ export default function ApiReferencePage() {
             <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-4">START BUILDING</p>
             <h2 className="text-3xl font-bold text-white mb-4">Ready to Start Building?</h2>
             <p className="text-space-400 mb-8 max-w-xl mx-auto">
-              Generate your first API token and start integrating Nebula DNS into your
+              Generate your first API token and start integrating Flux Shield into your
               applications and automation workflows today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -499,7 +499,7 @@ export default function ApiReferencePage() {
                 Generate API Token
               </Link>
               <Link
-                href="https://api.nebuladns.io/api/docs"
+                href="https://api.shield.fluxlabs.net/docs"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-space-800 border border-space-700 text-white hover:bg-space-700 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2 justify-center"

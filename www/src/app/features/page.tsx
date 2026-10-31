@@ -1,4 +1,4 @@
-// Nebula DNS - Features Page
+// Flux Shield - Features Page
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 'use client'
@@ -103,7 +103,7 @@ const steps = [
   {
     number: '02',
     title: 'Deploy Across Locations',
-    description: 'Point your network DNS to Nebula DNS servers or deploy our lightweight agents. Changes take effect instantly across all your locations.',
+    description: 'Point your network DNS to Flux Shield servers or deploy our lightweight agents. Changes take effect instantly across all your locations.',
     icon: (
       <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -220,7 +220,7 @@ export default function FeaturesPage() {
               How It Works
             </h2>
             <p className="mt-4 text-space-400 max-w-2xl mx-auto">
-              Get started with Nebula DNS in three simple steps. No complex setup required.
+              Get started with Flux Shield in three simple steps. No complex setup required.
             </p>
           </div>
 

@@ -1,4 +1,4 @@
-// Nebula DNS Marketing Website - Pricing Page
+// Flux Shield Marketing Website - Pricing Page
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 'use client'

@@ -1,4 +1,4 @@
-// Nebula DNS - Blog Index Page
+// Flux Shield - Blog Index Page
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import fs from 'fs'
@@ -72,13 +72,13 @@ const fallbackPosts: BlogPost[] = [
     title: 'How to Block Malware at the DNS Level',
     date: '2026-02-08',
     author: 'Jeremy McSpadden',
-    excerpt: 'DNS-level filtering stops threats before they ever reach your network. Discover the techniques Nebula DNS uses to identify and block malicious domains in real time.',
+    excerpt: 'DNS-level filtering stops threats before they ever reach your network. Discover the techniques Flux Shield uses to identify and block malicious domains in real time.',
     category: 'DNS',
     readTime: '6 min read',
   },
   {
     slug: 'nebula-dns-v1-3-release',
-    title: 'Nebula DNS v1.3: Enhanced Analytics and Enterprise SSO',
+    title: 'Flux Shield v1.3: Enhanced Analytics and Enterprise SSO',
     date: '2026-02-01',
     author: 'Jeremy McSpadden',
     excerpt: 'Version 1.3 brings a completely redesigned analytics dashboard, enterprise SSO integration, and significant performance improvements to the policy engine.',
@@ -139,7 +139,7 @@ export default function BlogPage() {
           </h1>
           <p className="text-xl text-space-400 max-w-3xl mx-auto">
             Deep dives into DNS security, content filtering, network protection, and the latest from
-            the Nebula DNS team.
+            the Flux Shield team.
           </p>
         </div>
       </div>

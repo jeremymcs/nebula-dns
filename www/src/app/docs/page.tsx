@@ -1,4 +1,4 @@
-// Nebula DNS - Documentation Hub
+// Flux Shield - Documentation Hub
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import Link from 'next/link'
@@ -7,7 +7,7 @@ export default function DocsPage() {
   const mainCategories = [
     {
       title: 'Getting Started',
-      description: 'Step-by-step tutorials to get up and running with Nebula DNS in minutes.',
+      description: 'Step-by-step tutorials to get up and running with Flux Shield in minutes.',
       href: '/docs/guides',
       icon: (
         <svg className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -130,7 +130,7 @@ export default function DocsPage() {
             </h1>
             <p className="text-xl text-space-400 max-w-3xl mx-auto">
               Guides, API references, and tutorials to help you configure policies,
-              integrate with your infrastructure, and get the most out of Nebula DNS.
+              integrate with your infrastructure, and get the most out of Flux Shield.
             </p>
           </div>
 

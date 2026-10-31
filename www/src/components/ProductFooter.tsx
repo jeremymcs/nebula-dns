@@ -1,10 +1,5 @@
 import Link from 'next/link'
-import {
-  COPYRIGHT_HOLDER,
-  currentCopyrightYear,
-  FLUX_LABS_NAME,
-  FLUX_LABS_URL,
-} from '@/lib/branding'
+import { currentCopyrightYear, FLUX_LABS_NAME, FLUX_LABS_URL } from '@/lib/branding'
 
 /** Inline attribution for pages without the global marketing footer (e.g. signup). */
 export function ProductFooterInline({ className = '' }: { className?: string }) {
@@ -12,15 +7,14 @@ export function ProductFooterInline({ className = '' }: { className?: string }) 
 
   return (
     <footer
-      className={`text-center space-y-1 pt-8 ${className}`.trim()}
+      className={`text-center pt-8 ${className}`.trim()}
       aria-label="Site footer"
     >
-      <p className="text-xs text-space-500">© {year} {COPYRIGHT_HOLDER}</p>
       <p className="text-xs text-space-500">
-        Powered by{' '}
+        © {year} · Powered by{' '}
         <Link
           href={FLUX_LABS_URL}
-          className="text-space-400 hover:text-white transition-colors underline-offset-2 hover:underline"
+          className="font-medium text-accent-500 hover:text-accent-400 transition-colors underline-offset-2 hover:underline"
           target="_blank"
           rel="noopener noreferrer"
         >

@@ -1,4 +1,4 @@
-// Nebula DNS - Security Practices Page
+// Flux Shield - Security Practices Page
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import Link from 'next/link'
@@ -197,7 +197,7 @@ export default function SecurityPage() {
             Platform
           </h1>
           <p className="mt-6 text-lg text-space-400 max-w-3xl mx-auto">
-            Your trust is our foundation. Every layer of Nebula DNS is built with security as a first principle — not an afterthought. We protect your data, preserve your privacy, and maintain the highest standards of operational security.
+            Your trust is our foundation. Every layer of Flux Shield is built with security as a first principle — not an afterthought. We protect your data, preserve your privacy, and maintain the highest standards of operational security.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -385,7 +385,7 @@ export default function SecurityPage() {
                 <p className="text-space-400 text-sm">maximum reward for critical vulnerabilities</p>
                 <div className="mt-6 pt-6 border-t border-space-700/50 text-left space-y-2">
                   <p className="text-xs text-space-400 font-semibold uppercase tracking-wider mb-3">In-scope targets</p>
-                  {['api.nebuladns.io', 'app.nebuladns.io', 'DNS infrastructure', 'Authentication systems'].map((t, i) => (
+                  {['api.shield.fluxlabs.net', 'app.shield.fluxlabs.net', 'DNS infrastructure', 'Authentication systems'].map((t, i) => (
                     <div key={i} className="flex items-center gap-2 text-sm text-space-400">
                       <svg className="h-3.5 w-3.5 text-success-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
