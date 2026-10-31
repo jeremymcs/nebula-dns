@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the subscription management and tenant onboarding system for Nebula DNS, enabling self-service signup, automated provisioning, and guided onboarding.
+This document describes the subscription management and tenant onboarding system for Flux Shield, enabling self-service signup, automated provisioning, and guided onboarding.
 
 ## Features Implemented
 
@@ -203,7 +203,7 @@ STRIPE_PRICE_ENTERPRISE_YEARLY=price_...
 # Email (SendGrid)
 SENDGRID_API_KEY=SG...
 EMAIL_FROM_ADDRESS=noreply@safedns.example.com
-EMAIL_FROM_NAME=Nebula DNS
+EMAIL_FROM_NAME=Flux Shield
 
 # Frontend
 FRONTEND_URL=https://app.safedns.example.com

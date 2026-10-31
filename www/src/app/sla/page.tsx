@@ -1,4 +1,4 @@
-// Nebula DNS - Service Level Agreement Page
+// Flux Shield - Service Level Agreement Page
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import Link from 'next/link'
@@ -35,7 +35,7 @@ export default function SLAPage() {
             Service Availability
           </h2>
           <p className="text-space-400 mb-6">
-            Nebula DNS is committed to providing enterprise-grade DNS security with exceptional uptime.
+            Flux Shield is committed to providing enterprise-grade DNS security with exceptional uptime.
           </p>
 
           {/* Uptime Highlight */}

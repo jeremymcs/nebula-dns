@@ -14,6 +14,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { ThemeContext } from '@/contexts/ThemeContext'
 import { SunIcon, MoonIcon, ShieldCheckIcon } from '@heroicons/react/24/outline'
 import { ProductFooter } from '@/components/ProductFooter'
+import { ShieldMark } from '@/components/ShieldMark'
+import { ADMIN_PORTAL_NAME, PRODUCT_NAME } from '@/lib/branding'
 
 /**
  * Theme toggle button for light/dark mode
@@ -89,7 +91,7 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Cosmic Gradient Background */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-space-900 via-primary-900 to-accent-900">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-flux-hero">
         {/* Subtle gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
 
@@ -97,19 +99,17 @@ export default function AdminLoginPage() {
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20">
           {/* Logo */}
           <div className="flex items-center gap-4 mb-8">
-            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-warning-500 to-danger-500 flex items-center justify-center shadow-2xl shadow-warning-500/30">
-              <ShieldCheckIcon className="h-8 w-8 text-white" />
-            </div>
+            <ShieldMark className="h-14 w-14 rounded-2xl shadow-2xl shadow-primary-700/30" iconClassName="h-8 w-8" />
             <div>
-              <h1 className="text-3xl font-bold text-white">Nebula DNS</h1>
-              <p className="text-warning-300 font-medium">Mission Control</p>
+              <h1 className="text-3xl font-bold text-white">{PRODUCT_NAME}</h1>
+              <p className="text-primary-200 font-medium">{ADMIN_PORTAL_NAME}</p>
             </div>
           </div>
 
           {/* Tagline */}
           <h2 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-6">
             Secure Operations<br />
-            <span className="bg-gradient-to-r from-warning-400 to-danger-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary-300 to-accent-400 bg-clip-text text-transparent">
               Portal
             </span>
           </h2>
@@ -126,8 +126,8 @@ export default function AdminLoginPage() {
               'System health monitoring',
             ].map((feature) => (
               <div key={feature} className="flex items-center gap-3 text-space-200">
-                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-warning-500/20 flex items-center justify-center">
-                  <svg className="w-3 h-3 text-warning-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-500/20 flex items-center justify-center">
+                  <svg className="w-3 h-3 text-primary-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
@@ -144,12 +144,10 @@ export default function AdminLoginPage() {
 
         {/* Mobile Logo */}
         <div className="lg:hidden flex items-center gap-3 mb-10">
-          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-warning-500 to-danger-500 flex items-center justify-center shadow-lg shadow-warning-500/25">
-            <ShieldCheckIcon className="h-7 w-7 text-white" />
-          </div>
+          <ShieldMark className="h-12 w-12 rounded-xl shadow-lg shadow-primary-700/25" iconClassName="h-7 w-7" />
           <div>
-            <span className="text-2xl font-bold text-space-900 dark:text-white">Nebula DNS</span>
-            <span className="block text-sm text-warning-500 font-medium">Mission Control</span>
+            <span className="text-2xl font-bold text-space-900 dark:text-white">{PRODUCT_NAME}</span>
+            <span className="block text-sm text-primary-500 dark:text-primary-300 font-medium">{ADMIN_PORTAL_NAME}</span>
           </div>
         </div>
 
@@ -160,7 +158,7 @@ export default function AdminLoginPage() {
               Admin Login
             </h2>
             <p className="mt-2 text-space-500 dark:text-space-400">
-              Sign in to access Mission Control
+              Sign in to access {ADMIN_PORTAL_NAME}
             </p>
           </div>
 
@@ -185,7 +183,7 @@ export default function AdminLoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="input"
-                placeholder="admin@nebula-dns.com"
+                placeholder="admin@example.com"
                 disabled={loading}
               />
             </div>

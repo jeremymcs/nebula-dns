@@ -1,4 +1,4 @@
-// Nebula DNS - Terms of Service Page
+// Flux Shield - Terms of Service Page
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import Link from 'next/link'
@@ -27,7 +27,7 @@ export default function TermsPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Intro Callout */}
         <div className="bg-primary-900/30 border border-primary-800/50 rounded-xl p-4 mb-12 text-space-300">
-          Please read these Terms of Service carefully before using Nebula DNS. By accessing or using
+          Please read these Terms of Service carefully before using Flux Shield. By accessing or using
           our service, you agree to be bound by these terms.
         </div>
 
@@ -37,7 +37,7 @@ export default function TermsPage() {
             1. Acceptance of Terms
           </h2>
           <p className="text-space-400 mb-4">
-            By creating an account or using Nebula DNS (&quot;Service&quot;), you agree to these Terms of Service
+            By creating an account or using Flux Shield (&quot;Service&quot;), you agree to these Terms of Service
             (&quot;Terms&quot;) and our Privacy Policy. If you do not agree, you may not use the Service.
           </p>
           <p className="text-space-400">
@@ -53,7 +53,7 @@ export default function TermsPage() {
             2. Description of Service
           </h2>
           <p className="text-space-400 mb-4">
-            Nebula DNS provides DNS security, content filtering, and threat protection services. Our
+            Flux Shield provides DNS security, content filtering, and threat protection services. Our
             Service includes:
           </p>
           <ul className="space-y-2 mb-4">
@@ -175,7 +175,7 @@ export default function TermsPage() {
           </h2>
           <p className="text-space-400 mb-4">
             The Service, including all software, features, content, and trademarks, is owned by Flux Labs
-            and operated under the Nebula DNS product name.
+            and operated under the Flux Shield product name.
             and protected by intellectual property laws. We grant you a limited, non-exclusive,
             non-transferable license to use the Service in accordance with these Terms.
           </p>
@@ -385,14 +385,14 @@ export default function TermsPage() {
           <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6">
             <p className="text-space-300 mb-2">
               <strong className="text-white">Email:</strong>{' '}
-              <a href="mailto:legal@nebuladns.io" className="text-primary-400 hover:text-primary-300 transition-colors">
-                legal@nebuladns.io
+              <a href="mailto:legal@shield.fluxlabs.net" className="text-primary-400 hover:text-primary-300 transition-colors">
+                legal@shield.fluxlabs.net
               </a>
             </p>
             <p className="text-space-300 mb-2">
               <strong className="text-white">Support:</strong>{' '}
-              <a href="mailto:support@nebuladns.io" className="text-primary-400 hover:text-primary-300 transition-colors">
-                support@nebuladns.io
+              <a href="mailto:support@shield.fluxlabs.net" className="text-primary-400 hover:text-primary-300 transition-colors">
+                support@shield.fluxlabs.net
               </a>
             </p>
             <p className="text-space-300">

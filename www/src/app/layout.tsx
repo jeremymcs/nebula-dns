@@ -1,4 +1,4 @@
-// Nebula DNS - Marketing Website Root Layout
+// Flux Shield - Marketing Website Root Layout
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import type { Metadata } from 'next'
@@ -6,14 +6,16 @@ import { Inter, JetBrains_Mono } from 'next/font/google'
 import Link from 'next/link'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
-import { APP_URL } from '@/lib/config'
+import { APP_URL, SITE_URL } from '@/lib/config'
 import {
-  COPYRIGHT_HOLDER,
   currentCopyrightYear,
   FLUX_LABS_NAME,
   FLUX_LABS_URL,
+  PRODUCT_META_DESCRIPTION,
   PRODUCT_NAME,
 } from '@/lib/branding'
+import { ProductWordmark } from '@/components/ProductWordmark'
+import { ShieldMark } from '@/components/ShieldMark'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -28,13 +30,12 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.nebuladns.io'),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: `${PRODUCT_NAME} — Enterprise DNS Security & Content Filtering`,
+    default: PRODUCT_NAME,
     template: `%s · ${PRODUCT_NAME}`,
   },
-  description:
-    'Protect your organization from malware, phishing, and unwanted content at the DNS level. Easy to deploy, powerful to manage.',
+  description: PRODUCT_META_DESCRIPTION,
   applicationName: PRODUCT_NAME,
   icons: {
     icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
@@ -42,11 +43,10 @@ export const metadata: Metadata = {
   },
   openGraph: {
     siteName: PRODUCT_NAME,
-    title: `${PRODUCT_NAME} — Enterprise DNS Security`,
-    description:
-      'Protect your organization from malware, phishing, and unwanted content at the DNS layer.',
+    title: PRODUCT_NAME,
+    description: PRODUCT_META_DESCRIPTION,
     type: 'website',
-    url: 'https://www.nebuladns.io',
+    url: SITE_URL,
   },
 }
 
@@ -63,16 +63,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2.5 group" aria-label={PRODUCT_NAME}>
-                  <div className="relative h-9 w-9 rounded-xl bg-gradient-to-br from-primary-600 to-accent-600 flex items-center justify-center shadow-glow group-hover:shadow-glow-lg transition-all">
-                    {/* Nebula shield icon */}
-                    <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                    <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary-500/20 to-accent-500/20 blur-sm -z-10" />
-                  </div>
-                  <span className="text-lg font-bold text-white tracking-tight">
-                    Nebula<span className="text-gradient ml-0.5"> DNS</span>
-                  </span>
+                  <ShieldMark className="h-9 w-9" />
+                  <ProductWordmark className="text-lg font-bold text-white tracking-tight" />
                 </Link>
 
                 {/* Nav Links */}
@@ -128,17 +120,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 {/* Brand */}
                 <div className="md:col-span-2">
                   <Link href="/" className="flex items-center gap-2.5 mb-4">
-                    <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary-600 to-accent-600 flex items-center justify-center shadow-glow-sm">
-                      <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                      </svg>
-                    </div>
-                    <span className="text-base font-bold text-white">
-                      Nebula<span className="text-gradient"> DNS</span>
-                    </span>
+                    <ShieldMark className="h-8 w-8 rounded-lg" iconClassName="h-4 w-4" />
+                    <ProductWordmark className="text-base font-bold text-white" />
                   </Link>
                   <p className="text-sm text-space-400 leading-relaxed max-w-xs">
-                    Enterprise DNS security and content filtering. Protect your network at the DNS layer — before threats reach your users.
+                    {PRODUCT_META_DESCRIPTION}
                   </p>
                   {/* Social links */}
                   <div className="flex items-center gap-3 mt-6">
@@ -215,22 +201,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
               {/* Footer bottom */}
               <div className="pt-8 border-t border-space-800 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div className="text-center md:text-left space-y-1">
-                  <p className="text-sm text-space-500">
-                    © {currentCopyrightYear()} {COPYRIGHT_HOLDER}. {PRODUCT_NAME} is a product of {COPYRIGHT_HOLDER}.
-                  </p>
-                  <p className="text-xs text-space-500">
-                    Powered by{' '}
-                    <a
-                      href={FLUX_LABS_URL}
-                      className="text-space-400 hover:text-space-200 transition-colors underline-offset-2 hover:underline"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {FLUX_LABS_NAME}
-                    </a>
-                  </p>
-                </div>
+                <p className="text-sm text-space-500">
+                  © {currentCopyrightYear()} · Powered by{' '}
+                  <a
+                    href={FLUX_LABS_URL}
+                    className="font-medium text-accent-500 hover:text-accent-400 transition-colors underline-offset-2 hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {FLUX_LABS_NAME}
+                  </a>
+                </p>
                 <div className="flex items-center gap-6">
                   {[
                     { href: '/privacy', label: 'Privacy' },

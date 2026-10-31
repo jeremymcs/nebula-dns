@@ -16,6 +16,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { Card, CardHeader } from '@/components/ui'
+import { FLUX_CHART } from '@/lib/chart-colors'
 
 interface QueryDataPoint {
   timestamp: string
@@ -82,12 +83,12 @@ export function QueryTrendsChart({ data, isLoading }: QueryTrendsChartProps) {
           <AreaChart data={formattedData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="queriesGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#9333ea" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#9333ea" stopOpacity={0} />
+                <stop offset="5%" stopColor={FLUX_CHART.queries} stopOpacity={0.3} />
+                <stop offset="95%" stopColor={FLUX_CHART.queries} stopOpacity={0} />
               </linearGradient>
               <linearGradient id="blockedGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                <stop offset="5%" stopColor={FLUX_CHART.blocked} stopOpacity={0.3} />
+                <stop offset="95%" stopColor={FLUX_CHART.blocked} stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid 
@@ -115,7 +116,7 @@ export function QueryTrendsChart({ data, isLoading }: QueryTrendsChartProps) {
               type="monotone"
               dataKey="queries"
               name="Total Queries"
-              stroke="#9333ea"
+              stroke={FLUX_CHART.queries}
               strokeWidth={2}
               fill="url(#queriesGradient)"
             />
@@ -123,7 +124,7 @@ export function QueryTrendsChart({ data, isLoading }: QueryTrendsChartProps) {
               type="monotone"
               dataKey="blocked"
               name="Blocked"
-              stroke="#ef4444"
+              stroke={FLUX_CHART.blocked}
               strokeWidth={2}
               fill="url(#blockedGradient)"
             />

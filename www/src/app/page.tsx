@@ -1,4 +1,4 @@
-// Nebula DNS - Marketing Website Landing Page
+// Flux Shield - Marketing Website Landing Page
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 'use client'
@@ -349,7 +349,7 @@ export default function LandingPage() {
               </span>
             </h2>
             <p className="text-space-400 text-lg mb-8 leading-relaxed">
-              Join thousands of organizations protecting their networks with Nebula DNS. Deploy in minutes, not days.
+              Join thousands of organizations protecting their networks with Flux Shield. Deploy in minutes, not days.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

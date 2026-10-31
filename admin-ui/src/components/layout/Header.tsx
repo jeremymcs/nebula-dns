@@ -25,6 +25,9 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { TenantSearchDropdown } from './TenantSearchDropdown'
 import { useAdminRole } from '@/hooks/useAdminRole'
 import { AdminRoleBadge } from '@/components/rbac/AdminRoleBadge'
+import { ProductWordmark } from '@/components/ProductWordmark'
+import { ShieldMark } from '@/components/ShieldMark'
+import { ADMIN_PORTAL_NAME } from '@/lib/branding'
 
 /**
  * Get initials from a name string
@@ -72,15 +75,13 @@ export function Header() {
           {/* Logo and Title */}
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative h-10 w-10 rounded-xl bg-gradient-to-br from-primary-600 to-accent-500 flex items-center justify-center shadow-lg shadow-primary-500/25 group-hover:shadow-primary-500/40 transition-shadow">
-                <RocketLaunchIcon className="h-6 w-6 text-white" />
-              </div>
+              <ShieldMark className="h-10 w-10" />
               <div className="hidden sm:flex flex-col">
                 <span className="text-xl font-bold text-space-900 dark:text-white">
-                  Nebula<span className="text-gradient"> DNS</span>
+                  <ProductWordmark />
                 </span>
                 <span className="text-xs font-medium text-space-500 dark:text-space-400 -mt-0.5">
-                  Mission Control
+                  {ADMIN_PORTAL_NAME}
                 </span>
               </div>
             </Link>

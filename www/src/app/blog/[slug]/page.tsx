@@ -1,4 +1,4 @@
-// Nebula DNS - Blog Post Page
+// Flux Shield - Blog Post Page
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import fs from 'fs'
@@ -121,8 +121,8 @@ export default async function BlogPostPage({ params }: PageProps) {
   const htmlContent = parseMarkdownContent(content)
   const readTime = frontmatter.readTime || '5 min read'
 
-  const twitterShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(frontmatter.title)}&url=${encodeURIComponent(`https://nebuladns.io/blog/${slug}`)}`
-  const linkedinShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://nebuladns.io/blog/${slug}`)}`
+  const twitterShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(frontmatter.title)}&url=${encodeURIComponent(`https://shield.fluxlabs.net/blog/${slug}`)}`
+  const linkedinShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://shield.fluxlabs.net/blog/${slug}`)}`
 
   return (
     <div className="bg-space-950 min-h-screen">

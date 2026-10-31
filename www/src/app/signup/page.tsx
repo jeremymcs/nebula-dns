@@ -1,4 +1,4 @@
-// Nebula DNS Marketing Website - Signup Page
+// Flux Shield Marketing Website - Signup Page
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 'use client'
@@ -226,7 +226,7 @@ function SignupFormContent() {
             <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 bg-gradient-to-br from-success-600 to-success-500 shadow-[0_0_30px_rgba(5,150,105,0.4)]">
               <CheckCircleIcon className="h-10 w-10 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-3">Welcome to Nebula DNS!</h2>
+            <h2 className="text-2xl font-bold text-white mb-3">Welcome to Flux Shield!</h2>
             <p className="text-space-400 mb-6">
               Your account has been created successfully. Check your email for a welcome message with getting started instructions.
             </p>

@@ -1,8 +1,10 @@
-# Nebula DNS
+# Flux Shield
 
-**Enterprise DNS security and content filtering** — protect your organization at the DNS layer with policy-based filtering, threat intelligence, and real-time analytics.
+**Modular security platform by Flux Labs** — DNS Filter for policy-based filtering, threat intelligence, and analytics today; additional modules (e.g. DMARC) on the roadmap.
 
-Nebula DNS is a product of [Flux Labs](https://fluxlabs.net) (Panama City Beach, FL). Powered by Flux Labs. © 2026 Flux Labs.
+Flux Shield is a product of [Flux Labs](https://fluxlabs.net) (Panama City Beach, FL). © 2026 Flux Labs.
+
+Public URLs are configured via environment variables (defaults: app at `https://shield.fluxlabs.net`, admin at `https://admin.shield.fluxlabs.net`, API at `https://api.shield.fluxlabs.net`).
 
 ## Features
 
@@ -94,10 +96,10 @@ This will start:
 
 | Service | URL |
 |---------|-----|
-| Dashboard | https://app.nebuladns.io |
-| API | https://api.nebuladns.io |
-| DNS (DoT) | tls://dns1.nebuladns.io:853, tls://dns2.nebuladns.io:853 |
-| DNS (DoH) | https://dns1.nebuladns.io/dns-query, https://dns2.nebuladns.io/dns-query |
+| Dashboard | `NEXT_PUBLIC_APP_URL` (default `https://shield.fluxlabs.net`) |
+| API | `API_URL` / `NEXT_PUBLIC_API_URL` (default `https://api.shield.fluxlabs.net`) |
+| DNS (DoT) | `DNS1_HOST` / `DNS2_HOST` (default `dns1.shield.fluxlabs.net`, `dns2.shield.fluxlabs.net`) |
+| DNS (DoH) | `https://<DNS1_HOST>/dns-query`, `https://<DNS2_HOST>/dns-query` |
 
 ### Local Development
 
