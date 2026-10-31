@@ -57,6 +57,7 @@ export function Header() {
     { name: 'MSPs', href: '/msps', feature: 'msps' as const },
     { name: 'Health', href: '/health', feature: 'health' as const },
     { name: 'Alerting', href: '/settings/alerting', feature: 'alerting-config' as const },
+    { name: 'DNS Platform', href: '/dns-platform/connection', feature: 'dns-platform' as const },
     { name: 'Admin Users', href: '/users', feature: 'admin-users' as const },
   ]
 

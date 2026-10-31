@@ -76,6 +76,7 @@ import { TrialsModule } from './modules/trials/trials.module';
 
 // Subscription Lapse (US-027, US-028, US-029)
 import { SubscriptionLapseModule } from './modules/subscription-lapse/subscription-lapse.module';
+import { DnsManagementModule } from './modules/dns-management/dns-management.module';
 
 // Configuration
 import configuration from './config/configuration';
@@ -214,6 +215,9 @@ import { getPostgresSslConfig } from './database/pg-ssl';
 
     // Subscription Lapse (US-027, US-028, US-029)
     SubscriptionLapseModule,
+
+    // Flux Shield DNS Management (platform-hosted zones)
+    DnsManagementModule,
   ],
 })
 export class AppModule implements NestModule {

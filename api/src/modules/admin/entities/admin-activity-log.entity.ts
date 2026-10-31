@@ -33,7 +33,12 @@ export type AdminActivityAction =
   | 'admin_mfa_reset'
   | 'admin_deleted'
   | 'admin_password_changed'
-  | 'invite_revoked';
+  | 'invite_revoked'
+  | 'dns_platform_connection_set'
+  | 'dns_platform_connection_verified'
+  | 'dns_platform_connection_revoked'
+  | 'dns_platform_zones_synced'
+  | 'dns_platform_zone_created';
 
 /**
  * AdminActivityLog Entity

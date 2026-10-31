@@ -294,7 +294,7 @@ describe('LimitsService', () => {
     it('should delete all cache keys for a tenant', async () => {
       await service.invalidateLimitsCache(mockTenantId);
 
-      expect(mockRedisService.del).toHaveBeenCalledTimes(4);
+      expect(mockRedisService.del).toHaveBeenCalledTimes(5);
       expect(mockRedisService.del).toHaveBeenCalledWith(
         `limits:tenant:${mockTenantId}`,
       );
