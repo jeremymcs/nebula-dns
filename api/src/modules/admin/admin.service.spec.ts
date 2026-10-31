@@ -12,6 +12,7 @@ import * as bcrypt from 'bcrypt';
 
 import { AdminService } from './admin.service';
 import { AdminSessionService } from './admin-session.service';
+import { AdminRefreshTokenService } from '../mobile/admin-refresh-token.service';
 import { AdminHealthService } from './admin-health.service';
 import { AdminActivityService } from './admin-activity.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
@@ -184,6 +185,21 @@ describe('AdminService', () => {
           },
         },
         {
+          provide: AdminRefreshTokenService,
+          useValue: {
+            issueToken: jest.fn().mockResolvedValue({
+              token: 'mock-refresh-token',
+              recordId: 'refresh-record-id',
+              familyId: 'family-id',
+              sessionJti: 'session-jti',
+              expiresAt: new Date(Date.now() + 86400000),
+            }),
+            rotateRefreshToken: jest.fn(),
+            revokeAllForAdmin: jest.fn(),
+            revokeTokensForDevice: jest.fn(),
+          },
+        },
+        {
           provide: ConfigService,
           useValue: {
             get: jest
@@ -194,6 +210,7 @@ describe('AdminService', () => {
                   ADMIN_LOCKOUT_DURATION_MINUTES: 30,
                   JWT_SECRET: 'test-jwt-secret',
                   ADMIN_JWT_SECRET: 'test-admin-jwt-secret',
+                  ADMIN_JWT_EXPIRY: '15m',
                 };
                 return config[key] ?? defaultValue;
               }),

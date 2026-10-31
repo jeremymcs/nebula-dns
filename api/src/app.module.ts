@@ -80,6 +80,7 @@ import { SubscriptionLapseModule } from './modules/subscription-lapse/subscripti
 // Configuration
 import configuration from './config/configuration';
 import { getPostgresSslConfig } from './database/pg-ssl';
+import { MobileModule } from './modules/mobile/mobile.module';
 
 @Module({
   imports: [
@@ -214,6 +215,9 @@ import { getPostgresSslConfig } from './database/pg-ssl';
 
     // Subscription Lapse (US-027, US-028, US-029)
     SubscriptionLapseModule,
+
+    // Mobile Phase 0 (devices, refresh tokens, push)
+    MobileModule,
   ],
 })
 export class AppModule implements NestModule {

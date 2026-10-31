@@ -1040,6 +1040,89 @@ CREATE INDEX idx_admin_activity_admin ON admin_activity_logs(admin_id);
 CREATE INDEX idx_admin_activity_action ON admin_activity_logs(action);
 CREATE INDEX idx_admin_activity_created ON admin_activity_logs(created_at DESC);
 
+-- Mobile Phase 0: admin refresh tokens, devices, notifications
+CREATE TABLE IF NOT EXISTS admin_refresh_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    admin_id UUID NOT NULL REFERENCES admins(id) ON DELETE CASCADE,
+    token_hash VARCHAR(128) NOT NULL UNIQUE,
+    family_id UUID NOT NULL,
+    device_id UUID,
+    session_jti VARCHAR(64) NOT NULL,
+    mfa_verified BOOLEAN NOT NULL DEFAULT false,
+    expires_at TIMESTAMPTZ NOT NULL,
+    revoked_at TIMESTAMPTZ,
+    replaced_by_id UUID,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_admin_refresh_tokens_family ON admin_refresh_tokens(family_id);
+CREATE INDEX IF NOT EXISTS idx_admin_refresh_tokens_admin ON admin_refresh_tokens(admin_id);
+
+CREATE TABLE IF NOT EXISTS mobile_devices (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    external_device_id VARCHAR(128) NOT NULL,
+    platform VARCHAR(32) NOT NULL,
+    app_version VARCHAR(64),
+    device_name VARCHAR(255),
+    expo_push_token VARCHAR(512),
+    is_jailbroken BOOLEAN NOT NULL DEFAULT false,
+    admin_id UUID REFERENCES admins(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+    last_refresh_jti VARCHAR(64),
+    revoked_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT chk_mobile_devices_owner CHECK (
+      (admin_id IS NOT NULL AND user_id IS NULL)
+      OR (admin_id IS NULL AND user_id IS NOT NULL)
+    )
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mobile_devices_admin_external
+  ON mobile_devices(admin_id, external_device_id)
+  WHERE admin_id IS NOT NULL AND revoked_at IS NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mobile_devices_user_external
+  ON mobile_devices(user_id, external_device_id)
+  WHERE user_id IS NOT NULL AND revoked_at IS NULL;
+
+CREATE TABLE IF NOT EXISTS notification_preferences (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    admin_id UUID REFERENCES admins(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+    channel VARCHAR(64) NOT NULL,
+    enabled BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT chk_notification_preferences_owner CHECK (
+      (admin_id IS NOT NULL AND user_id IS NULL)
+      OR (admin_id IS NULL AND user_id IS NOT NULL)
+    )
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_notification_preferences_admin_channel
+  ON notification_preferences(admin_id, channel) WHERE admin_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_notification_preferences_user_channel
+  ON notification_preferences(user_id, channel) WHERE user_id IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS notification_deliveries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    admin_id UUID,
+    user_id UUID,
+    device_id UUID,
+    event_type VARCHAR(64) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    body TEXT NOT NULL,
+    status VARCHAR(32) NOT NULL DEFAULT 'pending',
+    expo_ticket_id VARCHAR(128),
+    error_message TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    sent_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_notification_deliveries_status ON notification_deliveries(status);
+
 -- ============================================
 -- ALERTING CONFIGURATION
 -- ============================================
@@ -1107,6 +1190,7 @@ INSERT INTO migrations (timestamp, name) VALUES
     (1712000000001, 'SeedInitialAdmin1712000000001'),
     (1713000000000, 'AddAdminRoleColumn1713000000000'),
     (1714000000000, 'CreateAdminUserManagementTables1714000000000'),
-    (1737500000000, 'CreateAlertConfig1737500000000');
+    (1737500000000, 'CreateAlertConfig1737500000000'),
+    (1762000000000, 'MobilePhase0ApiPrep1762000000000');
 
 -- Done!
