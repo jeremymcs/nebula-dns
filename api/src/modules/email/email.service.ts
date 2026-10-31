@@ -1,6 +1,14 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as sgMail from '@sendgrid/mail';
+import {
+  DEFAULT_ADMIN_PORTAL_NAME,
+  DEFAULT_DOCS_URL,
+  DEFAULT_EMAIL_FROM_ADDRESS,
+  DEFAULT_EMAIL_FROM_NAME,
+  DEFAULT_PRODUCT_LOCKUP,
+  DEFAULT_PRODUCT_NAME,
+} from '../../common/product-branding';
 
 export interface WelcomeEmailData {
   to: string;
@@ -126,6 +134,9 @@ export class EmailService implements OnModuleInit {
   private readonly fromEmail: string;
   private readonly fromName: string;
   private readonly docsUrl: string;
+  private readonly productName: string;
+  private readonly productLockup: string;
+  private readonly adminPortalName: string;
   private readonly sendgridApiKey: string;
   private readonly fluxLabsUrl = 'https://fluxlabs.net';
   private isConfigured = false;
@@ -133,13 +144,25 @@ export class EmailService implements OnModuleInit {
   constructor(private configService: ConfigService) {
     this.fromEmail = this.configService.get(
       'EMAIL_FROM_ADDRESS',
-      'noreply@nebuladns.com',
+      DEFAULT_EMAIL_FROM_ADDRESS,
     );
-    this.fromName = this.configService.get('EMAIL_FROM_NAME', 'Nebula DNS');
-    this.docsUrl = this.configService.get(
-      'DOCS_URL',
-      'https://docs.nebuladns.com',
+    this.fromName = this.configService.get(
+      'EMAIL_FROM_NAME',
+      DEFAULT_EMAIL_FROM_NAME,
     );
+    this.productName = this.configService.get(
+      'PRODUCT_NAME',
+      DEFAULT_PRODUCT_NAME,
+    );
+    this.productLockup = this.configService.get(
+      'PRODUCT_LOCKUP',
+      DEFAULT_PRODUCT_LOCKUP,
+    );
+    this.adminPortalName = this.configService.get(
+      'ADMIN_PORTAL_NAME',
+      DEFAULT_ADMIN_PORTAL_NAME,
+    );
+    this.docsUrl = this.configService.get('DOCS_URL', DEFAULT_DOCS_URL);
     this.sendgridApiKey = this.configService.get('SENDGRID_API_KEY', '');
   }
 
@@ -167,8 +190,8 @@ export class EmailService implements OnModuleInit {
   private transactionalEmailFooterHtml(): string {
     const year = new Date().getFullYear();
     return `
-<div data-nebula-email-footer style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center;">
-  <p style="font-size: 12px; color: #9ca3af; margin: 0 0 6px 0;">Nebula DNS</p>
+<div data-flux-email-footer style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center;">
+  <p style="font-size: 12px; color: #9ca3af; margin: 0 0 6px 0;">${this.productLockup}</p>
   <p style="font-size: 11px; color: #9ca3af; margin: 0;">
     © ${year} <a href="${this.fluxLabsUrl}" style="color: #6b7280; text-decoration: none;">Flux Labs</a>
     · <a href="${this.fluxLabsUrl}" style="color: #6b7280; text-decoration: none;">Powered by Flux Labs</a>
@@ -177,7 +200,7 @@ export class EmailService implements OnModuleInit {
   }
 
   private appendTransactionalFooter(htmlContent: string): string {
-    if (htmlContent.includes('data-nebula-email-footer')) {
+    if (htmlContent.includes('data-flux-email-footer')) {
       return htmlContent;
     }
     if (htmlContent.includes('</body>')) {
@@ -232,7 +255,7 @@ export class EmailService implements OnModuleInit {
   }
 
   async sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean> {
-    const subject = `Welcome to Nebula DNS, ${data.name}!`;
+    const subject = `Welcome to ${this.productName}, ${data.name}!`;
 
     const htmlContent = `
 <!DOCTYPE html>
@@ -240,18 +263,18 @@ export class EmailService implements OnModuleInit {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to Nebula DNS</title>
+  <title>Welcome to ${this.productName}</title>
 </head>
 <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-    <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to Nebula DNS!</h1>
+    <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to ${this.productName}!</h1>
   </div>
   
   <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
     <p style="font-size: 16px;">Hi ${data.name},</p>
     
     <p style="font-size: 16px;">
-      Thank you for signing up <strong>${data.companyName}</strong> for Nebula DNS! 
+      Thank you for signing up <strong>${data.companyName}</strong> for ${this.productName}! 
       Your account is now active on the <strong>${data.planName}</strong> plan.
     </p>
     
@@ -260,7 +283,7 @@ export class EmailService implements OnModuleInit {
       <ol style="padding-left: 20px;">
         <li style="margin-bottom: 10px;">Log in to your dashboard to configure your DNS security policies</li>
         <li style="margin-bottom: 10px;">Set up your first network location and generate DNS tokens</li>
-        <li style="margin-bottom: 10px;">Configure your devices to use Nebula DNS servers</li>
+        <li style="margin-bottom: 10px;">Configure your devices to use ${this.productName} servers</li>
         <li style="margin-bottom: 10px;">Monitor your DNS traffic and security events</li>
       </ol>
     </div>
@@ -281,7 +304,7 @@ export class EmailService implements OnModuleInit {
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
     
     <p style="font-size: 14px; color: #6b7280; text-align: center;">
-      This email was sent by Nebula DNS<br>
+      This email was sent by ${this.productName}<br>
       If you didn't sign up for this account, please ignore this email.
     </p>
   </div>
@@ -289,22 +312,22 @@ export class EmailService implements OnModuleInit {
 </html>`;
 
     const textContent = `
-Welcome to Nebula DNS, ${data.name}!
+Welcome to ${this.productName}, ${data.name}!
 
-Thank you for signing up ${data.companyName} for Nebula DNS! 
+Thank you for signing up ${data.companyName} for ${this.productName}! 
 Your account is now active on the ${data.planName} plan.
 
 Getting Started:
 1. Log in to your dashboard to configure your DNS security policies
 2. Set up your first network location and generate DNS tokens
-3. Configure your devices to use Nebula DNS servers
+3. Configure your devices to use ${this.productName} servers
 4. Monitor your DNS traffic and security events
 
 Access your dashboard: ${data.loginUrl}
 
 Need help? Our documentation is available at ${this.docsUrl}
 
-This email was sent by Nebula DNS.
+This email was sent by ${this.productName}.
 If you didn't sign up for this account, please ignore this email.
 `;
 
@@ -325,7 +348,7 @@ If you didn't sign up for this account, please ignore this email.
   <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 30px;">
     <h2 style="color: #dc2626; margin-top: 0;">Payment Failed</h2>
     
-    <p>We were unable to process your payment for <strong>${data.companyName}</strong>'s Nebula DNS subscription.</p>
+    <p>We were unable to process your payment for <strong>${data.companyName}</strong>'s ${this.productName} subscription.</p>
     
     <p>To avoid any interruption to your service, please update your payment information as soon as possible.</p>
     
@@ -346,7 +369,7 @@ If you didn't sign up for this account, please ignore this email.
   }
 
   async sendPasswordResetEmail(data: PasswordResetEmailData): Promise<boolean> {
-    const subject = 'Reset Your Nebula DNS Password';
+    const subject = `Reset Your ${this.productName} Password`;
 
     const htmlContent = `
 <!DOCTYPE html>
@@ -361,7 +384,7 @@ If you didn't sign up for this account, please ignore this email.
     
     <p>Hi ${data.name},</p>
     
-    <p>We received a request to reset your Nebula DNS password. Click the button below to create a new password:</p>
+    <p>We received a request to reset your ${this.productName} password. Click the button below to create a new password:</p>
     
     <div style="text-align: center; margin: 30px 0;">
       <a href="${data.resetUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
@@ -380,7 +403,7 @@ If you didn't sign up for this account, please ignore this email.
   }
 
   async sendEmailVerification(data: EmailVerificationData): Promise<boolean> {
-    const subject = 'Verify Your Nebula DNS Email Address';
+    const subject = `Verify Your ${this.productName} Email Address`;
 
     const htmlContent = `
 <!DOCTYPE html>
@@ -395,7 +418,7 @@ If you didn't sign up for this account, please ignore this email.
     
     <p>Hi ${data.name},</p>
     
-    <p>Please verify your email address to complete your Nebula DNS account setup:</p>
+    <p>Please verify your email address to complete your ${this.productName} account setup:</p>
     
     <div style="text-align: center; margin: 30px 0;">
       <a href="${data.verificationUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
@@ -414,7 +437,7 @@ If you didn't sign up for this account, please ignore this email.
   }
 
   async sendInviteUserEmail(data: InviteUserEmailData): Promise<boolean> {
-    const subject = `You've been invited to join ${data.tenantName} on Nebula DNS`;
+    const subject = `You've been invited to join ${data.tenantName} on ${this.productName}`;
 
     const htmlContent = `
 <!DOCTYPE html>
@@ -427,9 +450,9 @@ If you didn't sign up for this account, please ignore this email.
   <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 30px;">
     <h2 style="color: #667eea; margin-top: 0;">You're Invited!</h2>
     
-    <p><strong>${data.inviterName}</strong> has invited you to join <strong>${data.tenantName}</strong> on Nebula DNS.</p>
+    <p><strong>${data.inviterName}</strong> has invited you to join <strong>${data.tenantName}</strong> on ${this.productName}.</p>
     
-    <p>Nebula DNS provides enterprise-grade DNS security and content filtering to protect your network.</p>
+    <p>${this.productName} provides enterprise-grade DNS security and content filtering to protect your network.</p>
     
     <div style="text-align: center; margin: 30px 0;">
       <a href="${data.inviteUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
@@ -507,7 +530,7 @@ If you didn't sign up for this account, please ignore this email.
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
 
     <p style="font-size: 12px; color: #6b7280; text-align: center;">
-      This is an automated report from Nebula DNS.<br>
+      This is an automated report from ${this.productName}.<br>
       To manage your report settings, visit your dashboard.
     </p>
   </div>
@@ -545,7 +568,7 @@ If you didn't sign up for this account, please ignore this email.
   <div style="background: #fef3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 30px;">
     <h2 style="color: #856404; margin-top: 0;">Subscription Payment Required</h2>
 
-    <p>Your payment for <strong>${data.companyName}</strong>'s Nebula DNS subscription is past due.</p>
+    <p>Your payment for <strong>${data.companyName}</strong>'s ${this.productName} subscription is past due.</p>
 
     <div style="background: white; border-radius: 8px; padding: 20px; margin: 25px 0; border: 1px solid #ffc107; text-align: center;">
       <div style="font-size: 48px; font-weight: bold; color: #dc3545;">${data.daysRemaining}</div>
@@ -618,7 +641,7 @@ If you didn't sign up for this account, please ignore this email.
     <hr style="border: none; border-top: 1px solid #ffc107; margin: 25px 0;">
 
     <p style="font-size: 12px; color: #6b7280; text-align: center;">
-      This is an automated reminder from Nebula DNS.
+      This is an automated reminder from ${this.productName}.
     </p>
   </div>
 </body>
@@ -666,7 +689,7 @@ If you didn't sign up for this account, please ignore this email.
     <hr style="border: none; border-top: 1px solid #ffc107; margin: 25px 0;">
 
     <p style="font-size: 12px; color: #6b7280; text-align: center;">
-      This notice was sent by Nebula DNS on behalf of ${data.mspName}.
+      This notice was sent by ${this.productName} on behalf of ${data.mspName}.
     </p>
   </div>
 </body>
@@ -692,7 +715,7 @@ If you didn't sign up for this account, please ignore this email.
   <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 10px; padding: 30px;">
     <h2 style="color: #721c24; margin-top: 0;">Service Suspended</h2>
 
-    <p>Your Nebula DNS subscription for <strong>${data.companyName}</strong> has been suspended due to non-payment.</p>
+    <p>Your ${this.productName} subscription for <strong>${data.companyName}</strong> has been suspended due to non-payment.</p>
 
     <div style="background: white; border-radius: 8px; padding: 20px; margin: 25px 0; border: 1px solid #f5c6cb;">
       <h4 style="color: #721c24; margin-top: 0;">What this means:</h4>
@@ -723,7 +746,7 @@ If you didn't sign up for this account, please ignore this email.
   }
 
   async sendFamilyInviteEmail(data: FamilyInviteEmailData): Promise<boolean> {
-    const subject = `You've been invited to join ${data.familyName} on Nebula DNS`;
+    const subject = `You've been invited to join ${data.familyName} on ${this.productName}`;
 
     const htmlContent = `
 <!DOCTYPE html>
@@ -738,7 +761,7 @@ If you didn't sign up for this account, please ignore this email.
   </div>
 
   <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
-    <p style="font-size: 16px;"><strong>${data.inviterName}</strong> has invited you to join the <strong>${data.familyName}</strong> family on Nebula DNS.</p>
+    <p style="font-size: 16px;"><strong>${data.inviterName}</strong> has invited you to join the <strong>${data.familyName}</strong> family on ${this.productName}.</p>
 
     <p style="font-size: 16px;">As a family member, you'll be able to:</p>
     <ul style="font-size: 14px; color: #4b5563;">
@@ -770,7 +793,7 @@ If you didn't sign up for this account, please ignore this email.
   }
 
   async sendMspWelcomeEmail(data: MspWelcomeEmailData): Promise<boolean> {
-    const subject = 'Welcome to Nebula DNS - Your MSP Account is Ready';
+    const subject = `Welcome to ${this.productName} - Your MSP Account is Ready`;
 
     const htmlContent = `
 <!DOCTYPE html>
@@ -778,11 +801,11 @@ If you didn't sign up for this account, please ignore this email.
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to Nebula DNS</title>
+  <title>Welcome to ${this.productName}</title>
 </head>
 <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-    <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to Nebula DNS!</h1>
+    <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to ${this.productName}!</h1>
     <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Your MSP Account is Ready</p>
   </div>
 
@@ -835,14 +858,14 @@ If you didn't sign up for this account, please ignore this email.
 
     <p style="font-size: 14px; color: #6b7280; text-align: center;">
       <strong>Keep this email secure</strong> - do not share your temporary password.<br>
-      This email was sent by Nebula DNS.
+      This email was sent by ${this.productName}.
     </p>
   </div>
 </body>
 </html>`;
 
     const textContent = `
-Welcome to Nebula DNS - Your MSP Account is Ready
+Welcome to ${this.productName} - Your MSP Account is Ready
 
 Hi ${data.adminName},
 
@@ -868,14 +891,14 @@ Getting Started
 Need help? Visit our documentation at ${this.docsUrl}
 
 Keep this email secure - do not share your temporary password.
-This email was sent by Nebula DNS.
+This email was sent by ${this.productName}.
 `;
 
     return this.sendEmail(data.to, subject, htmlContent, textContent);
   }
 
   async sendAdminInviteEmail(data: AdminInviteEmailData): Promise<boolean> {
-    const subject = "You've been invited to join Nebula DNS Admin";
+    const subject = "You've been invited to join ${this.productName} Admin";
 
     // Format role for display (super_admin -> Super Admin)
     const roleDisplay = data.role
@@ -898,7 +921,7 @@ This email was sent by Nebula DNS.
 
   <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
     <p style="font-size: 16px;">
-      <strong>${data.inviterName}</strong> has invited you to join Nebula DNS as an administrator.
+      <strong>${data.inviterName}</strong> has invited you to join ${this.productName} as an administrator.
     </p>
 
     <div style="background: white; border-radius: 8px; padding: 20px; margin: 25px 0; border: 1px solid #e5e7eb;">
@@ -907,7 +930,7 @@ This email was sent by Nebula DNS.
         ${roleDisplay}
       </p>
       <p style="margin: 10px 0 0 0; font-size: 14px; color: #6b7280;">
-        You will be able to access Mission Control and manage the Nebula DNS platform.
+        You will be able to access ${this.adminPortalName} and manage the ${this.productName} platform.
       </p>
     </div>
 
@@ -934,7 +957,7 @@ This email was sent by Nebula DNS.
     const textContent = `
 Admin Invitation
 
-${data.inviterName} has invited you to join Nebula DNS as an administrator.
+${data.inviterName} has invited you to join ${this.productName} as an administrator.
 
 Your Access Level: ${roleDisplay}
 
@@ -995,7 +1018,7 @@ Invited by: ${data.inviterEmail}
 
     <p style="font-size: 12px; color: #6b7280; text-align: center;">
       Reset performed by: ${data.resetByEmail}<br>
-      This is an automated notification from Nebula DNS.
+      This is an automated notification from ${this.productName}.
     </p>
   </div>
 </body>

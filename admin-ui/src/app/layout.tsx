@@ -10,7 +10,8 @@ import './globals.css'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ToastProvider } from '@/components/Toast'
-import { PRODUCT_NAME } from '@/lib/branding'
+import { PRODUCT_NAME, ADMIN_PORTAL_NAME, adminPortalTitle } from '@/lib/branding'
+import { ADMIN_ORIGIN } from '@/lib/public-urls'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -25,20 +26,21 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://admin.nebuladns.io'),
+  metadataBase: new URL(ADMIN_ORIGIN),
   title: {
-    default: `${PRODUCT_NAME} · Mission Control`,
-    template: `%s · ${PRODUCT_NAME} Mission Control`,
+    default: adminPortalTitle(),
+    template: `%s · ${PRODUCT_NAME} ${ADMIN_PORTAL_NAME}`,
   },
   description: `Internal admin portal for ${PRODUCT_NAME} platform management`,
-  applicationName: `${PRODUCT_NAME} Mission Control`,
+  applicationName: `${PRODUCT_NAME} ${ADMIN_PORTAL_NAME}`,
+  manifest: '/site.webmanifest',
   icons: {
     icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
     apple: '/favicon.svg',
   },
   openGraph: {
-    siteName: `${PRODUCT_NAME} Mission Control`,
-    title: `${PRODUCT_NAME} · Mission Control`,
+    siteName: `${PRODUCT_NAME} ${ADMIN_PORTAL_NAME}`,
+    title: adminPortalTitle(),
     description: `Internal admin portal for ${PRODUCT_NAME}`,
     type: 'website',
   },

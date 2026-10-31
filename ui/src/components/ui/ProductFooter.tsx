@@ -4,6 +4,7 @@ import {
   currentCopyrightYear,
   FLUX_LABS_NAME,
   FLUX_LABS_URL,
+  PRODUCT_LOCKUP,
   PRODUCT_NAME,
 } from '@/lib/branding'
 
@@ -30,11 +31,12 @@ export function ProductFooter({ className = '', variant = 'dashboard' }: Product
           </>
         )}
       </p>
+      <p className="text-xs text-space-400 dark:text-space-500">{PRODUCT_LOCKUP}</p>
       <p className="text-xs text-space-400 dark:text-space-500">
         Powered by{' '}
         <Link
           href={FLUX_LABS_URL}
-          className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors underline-offset-2 hover:underline"
+          className="font-medium text-accent-600 dark:text-accent-400 hover:text-accent-700 dark:hover:text-accent-300 transition-colors underline-offset-2 hover:underline"
           target="_blank"
           rel="noopener noreferrer"
         >

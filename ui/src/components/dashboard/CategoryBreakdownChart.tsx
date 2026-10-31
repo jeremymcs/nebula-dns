@@ -26,17 +26,10 @@ interface CategoryBreakdownChartProps {
   isLoading?: boolean
 }
 
+import { FLUX_CHART_COLORS } from '@/lib/chart-colors'
+
 // Color palette for categories
-const COLORS = [
-  '#9333ea', // primary
-  '#06b6d4', // accent
-  '#10b981', // success
-  '#f59e0b', // warning
-  '#ef4444', // danger
-  '#6366f1', // indigo
-  '#ec4899', // pink
-  '#14b8a6', // teal
-]
+const COLORS = [...FLUX_CHART_COLORS]
 
 // Custom tooltip
 function CustomTooltip({ active, payload }: any) {

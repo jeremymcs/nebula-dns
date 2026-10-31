@@ -1,4 +1,4 @@
-// Nebula DNS - About Page
+// Flux Shield - About Page
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import Link from 'next/link'
@@ -86,7 +86,7 @@ const stats = [
 ]
 
 const milestones = [
-  { date: 'Q1 2025', event: 'Company Founded', description: 'Nebula DNS officially launched with a focus on privacy-first DNS security.' },
+  { date: 'Q1 2025', event: 'Company Founded', description: 'Flux Shield officially launched with a focus on privacy-first DNS security.' },
   { date: 'Q2 2025', event: '1M Queries Milestone', description: 'Reached 1 million daily queries within months of launch.' },
   { date: 'Q4 2025', event: 'Enterprise Launch', description: 'Introduced enterprise features, SSO, and dedicated support tiers.' },
   { date: 'Q1 2026', event: 'Global Expansion', description: 'Expanded to 15 global data centers covering 50+ countries.' },
@@ -118,7 +118,7 @@ export default function AboutPage() {
             organizations of all sizes — from home offices to global enterprises.
           </p>
           <p className="mt-4 text-sm text-space-500 max-w-2xl mx-auto">
-            Nebula DNS is built by{' '}
+            Flux Shield is built by{' '}
             <a href="https://fluxlabs.net" className="text-space-400 hover:text-white underline-offset-2 hover:underline" target="_blank" rel="noopener noreferrer">
               Flux Labs
             </a>
@@ -195,7 +195,7 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">
-              The People Behind Nebula
+              The People Behind Flux Shield
             </p>
             <h2 className="text-3xl sm:text-4xl font-bold text-white">
               Meet the Team
@@ -240,7 +240,7 @@ export default function AboutPage() {
               Our Journey
             </h2>
             <p className="mt-4 text-space-400">
-              From founding to global scale — a brief history of Nebula DNS.
+              From founding to global scale — a brief history of Flux Shield.
             </p>
           </div>
 
@@ -281,7 +281,7 @@ export default function AboutPage() {
             </h2>
             <p className="text-space-400 mb-8 max-w-xl mx-auto">
               We are always looking for talented individuals who share our passion for security, privacy, and innovation.
-              Check out our open positions and become part of the Nebula DNS story.
+              Check out our open positions and become part of the Flux Shield story.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link

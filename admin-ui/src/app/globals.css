@@ -2,7 +2,7 @@
  * Nebula DNS - Admin UI (Mission Control)
  * Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
  *
- * Global Styles - Cosmic Security Theme
+ * Global Styles - Flux Labs × Nebula DNS (Mission Control)
  */
 
 @tailwind base;
@@ -10,13 +10,22 @@
 @tailwind utilities;
 
 @layer base {
-  html {
-    @apply antialiased scroll-smooth;
+  :root {
+    --flux-salmon: #ff6e62;
+    --flux-blue: #4b7cbb;
+    --flux-navy: #1e3b78;
+    --flux-text: #101828;
+    --flux-muted: #475467;
+    --ring: var(--flux-blue);
   }
 
-  /* Dark mode base styles */
   html.dark {
     color-scheme: dark;
+    --ring: #6a9fd4;
+  }
+
+  html {
+    @apply antialiased scroll-smooth;
   }
 
   /* Custom scrollbar */
@@ -53,7 +62,7 @@
   }
 
   .btn-primary {
-    @apply btn bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/30 hover:from-primary-500 hover:to-primary-400 active:scale-[0.98] focus-visible:ring-primary-500;
+    @apply btn bg-gradient-to-r from-primary-700 to-primary-500 text-white shadow-lg shadow-primary-700/25 hover:shadow-xl hover:shadow-primary-600/30 hover:from-primary-600 hover:to-primary-400 active:scale-[0.98] focus-visible:ring-primary-600;
   }
 
   .btn-secondary {
@@ -105,7 +114,7 @@
   }
 
   .card-gradient {
-    @apply rounded-2xl bg-gradient-to-br from-primary-600 to-accent-600 text-white shadow-xl;
+    @apply rounded-2xl bg-gradient-to-br from-primary-700 via-primary-500 to-accent-500 text-white shadow-xl;
   }
 
   /* ============================================
@@ -378,7 +387,7 @@
     @apply focus:outline-none transition-shadow duration-200;
   }
   .focus-glow:focus {
-    box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.3);
+    box-shadow: 0 0 0 3px rgba(75, 124, 187, 0.35);
   }
 
   /* Press effect */

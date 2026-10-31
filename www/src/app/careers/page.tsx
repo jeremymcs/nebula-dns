@@ -1,4 +1,4 @@
-// Nebula DNS - Careers Page
+// Flux Shield - Careers Page
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import Link from 'next/link'
@@ -73,7 +73,7 @@ const openings = [
     department: 'Success',
     deptColor: 'text-success-400 bg-success-900/40 border border-success-800/50',
     location: 'Remote',
-    description: 'Guide enterprise customers through onboarding, help them get maximum value from Nebula DNS, and serve as their advocate as we build the product they need.',
+    description: 'Guide enterprise customers through onboarding, help them get maximum value from Flux Shield, and serve as their advocate as we build the product they need.',
   },
 ]
 
@@ -205,7 +205,7 @@ export default function CareersPage() {
                   </div>
                   <div className="shrink-0">
                     <a
-                      href={`mailto:careers@nebuladns.io?subject=Application: ${job.title}`}
+                      href={`mailto:careers@shield.fluxlabs.net?subject=Application: ${job.title}`}
                       className="text-primary-400 hover:text-primary-300 font-semibold text-sm inline-flex items-center gap-1 transition-colors"
                     >
                       Apply Now
@@ -237,13 +237,13 @@ export default function CareersPage() {
               We're always looking for talented people who share our passion for security and innovation. Send us your resume and tell us what makes you exceptional.
             </p>
             <a
-              href="mailto:careers@nebuladns.io"
+              href="mailto:careers@shield.fluxlabs.net"
               className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-              careers@nebuladns.io
+              careers@shield.fluxlabs.net
             </a>
           </div>
         </div>

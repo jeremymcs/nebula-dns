@@ -9,6 +9,8 @@ import type { Metadata } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
+import { PRODUCT_META_DESCRIPTION, PRODUCT_NAME } from '@/lib/branding'
+import { APP_ORIGIN } from '@/lib/public-urls'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -23,24 +25,24 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://app.nebuladns.io'),
+  metadataBase: new URL(APP_ORIGIN),
   title: {
-    default: 'Nebula DNS',
-    template: '%s · Nebula DNS',
+    default: PRODUCT_NAME,
+    template: `%s · ${PRODUCT_NAME}`,
   },
-  description:
-    'Nebula DNS — enterprise DNS security, threat intelligence, and content filtering for your organization.',
-  applicationName: 'Nebula DNS',
+  description: PRODUCT_META_DESCRIPTION,
+  applicationName: PRODUCT_NAME,
+  manifest: '/site.webmanifest',
   icons: {
     icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
     apple: '/favicon.svg',
   },
   openGraph: {
-    siteName: 'Nebula DNS',
-    title: 'Nebula DNS',
-    description:
-      'Enterprise DNS security and content filtering. Protect your network at the DNS layer.',
+    siteName: PRODUCT_NAME,
+    title: PRODUCT_NAME,
+    description: PRODUCT_META_DESCRIPTION,
     type: 'website',
+    url: APP_ORIGIN,
   },
 }
 

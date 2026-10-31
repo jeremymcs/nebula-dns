@@ -2,11 +2,25 @@
 // Configures redirects and build options for the dashboard app
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
+const path = require('path')
+
+const brandModule = path.join(__dirname, '../shared/product-brand.ts')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  experimental: {
+    externalDir: true,
+  },
   turbopack: {
     root: __dirname,
+    resolveAlias: {
+      '@nebula/brand': brandModule,
+    },
+  },
+  webpack: (config) => {
+    config.resolve.alias['@nebula/brand'] = brandModule
+    return config
   },
 
   // /backend/* is handled by app/backend/[...path]/route.ts at runtime

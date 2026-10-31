@@ -1,4 +1,4 @@
-// Nebula DNS - Enterprise Offering Page
+// Flux Shield - Enterprise Offering Page
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import Link from 'next/link'
@@ -89,7 +89,7 @@ export default function EnterprisePage() {
 
   const testimonials = [
     {
-      quote: "Nebula DNS has transformed our security posture. The enterprise support team is phenomenal and the platform scales effortlessly across our global infrastructure.",
+      quote: "Flux Shield has transformed our security posture. The enterprise support team is phenomenal and the platform scales effortlessly across our global infrastructure.",
       author: "Sarah Chen",
       role: "CISO",
       company: "TechCorp Global",
@@ -103,7 +103,7 @@ export default function EnterprisePage() {
       initials: "MR",
     },
     {
-      quote: "The SSO integration and compliance support were game-changers. Nebula DNS understood our regulatory requirements and delivered exactly what we needed.",
+      quote: "The SSO integration and compliance support were game-changers. Flux Shield understood our regulatory requirements and delivered exactly what we needed.",
       author: "Dr. Emily Watson",
       role: "Head of IT Security",
       company: "HealthFirst Medical",
