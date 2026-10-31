@@ -2,7 +2,7 @@
 
 This directory runs the **always-on DigitalOcean droplet** stack: NestJS API, Go policy-svc, dnsdist, Unbound, and Caddy (TLS for `api.nebuladns.io` and DoH on `:443` for `dns1`/`dns2`).
 
-Customer-facing **UI** and **admin-ui** deploy separately on Vercel (`nebula-dns-app`, `nebula-dns-admin`). Postgres (Neon) and Redis (Upstash) are provisioned via the Vercel Marketplace; connection strings live in `.env` on the droplet.
+Customer-facing **UI** and **admin-ui** deploy separately on Vercel (`nebula-dns-app`, `nebula-dns-admin`). **Postgres (Neon)** and **Redis (Upstash)** come from the Vercel Marketplace (connection strings in `.env`). **ClickHouse** runs self-hosted in this Compose stack (internal network only, ~1 GiB memory cap).
 
 ## Architecture
 
@@ -12,6 +12,8 @@ api.nebuladns.io                       →  Caddy → API :3000
 dns1/dns2.nebuladns.io                 →  Caddy :443 DoH → dnsdist :8443
                                        →  dnsdist :53 UDP/TCP (plain DNS)
                                        →  dnsdist :853 DoT
+Neon Postgres / Upstash Redis           →  external (TLS)
+clickhouse (compose)                     →  query logs (not exposed publicly)
 ```
 
 ## 1. Provision a fresh Ubuntu droplet (~4 GB)
@@ -33,6 +35,17 @@ cd /opt/nebula-dns/deploy/droplet
 cp .env.example .env
 # Edit .env — see variable list at bottom of this file
 ```
+
+### Vercel Marketplace → droplet `.env`
+
+| Provider | Names in Vercel / dashboard | **Use on droplet** |
+|----------|----------------------------|--------------------|
+| Neon | `POSTGRES_URL`, `DATABASE_URL` | **`DATABASE_URL`** (pooled URL + `sslmode=require`) |
+| Upstash Redis | `REDIS_URL`, `KV_URL` | **`REDIS_URL`** (`rediss://…` TLS URL) |
+
+The API and policy-svc do **not** read `POSTGRES_URL` or `KV_URL` — copy values into the names above.
+
+**Redis TLS:** The API uses **ioredis** with the connection URL string; **`rediss://` enables TLS** (Upstash default). policy-svc uses **go-redis** `ParseURL`, which also supports `rediss://` with TLS 1.2+.
 
 ## 2. Firewall and port 53
 
@@ -108,7 +121,14 @@ Generate application secrets on the droplet:
 openssl rand -base64 64   # JWT_SECRET, JWT_REFRESH_SECRET, ADMIN_JWT_SECRET
 openssl rand -base64 32   # MFA_ENCRYPTION_KEY, SSO_ENCRYPTION_KEY, etc.
 openssl rand -hex 32      # DNSDIST_API_KEY
+openssl rand -base64 24   # CLICKHOUSE_PASSWORD (match .env)
 ```
+
+### ClickHouse (self-hosted)
+
+ClickHouse starts with the stack (no profile). It is **not** published on the host — only `expose` on the Compose network. Memory is capped at **~1 GiB server limit** (`clickhouse/max-memory.xml`) and **1536 MB** Docker limit so a **4 GB** droplet keeps headroom for API, policy-svc, dnsdist, and the OS.
+
+On first boot, `scripts/init-clickhouse.sql` creates the `nebula_dns` schema. Ensure `CLICKHOUSE_USER`, `CLICKHOUSE_PASSWORD`, and `CLICKHOUSE_DATABASE` in `.env` match the compose service environment.
 
 ## 5. Cloudflare DNS (DNS only — grey cloud)
 
@@ -137,12 +157,6 @@ docker compose up -d
 docker compose ps
 ```
 
-Optional local ClickHouse (fallback if not using ClickHouse Cloud):
-
-```bash
-docker compose --profile clickhouse-local up -d
-```
-
 ## 7. External integrations checklist
 
 | Integration | URL / setting |
@@ -151,9 +165,12 @@ docker compose --profile clickhouse-local up -d
 | API `FRONTEND_URL` | `https://app.nebuladns.io` |
 | API `ADMIN_URL` | `https://admin.nebuladns.io` |
 | API `CORS_ORIGINS` | `https://app.nebuladns.io,https://admin.nebuladns.io` |
+| Stripe **live** keys | `STRIPE_SECRET_KEY=sk_live_…`, `STRIPE_WEBHOOK_SECRET=whsec_…` (live mode in Dashboard) |
 | Stripe webhook | `https://api.nebuladns.io/payments/webhook` |
 | SAML ACS | `https://api.nebuladns.io/sso/saml/callback` |
 | OIDC redirect | `https://api.nebuladns.io/sso/oidc/callback` |
+
+Use Stripe **test** keys (`sk_test_…`) only for sandbox verification (see §8); switch to live keys before production checkout.
 
 ## 8. Verification
 
@@ -171,13 +188,15 @@ curl -sf https://api.nebuladns.io/health/ready | jq .
 1. Open `https://app.nebuladns.io` and complete signup (or use an existing tenant).
 2. Confirm login succeeds and the dashboard loads (browser network tab shows API calls to `https://api.nebuladns.io`).
 
-### Stripe test webhook
+### Stripe webhook (live or test)
 
-In Stripe Dashboard → Developers → Webhooks, send a test event to:
+**Production:** Register the live webhook in Stripe Dashboard (Live mode) pointing to:
 
 `https://api.nebuladns.io/payments/webhook`
 
-Confirm HTTP 2xx in Stripe delivery logs and no errors in `docker compose logs api`.
+Use the live signing secret in `STRIPE_WEBHOOK_SECRET`.
+
+**Verification (test mode):** Toggle Dashboard to Test mode, use `sk_test_…` and the test `whsec_…` in `.env`, then use “Send test webhook”. Confirm HTTP 2xx and clean `docker compose logs api`. Restore **live** keys before launch.
 
 ### DNS — plain UDP/TCP (:53)
 
@@ -248,9 +267,9 @@ GitHub Actions workflow `.github/workflows/deploy.yml` builds images to GHCR and
 
 No extra env (config baked in image)
 
-### clickhouse (optional profile)
+### clickhouse (self-hosted, default)
 
-`CLICKHOUSE_USER`, `CLICKHOUSE_PASSWORD`, `CLICKHOUSE_DATABASE`
+`CLICKHOUSE_USER`, `CLICKHOUSE_PASSWORD`, `CLICKHOUSE_DATABASE` — set in `.env`; `CLICKHOUSE_URL` defaults to `http://clickhouse:8123` in compose for API and policy-svc. Not reachable from the public internet.
 
 ### Compose / deploy
 
