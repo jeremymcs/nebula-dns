@@ -7,7 +7,7 @@ import { loginAndNavigate, waitForPageLoad } from '../helpers/auth'
 test.describe('Scheduled Reports - List Page', () => {
   test.beforeEach(async ({ page }) => {
     // Mock scheduled reports API
-    await page.route('**/api/v1/scheduled-reports', (route) => {
+    await page.route('**/backend/scheduled-reports', (route) => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -147,7 +147,7 @@ test.describe('Scheduled Reports - List Page', () => {
 test.describe('Scheduled Reports - Create Report', () => {
   test.beforeEach(async ({ page }) => {
     // Mock empty scheduled reports list
-    await page.route('**/api/v1/scheduled-reports', (route) => {
+    await page.route('**/backend/scheduled-reports', (route) => {
       if (route.request().method() === 'GET') {
         route.fulfill({
           status: 200,
@@ -319,7 +319,7 @@ test.describe('Scheduled Reports - Create Report', () => {
 test.describe('Scheduled Reports - Edit Report', () => {
   test.beforeEach(async ({ page }) => {
     // Mock scheduled reports API
-    await page.route('**/api/v1/scheduled-reports', (route) => {
+    await page.route('**/backend/scheduled-reports', (route) => {
       if (route.request().method() === 'GET') {
         route.fulfill({
           status: 200,
@@ -342,7 +342,7 @@ test.describe('Scheduled Reports - Edit Report', () => {
       }
     })
 
-    await page.route('**/api/v1/scheduled-reports/*', (route) => {
+    await page.route('**/backend/scheduled-reports/*', (route) => {
       if (route.request().method() === 'PUT' || route.request().method() === 'PATCH') {
         route.fulfill({
           status: 200,
@@ -447,7 +447,7 @@ test.describe('Scheduled Reports - Edit Report', () => {
 test.describe('Scheduled Reports - Delete Report', () => {
   test.beforeEach(async ({ page }) => {
     // Mock scheduled reports API
-    await page.route('**/api/v1/scheduled-reports', (route) => {
+    await page.route('**/backend/scheduled-reports', (route) => {
       if (route.request().method() === 'GET') {
         route.fulfill({
           status: 200,
@@ -470,7 +470,7 @@ test.describe('Scheduled Reports - Delete Report', () => {
       }
     })
 
-    await page.route('**/api/v1/scheduled-reports/*', (route) => {
+    await page.route('**/backend/scheduled-reports/*', (route) => {
       if (route.request().method() === 'DELETE') {
         route.fulfill({
           status: 204

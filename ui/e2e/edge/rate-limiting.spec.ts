@@ -9,7 +9,7 @@ test.describe('Rate Limiting - Error Handling', () => {
     await loginAndNavigate(page, '/dashboard')
 
     // Mock 429 Too Many Requests response
-    await page.route('**/api/**/policies', (route) => {
+    await page.route('**/backend/**/policies', (route) => {
       route.fulfill({
         status: 429,
         headers: {
@@ -47,7 +47,7 @@ test.describe('Rate Limiting - Error Handling', () => {
     expect(bodyText).toBeTruthy()
 
     // Cleanup
-    await page.unroute('**/api/**/policies')
+    await page.unroute('**/backend/**/policies')
   })
 
   test('should allow retry after rate limit window expires', async ({ page }) => {
@@ -56,7 +56,7 @@ test.describe('Rate Limiting - Error Handling', () => {
     // Simulate rate limit scenario with retry functionality
     let retryWindowElapsed = false
 
-    await page.route('**/api/**', (route) => {
+    await page.route('**/backend/**', (route) => {
       const url = route.request().url()
 
       // Only mock specific endpoints, let auth through
@@ -110,7 +110,7 @@ test.describe('Rate Limiting - Error Handling', () => {
     expect(hasValidContent).toBeTruthy()
 
     // Cleanup
-    await page.unroute('**/api/**')
+    await page.unroute('**/backend/**')
   })
 
   test('should show appropriate rate limit counter or retry info', async ({ page }) => {
@@ -120,7 +120,7 @@ test.describe('Rate Limiting - Error Handling', () => {
     const retryAfterSeconds = 30
     const resetTime = Math.floor(Date.now() / 1000) + retryAfterSeconds
 
-    await page.route('**/api/**/lists', (route) => {
+    await page.route('**/backend/**/lists', (route) => {
       route.fulfill({
         status: 429,
         headers: {
@@ -161,6 +161,6 @@ test.describe('Rate Limiting - Error Handling', () => {
     expect(hasContent).toBeTruthy()
 
     // Cleanup
-    await page.unroute('**/api/**/lists')
+    await page.unroute('**/backend/**/lists')
   })
 })

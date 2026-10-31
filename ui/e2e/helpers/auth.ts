@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import { Page } from '@playwright/test'
+import { installBackendMocks } from './mock-backend'
 
 type TenantTier = 'home' | 'enterprise' | 'msp'
 
@@ -10,6 +11,7 @@ type TenantTier = 'home' | 'enterprise' | 'msp'
  * Sets up authentication token in localStorage
  */
 export async function login(page: Page, tier: TenantTier = 'enterprise') {
+  await installBackendMocks(page, tier)
   await page.goto('/login')
   await page.evaluate(({ tier }) => {
     const tierConfig = {

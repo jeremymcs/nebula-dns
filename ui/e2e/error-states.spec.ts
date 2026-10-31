@@ -57,7 +57,7 @@ test.describe('Error States - API Errors', () => {
 
   test('should show error message when API request fails', async ({ page }) => {
     // Mock API failure by intercepting requests
-    await page.route('**/api/**', (route) => {
+    await page.route('**/backend/**', (route) => {
       route.abort('failed')
     })
 
@@ -72,12 +72,12 @@ test.describe('Error States - API Errors', () => {
     }
 
     // Unblock requests
-    await page.unroute('**/api/**')
+    await page.unroute('**/backend/**')
   })
 
   test('should show retry option on API error', async ({ page }) => {
     // Mock API failure
-    await page.route('**/api/**', (route) => {
+    await page.route('**/backend/**', (route) => {
       route.abort('failed')
     })
 
@@ -91,12 +91,12 @@ test.describe('Error States - API Errors', () => {
       await expect(retryButton).toBeVisible()
     }
 
-    await page.unroute('**/api/**')
+    await page.unroute('**/backend/**')
   })
 
   test('should handle 500 server errors', async ({ page }) => {
     // Mock 500 error
-    await page.route('**/api/**', (route) => {
+    await page.route('**/backend/**', (route) => {
       route.fulfill({
         status: 500,
         body: JSON.stringify({ message: 'Internal Server Error' })
@@ -113,12 +113,12 @@ test.describe('Error States - API Errors', () => {
       await expect(errorMessage).toBeVisible()
     }
 
-    await page.unroute('**/api/**')
+    await page.unroute('**/backend/**')
   })
 
   test('should handle 401 unauthorized errors', async ({ page }) => {
     // Mock 401 error
-    await page.route('**/api/**', (route) => {
+    await page.route('**/backend/**', (route) => {
       route.fulfill({
         status: 401,
         body: JSON.stringify({ message: 'Unauthorized' })
@@ -137,12 +137,12 @@ test.describe('Error States - API Errors', () => {
 
     expect(redirectedToLogin || showsError).toBeTruthy()
 
-    await page.unroute('**/api/**')
+    await page.unroute('**/backend/**')
   })
 
   test('should handle 403 forbidden errors', async ({ page }) => {
     // Mock 403 error
-    await page.route('**/api/**', (route) => {
+    await page.route('**/backend/**', (route) => {
       route.fulfill({
         status: 403,
         body: JSON.stringify({ message: 'Forbidden' })
@@ -159,14 +159,14 @@ test.describe('Error States - API Errors', () => {
       await expect(forbiddenMessage).toBeVisible()
     }
 
-    await page.unroute('**/api/**')
+    await page.unroute('**/backend/**')
   })
 })
 
 test.describe('Error States - Empty States', () => {
   test('should show empty state when no policies exist', async ({ page }) => {
     // Mock empty response
-    await page.route('**/api/**/policies', (route) => {
+    await page.route('**/backend/**/policies', (route) => {
       route.fulfill({
         status: 200,
         body: JSON.stringify([])
@@ -179,12 +179,12 @@ test.describe('Error States - Empty States', () => {
     const emptyState = page.getByText(/no policies|create your first policy|get started/i)
     await expect(emptyState).toBeVisible({ timeout: 5000 })
 
-    await page.unroute('**/api/**/policies')
+    await page.unroute('**/backend/**/policies')
   })
 
   test('should show empty state when no locations exist', async ({ page }) => {
     // Mock empty response
-    await page.route('**/api/**/locations', (route) => {
+    await page.route('**/backend/**/locations', (route) => {
       route.fulfill({
         status: 200,
         body: JSON.stringify([])
@@ -197,12 +197,12 @@ test.describe('Error States - Empty States', () => {
     const emptyState = page.getByText(/no locations|add your first location|get started/i)
     await expect(emptyState).toBeVisible({ timeout: 5000 })
 
-    await page.unroute('**/api/**/locations')
+    await page.unroute('**/backend/**/locations')
   })
 
   test('should show empty state when no lists exist', async ({ page }) => {
     // Mock empty response
-    await page.route('**/api/**/lists', (route) => {
+    await page.route('**/backend/**/lists', (route) => {
       route.fulfill({
         status: 200,
         body: JSON.stringify([])
@@ -215,12 +215,12 @@ test.describe('Error States - Empty States', () => {
     const emptyState = page.getByText(/no lists|create your first list|get started/i)
     await expect(emptyState).toBeVisible({ timeout: 5000 })
 
-    await page.unroute('**/api/**/lists')
+    await page.unroute('**/backend/**/lists')
   })
 
   test('should show empty state when no reports data available', async ({ page }) => {
     // Mock empty response
-    await page.route('**/api/**/reports/**', (route) => {
+    await page.route('**/backend/**/reports/**', (route) => {
       route.fulfill({
         status: 200,
         body: JSON.stringify({ queries: [], stats: {} })
@@ -237,12 +237,12 @@ test.describe('Error States - Empty States', () => {
       await expect(emptyState).toBeVisible()
     }
 
-    await page.unroute('**/api/**/reports/**')
+    await page.unroute('**/backend/**/reports/**')
   })
 
   test('should show empty state when no team members exist', async ({ page }) => {
     // Mock empty response
-    await page.route('**/api/**/users', (route) => {
+    await page.route('**/backend/**/users', (route) => {
       route.fulfill({
         status: 200,
         body: JSON.stringify([])
@@ -259,12 +259,12 @@ test.describe('Error States - Empty States', () => {
       await expect(emptyState).toBeVisible()
     }
 
-    await page.unroute('**/api/**/users')
+    await page.unroute('**/backend/**/users')
   })
 
   test('should show empty state when no API keys exist', async ({ page }) => {
     // Mock empty response
-    await page.route('**/api/**/api-keys', (route) => {
+    await page.route('**/backend/**/api-keys', (route) => {
       route.fulfill({
         status: 200,
         body: JSON.stringify([])
@@ -281,14 +281,14 @@ test.describe('Error States - Empty States', () => {
       await expect(emptyState).toBeVisible()
     }
 
-    await page.unroute('**/api/**/api-keys')
+    await page.unroute('**/backend/**/api-keys')
   })
 })
 
 test.describe('Error States - Loading States', () => {
   test('should show loading spinner on dashboard', async ({ page }) => {
     // Delay API response
-    await page.route('**/api/**', async (route) => {
+    await page.route('**/backend/**', async (route) => {
       await new Promise(resolve => setTimeout(resolve, 1000))
       route.continue()
     })
@@ -308,13 +308,13 @@ test.describe('Error States - Loading States', () => {
       await expect(loadingSpinner).toBeVisible()
     }
 
-    await page.unroute('**/api/**')
+    await page.unroute('**/backend/**')
     await waitForPageLoad(page)
   })
 
   test('should show loading state when fetching policies', async ({ page }) => {
     // Delay API response
-    await page.route('**/api/**/policies', async (route) => {
+    await page.route('**/backend/**/policies', async (route) => {
       await new Promise(resolve => setTimeout(resolve, 1500))
       route.continue()
     })
@@ -328,13 +328,13 @@ test.describe('Error States - Loading States', () => {
       await expect(loadingState).toBeVisible()
     }
 
-    await page.unroute('**/api/**/policies')
+    await page.unroute('**/backend/**/policies')
     await waitForPageLoad(page)
   })
 
   test('should show skeleton loaders for charts', async ({ page }) => {
     // Delay API response
-    await page.route('**/api/**/reports/**', async (route) => {
+    await page.route('**/backend/**/reports/**', async (route) => {
       await new Promise(resolve => setTimeout(resolve, 1000))
       route.continue()
     })
@@ -352,13 +352,13 @@ test.describe('Error States - Loading States', () => {
       await expect(skeleton).toBeVisible()
     }
 
-    await page.unroute('**/api/**/reports/**')
+    await page.unroute('**/backend/**/reports/**')
     await waitForPageLoad(page)
   })
 
   test('should show loading state for table data', async ({ page }) => {
     // Delay API response
-    await page.route('**/api/**/locations', async (route) => {
+    await page.route('**/backend/**/locations', async (route) => {
       await new Promise(resolve => setTimeout(resolve, 1000))
       route.continue()
     })
@@ -372,7 +372,7 @@ test.describe('Error States - Loading States', () => {
       await expect(loadingState).toBeVisible()
     }
 
-    await page.unroute('**/api/**/locations')
+    await page.unroute('**/backend/**/locations')
     await waitForPageLoad(page)
   })
 })
@@ -464,7 +464,7 @@ test.describe('Error States - Session Expiry', () => {
 test.describe('Error States - Rate Limiting', () => {
   test('should show rate limit error message', async ({ page }) => {
     // Mock 429 Too Many Requests
-    await page.route('**/api/**', (route) => {
+    await page.route('**/backend/**', (route) => {
       route.fulfill({
         status: 429,
         body: JSON.stringify({ message: 'Rate limit exceeded' })
@@ -481,6 +481,6 @@ test.describe('Error States - Rate Limiting', () => {
       await expect(rateLimitMessage).toBeVisible()
     }
 
-    await page.unroute('**/api/**')
+    await page.unroute('**/backend/**')
   })
 })
