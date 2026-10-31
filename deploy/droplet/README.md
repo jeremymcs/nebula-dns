@@ -1,17 +1,20 @@
-# Nebula DNS — Droplet production runbook
+# Flux Shield (Nebula DNS) — Droplet production runbook
 
-This directory runs the **always-on DigitalOcean droplet** stack: NestJS API, Go policy-svc, dnsdist, Unbound, and Caddy (TLS for `api.nebuladns.io` and DoH on `:443` for `dns1`/`dns2`).
+This directory runs the **always-on DigitalOcean droplet** stack: NestJS API, Go policy-svc, dnsdist, Unbound, and Caddy (TLS for the API and DoH on `:443` for DNS anycast hostnames).
+
+**Product branding:** [Flux Shield](https://shield.fluxlabs.net) (`*.shield.fluxlabs.net`). Legacy **`*.nebuladns.io`** hostnames remain in the Caddyfile and certificate sync so existing clients keep working.
 
 Customer-facing **UI** and **admin-ui** deploy separately on Vercel (`nebula-dns-app`, `nebula-dns-admin`). **Postgres (Neon)** and **Redis (Upstash)** come from the Vercel Marketplace (connection strings in `.env`). **ClickHouse** runs self-hosted in this Compose stack (internal network only, ~1 GiB memory cap).
 
 ## Architecture
 
 ```text
-app.nebuladns.io / admin.nebuladns.io  →  Vercel (Next.js)
-api.nebuladns.io                       →  Caddy → API :3000
-dns1/dns2.nebuladns.io                 →  Caddy :443 DoH → dnsdist :8443
+app / admin (Vercel)                   →  Next.js UI
+api.shield.fluxlabs.net / api.nebuladns.io  →  Caddy → API :3000
+dns1|dns2.shield.fluxlabs.net          →  Caddy :443 DoH → dnsdist :8443
+dns1|dns2.nebuladns.io (legacy)        →  same paths as above
                                        →  dnsdist :53 UDP/TCP (plain DNS)
-                                       →  dnsdist :853 DoT
+                                       →  dnsdist :853 DoT (per-host cert via SNI)
 Neon Postgres / Upstash Redis           →  external (TLS)
 clickhouse (compose)                     →  query logs (not exposed publicly)
 ```
@@ -87,22 +90,23 @@ Private keys are **not** stored in git.
 
 ```bash
 chmod +x scripts/generate-dns-certs.sh
-./scripts/generate-dns-certs.sh dns1.nebuladns.io
+./scripts/generate-dns-certs.sh dns1.shield.fluxlabs.net
 ```
 
-**Production (recommended):** Let Caddy obtain ACME certificates, then sync PEM files for dnsdist:
+**Production (recommended):** Let Caddy obtain ACME certificates (one cert per hostname in the Caddyfile), then sync PEM files for dnsdist:
 
-The `Caddyfile` lists **both** `dns1.nebuladns.io` and `dns2.nebuladns.io` in one site block so Let's Encrypt issues a **single certificate with both SANs**. That cert is copied to dnsdist for DoT on `:853` (clients can use either hostname).
+The `Caddyfile` lists all public DNS and API hostnames (Flux Shield + legacy `nebuladns.io`). Caddy issues **separate** Let's Encrypt certificates per name. `scripts/sync-caddy-certs.sh` copies the primary hostname (`dns1.shield.fluxlabs.net` in production) to `server.crt` / `server.key` and additional names from `EXTRA_DOMAINS` to `sni-N.crt` / `sni-N.key`. dnsdist DoT on `:853` uses GnuTLS to select the matching cert per client SNI (TLS 1.0/1.1 disabled). Clients with no SNI receive the primary (`dns1.shield`) certificate.
 
 ```bash
 docker compose up -d caddy
 # Wait for ACME success in: docker compose logs caddy
 chmod +x scripts/sync-caddy-certs.sh
-./scripts/sync-caddy-certs.sh dns1.nebuladns.io
+EXTRA_DOMAINS="dns2.shield.fluxlabs.net dns1.nebuladns.io dns2.nebuladns.io" \
+  ./scripts/sync-caddy-certs.sh dns1.shield.fluxlabs.net
 docker compose restart dnsdist
 ```
 
-**After Caddy renews (automated):** Caddy renews in the background, but dnsdist still reads files from `./certs/`. Install the systemd timer on the droplet so renewed certs are copied and dnsdist is restarted only when the files change:
+**After Caddy renews (automated):** Caddy renews in the background, but dnsdist still reads files from `./certs/`. Install the systemd timer on the droplet so renewed certs are copied and dnsdist is restarted only when the file set changes:
 
 ```bash
 cp systemd/nebula-dns-sync-certs.{service,timer} /etc/systemd/system/
@@ -111,7 +115,7 @@ systemctl enable --now nebula-dns-sync-certs.timer
 systemctl list-timers nebula-dns-sync-certs.timer
 ```
 
-The timer runs `scripts/sync-caddy-certs.sh … --reload-if-changed` daily (see `systemd/nebula-dns-sync-certs.timer`). Override `CADDY_DATA` in the unit if your Docker volume path differs (`docker volume inspect nebula-dns_caddy_data`).
+The timer runs `scripts/sync-caddy-certs.sh … --reload-if-changed` daily (see `systemd/nebula-dns-sync-certs.timer`). Default `Environment=` values in `nebula-dns-sync-certs.service` match production Flux Shield + legacy names; override with a **systemd drop-in** (e.g. `/etc/systemd/system/nebula-dns-sync-certs.service.d/override.conf`) if hostnames differ. Override `CADDY_DATA` in the unit if your Docker volume path differs (`docker volume inspect nebula-dns_caddy_data`).
 
 See `certs/README.md` for details.
 
@@ -149,11 +153,11 @@ Create **DNS only** A records pointing at the droplet public IPv4:
 
 | Name | Type | Content | Proxy |
 |------|------|---------|-------|
-| api | A | `<droplet-ip>` | DNS only |
+| api (shield + legacy zone) | A | `<droplet-ip>` | DNS only |
 | dns1 | A | `<droplet-ip>` | DNS only |
 | dns2 | A | `<droplet-ip>` | DNS only |
 
-Vercel handles `app` and `admin` CNAME/A records for the UI projects.
+Configure both `shield.fluxlabs.net` and `nebuladns.io` zones as needed. Vercel handles `app` and `admin` CNAME/A records for the UI projects.
 
 ## 6. Start the stack
 
@@ -184,14 +188,14 @@ docker compose ps
 
 | Integration | URL / setting |
 |-------------|----------------|
-| Vercel UI `API_URL` | `https://api.nebuladns.io` |
-| API `FRONTEND_URL` | `https://app.nebuladns.io` |
-| API `ADMIN_URL` | `https://admin.nebuladns.io` |
-| API `CORS_ORIGINS` | `https://app.nebuladns.io,https://admin.nebuladns.io` |
+| Vercel UI `API_URL` | `https://api.shield.fluxlabs.net` (or legacy `https://api.nebuladns.io`) |
+| API `FRONTEND_URL` | Your Vercel app URL |
+| API `ADMIN_URL` | Your Vercel admin URL |
+| API `CORS_ORIGINS` | Comma-separated app/admin origins |
 | Stripe **live** keys | `STRIPE_SECRET_KEY=sk_live_…`, `STRIPE_WEBHOOK_SECRET=whsec_…` (live mode in Dashboard) |
-| Stripe webhook | `https://api.nebuladns.io/payments/webhook` |
-| SAML ACS | `https://api.nebuladns.io/sso/saml/callback` |
-| OIDC redirect | `https://api.nebuladns.io/sso/oidc/callback` |
+| Stripe webhook | `https://api.shield.fluxlabs.net/payments/webhook` |
+| SAML ACS | `https://api.shield.fluxlabs.net/sso/saml/callback` |
+| OIDC redirect | `https://api.shield.fluxlabs.net/sso/oidc/callback` |
 
 Use Stripe **test** keys (`sk_test_…`) only for sandbox verification (see §8); switch to live keys before production checkout.
 
@@ -202,20 +206,18 @@ Run these after deploy (replace tokens and IPs as needed).
 ### API health
 
 ```bash
-curl -sf https://api.nebuladns.io/health | jq .
-curl -sf https://api.nebuladns.io/health/ready | jq .
+curl -sf https://api.shield.fluxlabs.net/health | jq .
+curl -sf https://api.shield.fluxlabs.net/health/ready | jq .
 ```
 
 ### Signup and login
 
-1. Open `https://app.nebuladns.io` and complete signup (or use an existing tenant).
-2. Confirm login succeeds and the dashboard loads (browser network tab shows API calls to `https://api.nebuladns.io`).
+1. Open the customer app URL and complete signup (or use an existing tenant).
+2. Confirm login succeeds and the dashboard loads (network tab shows API calls to your configured `API_URL`).
 
 ### Stripe webhook (live or test)
 
-**Production:** Register the live webhook in Stripe Dashboard (Live mode) pointing to:
-
-`https://api.nebuladns.io/payments/webhook`
+**Production:** Register the live webhook in Stripe Dashboard (Live mode) pointing to your API webhook URL.
 
 Use the live signing secret in `STRIPE_WEBHOOK_SECRET`.
 
@@ -226,10 +228,9 @@ Use the live signing secret in `STRIPE_WEBHOOK_SECRET`.
 From a client that matches a **location IP** in the policy (or use a DoH Bearer token):
 
 ```bash
+drill @dns1.shield.fluxlabs.net google.com
 drill @dns1.nebuladns.io google.com
-drill @dns1.nebuladns.io -T google.com
-kdig @dns1.nebuladns.io google.com
-kdig @dns1.nebuladns.io +tcp google.com
+kdig @dns1.shield.fluxlabs.net google.com
 ```
 
 Unidentified sources should receive **REFUSED** (not an open resolver).
@@ -239,11 +240,13 @@ Unidentified sources should receive **REFUSED** (not an open resolver).
 After installing `kdig` (knot-dnsutils):
 
 ```bash
+kdig @dns1.shield.fluxlabs.net +tls-ca +tls-host=dns1.shield.fluxlabs.net google.com
+kdig @dns2.shield.fluxlabs.net +tls-ca +tls-host=dns2.shield.fluxlabs.net google.com
 kdig @dns1.nebuladns.io +tls-ca +tls-host=dns1.nebuladns.io google.com
 kdig @dns2.nebuladns.io +tls-ca +tls-host=dns2.nebuladns.io google.com
 ```
 
-Use the Let's Encrypt chain from Caddy/synced certs, or `-tls` with `+tls-insecure` only for bootstrap self-signed certs.
+Each hostname should present its own certificate. TLS 1.1 should fail; omit SNI only when testing the default cert (primary / `dns1.shield`).
 
 ### DNS — DoH (:443 via Caddy)
 
@@ -253,14 +256,14 @@ With a location **Bearer** token from the dashboard:
 TOKEN='your-location-token'
 curl -sS -H "accept: application/dns-message" \
   -H "Authorization: Bearer ${TOKEN}" \
-  "https://dns1.nebuladns.io/dns-query?dns=$(printf '\\x00\\x00\\x01\\x00\\x00\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x06google\\x03com\\x00\\x00\\x01\\x00\\x01' | base64 -w0)" \
+  "https://dns1.shield.fluxlabs.net/dns-query?dns=$(printf '\\x00\\x00\\x01\\x00\\x00\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x06google\\x03com\\x00\\x00\\x01\\x00\\x01' | base64 -w0)" \
   | hexdump -C | head
 ```
 
 Or use `kdig` DoH when built with nghttp2:
 
 ```bash
-kdig @https://dns1.nebuladns.io/dns-query google.com +https +tls-host=dns1.nebuladns.io
+kdig @https://dns1.shield.fluxlabs.net/dns-query google.com +https +tls-host=dns1.shield.fluxlabs.net
 ```
 
 ## 9. CI deploy
@@ -281,7 +284,7 @@ GitHub Actions workflow `.github/workflows/deploy.yml` builds images to GHCR and
 
 ### dnsdist
 
-`POLICY_SVC_URL`, `DNSDIST_API_KEY`, TLS files mounted at `/etc/dnsdist/certs/` (`server.crt`, `server.key`)
+`POLICY_SVC_URL`, `DNSDIST_API_KEY`, TLS files mounted at `/etc/dnsdist/certs/` (`server.crt`, `server.key`, optional `sni-*.crt` / `sni-*.key` for DoT SNI)
 
 ### Caddy
 
@@ -298,3 +301,7 @@ No extra env (config baked in image)
 ### Compose / deploy
 
 `IMAGE_TAG`, `ACME_EMAIL`
+
+### Certificate sync (systemd / manual)
+
+`CADDY_DATA`, `SECONDARY_DOMAIN`, `EXTRA_DOMAINS` — see `scripts/sync-caddy-certs.sh` and `systemd/nebula-dns-sync-certs.service`

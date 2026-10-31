@@ -1,12 +1,19 @@
 #!/usr/bin/env bash
 # Copy Caddy-issued certificates into deploy/droplet/certs for dnsdist DoT/DoH.
-# Run on the droplet after Caddy has obtained ACME certs for dns1/dns2 hostnames.
+# Run on the droplet after Caddy has obtained ACME certs for DNS hostnames.
 #
 # Usage:
 #   ./scripts/sync-caddy-certs.sh [primary-domain] [--reload-if-changed]
 #
-# Caddy stores ACME data under the compose volume (see README). The Caddyfile uses a
-# single site block for dns1 + dns2 so Let's Encrypt issues one cert with both SANs.
+# Environment:
+#   CADDY_DATA         Path to Caddy data dir inside the Docker volume (see README).
+#   SECONDARY_DOMAIN   Legacy name used when picking the primary cert (optional).
+#   EXTRA_DOMAINS      Space-separated hostnames whose certs are copied to sni-N.crt/key
+#                      for dnsdist DoT SNI (skips names equal to primary-domain).
+#
+# Caddy stores one Let's Encrypt certificate per site hostname. This script copies the
+# cert for primary-domain to server.crt/key (default DoH backend and no-SNI DoT) and
+# each EXTRA_DOMAINS name to sni-1.crt/key, sni-2.crt/key, … for GnuTLS SNI on :853.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -28,7 +35,9 @@ for arg in "$@"; do
   esac
 done
 
-SECONDARY_DOMAIN="${SECONDARY_DOMAIN:-dns2.nebuladns.io}"
+SECONDARY_DOMAIN="${SECONDARY_DOMAIN:-dns2.shield.fluxlabs.net}"
+# Production DoT SNI hostnames (override via env or systemd drop-in); primary is usually dns1.shield.fluxlabs.net.
+EXTRA_DOMAINS="${EXTRA_DOMAINS:-dns2.shield.fluxlabs.net dns1.nebuladns.io dns2.nebuladns.io}"
 
 ACME_DIR="${CADDY_DATA}/certificates/acme-v02.api.letsencrypt.org-directory"
 if [[ ! -d "${ACME_DIR}" ]]; then
@@ -42,6 +51,18 @@ cert_has_san() {
   local cert_file="$1"
   local name="$2"
   openssl x509 -in "${cert_file}" -noout -ext subjectAltName 2>/dev/null | grep -Fq "DNS:${name}"
+}
+
+certs_hash() {
+  local dir="$1"
+  (
+    shopt -s nullglob
+    local files=( "${dir}/server.crt" "${dir}/server.key" "${dir}"/sni-*.crt "${dir}"/sni-*.key )
+    shopt -u nullglob
+    for f in "${files[@]}"; do
+      [[ -e "${f}" ]] && sha256sum "${f}"
+    done
+  ) | sha256sum | awk '{print $1}' || true
 }
 
 pick_cert_path() {
@@ -64,9 +85,22 @@ pick_cert_path() {
   return 1
 }
 
+find_cert_for_name() {
+  local name="$1"
+  local candidate=""
+  while IFS= read -r candidate; do
+    [[ -z "${candidate}" ]] && continue
+    if cert_has_san "${candidate}" "${name}"; then
+      echo "${candidate}"
+      return 0
+    fi
+  done < <(find "${ACME_DIR}" -name '*.crt' -type f 2>/dev/null | sort)
+  return 1
+}
+
 CERT_PATH=""
 if ! CERT_PATH="$(pick_cert_path)"; then
-  echo "Could not find a Caddy certificate for ${PRIMARY_DOMAIN} (and ideally ${SECONDARY_DOMAIN}) under ${ACME_DIR}" >&2
+  echo "Could not find a Caddy certificate for ${PRIMARY_DOMAIN} under ${ACME_DIR}" >&2
   echo "Start Caddy first and confirm ACME succeeded (docker compose logs caddy)." >&2
   exit 1
 fi
@@ -79,36 +113,54 @@ fi
 
 mkdir -p "${CERT_DIR}"
 
-OLD_CRT_HASH=""
-OLD_KEY_HASH=""
-if [[ -f "${CERT_DIR}/server.crt" ]]; then
-  OLD_CRT_HASH="$(sha256sum "${CERT_DIR}/server.crt" | awk '{print $1}')"
-fi
-if [[ -f "${CERT_DIR}/server.key" ]]; then
-  OLD_KEY_HASH="$(sha256sum "${CERT_DIR}/server.key" | awk '{print $1}')"
-fi
+OLD_HASH=""
+OLD_HASH="$(certs_hash "${CERT_DIR}")"
 
 cp "${CERT_PATH}" "${CERT_DIR}/server.crt"
 cp "${KEY_PATH}" "${CERT_DIR}/server.key"
 chmod 600 "${CERT_DIR}/server.key"
 
-NEW_CRT_HASH="$(sha256sum "${CERT_DIR}/server.crt" | awk '{print $1}')"
-NEW_KEY_HASH="$(sha256sum "${CERT_DIR}/server.key" | awk '{print $1}')"
+rm -f "${CERT_DIR}"/sni-*
+
+sni_idx=1
+for name in ${EXTRA_DOMAINS}; do
+  [[ "${name}" == "${PRIMARY_DOMAIN}" ]] && continue
+  extra_cert=""
+  if ! extra_cert="$(find_cert_for_name "${name}")"; then
+    echo "WARNING: no Caddy certificate with SAN DNS:${name}; skipping SNI copy" >&2
+    continue
+  fi
+  extra_key="${extra_cert%.crt}.key"
+  if [[ ! -f "${extra_key}" ]]; then
+    echo "WARNING: missing key for ${name}: ${extra_key}; skipping" >&2
+    continue
+  fi
+  if [[ "${extra_cert}" == "${CERT_PATH}" ]]; then
+    continue
+  fi
+  cp "${extra_cert}" "${CERT_DIR}/sni-${sni_idx}.crt"
+  cp "${extra_key}" "${CERT_DIR}/sni-${sni_idx}.key"
+  chmod 600 "${CERT_DIR}/sni-${sni_idx}.key"
+  echo "extra: ${name} -> sni-${sni_idx}.crt"
+  sni_idx=$((sni_idx + 1))
+done
+
+NEW_HASH=""
+NEW_HASH="$(certs_hash "${CERT_DIR}")"
 
 echo "Synced Caddy cert to ${CERT_DIR}/server.{crt,key}"
 echo "  source: ${CERT_PATH}"
-if cert_has_san "${CERT_DIR}/server.crt" "${SECONDARY_DOMAIN}"; then
-  echo "  SANs include ${PRIMARY_DOMAIN} and ${SECONDARY_DOMAIN} (DoT/DoH name match for both)"
-else
-  echo "  WARNING: cert may not include ${SECONDARY_DOMAIN}; ensure Caddyfile lists both hostnames in one site block" >&2
+echo "  primary: ${PRIMARY_DOMAIN} (default cert when DoT clients send no SNI)"
+if [[ "${sni_idx}" -gt 1 ]]; then
+  echo "  SNI certs: sni-1 … sni-$((sni_idx - 1)).crt for additional DoT hostnames"
 fi
 
 if [[ "${RELOAD_IF_CHANGED}" == true ]]; then
-  if [[ "${OLD_CRT_HASH}" == "${NEW_CRT_HASH}" && "${OLD_KEY_HASH}" == "${NEW_KEY_HASH}" ]]; then
-    echo "Certificate unchanged; skipping dnsdist restart"
+  if [[ "${OLD_HASH}" == "${NEW_HASH}" && -n "${NEW_HASH}" ]]; then
+    echo "Certificates unchanged; skipping dnsdist restart"
     exit 0
   fi
-  echo "Certificate changed; restarting dnsdist"
+  echo "Certificates changed; restarting dnsdist"
   (cd "${DROPLET_DIR}" && docker compose restart dnsdist)
 else
   echo "Restart dnsdist when ready: (cd ${DROPLET_DIR} && docker compose restart dnsdist)"

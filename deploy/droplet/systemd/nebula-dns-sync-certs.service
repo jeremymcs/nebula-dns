@@ -8,4 +8,6 @@ Requires=docker.service
 Type=oneshot
 WorkingDirectory=/opt/nebula-dns/deploy/droplet
 Environment=CADDY_DATA=/var/lib/docker/volumes/nebula-dns_caddy_data/_data/caddy
-ExecStart=/opt/nebula-dns/deploy/droplet/scripts/sync-caddy-certs.sh dns1.nebuladns.io --reload-if-changed
+Environment=SECONDARY_DOMAIN=dns2.shield.fluxlabs.net
+Environment=EXTRA_DOMAINS=dns2.shield.fluxlabs.net dns1.nebuladns.io dns2.nebuladns.io
+ExecStart=/opt/nebula-dns/deploy/droplet/scripts/sync-caddy-certs.sh dns1.shield.fluxlabs.net --reload-if-changed
