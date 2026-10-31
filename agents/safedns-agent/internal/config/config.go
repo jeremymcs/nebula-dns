@@ -2,7 +2,6 @@
 package config
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -96,41 +95,12 @@ func ConfigPath() string {
 
 // Load reads configuration from disk
 func (c *Config) Load() error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	path := ConfigPath()
-	data, err := os.ReadFile(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// Use defaults if no config exists
-			return nil
-		}
-		return err
-	}
-
-	return json.Unmarshal(data, c)
+	return loadFromDisk(c)
 }
 
 // Save writes configuration to disk
 func (c *Config) Save() error {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-
-	path := ConfigPath()
-
-	// Ensure directory exists
-	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return err
-	}
-
-	data, err := json.MarshalIndent(c, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	return os.WriteFile(path, data, 0600)
+	return saveToDisk(c)
 }
 
 // GetAPIEndpoint returns the API endpoint thread-safely
@@ -161,4 +131,22 @@ func (c *Config) GetDNSServers() []string {
 	servers := make([]string, len(c.DNSServers))
 	copy(servers, c.DNSServers)
 	return servers
+}
+
+func (c *Config) GetDeviceID() string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.DeviceID
+}
+
+func (c *Config) GetDeviceSecret() string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.DeviceSecret
+}
+
+func (c *Config) GetDoHToken() string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.Token
 }
