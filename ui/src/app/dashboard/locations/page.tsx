@@ -40,6 +40,7 @@ interface Location {
   policyName?: string
   ipRange?: string
   dyndns?: string
+  siteIpUpdatedAt?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -555,6 +556,15 @@ export default function LocationsPage() {
                     <span className="text-xs text-space-400">Not set</span>
                   )}
                 </div>
+
+                {location.siteIpUpdatedAt && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-space-500 dark:text-space-400">Site IP</span>
+                    <span className="text-xs text-space-600 dark:text-space-300">
+                      Updated by agent · {new Date(location.siteIpUpdatedAt).toLocaleString()}
+                    </span>
+                  </div>
+                )}
 
                 {/* Token Buttons */}
                 <div className="flex gap-2 mt-2">

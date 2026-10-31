@@ -64,3 +64,4 @@ deploy/droplet/.env
 terraform.tfvars
 **/*.tfvars
 !**/*.tfvars.example
+fluxshield-agent

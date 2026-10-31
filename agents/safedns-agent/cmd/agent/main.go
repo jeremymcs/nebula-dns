@@ -60,19 +60,18 @@ func (a *agent) run() {
 		zap.String("version", Version),
 		zap.String("build_time", BuildTime))
 
-	// Check if forwarder mode is enabled
-	if a.config.Forwarder.Enabled {
-		a.logger.Info("Forwarder mode enabled",
+	// DNS enforcement uses the local stub forwarder (split DNS for AD) by default on Windows.
+	useForwarder := a.config.Forwarder.Enabled || a.configHasRole("dns-enforce")
+	if useForwarder {
+		a.config.Forwarder.Enabled = true
+		a.logger.Info("DNS enforcement via local stub forwarder",
 			zap.String("listen_address", a.config.Forwarder.ListenAddress),
-			zap.Int("internal_domains", len(a.config.Forwarder.InternalDomains)))
+			zap.Int("internal_zones", len(a.config.Forwarder.InternalZones)))
 
-		// Create and start the forwarder
 		a.forwarder = forwarder.New(a.config, a.logger)
 		if err := a.forwarder.Start(); err != nil {
 			a.logger.Error("Failed to start forwarder", zap.Error(err))
 		} else {
-			a.logger.Info("DNS forwarder started")
-			// In forwarder mode, point DNS to localhost
 			if err := a.dnsManager.SaveOriginal(); err != nil {
 				a.logger.Warn("Failed to save original DNS configuration", zap.Error(err))
 			}
@@ -80,6 +79,8 @@ func (a *agent) run() {
 				a.logger.Error("Failed to configure DNS to use local forwarder", zap.Error(err))
 			}
 		}
+	} else if a.configHasRole("site-updater") {
+		a.logger.Info("Site updater role only — skipping DNS enforcement")
 	} else {
 		// Standard mode: point DNS directly to Nebula DNS servers
 		if err := a.dnsManager.SaveOriginal(); err != nil {
@@ -109,6 +110,15 @@ func (a *agent) run() {
 			a.logger.Error("Failed to stop forwarder", zap.Error(err))
 		}
 	}
+}
+
+func (a *agent) configHasRole(role string) bool {
+	for _, r := range a.config.Roles {
+		if r == role {
+			return true
+		}
+	}
+	return false
 }
 
 func main() {

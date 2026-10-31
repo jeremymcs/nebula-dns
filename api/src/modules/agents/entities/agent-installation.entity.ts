@@ -5,6 +5,7 @@ import { Location } from '../../locations/entities/location.entity';
 
 export type AgentPlatform = 'windows' | 'macos' | 'linux' | 'ios' | 'android';
 export type AgentStatus = 'active' | 'inactive' | 'disconnected' | 'error';
+export type AgentRole = 'site-updater' | 'dns-enforce';
 
 @Entity('agent_installations')
 export class AgentInstallation extends BaseEntity {
@@ -16,7 +17,7 @@ export class AgentInstallation extends BaseEntity {
   tenant: Tenant;
 
   @Column({ name: 'location_id', type: 'uuid', nullable: true })
-  locationId: string;
+  locationId: string | null;
 
   @ManyToOne(() => Location, { nullable: true })
   @JoinColumn({ name: 'location_id' })
@@ -48,6 +49,24 @@ export class AgentInstallation extends BaseEntity {
 
   @Column({ name: 'error_message', type: 'text', nullable: true })
   errorMessage: string | null;
+
+  @Column({ name: 'device_secret_hash', type: 'varchar', length: 255, nullable: true })
+  deviceSecretHash: string | null;
+
+  @Column({ type: 'jsonb', default: ['dns-enforce'] })
+  roles: AgentRole[];
+
+  @Column({ name: 'dns_enforced', type: 'boolean', default: false })
+  dnsEnforced: boolean;
+
+  @Column({ name: 'doh_token_hash', type: 'varchar', length: 255, nullable: true })
+  dohTokenHash: string | null;
+
+  @Column({ name: 'last_tamper_at', type: 'timestamptz', nullable: true })
+  lastTamperAt: Date | null;
+
+  @Column({ name: 'tamper_count', type: 'int', default: 0 })
+  tamperCount: number;
 
   @Column({ type: 'jsonb', default: {} })
   settings: {

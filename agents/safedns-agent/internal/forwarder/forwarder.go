@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/fluxlabs/dns-filter/agents/safedns-agent/internal/config"
+	"github.com/fluxlabs/dns-filter/agents/safedns-agent/internal/splitdns"
 	"github.com/miekg/dns"
 	"go.uber.org/zap"
 )
@@ -23,6 +24,7 @@ type Forwarder struct {
 	dohClient *DoHClient
 	cache     *Cache
 	metrics   *Metrics
+	router    *splitdns.Router
 
 	udpServer *dns.Server
 	tcpServer *dns.Server
@@ -36,7 +38,7 @@ type Forwarder struct {
 // New creates a new Forwarder instance
 func New(cfg *config.Config, logger *zap.Logger) *Forwarder {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &Forwarder{
+	f := &Forwarder{
 		cfg:       cfg,
 		logger:    logger,
 		dohClient: NewDoHClient(cfg, logger),
@@ -45,6 +47,28 @@ func New(cfg *config.Config, logger *zap.Logger) *Forwarder {
 		ctx:       ctx,
 		cancel:    cancel,
 	}
+	f.rebuildRouter()
+	return f
+}
+
+// RefreshSplitDNSProfile re-runs discovery (e.g. after VPN connect or heartbeat config push).
+func (f *Forwarder) RefreshSplitDNSProfile() {
+	f.rebuildRouter()
+}
+
+func (f *Forwarder) rebuildRouter() {
+	profile, err := splitdns.DiscoverWindowsProfile(f.cfg.Forwarder.InternalZones)
+	if err != nil {
+		f.logger.Warn("Split DNS discovery failed", zap.Error(err))
+	}
+	// Merge legacy manual internal domain rules into configured zones list
+	for _, rule := range f.cfg.Forwarder.InternalDomains {
+		profile.ConfiguredZones = append(profile.ConfiguredZones, rule.Domain)
+		if len(profile.InternalServers) == 0 && len(rule.DNSServers) > 0 {
+			profile.InternalServers = append(profile.InternalServers, rule.DNSServers...)
+		}
+	}
+	f.router = splitdns.NewRouter(profile)
 }
 
 // GetMetrics returns the metrics instance for HTTP handler registration
@@ -161,24 +185,37 @@ func (f *Forwarder) handleQuery(w dns.ResponseWriter, r *dns.Msg) {
 	var err error
 	var upstream string
 
-	if internalServers := f.matchInternalDomain(qname); internalServers != nil {
-		// Route to internal DNS
+	if internal, servers := f.routeInternal(qname); internal {
 		upstream = "internal"
-		response, err = f.queryInternal(r, internalServers)
-		f.metrics.RecordInternalQuery()
+		if len(servers) == 0 {
+			response = new(dns.Msg)
+			response.SetRcode(r, dns.RcodeServerFailure)
+			f.metrics.RecordInternalQuery()
+		} else {
+			response, err = f.queryInternal(r, servers)
+			f.metrics.RecordInternalQuery()
+			if err != nil {
+				f.logger.Warn("Internal DNS unavailable (fail closed for this name)",
+					zap.String("name", qname), zap.Error(err))
+				response = new(dns.Msg)
+				response.SetRcode(r, dns.RcodeServerFailure)
+				err = nil
+			}
+		}
 	} else {
-		// Route to cloud DoH
+		// Route to Flux Shield DoH
 		upstream = "doh"
 		response, err = f.dohClient.Query(f.ctx, r)
 		f.metrics.RecordExternalQuery()
+		if err != nil && f.cfg.Forwarder.AllowPublicFallback && len(f.cfg.Forwarder.FallbackDNS) > 0 {
+			upstream = "fallback"
+			response, err = f.queryInternal(r, f.cfg.Forwarder.FallbackDNS)
+		}
 	}
 
 	if err != nil {
 		f.logger.Error("Query failed", zap.String("name", qname), zap.Error(err))
 		f.metrics.RecordUpstreamError(upstream)
-		// Try fallback DNS
-		upstream = "fallback"
-		response, err = f.queryFallback(r)
 	}
 
 	if err != nil || response == nil {
@@ -204,22 +241,40 @@ func (f *Forwarder) handleQuery(w dns.ResponseWriter, r *dns.Msg) {
 	w.WriteMsg(response)
 }
 
-// matchInternalDomain checks if the query matches any internal domain rules
-func (f *Forwarder) matchInternalDomain(qname string) []string {
+// routeInternal reports whether qname must not go to Flux Shield.
+func (f *Forwarder) routeInternal(qname string) (internal bool, servers []string) {
+	if f.router != nil && f.router.Route(qname) == splitdns.RouteInternal {
+		servers = f.router.InternalServers()
+		if len(servers) == 0 {
+			if legacy := f.matchInternalDomainServers(qname); len(legacy) > 0 {
+				return true, legacy
+			}
+			return true, nil
+		}
+		return true, servers
+	}
+	if legacy := f.matchInternalDomainServers(qname); legacy != nil {
+		return true, legacy
+	}
+	return false, nil
+}
+
+func (f *Forwarder) matchInternalDomainServers(qname string) []string {
 	for _, rule := range f.cfg.Forwarder.InternalDomains {
 		domain := strings.ToLower(rule.Domain)
-
-		// Exact match or suffix match
 		if qname == dns.Fqdn(domain) || strings.HasSuffix(qname, "."+dns.Fqdn(domain)) {
 			return rule.DNSServers
 		}
-
-		// Wildcard suffix match (e.g., ".contoso.com")
 		if strings.HasPrefix(domain, ".") && strings.HasSuffix(qname, dns.Fqdn(domain[1:])) {
 			return rule.DNSServers
 		}
 	}
 	return nil
+}
+
+// matchInternalDomain checks legacy internal domain rules (tests).
+func (f *Forwarder) matchInternalDomain(qname string) []string {
+	return f.matchInternalDomainServers(qname)
 }
 
 // queryInternal forwards query to internal DNS servers

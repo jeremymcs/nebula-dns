@@ -12,6 +12,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -26,11 +27,15 @@ import {
   RegisterAgentDto,
   AgentHeartbeatDto,
   UpdateAgentDto,
+  AgentSiteIpUpdateDto,
 } from './dto/agent.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentTenant } from '@/common/decorators/tenant.decorator';
+import { AgentAuthGuard, AgentAuthContext } from './agent-auth.guard';
+import { RateLimitPerIP } from '../rate-limit/decorators/rate-limit.decorator';
+import { Request } from 'express';
 
 @ApiTags('agents')
 @Controller('agents')
@@ -89,16 +94,38 @@ export class AgentsController {
     description: 'Invalid registration data or token',
   })
   async registerAgent(@Body() dto: RegisterAgentDto) {
-    const agent = await this.agentsService.registerAgent(dto);
+    const result = await this.agentsService.registerAgent(dto);
     return {
       success: true,
       message: 'Agent registered successfully',
       data: {
-        id: agent.id,
-        deviceName: agent.deviceName,
-        locationId: agent.locationId,
+        ...result.agent,
+        deviceSecret: result.deviceSecret,
+        dohToken: result.dohToken,
+        config: result.config,
       },
     };
+  }
+
+  @Post('site-ip')
+  @UseGuards(AgentAuthGuard)
+  @RateLimitPerIP(30, 3600000)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Update site public IP for a location',
+    description:
+      'Called by site-updater agents when the site public IPv4/IPv6 address changes. Authenticated per device.',
+  })
+  async updateSiteIp(
+    @Body() dto: AgentSiteIpUpdateDto,
+    @Req() req: Request & { agentAuth: AgentAuthContext },
+  ) {
+    const result = await this.agentsService.updateSitePublicIp(
+      req.agentAuth,
+      dto,
+      req.ip,
+    );
+    return { success: true, data: result };
   }
 
   @Post('heartbeat')
