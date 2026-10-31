@@ -28,6 +28,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { CheckIcon } from '@heroicons/react/24/solid'
 import Link from 'next/link'
+import { ADMIN_PORTAL_NAME, PRODUCT_NAME } from '@/lib/branding'
 import { ProductFooter } from '@/components/ProductFooter'
 
 /**
@@ -398,8 +399,8 @@ export default function AcceptInvitePage() {
               <ShieldCheckIcon className="h-8 w-8 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white">Nebula DNS</h1>
-              <p className="text-warning-300 font-medium">Mission Control</p>
+              <h1 className="text-3xl font-bold text-white">{PRODUCT_NAME}</h1>
+              <p className="text-warning-300 font-medium">{ADMIN_PORTAL_NAME}</p>
             </div>
           </div>
 
@@ -412,7 +413,7 @@ export default function AcceptInvitePage() {
           </h2>
 
           <p className="text-lg text-space-300 max-w-md mb-10">
-            You've been invited to join the Nebula DNS administrative team.
+            You&apos;ve been invited to join the {PRODUCT_NAME} administrative team.
             Complete your account setup to get started.
           </p>
 
@@ -446,8 +447,8 @@ export default function AcceptInvitePage() {
             <ShieldCheckIcon className="h-7 w-7 text-white" />
           </div>
           <div>
-            <span className="text-2xl font-bold text-space-900 dark:text-white">Nebula DNS</span>
-            <span className="block text-sm text-warning-500 font-medium">Mission Control</span>
+            <span className="text-2xl font-bold text-space-900 dark:text-white">{PRODUCT_NAME}</span>
+            <span className="block text-sm text-warning-500 font-medium">{ADMIN_PORTAL_NAME}</span>
           </div>
         </div>
 

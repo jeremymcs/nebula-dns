@@ -1,4 +1,4 @@
-// Nebula DNS - System Status Page
+// Flux Shield - System Status Page
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 'use client'

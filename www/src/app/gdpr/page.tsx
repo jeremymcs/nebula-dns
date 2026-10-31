@@ -1,4 +1,4 @@
-// Nebula DNS - GDPR Compliance Page
+// Flux Shield - GDPR Compliance Page
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import Link from 'next/link'
@@ -35,7 +35,7 @@ export default function GDPRPage() {
             Our Commitment
           </h2>
           <p className="text-space-400 mb-6">
-            Nebula DNS is committed to protecting the privacy and security of personal data in accordance with the General Data Protection Regulation (GDPR). We have implemented comprehensive technical and organizational measures to ensure compliance and safeguard your data rights.
+            Flux Shield is committed to protecting the privacy and security of personal data in accordance with the General Data Protection Regulation (GDPR). We have implemented comprehensive technical and organizational measures to ensure compliance and safeguard your data rights.
           </p>
 
           {/* 3 Commitment Cards */}
@@ -248,7 +248,7 @@ export default function GDPRPage() {
             Data Processing Agreement
           </h2>
           <p className="text-space-400 mb-4">
-            When you use Nebula DNS, we act as a data processor on your behalf. We have established a comprehensive Data Processing Agreement (DPA) that outlines:
+            When you use Flux Shield, we act as a data processor on your behalf. We have established a comprehensive Data Processing Agreement (DPA) that outlines:
           </p>
           <ul className="space-y-2 mb-4">
             <li className="flex items-start gap-2 text-space-400">
@@ -274,8 +274,8 @@ export default function GDPRPage() {
           </ul>
           <p className="text-space-400">
             Enterprise customers receive a signed DPA as part of their onboarding. Other customers can request a copy by contacting{' '}
-            <a href="mailto:privacy@nebuladns.io" className="text-primary-400 hover:text-primary-300 transition-colors">
-              privacy@nebuladns.io
+            <a href="mailto:privacy@shield.fluxlabs.net" className="text-primary-400 hover:text-primary-300 transition-colors">
+              privacy@shield.fluxlabs.net
             </a>
           </p>
         </div>
@@ -321,8 +321,8 @@ export default function GDPRPage() {
               </svg>
               <div>
                 <p className="font-semibold text-white mb-1">Email:</p>
-                <a href="mailto:dpo@nebuladns.io" className="text-primary-400 hover:text-primary-300 transition-colors">
-                  dpo@nebuladns.io
+                <a href="mailto:dpo@shield.fluxlabs.net" className="text-primary-400 hover:text-primary-300 transition-colors">
+                  dpo@shield.fluxlabs.net
                 </a>
                 <p className="mt-3 text-sm text-space-400">
                   Our DPO is available to answer questions about our data practices and assist with exercising your rights.
@@ -341,7 +341,7 @@ export default function GDPRPage() {
             To exercise any of your GDPR rights:
           </p>
           <ol className="space-y-3 text-space-400 list-decimal list-inside mb-6">
-            <li>Email <a href="mailto:privacy@nebuladns.io" className="text-primary-400 hover:text-primary-300 transition-colors">privacy@nebuladns.io</a> with your request</li>
+            <li>Email <a href="mailto:privacy@shield.fluxlabs.net" className="text-primary-400 hover:text-primary-300 transition-colors">privacy@shield.fluxlabs.net</a> with your request</li>
             <li>Include your account email and specific right you wish to exercise</li>
             <li>We will verify your identity and respond within 30 days</li>
             <li>If needed, we may request additional information to confirm your identity</li>
@@ -364,7 +364,7 @@ export default function GDPRPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="mailto:privacy@nebuladns.io"
+                href="mailto:privacy@shield.fluxlabs.net"
                 className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-accent-600 text-white font-medium hover:from-primary-500 hover:to-accent-500 transition-all"
               >
                 Contact Privacy Team

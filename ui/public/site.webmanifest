@@ -1,0 +1,17 @@
+{
+  "name": "Flux Shield",
+  "short_name": "Flux Shield",
+  "description": "Flux Shield — DNS Filter and modular security by Flux Labs",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c111d",
+  "theme_color": "#1E3B78",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

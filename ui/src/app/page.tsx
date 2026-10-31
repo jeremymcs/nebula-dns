@@ -14,6 +14,13 @@ import { ThemeContext } from '@/contexts/ThemeContext'
 import { CSSStarField } from '@/components/StarField'
 import { SunIcon, MoonIcon } from '@heroicons/react/24/outline'
 import { ProductFooter } from '@/components/ui/ProductFooter'
+import { ShieldMark } from '@/components/ui/ShieldMark'
+import {
+  PRODUCT_LOGIN_HERO_ACCENT,
+  PRODUCT_MODULE_DNS_FILTER,
+  PRODUCT_NAME,
+  PRODUCT_TAGLINE,
+} from '@/lib/branding'
 
 // Theme toggle button component
 function ThemeToggle() {
@@ -129,21 +136,18 @@ export default function LoginPage() {
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20">
           {/* Logo */}
           <div className="flex items-center gap-4 mb-8">
-            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center shadow-2xl shadow-primary-500/30">
-              <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
+            <ShieldMark className="h-14 w-14 rounded-2xl shadow-2xl shadow-primary-700/30" iconClassName="h-8 w-8" />
             <div>
-              <h1 className="text-3xl font-bold text-white">Nebula DNS</h1>
-              <p className="text-primary-300">Enterprise Security</p>
+              <h1 className="text-3xl font-bold text-white">{PRODUCT_NAME}</h1>
+              <p className="text-primary-200">{PRODUCT_TAGLINE}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-accent-300 mt-1">{PRODUCT_MODULE_DNS_FILTER}</p>
             </div>
           </div>
 
           {/* Tagline */}
           <h2 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-6">
             Protect your network<br />
-            <span className="text-gradient-light">from the cosmos</span>
+            <span className="text-gradient-light">{PRODUCT_LOGIN_HERO_ACCENT}</span>
           </h2>
 
           <p className="text-lg text-space-300 max-w-md mb-10">
@@ -176,12 +180,8 @@ export default function LoginPage() {
 
         {/* Mobile Logo */}
         <div className="lg:hidden flex items-center gap-3 mb-10">
-          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center shadow-lg shadow-primary-500/25">
-            <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-          </div>
-          <span className="text-2xl font-bold text-space-900 dark:text-white">Nebula DNS</span>
+          <ShieldMark className="h-12 w-12 rounded-xl shadow-lg shadow-primary-700/25" iconClassName="h-7 w-7" />
+          <span className="text-2xl font-bold text-space-900 dark:text-white">{PRODUCT_NAME}</span>
         </div>
 
         <div className="w-full max-w-sm mx-auto lg:mx-0">
@@ -267,9 +267,9 @@ export default function LoginPage() {
                 type="button"
                 onClick={handleDemoLogin}
                 disabled={loading}
-                className="w-full py-3 px-4 rounded-xl ring-1 ring-space-200 dark:ring-space-700 bg-space-50 dark:bg-space-800 hover:bg-space-100 dark:hover:bg-space-700 text-space-700 dark:text-space-300 font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="btn-accent w-full py-3 disabled:opacity-50"
               >
-                <svg className="w-4 h-4 text-accent-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>

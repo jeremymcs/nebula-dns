@@ -1,4 +1,4 @@
-// Nebula DNS - Guides & Tutorials Listing Page
+// Flux Shield - Guides & Tutorials Listing Page
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 'use client'
@@ -9,7 +9,7 @@ import { useState } from 'react'
 const guides = [
   {
     title: 'Getting Started',
-    description: 'Learn the basics of Nebula DNS and set up your first DNS filter in minutes.',
+    description: 'Learn the basics of Flux Shield and set up your first DNS filter in minutes.',
     time: '5 min',
     difficulty: 'Beginner' as const,
     icon: (
@@ -20,7 +20,7 @@ const guides = [
   },
   {
     title: 'Setting Up DNS Filtering',
-    description: 'Configure your network to route DNS queries through Nebula DNS for comprehensive protection.',
+    description: 'Configure your network to route DNS queries through Flux Shield for comprehensive protection.',
     time: '10 min',
     difficulty: 'Beginner' as const,
     icon: (
@@ -54,7 +54,7 @@ const guides = [
   },
   {
     title: 'API Integration Guide',
-    description: 'Integrate Nebula DNS into your existing infrastructure using our comprehensive REST API.',
+    description: 'Integrate Flux Shield into your existing infrastructure using our comprehensive REST API.',
     time: '30 min',
     difficulty: 'Advanced' as const,
     icon: (
@@ -102,11 +102,11 @@ export default function GuidesPage() {
             </p>
             <h1 className="text-4xl sm:text-5xl font-bold">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
-                Learn Nebula DNS
+                Learn Flux Shield
               </span>
             </h1>
             <p className="mt-4 text-lg text-space-400 max-w-2xl mx-auto">
-              Step-by-step guides to help you get the most out of Nebula DNS. From beginner setup to advanced integrations.
+              Step-by-step guides to help you get the most out of Flux Shield. From beginner setup to advanced integrations.
             </p>
           </div>
 

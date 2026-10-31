@@ -67,7 +67,7 @@ export function StarField({ className = '' }: { className?: string }) {
         if (star.size > 1.2) {
           ctx.beginPath()
           ctx.arc(star.x, star.y, star.size * 2, 0, Math.PI * 2)
-          ctx.fillStyle = `rgba(147, 51, 234, ${star.opacity * 0.2})`
+          ctx.fillStyle = `rgba(75, 124, 187, ${star.opacity * 0.25})`
           ctx.fill()
         }
       })
@@ -102,11 +102,11 @@ export function CSSStarField({ className = '' }: { className?: string }) {
   return (
     <div className={`absolute inset-0 overflow-hidden ${className}`}>
       {/* Gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-space-950 via-primary-950 to-space-950" />
+      <div className="absolute inset-0 bg-gradient-to-br from-space-950 via-primary-950 to-[#0c1424]" />
       
       {/* Nebula glow */}
-      <div className="absolute top-1/4 -left-1/4 w-1/2 h-1/2 bg-primary-600/20 rounded-full blur-[100px]" />
-      <div className="absolute bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-accent-600/15 rounded-full blur-[100px]" />
+      <div className="absolute top-1/4 -left-1/4 w-1/2 h-1/2 bg-primary-600/25 rounded-full blur-[100px]" />
+      <div className="absolute bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-accent-500/20 rounded-full blur-[100px]" />
       
       {/* Static stars using pseudo-elements and gradients */}
       <div className="absolute inset-0 opacity-60" 
