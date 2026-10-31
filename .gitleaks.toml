@@ -68,6 +68,7 @@ paths = [
   '''go\.sum''',
   '''yarn\.lock''',
   '''pnpm-lock\.yaml''',
+  '''deploy/droplet/docker-compose\.yml''',
 ]
 
 regexes = [
@@ -81,6 +82,7 @@ regexes = [
   '''your-secret-key-here''',
   '''change-me''',
   '''placeholder''',
+  '''\$\{CLICKHOUSE_PASSWORD:\?''',
 ]
 
 # Stopwords - patterns that indicate false positives

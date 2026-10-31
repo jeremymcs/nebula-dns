@@ -8,6 +8,7 @@ api.nebuladns.io {
 }
 
 dns1.nebuladns.io, dns2.nebuladns.io {
+  # Single ACME certificate with SANs for both names (used by Caddy DoH and synced to dnsdist DoT).
   # Public DoH on :443 (TLS terminated here). Backend DoH listens on dnsdist:8443.
   reverse_proxy https://dnsdist:8443 {
     header_up Host {host}

@@ -43,6 +43,23 @@ func TestHandlers_Health(t *testing.T) {
 	}
 }
 
+func TestHandlers_Health_Head(t *testing.T) {
+	logger := zap.NewNop()
+	handlers := NewHandlers(nil, nil, nil, nil, logger)
+
+	req := httptest.NewRequest(http.MethodHead, "/health", nil)
+	w := httptest.NewRecorder()
+
+	handlers.Health(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+	if w.Body.Len() != 0 {
+		t.Errorf("Expected empty body for HEAD, got %d bytes", w.Body.Len())
+	}
+}
+
 func TestHandlers_Live(t *testing.T) {
 	logger := zap.NewNop()
 	handlers := NewHandlers(nil, nil, nil, nil, logger)
