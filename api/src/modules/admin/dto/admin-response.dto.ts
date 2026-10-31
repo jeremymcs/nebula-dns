@@ -72,6 +72,20 @@ export class AdminLoginResponseDto {
     type: AdminInfoDto,
   })
   admin: AdminInfoDto;
+
+  @ApiProperty({
+    description:
+      'True when the client must complete MFA verification or enrollment before accessing protected admin APIs',
+    example: true,
+  })
+  mfaRequired: boolean;
+
+  @ApiProperty({
+    description:
+      'True when the admin must scan a QR code and verify TOTP (first-time MFA setup)',
+    example: false,
+  })
+  mfaEnrollmentRequired: boolean;
 }
 
 /**

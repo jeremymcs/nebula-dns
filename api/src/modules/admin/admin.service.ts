@@ -175,8 +175,18 @@ export class AdminService {
       lastLoginAt: new Date(),
     });
 
-    // Generate token and create session
-    return this.generateTokenAndSession(admin, context);
+    // Password step only — MFA must be verified before full admin access
+    return this.createAuthenticatedSession(admin, context, false);
+  }
+
+  /**
+   * Issue a new admin JWT after MFA verification (or re-auth).
+   */
+  async createMfaVerifiedSession(
+    admin: Admin,
+    context: AdminLoginContext,
+  ): Promise<AdminLoginResponseDto> {
+    return this.createAuthenticatedSession(admin, context, true);
   }
 
   /**
@@ -402,9 +412,10 @@ export class AdminService {
   /**
    * Generate JWT token and create session
    */
-  private async generateTokenAndSession(
+  private async createAuthenticatedSession(
     admin: Admin,
     context: AdminLoginContext,
+    mfaVerified: boolean,
   ): Promise<AdminLoginResponseDto> {
     const jti = uuidv4();
 
@@ -415,7 +426,7 @@ export class AdminService {
       email: admin.email,
       name: admin.name,
       jti,
-      mfaVerified: admin.mfaSetupComplete,
+      mfaVerified,
       role: admin.role,
     };
 
@@ -460,6 +471,8 @@ export class AdminService {
         mfaSetupComplete: admin.mfaSetupComplete,
         role: admin.role,
       },
+      mfaRequired: !mfaVerified,
+      mfaEnrollmentRequired: !admin.mfaSetupComplete,
     };
   }
 

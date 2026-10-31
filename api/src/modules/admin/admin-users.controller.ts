@@ -50,6 +50,7 @@ import {
 } from './dto/admin-activity.dto';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { AdminRolesGuard } from './guards/admin-roles.guard';
+import { SkipAdminMfa } from './decorators/skip-admin-mfa.decorator';
 import { AdminRoles } from './decorators/admin-roles.decorator';
 import { AdminRole } from './enums/admin-role.enum';
 import { AdminUser } from './dto/admin-jwt-payload.dto';
@@ -96,6 +97,52 @@ export class AdminUsersController {
     @Query() query: ListAdminsQueryDto,
   ): Promise<ListAdminsResponseDto> {
     return this.adminUsersService.listAdmins(query);
+  }
+
+  /**
+   * List pending invitations
+   * USER-11: Super Admin can view pending invites with expiry status
+   */
+  @Get('invites')
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'List invitations',
+    description: 'Returns paginated list of admin invitations with status.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Invitation list',
+    type: ListInvitationsResponseDto,
+  })
+  async listInvitations(
+    @Query() query: ListInvitationsQueryDto,
+  ): Promise<ListInvitationsResponseDto> {
+    return this.adminInvitationsService.listInvitations(query);
+  }
+
+  /**
+   * View admin activity logs
+   * USER-10: Admin activity log captures auth, management, and sensitive actions
+   */
+  @Get('activity')
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'View activity logs',
+    description: 'Returns paginated admin activity logs with optional filters.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Activity log',
+    type: AdminActivityResponseDto,
+  })
+  async getActivityLog(
+    @Query() query: AdminActivityQueryDto,
+  ): Promise<AdminActivityResponseDto> {
+    return this.adminActivityService.query(query);
   }
 
   /**
@@ -268,6 +315,7 @@ export class AdminUsersController {
    * USER-04: Invited admin can accept and set password/MFA
    */
   @Post('invite/accept')
+  @SkipAdminMfa()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Accept admin invitation',
@@ -288,29 +336,6 @@ export class AdminUsersController {
       message:
         'Admin account created successfully. Please log in and set up MFA.',
     };
-  }
-
-  /**
-   * List pending invitations
-   * USER-11: Super Admin can view pending invites with expiry status
-   */
-  @Get('invites')
-  @UseGuards(AdminAuthGuard, AdminRolesGuard)
-  @AdminRoles(AdminRole.SUPER_ADMIN)
-  @ApiBearerAuth('admin-jwt')
-  @ApiOperation({
-    summary: 'List invitations',
-    description: 'Returns paginated list of admin invitations with status.',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Invitation list',
-    type: ListInvitationsResponseDto,
-  })
-  async listInvitations(
-    @Query() query: ListInvitationsQueryDto,
-  ): Promise<ListInvitationsResponseDto> {
-    return this.adminInvitationsService.listInvitations(query);
   }
 
   /**
@@ -342,29 +367,6 @@ export class AdminUsersController {
       this.getClientIp(req, ip),
     );
     return { message: 'Invitation revoked successfully' };
-  }
-
-  /**
-   * View admin activity logs
-   * USER-10: Admin activity log captures auth, management, and sensitive actions
-   */
-  @Get('activity')
-  @UseGuards(AdminAuthGuard, AdminRolesGuard)
-  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
-  @ApiBearerAuth('admin-jwt')
-  @ApiOperation({
-    summary: 'View activity logs',
-    description: 'Returns paginated admin activity logs with optional filters.',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Activity log',
-    type: AdminActivityResponseDto,
-  })
-  async getActivityLog(
-    @Query() query: AdminActivityQueryDto,
-  ): Promise<AdminActivityResponseDto> {
-    return this.adminActivityService.query(query);
   }
 
   /**
