@@ -78,7 +78,7 @@ describe('Redis Integration Tests', () => {
     it('should store compiled policy correctly', async () => {
       await redisService.storeCompiledPolicy(locationId, mockPolicy, 3600);
 
-      const key = `policy:compiled:${locationId}`;
+      const key = `policy:${locationId}`;
       const stored = await redisClient.get(key);
       expect(stored).toBeDefined();
       expect(JSON.parse(stored!)).toEqual(mockPolicy);
