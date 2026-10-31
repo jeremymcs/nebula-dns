@@ -25,6 +25,7 @@
     "migration:run": "npm run typeorm -- migration:run -d src/database/data-source.ts",
     "migration:revert": "npm run typeorm -- migration:revert -d src/database/data-source.ts",
     "migration:show": "npm run typeorm -- migration:show -d src/database/data-source.ts",
+    "schema:audit": "ts-node -r tsconfig-paths/register src/scripts/entity-schema-audit.ts",
     "seed": "ts-node -r tsconfig-paths/register src/scripts/seed.ts",
     "migrate:partners": "ts-node -r tsconfig-paths/register src/scripts/migrations/migrate-partners-to-msp.ts",
     "migrate:partner-users": "ts-node -r tsconfig-paths/register src/scripts/migrations/migrate-partner-users.ts",
