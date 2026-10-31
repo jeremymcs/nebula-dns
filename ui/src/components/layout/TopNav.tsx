@@ -5,7 +5,8 @@
 
 'use client'
 
-import { useState, useRef, useEffect, Fragment } from 'react'
+import { useState, useEffect, Fragment } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, Transition } from '@headlessui/react'
@@ -23,9 +24,6 @@ import {
   Cog6ToothIcon,
   NoSymbolIcon,
   ComputerDesktopIcon,
-  ArrowRightOnRectangleIcon,
-  UserCircleIcon,
-  KeyIcon,
   SunIcon,
   MoonIcon,
   Bars3Icon,
@@ -46,6 +44,7 @@ import { WifiIcon } from '@heroicons/react/24/outline'
 // US-027: MSP Managed By Badge
 import { ManagedByBadge } from '@/components/msp/ManagedByBadge'
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus'
+import { AccountMenu } from './AccountMenu'
 
 const adminNavigation = [
   { name: 'Users', href: '/dashboard/users', icon: UsersIcon },
@@ -64,8 +63,17 @@ export function TopNav() {
   const { theme, setTheme } = useTheme()
   const { open: openCommandBar } = useCommandBar()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileMenuMounted, setMobileMenuMounted] = useState(false)
   // US-027: Get MSP managed info for badge
   const { mspInfo } = useSubscriptionStatus()
+
+  useEffect(() => {
+    setMobileMenuMounted(true)
+  }, [])
+
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [pathname])
 
   // Build tier-specific navigation
   // Note: Admin portal has been moved to separate admin-ui app on port 4012
@@ -95,9 +103,9 @@ export function TopNav() {
   }
 
   return (
-    <header className="sticky top-0 z-40 w-full">
-      {/* Glass effect background */}
-      <div className="absolute inset-0 bg-white/80 dark:bg-space-900/80 backdrop-blur-xl border-b border-space-200 dark:border-space-800" />
+    <header className="sticky top-0 z-50 w-full overflow-visible">
+      {/* Glass effect background — must not intercept taps (Safari mobile) */}
+      <div className="pointer-events-none absolute inset-0 bg-white/80 dark:bg-space-900/80 backdrop-blur-xl border-b border-space-200 dark:border-space-800" />
       
       <nav className="relative mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
@@ -166,7 +174,7 @@ export function TopNav() {
                     leaveFrom="transform opacity-100 scale-100"
                     leaveTo="transform opacity-0 scale-95"
                   >
-                    <Menu.Items className="absolute left-0 mt-2 w-48 origin-top-left rounded-xl bg-white dark:bg-space-800 shadow-lg ring-1 ring-space-900/5 dark:ring-white/10 focus:outline-none p-1">
+                    <Menu.Items className="absolute left-0 z-[100] mt-2 w-48 origin-top-left rounded-xl bg-white dark:bg-space-800 shadow-lg ring-1 ring-space-900/5 dark:ring-white/10 focus:outline-none p-1 touch-manipulation">
                       {mspNavigation.map((item) => (
                         <Menu.Item key={item.name}>
                           {({ active }) => (
@@ -221,78 +229,21 @@ export function TopNav() {
               )}
             </button>
 
-            {/* User Menu */}
-            <Menu as="div" className="relative">
-              <Menu.Button className="flex items-center gap-2 p-1.5 pr-3 rounded-xl hover:bg-space-100 dark:hover:bg-space-800 transition-colors">
-                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center">
-                  <span className="text-xs font-bold text-white">
-                    {user?.name ? getInitials(user.name) : 'U'}
-                  </span>
-                </div>
-                <span className="hidden sm:block text-sm font-medium text-space-700 dark:text-space-300">
-                  {user?.name?.split(' ')[0] || 'User'}
-                </span>
-                <ChevronDownIcon className="h-4 w-4 text-space-400" />
-              </Menu.Button>
-
-              <Transition
-                as={Fragment}
-                enter="transition ease-out duration-100"
-                enterFrom="transform opacity-0 scale-95"
-                enterTo="transform opacity-100 scale-100"
-                leave="transition ease-in duration-75"
-                leaveFrom="transform opacity-100 scale-100"
-                leaveTo="transform opacity-0 scale-95"
-              >
-                <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-white dark:bg-space-800 shadow-lg ring-1 ring-space-900/5 dark:ring-white/10 focus:outline-none p-1">
-                  <div className="px-3 py-2 border-b border-space-100 dark:border-space-700">
-                    <p className="text-sm font-medium text-space-900 dark:text-white">{user?.name}</p>
-                    <p className="text-xs text-space-500 dark:text-space-400 truncate">{user?.email}</p>
-                  </div>
-                  
-                  {adminNavigation.map((item) => (
-                    <Menu.Item key={item.name}>
-                      {({ active }) => (
-                        <Link
-                          href={item.href}
-                          className={clsx(
-                            'flex items-center gap-2 px-3 py-2 text-sm rounded-lg',
-                            active ? 'bg-space-100 dark:bg-space-700' : '',
-                            'text-space-700 dark:text-space-300'
-                          )}
-                        >
-                          <item.icon className="h-4 w-4" />
-                          {item.name}
-                        </Link>
-                      )}
-                    </Menu.Item>
-                  ))}
-
-                  <div className="border-t border-space-100 dark:border-space-700 mt-1 pt-1">
-                    <Menu.Item>
-                      {({ active }) => (
-                        <button
-                          onClick={logout}
-                          className={clsx(
-                            'flex w-full items-center gap-2 px-3 py-2 text-sm rounded-lg',
-                            active ? 'bg-danger-50 dark:bg-danger-900/20' : '',
-                            'text-danger-600 dark:text-danger-400'
-                          )}
-                        >
-                          <ArrowRightOnRectangleIcon className="h-4 w-4" />
-                          Sign out
-                        </button>
-                      )}
-                    </Menu.Item>
-                  </div>
-                </Menu.Items>
-              </Transition>
-            </Menu>
+            <AccountMenu
+              userName={user?.name}
+              userEmail={user?.email}
+              adminNavigation={adminNavigation}
+              onLogout={logout}
+              getInitials={getInitials}
+            />
 
             {/* Mobile menu button */}
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-xl text-space-500 hover:text-space-900 dark:hover:text-white hover:bg-space-100 dark:hover:bg-space-800"
+              type="button"
+              aria-expanded={mobileMenuOpen}
+              aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              className="lg:hidden p-2 rounded-xl text-space-500 hover:text-space-900 dark:hover:text-white hover:bg-space-100 dark:hover:bg-space-800 touch-manipulation"
             >
               {mobileMenuOpen ? (
                 <XMarkIcon className="h-6 w-6" />
@@ -303,6 +254,92 @@ export function TopNav() {
           </div>
         </div>
       </nav>
+
+      {mobileMenuOpen && mobileMenuMounted
+        ? createPortal(
+            <>
+              <button
+                type="button"
+                aria-label="Close navigation menu backdrop"
+                className="fixed inset-0 z-[90] bg-black/40 lg:hidden touch-manipulation"
+                onClick={() => setMobileMenuOpen(false)}
+              />
+              <div
+                role="dialog"
+                aria-label="Navigation menu"
+                className="fixed inset-x-0 top-16 z-[95] lg:hidden max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-space-200 dark:border-space-800 bg-white dark:bg-space-900 shadow-xl touch-manipulation"
+              >
+                <div className="mx-auto max-w-[1600px] px-4 py-4 space-y-1">
+                  {navigation.map((item) => (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={clsx(
+                        'flex items-center gap-3 px-3 py-3 text-sm font-medium rounded-xl',
+                        isActive(item.href)
+                          ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                          : 'text-space-700 dark:text-space-300 hover:bg-space-100 dark:hover:bg-space-800',
+                      )}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      {item.name}
+                    </Link>
+                  ))}
+
+                  {isMsp && (
+                    <>
+                      <div className="pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-space-400">
+                        MSP
+                      </div>
+                      {mspNavigation.map((item) => (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className={clsx(
+                            'flex items-center gap-3 px-3 py-3 text-sm font-medium rounded-xl',
+                            isActive(item.href)
+                              ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+                              : 'text-space-700 dark:text-space-300 hover:bg-space-100 dark:hover:bg-space-800',
+                          )}
+                        >
+                          <item.icon className="h-5 w-5" />
+                          {item.name}
+                        </Link>
+                      ))}
+                    </>
+                  )}
+
+                  <div className="border-t border-space-200 dark:border-space-800 my-2 pt-2">
+                    {adminNavigation.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 px-3 py-3 text-sm font-medium rounded-xl text-space-700 dark:text-space-300 hover:bg-space-100 dark:hover:bg-space-800"
+                      >
+                        <item.icon className="h-5 w-5" />
+                        {item.name}
+                      </Link>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileMenuOpen(false)
+                        logout()
+                      }}
+                      className="flex w-full items-center gap-3 px-3 py-3 text-sm font-medium rounded-xl text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>,
+            document.body,
+          )
+        : null}
     </header>
   )
 }

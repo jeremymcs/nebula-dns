@@ -42,7 +42,7 @@ export function MobileNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden safe-area-inset">
       {/* Glass effect background */}
-      <div className="absolute inset-0 bg-white/80 dark:bg-space-900/80 backdrop-blur-xl border-t border-space-200 dark:border-space-800" />
+      <div className="pointer-events-none absolute inset-0 bg-white/80 dark:bg-space-900/80 backdrop-blur-xl border-t border-space-200 dark:border-space-800" />
       
       <div className="relative flex items-center justify-around h-16 px-2">
         {mobileNavigation.map((item) => {
