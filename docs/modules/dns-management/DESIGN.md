@@ -3,15 +3,17 @@
 **Product:** [Flux Shield](https://shield.fluxlabs.net) by Flux Labs  
 **Module:** DNS Management (platform module alongside DNS Filter and planned DMARC)  
 **Status:** Design only — no product code in this document  
-**Last updated:** 2026-10-31  
+**Last updated:** 2026-10-31 (rev 2 — MSP-hosted zones primary)
 
 ---
 
 ## Summary (non-specialist)
 
-Flux Shield customers will connect **their own Cloudflare account** with a limited API token. From Flux Shield they can see their DNS zones and records, make safe edits (with confirmation on deletes), and review a tamper-evident history of every change—including **undo** from that history. MSP partners can do the same on behalf of a client tenant, with everything attributed in audit logs. We do **not** host customer zones under Flux Labs’ Cloudflare account in v1.
+Most client domains will live in **Flux Labs’ Cloudflare account**. Platform admins configure one secured Cloudflare connection in the **Admin Console** ([`admin-ui/`](../../../admin-ui/)), import or create zones there, and **assign zones to customer tenants**. Tenant users only see their assigned zones and edit DNS records according to per-zone permissions—they never see the platform token.
 
-Technical work lives in a new NestJS module (`api/src/modules/dns-management/`), new Next.js routes under the UI app, and new constants in `shared/product-brand.ts` (synced via `./scripts/sync-product-brand.sh` to `ui/`, `admin-ui/`, and `www/`).
+Clients who keep their own Cloudflare account can still use an optional **bring-your-own (BYO) token** later; both paths share the same provider layer, change log, and undo behavior.
+
+Technical work: NestJS `api/src/modules/dns-management/`, tenant UI routes in `ui/`, platform ops in `admin-ui/`, branding in [`shared/product-brand.ts`](../../../shared/product-brand.ts) (sync via `./scripts/sync-product-brand.sh`).
 
 ---
 
@@ -19,54 +21,76 @@ Technical work lives in a new NestJS module (`api/src/modules/dns-management/`),
 
 | Goal | Detail |
 |------|--------|
-| **Bring-your-own Cloudflare** | Per-tenant API token with `Zone:Read` + `DNS:Edit`, scoped to selected zone(s). |
-| **Full CRUD on supported record types** | A, AAAA, CNAME, MX, TXT, SRV, CAA, NS. |
-| **Proxy toggle** | Cloudflare orange-cloud on/off where applicable. |
-| **Auditability** | Who, what, before/after JSON, when—for every mutation and undo. |
-| **Undo** | Any logged change can be reversed from the change history UI/API. |
-| **Safety & tenancy** | Encrypted tokens, verify-on-connect, RBAC, delete confirmation, rate limits, strict tenant isolation. |
-| **MSP delegation** | Reuse existing MSP context switch; actions audited under the client tenant with actor metadata. |
+| **MSP-hosted zones (primary)** | Single platform Cloudflare token; zones in Flux account assigned to tenants. |
+| **Zone lifecycle (platform admin)** | Import/link existing zones, create new zones, show assigned nameservers, assign/unassign tenant. |
+| **Tenant DNS ops** | View/edit records on assigned zones only; server resolves zones by internal ID (never trust client-supplied Cloudflare zone IDs). |
+| **Granular tenant permissions** | Per-assignment flags: edit records, allow proxy toggle, allow deletes (and undo where edits allowed). |
+| **Full CRUD on supported types** | A, AAAA, CNAME, MX, TXT, SRV, CAA, NS. |
+| **Audit + undo** | Who, what, before/after JSON, when; undo from change history. |
+| **BYO Cloudflare (secondary)** | Per-tenant token option for clients outside Flux-hosted zones (later phase). |
+| **Fair shared API budget** | All platform-hosted tenants share one Cloudflare account limit (~1200 req / 5 min)—queue + cache fairly. |
+| **Billing hook** | Enforce **zone count per tenant** via existing limits infrastructure. |
 
 ## Non-goals (v1)
 
-- Hosting client zones on Flux Labs’ Cloudflare account.
-- DNS templates (Microsoft 365, Google Workspace, etc.).
+- **Account-level Cloudflare settings** for tenants (SSL mode, zone settings, page rules, etc.) — **MSP / platform admin only** in v1; tenants get DNS records only.
+- DNS templates (Microsoft 365, Google Workspace).
 - BIND import/export.
-- Publishing DMARC/SPF/DKIM from the DMARC module.
-- Drift detection / scheduled zone snapshots.
-- Non-Cloudflare providers (design hooks only).
+- DMARC module one-click publish.
+- Drift detection / scheduled snapshots.
+- Non-Cloudflare providers (interface hooks only).
+
+---
+
+## Provisioning models
+
+| Model | Who connects CF | Token storage | Zone discovery |
+|--------|-----------------|---------------|----------------|
+| **`platform_hosted`** (default) | Platform admin in admin-ui | One (or few purpose-scoped) platform token(s); encrypted server-side | Admin imports/creates zones in Flux account; assigns `tenant_id` |
+| **`byo_token`** (optional) | Tenant `owner`/`admin` in ui | Per-tenant encrypted token | Token verify → zones intersect tenant assignment or full token scope |
+
+Every zone row stores `provisioning_model` + `connection_id` (platform or tenant connection). `CloudflareDnsProvider` receives credentials from the resolved connection only inside the service layer.
 
 ---
 
 ## User stories
 
-### MSP admin (partner tier)
+### Platform admin ([`admin-ui`](../../../admin-ui/) + `AdminAuthGuard`)
 
-1. **Connect on behalf of client:** After [MSP context switch](api/src/modules/msp/msp.service.ts) (`msp_context_switch` audit action), open DNS Management for the client tenant, paste a Cloudflare API token, verify it, and see only zones the token can access.
-2. **Operate safely:** Edit records for a client; every action appears in change history with the MSP user’s identity and `metadata.mspUserId` / `metadata.mspTenantId` in audit payloads.
-3. **Recover mistakes:** Undo a bad MX change from history without opening the Cloudflare dashboard.
+1. **Configure platform connection:** Settings → DNS Platform → paste scoped Cloudflare API token (`Zone:Read`, `Zone:Edit`, `Zone:Create` as needed for import/create); verify via `/user/tokens/verify`; token encrypted like [`SiemService`](../../../api/src/modules/siem/siem.service.ts).
+2. **Import zones:** List unassigned zones in Flux account; link to tenant or leave in pool.
+3. **Create zone for tenant:** Create zone in CF for `customer.example`; display Cloudflare nameservers for cutover; auto-assign to selected tenant.
+4. **Assign / unassign:** Map zone ↔ tenant; set permission flags; unassign does not delete CF zone.
+5. **Emergency:** Revoke/rotate token via admin-ui; runbook in [`docs/runbooks/`](../../runbooks/) (see threat model).
+
+Pattern: [`api/src/modules/admin/guards/admin-auth.guard.ts`](../../../api/src/modules/admin/guards/admin-auth.guard.ts), controllers under `@Controller('admin/...')` like [`admin-users.controller.ts`](../../../api/src/modules/admin/admin-users.controller.ts).
+
+### MSP admin (partner tier, tenant UI)
+
+1. After [MSP context switch](api/src/modules/msp/msp.service.ts), open DNS Management for client; see **only zones assigned to that tenant**.
+2. Edit records if assignment permissions allow; audit shows MSP actor metadata.
+3. Cannot access platform token or unassigned Flux zones.
 
 ### Client tenant admin (`owner` / `admin`)
 
-1. **Connect Cloudflare:** Settings → DNS Management → Connect account; token verified via Cloudflare `/user/tokens/verify`; UI lists granted zones.
-2. **Manage records:** Pick a zone, inline-edit records, toggle proxy, add records.
-3. **Delete with guardrails:** Delete requires typing the record name (or FQDN) to confirm.
-4. **Review history:** Filter change log by zone, user, action; undo when permitted.
+1. Open DNS Management module; zone list = assignments only (empty state: “Contact your provider” if none).
+2. Manage records within permission flags; typed delete confirmation when deletes allowed.
+3. Review change history; undo when edits allowed.
 
-### Read-only (`readonly`, and `analyst` for mutations)
+### Read-only (`readonly`, `analyst` for mutations)
 
-1. **View zones and records** without connect/disconnect or write APIs.
-2. **Export-friendly read:** Paginated record list suitable for support tickets (no token or secret fields in responses).
+1. View assigned zones, records, and history; no mutations.
 
-**RBAC mapping (v1):**
+**RBAC (tenant API, v1):**
 
-| Capability | Roles |
-|------------|--------|
-| Connect / disconnect / re-verify token | `owner`, `admin` |
-| Create / update / delete / undo | `owner`, `admin` |
-| List zones, records, change history | `owner`, `admin`, `analyst`, `readonly` |
+| Capability | Roles | Also requires |
+|------------|--------|----------------|
+| List zones / records / history | owner, admin, analyst, readonly | Zone assigned to tenant |
+| Create / update records | owner, admin | Assignment `canEditRecords` |
+| Proxy toggle | owner, admin | Assignment `canToggleProxy` |
+| Delete / undo | owner, admin | Assignment `canDeleteRecords` / undo rules |
 
-Pattern reference: `@Roles` + `RolesGuard` on controllers ([`api/src/common/guards/roles.guard.ts`](api/src/common/guards/roles.guard.ts)), same as [`api/src/modules/lists/lists.controller.ts`](api/src/modules/lists/lists.controller.ts).
+Platform admin routes use **admin roles**, not tenant `RolesGuard`.
 
 ---
 
@@ -76,303 +100,263 @@ Pattern reference: `@Roles` + `RolesGuard` on controllers ([`api/src/common/guar
 
 ```mermaid
 flowchart LR
-  subgraph UI["Next.js UI (ui/)"]
-    ModNav["ModuleSwitcher + module nav"]
+  subgraph AdminUI["admin-ui"]
+    PlatConn["Platform CF connection"]
+    ZoneOps["Import / create / assign zones"]
+  end
+  subgraph TenantUI["ui — DNS Management module"]
+    ModNav["ModuleSwitcher"]
     Pages["Zones / Records / History"]
   end
   subgraph API["NestJS API"]
-    Ctrl["dns-management.controller"]
+    AdminCtrl["admin/dns-management.controller"]
+    TenantCtrl["dns-management.controller"]
     Svc["DnsManagementService"]
-    Prov["DnsProvider (interface)"]
+    Prov["DnsProvider interface"]
     CF["CloudflareDnsProvider"]
-    Enc["Token encryption (GCM)"]
-    ChLog["DnsChangeLog persistence"]
+    Queue["CF request queue + cache"]
+    ChLog["dns_change_logs"]
     Audit["AuditLogsService"]
-    RL["Redis rate limiter"]
-  end
-  subgraph Ext["External"]
-    CFAPI["api.cloudflare.com"]
+    Limits["LimitsService"]
   end
   subgraph Data["PostgreSQL"]
-    Conn["dns_provider_connections"]
-    ZCache["dns_zone_cache"]
+    PlatConnT["dns_platform_connections"]
+    Assign["dns_zone_assignments"]
+    ByoConn["dns_tenant_connections"]
     Changes["dns_change_logs"]
   end
+  CFAPI["api.cloudflare.com"]
 
-  Pages -->|"/backend/dns-management/*"| Ctrl
-  Ctrl --> Svc
-  Svc --> Prov
-  Prov --> CF
-  CF --> CFAPI
-  Svc --> Enc
+  AdminUI --> AdminCtrl
+  TenantUI --> TenantCtrl
+  AdminCtrl --> Svc
+  TenantCtrl --> Svc
+  Svc --> Prov --> CF --> Queue --> CFAPI
+  Svc --> Assign
+  Svc --> PlatConnT
+  Svc --> ByoConn
   Svc --> ChLog
   Svc --> Audit
-  Svc --> RL
-  ChLog --> Changes
-  Svc --> Conn
-  Svc --> ZCache
+  Svc --> Limits
 ```
 
 ### Provider abstraction
 
-Introduce an internal interface (Go-style naming in NestJS services folder):
+Same interface for both models; credential source is an implementation detail:
 
 ```typescript
 // api/src/modules/dns-management/providers/dns-provider.interface.ts (planned)
 
-export type DnsProviderId = 'cloudflare' | 'route53' | 'dnsimple'; // v1: cloudflare only
+export type DnsProvisioningModel = 'platform_hosted' | 'byo_token';
 
-export interface DnsProviderZone { id: string; name: string; status: string; paused: boolean; }
-export interface DnsProviderRecord { id: string; type: string; name: string; content: string; ttl: number; proxied?: boolean; priority?: number; /* ... */ }
+export interface DnsProviderCredentials {
+  model: DnsProvisioningModel;
+  connectionId: string; // platform or tenant connection row
+}
 
 export interface DnsProvider {
-  verifyToken(): Promise<{ status: 'active' | 'invalid'; zones: DnsProviderZone[] }>;
-  listZones(): Promise<DnsProviderZone[]>;
-  listRecords(zoneId: string, query?: { type?: string; name?: string }): Promise<DnsProviderRecord[]>;
-  createRecord(zoneId: string, input: CreateRecordInput): Promise<DnsProviderRecord>;
-  updateRecord(zoneId: string, recordId: string, input: UpdateRecordInput): Promise<DnsProviderRecord>;
-  deleteRecord(zoneId: string, recordId: string): Promise<void>;
+  verifyToken(): Promise<{ status: 'active' | 'invalid'; zones?: DnsProviderZone[] }>;
+  listAccountZones(): Promise<DnsProviderZone[]>;
+  createZone(input: { name: string; accountId?: string }): Promise<DnsProviderZone & { nameServers: string[] }>;
+  listRecords(providerZoneId: string, query?: RecordListQuery): Promise<DnsProviderRecord[]>;
+  createRecord(providerZoneId: string, input: CreateRecordInput): Promise<DnsProviderRecord>;
+  updateRecord(providerZoneId: string, recordId: string, input: UpdateRecordInput): Promise<DnsProviderRecord>;
+  deleteRecord(providerZoneId: string, recordId: string): Promise<void>;
 }
 ```
 
-**v1 implementation:** `CloudflareDnsProvider` using fixed base URL `https://api.cloudflare.com/client/v4` (no user-supplied URLs — SSRF mitigation).
+Outbound HTTP: fixed host `https://api.cloudflare.com/client/v4` only (SSRF mitigation).
 
-**Later providers:** Register in a small factory keyed by `DnsProviderConnection.provider`; share change-log schema with `provider` + opaque `provider_zone_id` / `provider_record_id`.
+### Zone identity & tenant boundary
+
+- **Public API identifiers:** `zoneId` in tenant routes is **`dns_zone_assignments.id`** (UUID), not Cloudflare’s zone id.
+- **Resolution:** Service loads assignment where `id = :zoneId AND tenant_id = @CurrentTenant()`; reads `provider_zone_id` internally; rejects if unassigned or wrong tenant.
+- **Client-supplied CF zone IDs:** Ignored if present; never used for authorization.
 
 ### Sync vs live-read strategy
 
 | Data | Strategy | Rationale |
 |------|----------|-----------|
-| **Zone directory** | **Cached in Postgres** (`dns_zone_cache`) + **refresh** on connect, manual “Sync zones”, and lazy refresh if cache age &gt; TTL (default 15 minutes) | Zone list changes infrequently; reduces Cloudflare `GET /zones` calls. |
-| **DNS records** | **Live read** from Cloudflare on each list/detail request (optional short Redis cache **per zone**, TTL 30–60s, invalidated on any mutation for that zone) | Records must reflect reality for edits; stale cache caused support incidents in similar products. |
-| **Mutations** | **Write-through** to Cloudflare, then append **change log** row with before/after snapshots | Undo replays inverse operation using stored JSON, not cache. |
+| **Flux account zone inventory** | Postgres (`dns_zone_assignments` + metadata); refresh on admin import/sync | Avoid hammering `GET /zones` on every admin page load. |
+| **Tenant zone list** | DB only (assignments for tenant) | No CF call to list tenant zones. |
+| **DNS records** | Live read via CF through **shared queue**; optional Redis cache per `provider_zone_id` TTL 45–60s, invalidated on mutation | Accuracy for edits; cache reduces shared limit pressure. |
+| **Mutations** | Write-through CF → append `dns_change_logs` | Undo uses stored JSON. |
 
-On connect/re-verify, upsert `dns_zone_cache` rows and prune zones no longer in the token scope (soft-delete or `visible: false` flag—prefer soft-delete for audit continuity).
+### Shared Cloudflare rate limit & fair queue
+
+Cloudflare account limit (~**1200 requests / 5 minutes**) is **shared by all tenants** on platform-hosted zones.
+
+| Mechanism | Behavior |
+|-----------|----------|
+| **Global token bucket (Redis)** | Key `dns:cf:platform:ratelimit`; refill aligned to CF window; reserve ~10% headroom (e.g. cap at 1080/5min). |
+| **Fair queue** | All CF calls enqueue in Redis (e.g. stream/list); workers dequeue with **weighted fair scheduling**—per-tenant in-flight cap + round-robin across tenants; admin ops use separate high-priority lane with small reserved budget. |
+| **Coalescing** | Duplicate in-flight `GET dns_records` for same zone coalesced to one CF request. |
+| **Backoff** | On CF 429: exponential backoff, pause tenant briefly, surface 503/`Retry-After` to UI. |
+| **Tenant-facing limit** | Additional `@RateLimit()` on tenant API ([`rate-limit` module](api/src/modules/rate-limit/rate-limit.module.ts)) so one tenant cannot starve others before queue fairness kicks in. |
+
+BYO connections use a **per-tenant** bucket (separate CF account) when implemented.
 
 ### Module registration
 
-- Register `DnsManagementModule` in [`api/src/app.module.ts`](api/src/app.module.ts) alongside `SiemModule`, `WebhooksModule`, etc.
-- TypeORM entities registered in the same module pattern as [`api/src/modules/siem/siem.module.ts`](api/src/modules/siem/siem.module.ts).
-- UI: new app segment e.g. `ui/src/app/dns-management/` with layout reusing [`ui/src/components/layout/DashboardLayout.tsx`](ui/src/components/layout/DashboardLayout.tsx) patterns and a **module-local** nav config (mirror [`ui/src/components/layout/NavigationConfig.ts`](ui/src/components/layout/NavigationConfig.ts)).
-- Extend [`ui/src/components/layout/ModuleSwitcher.tsx`](ui/src/components/layout/ModuleSwitcher.tsx) and [`shared/product-brand.ts`](shared/product-brand.ts) with `PRODUCT_MODULE_DNS_MANAGEMENT = 'DNS Management'`.
+- `DnsManagementModule` in [`api/src/app.module.ts`](../../../api/src/app.module.ts).
+- Admin routes in existing [`AdminModule`](../../../api/src/modules/admin/admin.module.ts) or sub-module imported there.
+- Tenant UI: `ui/src/app/dns-management/` + [`ModuleSwitcher.tsx`](../../../ui/src/components/layout/ModuleSwitcher.tsx).
+- Admin UI: e.g. `admin-ui/src/app/dns-platform/` (nav alongside MSPs per [`admin-ui/src/components/layout/Header.tsx`](../../../admin-ui/src/components/layout/Header.tsx)).
 
 ### Branding
 
-Use existing Flux palette via [`shared/flux-labs-tailwind-theme.js`](shared/flux-labs-tailwind-theme.js) (`primary` navy `#1E3B78`, `#4B7CBB`, accent coral `#FF6E62`). Chart colors already documented in [`ui/src/lib/chart-colors.ts`](ui/src/lib/chart-colors.ts). Prefer `primary-*` and `accent-*` Tailwind tokens over hard-coded hex in components.
+[`shared/flux-labs-tailwind-theme.js`](../../../shared/flux-labs-tailwind-theme.js) — navy `#1E3B78`, blue `#4B7CBB`, coral `#FF6E62` ([`ui/src/lib/chart-colors.ts`](../../../ui/src/lib/chart-colors.ts)).
 
 ---
 
 ## Data model (TypeORM / PostgreSQL)
 
-All tables include `tenant_id` (UUID) and follow [`TenantScopedEntity`](api/src/common/entities/base.entity.ts) / explicit `tenant_id` columns like other modules.
+### `dns_platform_connections` (platform scope)
 
-### `dns_provider_connections`
+Not tenant-scoped. At most one **active** row per purpose in v1 (e.g. `primary`).
 
 | Column | Type | Notes |
 |--------|------|--------|
 | `id` | UUID PK | |
-| `tenant_id` | UUID | FK → `tenants`; unique partial index: one **active** Cloudflare connection per tenant in v1 |
-| `provider` | varchar | `'cloudflare'` |
-| `label` | varchar | User-facing name, e.g. “Production CF” |
-| `token_ciphertext` | text | AES-256-GCM via [`encrypt()`](api/src/common/utils/encryption.util.ts) |
-| `token_key_id` | varchar | Future key rotation; v1 constant `v1` |
-| `token_fingerprint` | varchar | SHA-256 prefix of token for “same token re-connect” detection **without** storing plaintext |
+| `label` | varchar | e.g. “Flux Labs production CF” |
+| `provider` | varchar | `cloudflare` |
+| `purpose` | varchar | `primary`, future: `readonly_replica` |
+| `token_ciphertext` | text | AES-256-GCM ([`encrypt()`](../../../api/src/common/utils/encryption.util.ts)) |
+| `token_key_id` | varchar | Rotation support |
+| `token_fingerprint` | varchar | SHA-256 prefix; no plaintext |
 | `status` | enum | `pending`, `active`, `invalid`, `revoked` |
-| `verified_at` | timestamptz | Last successful verify |
-| `last_error_code` | varchar nullable | Cloudflare error code |
-| `last_error_message` | text nullable | Sanitized message for UI |
-| `allowed_zone_ids` | jsonb | Zone IDs returned at verify (CF zone id strings) |
-| `created_by_user_id` | UUID | |
-| `updated_at` | timestamptz | |
+| `verified_at` | timestamptz | |
+| `last_rotated_at` | timestamptz | |
+| `created_by_admin_id` | UUID | Admin user |
+| `metadata` | jsonb | CF account id, granted scopes snapshot |
 
-**Encryption:** New env key `DNS_MANAGEMENT_ENCRYPTION_KEY` added to [`ENCRYPTION_KEYS`](api/src/config/encryption.config.ts) (same validation path as `SIEM_ENCRYPTION_KEY`). Derive with `deriveKey(key, 'dns-management-gcm-salt')` mirroring [`SiemService`](api/src/modules/siem/siem.service.ts).
+Encryption key: `DNS_MANAGEMENT_ENCRYPTION_KEY` in [`encryption.config.ts`](../../../api/src/config/encryption.config.ts); derive `dns-management-gcm-salt`.
 
-**Never** return `token_ciphertext` or decrypted token in API responses.
-
-### `dns_zone_cache`
+### `dns_zone_assignments` (authoritative tenant ↔ zone mapping)
 
 | Column | Type | Notes |
 |--------|------|--------|
-| `id` | UUID PK | |
-| `tenant_id` | UUID | |
-| `connection_id` | UUID FK | |
-| `provider_zone_id` | varchar | Cloudflare zone id |
-| `name` | varchar | e.g. `example.com` |
-| `status` | varchar | active, pending, etc. |
-| `paused` | boolean | |
-| `synced_at` | timestamptz | |
-| `removed_at` | timestamptz nullable | When zone dropped from token scope |
+| `id` | UUID PK | **This** is `zoneId` in tenant APIs |
+| `tenant_id` | UUID FK | Assigned tenant |
+| `provisioning_model` | enum | `platform_hosted` \| `byo_token` |
+| `connection_id` | UUID | FK → platform or tenant connection |
+| `provider_zone_id` | varchar | Cloudflare zone id (internal) |
+| `zone_name` | varchar | `example.com` |
+| `status` | varchar | active, pending, moved |
+| `name_servers` | jsonb | Last known NS set (for UI) |
+| `can_edit_records` | boolean | default true |
+| `can_toggle_proxy` | boolean | default true |
+| `can_delete_records` | boolean | default true |
+| `assigned_at` | timestamptz | |
+| `assigned_by_admin_id` | UUID nullable | Platform admin or null for MSP-automated |
+| `unassigned_at` | timestamptz nullable | Soft unassign |
 
-Unique: `(tenant_id, connection_id, provider_zone_id)`.
+Unique active: `(provider_zone_id, provisioning_model)` where `unassigned_at IS NULL` for platform_hosted.
+
+**Billing:** Count rows where `tenant_id = ? AND unassigned_at IS NULL AND status = active` toward limit.
+
+### `dns_tenant_connections` (BYO — later phase)
+
+Same shape as prior design’s per-tenant connection: `tenant_id`, encrypted token, `allowed_zone_ids`, status. Used only for `byo_token` assignments.
 
 ### `dns_change_logs`
 
-Dedicated table for **undo** and rich DNS diffs (platform [`audit_logs`](api/src/modules/audit-logs/entities/audit-log.entity.ts) stays the cross-module security trail).
-
 | Column | Type | Notes |
 |--------|------|--------|
 | `id` | UUID PK | |
 | `tenant_id` | UUID | |
+| `zone_assignment_id` | UUID FK | |
+| `provisioning_model` | enum | |
 | `connection_id` | UUID | |
-| `provider_zone_id` | varchar | |
-| `zone_name` | varchar | Denormalized for UI |
-| `provider_record_id` | varchar nullable | Null for failed creates |
-| `record_name` | varchar | |
-| `record_type` | varchar | |
+| `provider_zone_id` | varchar | Internal audit |
+| `zone_name` | varchar | |
+| `provider_record_id` | varchar nullable | |
+| `record_name`, `record_type` | varchar | |
 | `action` | enum | `create`, `update`, `delete`, `proxy_toggle`, `undo` |
-| `before_json` | jsonb nullable | Full provider record snapshot |
-| `after_json` | jsonb nullable | |
+| `before_json`, `after_json` | jsonb | |
 | `performed_by_user_id` | UUID | |
-| `ip_address` | inet nullable | |
-| `user_agent` | text nullable | |
-| `metadata` | jsonb | `mspUserId`, `mspTenantId`, `cloudflareRequestId`, `idempotencyKey` |
-| `reverts_change_id` | UUID nullable FK → self | Set when this row **is** an undo |
-| `undone_at` | timestamptz nullable | Set on original row when superseded |
-| `undone_by_change_id` | UUID nullable FK → self | |
+| `ip_address`, `user_agent` | | |
+| `metadata` | jsonb | MSP ids, CF request id, `adminActorId` for platform actions |
+| `reverts_change_id`, `undone_at`, `undone_by_change_id` | | Undo linkage |
 | `created_at` | timestamptz | |
 
-**Undo rules:**
+Platform audit via [`AuditLogsService`](../../../api/src/modules/audit-logs/audit-logs.service.ts) — extend enums:
 
-- Only the latest non-undone change for a given `provider_record_id` (or name+type for creates) may be undone, **or** allow undo of any row that is still consistent with live state (v1: **strict stack** — undo only if no newer change exists for same record id).
-- Undo executes inverse API call, writes new `dns_change_logs` row with `action: undo` and `reverts_change_id` pointing to original.
-
-**Platform audit:** On each mutation/undo, call [`AuditLogsService.log()`](api/src/modules/audit-logs/audit-logs.service.ts) with extended types (migration to enums):
-
-- `AuditAction`: add `dns_record_create`, `dns_record_update`, `dns_record_delete`, `dns_connection_create`, `dns_connection_delete`, `dns_change_undo`
-- `AuditResourceType`: add `dns_connection`, `dns_zone`, `dns_record`
-
-Store summary in `resourceName`; full diff remains in `dns_change_logs` (and optional `oldValue`/`newValue` on audit row for Settings → Audit tab parity).
+- **Actions:** `dns_zone_assigned`, `dns_zone_unassigned`, `dns_zone_created`, `dns_platform_token_rotated`, `dns_record_*`, `dns_change_undo`, `dns_byo_connection_*`
+- **Resource types:** `dns_platform_connection`, `dns_zone_assignment`, `dns_record`, `dns_tenant_connection`
 
 ---
 
 ## API endpoints
 
-**Base path:** `@Controller('dns-management')` → `/dns-management/...` on the API service (same convention as `/lists`, `/policies`). Client calls via UI proxy [`ui/src/app/backend/[...path]/route.ts`](ui/src/app/backend/[...path]/route.ts) as `/backend/dns-management/...`.
+### Platform admin (`AdminAuthGuard` + admin roles)
 
-**Auth:** JWT + `RolesGuard`. **Tenant:** `@CurrentTenant()` from [`tenant.decorator.ts`](api/src/common/decorators/tenant.decorator.ts) (respects MSP-switched tenant on JWT).
+Base: `@Controller('admin/dns-management')` — called from admin-ui backend proxy pattern (mirror tenant [`ui/src/app/backend/[...path]/route.ts`](../../../ui/src/app/backend/[...path]/route.ts)).
 
-**Pagination:** [`PaginationQueryDto`](api/src/common/dto/pagination.dto.ts) / `PaginatedResponse<T>` for list endpoints.
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/admin/dns-management/connection` | Status (no secret) |
+| `POST` | `/admin/dns-management/connection` | Set/replace token, verify, store encrypted |
+| `POST` | `/admin/dns-management/connection/verify` | Re-verify |
+| `POST` | `/admin/dns-management/connection/rotate` | Atomic rotate + re-verify |
+| `DELETE` | `/admin/dns-management/connection` | Revoke (requires confirm) |
+| `GET` | `/admin/dns-management/zones` | All zones in Flux account (from cache + sync) |
+| `POST` | `/admin/dns-management/zones/sync` | Refresh inventory from CF |
+| `POST` | `/admin/dns-management/zones` | Create zone in CF; body `{ name, tenantId?, permissions? }` |
+| `POST` | `/admin/dns-management/zones/:providerZoneId/assign` | `{ tenantId, canEditRecords, canToggleProxy, canDeleteRecords }` |
+| `POST` | `/admin/dns-management/zones/:assignmentId/unassign` | Soft unassign |
+| `PATCH` | `/admin/dns-management/zones/:assignmentId/permissions` | Update flags |
 
-### Connections
+Admin record edits (support) optional v1; if added, same change log with `metadata.adminActorId`.
 
-| Method | Path | Roles | Description |
-|--------|------|-------|-------------|
-| `GET` | `/dns-management/connections` | all read roles | List connections (no secrets) |
-| `POST` | `/dns-management/connections` | owner, admin | Body: `{ label, token }` → verify, encrypt, store, sync zones |
-| `POST` | `/dns-management/connections/:id/verify` | owner, admin | Re-verify token; refresh `allowed_zone_ids` + zone cache |
-| `DELETE` | `/dns-management/connections/:id` | owner, admin | Revoke connection (mark revoked; wipe ciphertext optional after retention policy) |
+### Tenant (`JwtAuthGuard` + `RolesGuard`)
 
-**POST `/connections` response (201):**
+Base: `@Controller('dns-management')` — `@CurrentTenant()` only.
 
-```json
-{
-  "data": {
-    "id": "uuid",
-    "provider": "cloudflare",
-    "label": "Main account",
-    "status": "active",
-    "verifiedAt": "2026-10-31T12:00:00Z",
-    "zones": [{ "id": "cf-zone-id", "name": "example.com", "status": "active" }]
-  }
-}
-```
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/dns-management/zones` | Assigned zones only (+ permission flags) |
+| `GET` | `/dns-management/zones/:zoneId/records` | `zoneId` = assignment UUID |
+| `POST` | `/dns-management/zones/:zoneId/records` | If `canEditRecords` |
+| `PATCH` | `/dns-management/zones/:zoneId/records/:recordId` | Respects proxy flag |
+| `DELETE` | `/dns-management/zones/:zoneId/records/:recordId` | `{ confirmName }` if `canDeleteRecords` |
+| `GET` | `/dns-management/changes` | History for tenant |
+| `POST` | `/dns-management/changes/:id/undo` | If edits allowed |
 
-**GET `/connections` item shape:** omit token; include `status`, `verifiedAt`, `lastError`, zone count.
+**BYO (later):** `POST/GET/DELETE /dns-management/connections` for tenant token — zones still created as assignments after verify.
 
-### Zones
+### Billing / limits hook
 
-| Method | Path | Roles | Description |
-|--------|------|-------|-------------|
-| `GET` | `/dns-management/zones` | read | From cache; query `?refresh=true` forces CF sync |
-| `POST` | `/dns-management/zones/sync` | owner, admin | Force refresh zone cache |
+On assign/create zone for tenant, call pattern like [`LimitsService.canCreateLocation`](../../../api/src/modules/limits/limits.service.ts):
 
-### Records (live Cloudflare)
-
-| Method | Path | Roles | Description |
-|--------|------|-------|-------------|
-| `GET` | `/dns-management/zones/:zoneId/records` | read | Query: `type`, `name`, `cursor`, `limit` |
-| `POST` | `/dns-management/zones/:zoneId/records` | owner, admin | Create |
-| `PATCH` | `/dns-management/zones/:zoneId/records/:recordId` | owner, admin | Update content, TTL, priority, proxied |
-| `DELETE` | `/dns-management/zones/:zoneId/records/:recordId` | owner, admin | Requires body `{ "confirmName": "www.example.com" }` |
-
-**Record DTO (request/response):**
-
-```json
-{
-  "type": "A",
-  "name": "www",
-  "content": "192.0.2.1",
-  "ttl": 300,
-  "proxied": true,
-  "priority": null,
-  "comment": "optional CF comment field if supported"
-}
-```
-
-Validate types against allowlist; MX/SRV require priority/port fields per Cloudflare schema.
-
-### Change history & undo
-
-| Method | Path | Roles | Description |
-|--------|------|-------|-------------|
-| `GET` | `/dns-management/changes` | read | Filters: `zoneId`, `recordId`, `userId`, `from`, `to` |
-| `GET` | `/dns-management/changes/:id` | read | Single entry with before/after |
-| `POST` | `/dns-management/changes/:id/undo` | owner, admin | Performs inverse op + logs |
-
-**Undo response (200):**
-
-```json
-{
-  "data": {
-    "undoChangeId": "uuid",
-    "revertedChangeId": "uuid",
-    "record": { /* current live record */ }
-  }
-}
-```
-
-### Error shape
-
-Use global [`GlobalExceptionFilter`](api/src/main.ts) format. Map Cloudflare 4xx to 502/400 with `details.cloudflareErrors[]` without leaking token.
+- Add plan field `dnsZoneLimit` (or reuse generic quota JSON on `subscription_plans`).
+- `LimitsService.canAssignDnsZone(tenantId)` before assignment; increment cached count in Redis `limits:dns-zones:{tenantId}`.
+- Expose usage in existing usage API for billing UI.
 
 ---
 
 ## UI screens
 
-All pages use existing UI primitives (cards, tables, modals) consistent with Policies/Lists pages; module accent via `primary`/`accent` tokens.
+### Admin Console (`admin-ui`)
 
-### Platform navigation
+| Screen | Purpose |
+|--------|---------|
+| **DNS Platform → Connection** | Token entry, verify, status, rotate, revoke |
+| **DNS Platform → Zones** | Table of Flux account zones; filter unassigned; import/sync |
+| **Assign modal** | Pick tenant, permission toggles, confirm |
+| **Create zone** | Domain name + tenant; show nameservers post-create |
 
-1. **Module switcher** ([`ModuleSwitcher.tsx`](ui/src/components/layout/ModuleSwitcher.tsx)): add **DNS Management** between DNS Filter and DMARC; `href: '/dns-management'`, `available: true` when feature flag / tier enables module.
-2. **Module sidebar** (new `DnsManagementNavigationConfig.ts`): Overview (zones), Change history, Settings (connection).
+### Tenant app (`ui`)
 
-### Screen: Connect account (`/dns-management/settings/connection`)
+| Screen | Purpose |
+|--------|---------|
+| **Module switcher** | DNS Management entry ([`ModuleSwitcher.tsx`](../../../ui/src/components/layout/ModuleSwitcher.tsx)) |
+| **Zone list** | Assigned zones only; badges for read-only permissions |
+| **Records** | Table + inline edit; proxy/delete controls disabled when flags false |
+| **History** | Change log + undo |
+| **Settings** | No platform token; optional BYO section when phase shipped |
 
-- Empty state explaining BYO Cloudflare token scopes.
-- Token field (password input, never prefilled); link to Cloudflare doc for creating scoped tokens.
-- On submit: loading → success shows verified zones checklist; error shows CF message (token invalid / insufficient scope).
-- Connected state: connection label, last verified, “Re-verify”, “Disconnect” (confirm modal).
-
-### Screen: Zone list (`/dns-management`)
-
-- Table: zone name, status, record count (optional CF `GET /zones/:id/dns_records` count with caching), last synced.
-- “Sync zones” button (admin+).
-- Row click → records.
-
-### Screen: Record table (`/dns-management/zones/[zoneId]`)
-
-- Filter by type/name; columns: name, type, content, TTL, proxy (toggle for admin+), actions.
-- Inline edit row or slide-over drawer (match Lists UX patterns).
-- Add record modal with type-specific fields.
-- Delete opens modal requiring **typed confirmation** matching `record.name` FQDN.
-
-### Screen: Change history (`/dns-management/history`)
-
-- Timeline/table: time, user, zone, record, action, diff summary (expand for JSON).
-- **Undo** button on eligible rows (admin+); confirm modal explaining inverse action.
-- Cross-link from record row “View history”.
-
-Optional: surface recent DNS changes in Settings → Audit ([`ui/src/app/dashboard/settings/security/page.tsx`](ui/src/app/dashboard/settings/security/page.tsx)) via new audit action filters.
+Empty state copy: zones are provisioned by your MSP / Flux Labs.
 
 ---
 
@@ -380,15 +364,31 @@ Optional: surface recent DNS changes in Settings → Audit ([`ui/src/app/dashboa
 
 | Threat | Mitigation |
 |--------|------------|
-| **Token leakage at rest** | AES-256-GCM encryption; key from `DNS_MANAGEMENT_ENCRYPTION_KEY`; no token in logs/responses; fingerprint only for dedup. |
-| **Token leakage in transit** | HTTPS only; token submitted once in POST body; UI never stores in localStorage. |
-| **Cross-tenant access** | Every query filters by `tenant_id` from JWT; connection IDs validated `(id, tenant_id)` before use; zoneId must be in `allowed_zone_ids` / cache for tenant. |
-| **Privilege escalation** | `RolesGuard`; readonly cannot mutate; MSP actions only when JWT tenant is switched client ([`MspService`](api/src/modules/msp/msp.service.ts)). |
-| **Destructive DNS changes** | Typed delete confirmation; audit + change log; undo. |
-| **SSRF** | Hard-coded Cloudflare API host; no user-controlled outbound URLs (contrast with locked-down patterns in webhook delivery). |
-| **Rate abuse / CF suspension** | Per-tenant + per-connection Redis limits ([`rate-limit` module](api/src/modules/rate-limit/rate-limit.module.ts)); exponential backoff on CF 429; global cap below CF documented limits (e.g. 900 req / 5 min per connection with jitter). |
-| **Audit tampering** | DNS change log append-only; platform audit hash chain unchanged ([`AuditLog.recordHash`](api/src/modules/audit-logs/entities/audit-log.entity.ts)). |
-| **Undo race** | DB transaction: lock change row, verify live record still matches `after_json` (or delete still absent), then apply inverse. |
+| **Platform token compromise** | **Blast radius: all Flux-hosted zones.** Least-privilege CF token (zone-scoped resources where possible; separate tokens per purpose in future); encrypt at rest; restrict admin-ui to `AdminAuthGuard`; rotation API + **emergency revoke runbook**; alert on anomalous mutation volume (see observability). |
+| **Token leakage at rest / in logs** | GCM encryption; never return ciphertext; decrypt only in worker memory for duration of CF call; structured logs redact secrets. |
+| **Cross-tenant leakage** | **Critical:** every tenant path resolves zone by `(assignment.id, tenant_id)`; integration tests attempt cross-tenant UUID access → 404; no list endpoints without tenant filter; code review checklist item. |
+| **Client zone ID injection** | Only assignment UUID accepted; ignore body/query CF ids. |
+| **Privilege escalation** | Tenant cannot call `/admin/dns-management/*`; admin cannot use tenant JWT for admin routes; assignment flags enforce finer than RBAC. |
+| **Destructive changes** | Typed delete confirmation; undo; optional per-assignment delete deny. |
+| **SSRF** | Fixed CF API base URL. |
+| **API limit exhaustion** | Shared fair queue + cache; per-tenant API rate limits; monitoring on queue depth and CF 429 rate. |
+| **Audit tampering** | Append-only change log + hash-chained [`audit_logs`](../../../api/src/modules/audit-logs/entities/audit-log.entity.ts). |
+
+### Emergency runbook (platform token)
+
+Document under `docs/runbooks/dns-platform-token-compromise.md` (implementation phase):
+
+1. Revoke token in Cloudflare dashboard immediately.  
+2. Admin-ui → revoke connection + invalidate Redis queue workers.  
+3. Issue new token with minimal scope; rotate via admin API.  
+4. Review `dns_change_logs` + audit since last known good `verified_at`.  
+5. Customer comms template for MSPs.
+
+### Cross-tenant leakage tests (required in CI)
+
+- Fixture: tenant A and B each with assigned zone; assert B cannot `GET/ PATCH` A’s `zoneId`.  
+- Fuzz: random UUID zone ids → 404 not 403 (avoid id oracle).  
+- MSP context switch: only client tenant assignments visible.
 
 ---
 
@@ -396,53 +396,47 @@ Optional: surface recent DNS changes in Settings → Audit ([`ui/src/app/dashboa
 
 | Scenario | Behavior |
 |----------|----------|
-| **Invalid / revoked token** | Mark connection `invalid`; read endpoints return 409 with `connectionStatus`; UI prompts re-connect. |
-| **Zone removed from token scope** | Hide from list or show “disconnected scope”; mutations 403. |
-| **Cloudflare validation error** | 400 with field-level messages (duplicate record, invalid CNAME, etc.). |
-| **CF 5xx / timeout** | 502 with retry guidance; no change log row on failed mutation. |
-| **Partial batch (future)** | N/A v1 (no bulk). |
-| **Undo impossible** | 409 if record changed since; show diff in error `details`. |
-
-Structured logging via Nest `Logger`; include `tenantId`, `connectionId`, `zoneId`, `changeId` — never token.
+| Platform token invalid | Admin endpoints fail verify; tenant reads may 503 with `platformConnectionDegraded`; banner in admin-ui. |
+| Zone unassigned | Tenant 404 on zone routes. |
+| Permission denied | 403 with `requiredPermission: canDeleteRecords` etc. |
+| CF validation error | 400 with field errors. |
+| Queue timeout / CF 429 | 503 + `Retry-After`; UI toast “DNS platform busy”. |
+| Limit exceeded | 402/403 via `LimitExceededException` pattern. |
+| Undo conflict | 409 with diff. |
 
 ---
 
 ## Observability
 
-| Signal | Implementation |
-|--------|----------------|
-| **Metrics** | Extend [`MetricsService`](api/src/modules/metrics/metrics.service.ts): counters `dns_management_cf_requests_total{operation,status}`, `dns_management_mutations_total{action}`, histogram `dns_management_cf_latency_seconds`. |
-| **Tracing** | Optional OpenTelemetry spans around CF HTTP client (follow existing Sentry module in [`api/src/common/sentry`](api/src/common/sentry/sentry.module.ts)). |
-| **Logs** | Info on connect/verify; warn on CF 429; error on verify failure. |
-| **Dashboards** | Grafana panel: CF error rate, undo count, connections in `invalid` state. |
+| Signal | Detail |
+|--------|--------|
+| **Metrics** | `dns_cf_requests_total{lane,status}`, `dns_cf_queue_depth`, `dns_cf_queue_wait_seconds`, `dns_mutations_total{tenant_id hashed}`, `dns_platform_connection_status` gauge. |
+| **Alerts** | CF 429 rate &gt; threshold; change log mutations &gt; N/min vs baseline; queue wait p99 &gt; SLO. |
+| **Logs** | `tenantId`, `zoneAssignmentId`, `adminId`; never token. |
 
 ---
 
 ## Testing strategy
 
-| Layer | Approach |
-|-------|----------|
-| **Unit** | Mock `DnsProvider`; test undo logic, confirmation validator, tenant guards. |
-| **Integration** | Nest e2e with test DB; mock CF with `nock` or MSW on fixed base URL. |
-| **Contract** | Golden files for CF JSON responses (list zones, list records, create, update, delete, verify token). |
-| **UI** | Playwright: connect flow (mock API), edit record, delete confirmation, undo. |
-
-Follow patterns in [`api/src/modules/lists/lists.controller.spec.ts`](api/src/modules/lists/lists.controller.spec.ts) and [`api/src/modules/rate-limit/rate-limit.integration.spec.ts`](api/src/modules/rate-limit/rate-limit.integration.spec.ts).
+| Layer | Focus |
+|-------|--------|
+| **Unit** | Assignment resolution; permission matrix; queue fairness (simulate tenants). |
+| **Integration** | Admin assign → tenant list records (mock CF); **cross-tenant denial suite**. |
+| **Contract** | CF JSON fixtures for zones/records. |
+| **UI** | Admin assign flow; tenant read-only Phase 1; Playwright cross-tenant attempt. |
 
 ---
 
 ## Future hooks (not v1)
 
-Document in code via interface stubs and nullable columns only—no UI.
-
-- **`provider` enum** on connections for Route 53 / DNSimple.
-- **`dns_record_templates` table** + apply template job queue.
-- **`dns_zone_snapshots`** for drift detection (compare live vs last snapshot).
-- **Event bus:** emit `dns.record.changed` for DMARC module to offer “Publish SPF/DMARC” (webhook channel pattern from [`WebhooksService`](api/src/modules/webhooks/webhooks.service.ts)).
-- **Tier feature flag** in [`ui/src/lib/tier-features.ts`](ui/src/lib/tier-features.ts): `dns-management`.
+- BYO token path fully productized in UI.
+- Secondary read-only platform token for inventory sync.
+- Route 53 / DNSimple via `DnsProvider`.
+- Templates, BIND, DMARC publish, drift snapshots.
+- Tenant-visible SSL mode (explicitly out of v1).
 
 ---
 
-## Request flow (reference diagram)
+## Request flow
 
-See [FLOW.md](./FLOW.md) for the canonical request-flow diagram (connect, read, mutate, undo).
+See [FLOW.md](./FLOW.md).
