@@ -1,0 +1,11 @@
+[Unit]
+Description=Sync Caddy TLS certificates into dnsdist and reload if changed
+Documentation=file:///opt/nebula-dns/deploy/droplet/README.md
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/nebula-dns/deploy/droplet
+Environment=CADDY_DATA=/var/lib/docker/volumes/nebula-dns_caddy_data/_data/caddy
+ExecStart=/opt/nebula-dns/deploy/droplet/scripts/sync-caddy-certs.sh dns1.nebuladns.io --reload-if-changed
