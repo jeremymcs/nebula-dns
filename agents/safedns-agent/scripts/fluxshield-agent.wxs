@@ -1,21 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" Name="Flux Shield Agent" Language="1033" Version="1.0.0.0"
-           Manufacturer="Flux Labs" UpgradeCode="7E5F8A2B-9C4D-4E1F-A6B3-8D2C1F0E9A7B">
-    <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" />
-    <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
+  <Product Id="*"
+           Name="Flux Shield Agent"
+           Language="1033"
+           Version="$(var.ProductVersion)"
+           Manufacturer="Flux Labs"
+           UpgradeCode="7E5F8A2B-9C4D-4E1F-A6B3-8D2C1F0E9A7B">
+    <Package InstallerVersion="500"
+             Compressed="yes"
+             InstallScope="perMachine"
+             Description="Flux Shield DNS enforcement and site IP updater"
+             Manufacturer="Flux Labs" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Flux Shield Agent is already installed." />
     <MediaTemplate EmbedCab="yes" />
+
+    <!-- Silent RMM: msiexec /i FluxShield-Agent.msi INSTALLTOKEN=xxx /qn -->
+    <Property Id="INSTALLTOKEN" Secure="yes" Hidden="yes" />
+    <Property Id="INSTALLROLES" Value="dns-enforce,site-updater" />
+
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFiles64Folder">
         <Directory Id="INSTALLDIR" Name="FluxShield">
-          <Component Id="AgentExe" Guid="*">
-            <File Id="FluxShieldAgentExe" Source="dist\fluxshield-agent.exe" KeyPath="yes" />
+          <Component Id="AgentExe" Guid="A1B2C3D4-E5F6-7890-ABCD-EF1234567890">
+            <File Id="FluxShieldAgentExe"
+                  Source="dist\fluxshield-agent.exe"
+                  KeyPath="yes" />
           </Component>
         </Directory>
       </Directory>
     </Directory>
+
     <Feature Id="MainFeature" Title="Flux Shield Agent" Level="1">
       <ComponentRef Id="AgentExe" />
     </Feature>
+
+    <!-- Enroll + install Windows service (deferred, elevated) -->
+    <SetProperty Id="EnrollAgent"
+                 Before="EnrollAgent"
+                 Sequence="execute"
+                 Value="&quot;[#FluxShieldAgentExe]&quot; install --token [INSTALLTOKEN] --roles &quot;[INSTALLROLES]&quot;" />
+
+    <CustomAction Id="EnrollAgent"
+                  BinaryKey="WixCA"
+                  DllEntry="WixQuietExec64"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+
+    <SetProperty Id="UninstallAgent"
+                 Before="UninstallAgent"
+                 Sequence="execute"
+                 Value="&quot;[#FluxShieldAgentExe]&quot; uninstall" />
+
+    <CustomAction Id="UninstallAgent"
+                  BinaryKey="WixCA"
+                  DllEntry="WixQuietExec64"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="ignore" />
+
+    <InstallExecuteSequence>
+      <Custom Action="EnrollAgent"
+              After="InstallFiles">NOT Installed AND INSTALLTOKEN</Custom>
+      <Custom Action="UninstallAgent"
+              Before="RemoveFiles">REMOVE="ALL"</Custom>
+    </InstallExecuteSequence>
   </Product>
 </Wix>
