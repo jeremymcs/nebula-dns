@@ -55,7 +55,15 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
+      - name: Skip when droplet secrets are not configured
+        if: ${{ secrets.DROPLET_HOST == '' || secrets.DROPLET_SSH_KEY == '' }}
+        run: |
+          echo "::notice title=Droplet deploy skipped::Set repository secrets DROPLET_HOST and DROPLET_SSH_KEY (and optionally DROPLET_USER, DROPLET_DEPLOY_PATH) to enable automatic droplet rollouts."
+          echo "## Droplet deployment skipped" >> "$GITHUB_STEP_SUMMARY"
+          echo "Configure \`DROPLET_HOST\` and \`DROPLET_SSH_KEY\` repository secrets to enable SSH rollouts." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Roll out on droplet
+        if: ${{ secrets.DROPLET_HOST != '' && secrets.DROPLET_SSH_KEY != '' }}
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DROPLET_HOST }}
@@ -71,6 +79,7 @@ jobs:
             docker compose ps
 
       - name: Deployment summary
+        if: ${{ secrets.DROPLET_HOST != '' && secrets.DROPLET_SSH_KEY != '' }}
         run: |
           echo "## Droplet deployment" >> "$GITHUB_STEP_SUMMARY"
           echo "**Commit:** \`${{ github.sha }}\`" >> "$GITHUB_STEP_SUMMARY"

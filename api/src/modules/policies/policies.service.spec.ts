@@ -58,6 +58,7 @@ describe('PoliciesService', () => {
   };
 
   const mockVersionRepository = {
+    createQueryBuilder: jest.fn(),
     findOne: jest.fn(),
     find: jest.fn(),
     create: jest.fn(),
@@ -124,11 +125,19 @@ describe('PoliciesService', () => {
         getMany: jest.fn().mockResolvedValue([mockPolicy]),
       };
       mockPolicyRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+      mockVersionRepository.createQueryBuilder.mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([mockPolicyVersion]),
+      });
 
       const result = await service.findAll(mockTenantId, { limit: 20 });
 
       expect(result.data).toHaveLength(1);
-      expect(result.data[0]).toEqual(mockPolicy);
+      expect(result.data[0]).toEqual({
+        ...mockPolicy,
+        currentConfig: mockPolicyVersion.config,
+      });
       expect(result.pagination.hasMore).toBe(false);
     });
 
@@ -146,6 +155,13 @@ describe('PoliciesService', () => {
         getMany: jest.fn().mockResolvedValue(policies),
       };
       mockPolicyRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+      mockVersionRepository.createQueryBuilder.mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue(
+          policies.map((p) => ({ ...mockPolicyVersion, policyId: p.id })),
+        ),
+      });
 
       const result = await service.findAll(mockTenantId, { limit: 1 });
 

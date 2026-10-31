@@ -312,14 +312,14 @@ describe('SessionService', () => {
       expect(result).toBe(false);
     });
 
-    it('should fail open on Redis error', async () => {
+    it('should fail closed on Redis error', async () => {
       mockRedisService.get.mockRejectedValue(
         new Error('Redis connection error'),
       );
 
       const result = await service.isTokenBlacklisted(mockTokenJti);
 
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
   });
 

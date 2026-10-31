@@ -19,6 +19,7 @@ import {
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { SwitchTenantDto } from './dto/switch-tenant.dto';
+import { RedisRateLimitGuard } from '../rate-limit/guards/redis-rate-limit.guard';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -85,7 +86,10 @@ describe('AuthController', () => {
           useValue: mockAuthService,
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(RedisRateLimitGuard)
+      .useValue({ canActivate: jest.fn(() => true) })
+      .compile();
 
     controller = module.get<AuthController>(AuthController);
     authService = module.get<AuthService>(AuthService);

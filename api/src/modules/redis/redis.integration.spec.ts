@@ -137,7 +137,7 @@ describe('Redis Integration Tests', () => {
         messages[messages.length - 1],
       );
       expect(invalidationMsg.type).toBe('policy');
-      expect(invalidationMsg.locationId).toBe(locationId);
+      expect(invalidationMsg.location_id).toBe(locationId);
 
       await subscriber.quit();
     }, 10000);
@@ -341,13 +341,13 @@ describe('Redis Integration Tests', () => {
 
       // Find the list invalidation message (might not be first due to other messages)
       const listInvalidation = receivedMessages.find(
-        (msg) => msg.type === 'list' && msg.tenantId === tenantId,
+        (msg) => msg.type === 'list' && msg.tenant_id === tenantId,
       );
       expect(listInvalidation).toBeDefined();
       expect(listInvalidation).toMatchObject({
         type: 'list',
-        tenantId,
-        locationId,
+        tenant_id: tenantId,
+        location_id: locationId,
       });
 
       await subscriber.quit();
