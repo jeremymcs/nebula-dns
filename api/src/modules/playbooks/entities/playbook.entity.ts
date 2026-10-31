@@ -30,11 +30,11 @@ export class Playbook {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ name: 'tenant_id', type: 'uuid' })
   tenantId: string;
 
   @ManyToOne(() => Tenant, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'tenantId' })
+  @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
   @Column()
@@ -46,28 +46,29 @@ export class Playbook {
   @Column({
     type: 'enum',
     enum: PlaybookTrigger,
+    enumName: 'playbooks_trigger_enum',
     default: PlaybookTrigger.MANUAL,
   })
   trigger: PlaybookTrigger;
 
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ name: 'trigger_conditions', type: 'jsonb', default: {} })
   triggerConditions: Record<string, any>;
 
   @Column({ type: 'jsonb', default: [] })
   actions: { type: PlaybookAction; config: Record<string, any> }[];
 
-  @Column({ default: true })
+  @Column({ name: 'is_enabled', type: 'boolean', default: true })
   isEnabled: boolean;
 
-  @Column({ default: 0 })
+  @Column({ name: 'run_count', type: 'int', default: 0 })
   runCount: number;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ name: 'last_run_at', type: 'timestamp', nullable: true })
   lastRunAt: Date;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
