@@ -8,6 +8,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckIcon, CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid'
 import { API_URL, APP_URL } from '@/lib/config'
+import { ProductFooterInline } from '@/components/ProductFooter'
 
 interface Plan {
   id: string
@@ -649,6 +650,7 @@ function SignupFormContent() {
           </div>
         </div>
       </div>
+      <ProductFooterInline />
     </div>
   )
 }

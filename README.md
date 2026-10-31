@@ -1,6 +1,8 @@
-# Nebula DNS - Enterprise DNS Security Platform
+# Nebula DNS
 
-Nebula DNS is an enterprise-grade DNS security and content filtering platform that provides comprehensive protection for organizations of all sizes.
+**Enterprise DNS security and content filtering** — protect your organization at the DNS layer with policy-based filtering, threat intelligence, and real-time analytics.
+
+Nebula DNS is a product of [Flux Labs](https://fluxlabs.net) (Panama City Beach, FL). Powered by Flux Labs. © 2026 Flux Labs.
 
 ## Features
 
