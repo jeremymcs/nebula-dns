@@ -6,8 +6,8 @@ import {
   DEFAULT_DOCS_URL,
   DEFAULT_EMAIL_FROM_ADDRESS,
   DEFAULT_EMAIL_FROM_NAME,
-  DEFAULT_PRODUCT_LOCKUP,
   DEFAULT_PRODUCT_NAME,
+  FLUX_LABS_LINK_COLOR,
 } from '../../common/product-branding';
 
 export interface WelcomeEmailData {
@@ -135,7 +135,6 @@ export class EmailService implements OnModuleInit {
   private readonly fromName: string;
   private readonly docsUrl: string;
   private readonly productName: string;
-  private readonly productLockup: string;
   private readonly adminPortalName: string;
   private readonly sendgridApiKey: string;
   private readonly fluxLabsUrl = 'https://fluxlabs.net';
@@ -153,10 +152,6 @@ export class EmailService implements OnModuleInit {
     this.productName = this.configService.get(
       'PRODUCT_NAME',
       DEFAULT_PRODUCT_NAME,
-    );
-    this.productLockup = this.configService.get(
-      'PRODUCT_LOCKUP',
-      DEFAULT_PRODUCT_LOCKUP,
     );
     this.adminPortalName = this.configService.get(
       'ADMIN_PORTAL_NAME',
@@ -191,10 +186,8 @@ export class EmailService implements OnModuleInit {
     const year = new Date().getFullYear();
     return `
 <div data-flux-email-footer style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center;">
-  <p style="font-size: 12px; color: #9ca3af; margin: 0 0 6px 0;">${this.productLockup}</p>
   <p style="font-size: 11px; color: #9ca3af; margin: 0;">
-    © ${year} <a href="${this.fluxLabsUrl}" style="color: #6b7280; text-decoration: none;">Flux Labs</a>
-    · <a href="${this.fluxLabsUrl}" style="color: #6b7280; text-decoration: none;">Powered by Flux Labs</a>
+    © ${year} · Powered by <a href="${this.fluxLabsUrl}" style="color: ${FLUX_LABS_LINK_COLOR}; text-decoration: none; font-weight: 600;">Flux Labs</a>
   </p>
 </div>`;
   }

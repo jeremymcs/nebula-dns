@@ -118,11 +118,7 @@ export default function AboutPage() {
             organizations of all sizes — from home offices to global enterprises.
           </p>
           <p className="mt-4 text-sm text-space-500 max-w-2xl mx-auto">
-            Flux Shield is built by{' '}
-            <a href="https://fluxlabs.net" className="text-space-400 hover:text-white underline-offset-2 hover:underline" target="_blank" rel="noopener noreferrer">
-              Flux Labs
-            </a>
-            , headquartered in Panama City Beach, Florida.
+            Headquartered in Panama City Beach, Florida.
           </p>
         </div>
       </section>

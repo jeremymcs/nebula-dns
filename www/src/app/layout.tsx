@@ -8,12 +8,9 @@ import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { APP_URL, SITE_URL } from '@/lib/config'
 import {
-  COPYRIGHT_HOLDER,
   currentCopyrightYear,
   FLUX_LABS_NAME,
   FLUX_LABS_URL,
-  PRODUCT_LOCKUP,
-  PRODUCT_MARKETING_TAGLINE,
   PRODUCT_META_DESCRIPTION,
   PRODUCT_NAME,
 } from '@/lib/branding'
@@ -35,7 +32,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${PRODUCT_NAME} — ${PRODUCT_MARKETING_TAGLINE}`,
+    default: PRODUCT_NAME,
     template: `%s · ${PRODUCT_NAME}`,
   },
   description: PRODUCT_META_DESCRIPTION,
@@ -46,7 +43,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     siteName: PRODUCT_NAME,
-    title: `${PRODUCT_NAME} — ${PRODUCT_MARKETING_TAGLINE}`,
+    title: PRODUCT_NAME,
     description: PRODUCT_META_DESCRIPTION,
     type: 'website',
     url: SITE_URL,
@@ -127,7 +124,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <ProductWordmark className="text-base font-bold text-white" />
                   </Link>
                   <p className="text-sm text-space-400 leading-relaxed max-w-xs">
-                    {PRODUCT_LOCKUP}. {PRODUCT_META_DESCRIPTION}
+                    {PRODUCT_META_DESCRIPTION}
                   </p>
                   {/* Social links */}
                   <div className="flex items-center gap-3 mt-6">
@@ -204,22 +201,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
               {/* Footer bottom */}
               <div className="pt-8 border-t border-space-800 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div className="text-center md:text-left space-y-1">
-                  <p className="text-sm text-space-500">
-                    © {currentCopyrightYear()} {COPYRIGHT_HOLDER}. {PRODUCT_NAME} is a product of {COPYRIGHT_HOLDER}.
-                  </p>
-                  <p className="text-xs text-space-500">
-                    Powered by{' '}
-                    <a
-                      href={FLUX_LABS_URL}
-                      className="text-space-400 hover:text-space-200 transition-colors underline-offset-2 hover:underline"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {FLUX_LABS_NAME}
-                    </a>
-                  </p>
-                </div>
+                <p className="text-sm text-space-500">
+                  © {currentCopyrightYear()} · Powered by{' '}
+                  <a
+                    href={FLUX_LABS_URL}
+                    className="font-medium text-accent-500 hover:text-accent-400 transition-colors underline-offset-2 hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {FLUX_LABS_NAME}
+                  </a>
+                </p>
                 <div className="flex items-center gap-6">
                   {[
                     { href: '/privacy', label: 'Privacy' },
