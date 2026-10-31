@@ -79,6 +79,7 @@ import { SubscriptionLapseModule } from './modules/subscription-lapse/subscripti
 
 // Configuration
 import configuration from './config/configuration';
+import { getPostgresSslConfig } from './database/pg-ssl';
 
 @Module({
   imports: [
@@ -120,10 +121,7 @@ import configuration from './config/configuration';
           configService.get<string>('NODE_ENV') === 'development'
             ? true
             : ['error'],
-        ssl:
-          configService.get<string>('NODE_ENV') === 'production'
-            ? { rejectUnauthorized: false }
-            : false,
+        ssl: getPostgresSslConfig(),
         // Connection pooling
         extra: {
           max: configService.get<number>('DB_POOL_SIZE', 20),

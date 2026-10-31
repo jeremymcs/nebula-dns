@@ -6,6 +6,7 @@
 
 import { DataSource } from 'typeorm';
 import { config } from 'dotenv';
+import { getPostgresSslConfig } from './pg-ssl';
 
 // Load environment variables
 config({ path: ['.env.local', '.env'] });
@@ -28,7 +29,7 @@ export const AppDataSource = new DataSource({
   connectTimeoutMS: 30000,
   extra: {
     connectionTimeoutMillis: 30000,
-    // DO managed PostgreSQL requires SSL
-    ssl: isProduction ? { rejectUnauthorized: false } : false,
+    ssl: getPostgresSslConfig(),
   },
+  ssl: getPostgresSslConfig(),
 });
