@@ -92,6 +92,8 @@ chmod +x scripts/generate-dns-certs.sh
 
 **Production (recommended):** Let Caddy obtain ACME certificates, then sync PEM files for dnsdist:
 
+The `Caddyfile` lists **both** `dns1.nebuladns.io` and `dns2.nebuladns.io` in one site block so Let's Encrypt issues a **single certificate with both SANs**. That cert is copied to dnsdist for DoT on `:853` (clients can use either hostname).
+
 ```bash
 docker compose up -d caddy
 # Wait for ACME success in: docker compose logs caddy
@@ -99,6 +101,17 @@ chmod +x scripts/sync-caddy-certs.sh
 ./scripts/sync-caddy-certs.sh dns1.nebuladns.io
 docker compose restart dnsdist
 ```
+
+**After Caddy renews (automated):** Caddy renews in the background, but dnsdist still reads files from `./certs/`. Install the systemd timer on the droplet so renewed certs are copied and dnsdist is restarted only when the files change:
+
+```bash
+cp systemd/nebula-dns-sync-certs.{service,timer} /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now nebula-dns-sync-certs.timer
+systemctl list-timers nebula-dns-sync-certs.timer
+```
+
+The timer runs `scripts/sync-caddy-certs.sh … --reload-if-changed` daily (see `systemd/nebula-dns-sync-certs.timer`). Override `CADDY_DATA` in the unit if your Docker volume path differs (`docker volume inspect nebula-dns_caddy_data`).
 
 See `certs/README.md` for details.
 
@@ -144,14 +157,24 @@ Vercel handles `app` and `admin` CNAME/A records for the UI projects.
 
 ## 6. Start the stack
 
-Ensure the droplet can pull from GHCR (one-time):
+### Pull images from GHCR (private packages)
+
+Images built by `.github/workflows/deploy.yml` are pushed to **GitHub Container Registry** (`ghcr.io/jeremymcs/nebula-dns-*`) as **private** packages. The droplet must authenticate before `docker compose pull`:
+
+1. Create a GitHub **classic PAT** or fine-grained token with **`read:packages`** (and `read:org` if the package is org-scoped).
+2. On the droplet (once per machine):
 
 ```bash
-echo "<github_pat_with_read_packages>" | docker login ghcr.io -u YOUR_GITHUB_USER --password-stdin
+echo "<token>" | docker login ghcr.io -u YOUR_GITHUB_USER --password-stdin
 ```
+
+3. Deploys from CI (push to `main` → `deploy.yml`) SSH to the droplet and run `docker compose pull && docker compose up -d` in `DROPLET_DEPLOY_PATH` (default `/opt/nebula-dns/deploy/droplet`). The droplet login above must succeed or pulls fail while the workflow still reports SSH success.
+
+Manual rollout on the droplet:
 
 ```bash
 cd /opt/nebula-dns/deploy/droplet
+export IMAGE_TAG=<git-sha-or-latest>
 docker compose pull
 docker compose up -d
 docker compose ps
@@ -217,6 +240,7 @@ After installing `kdig` (knot-dnsutils):
 
 ```bash
 kdig @dns1.nebuladns.io +tls-ca +tls-host=dns1.nebuladns.io google.com
+kdig @dns2.nebuladns.io +tls-ca +tls-host=dns2.nebuladns.io google.com
 ```
 
 Use the Let's Encrypt chain from Caddy/synced certs, or `-tls` with `+tls-insecure` only for bootstrap self-signed certs.
