@@ -1,0 +1,19 @@
+{
+  email {$ACME_EMAIL}
+}
+
+api.nebuladns.io {
+  encode gzip
+  reverse_proxy api:3000
+}
+
+dns1.nebuladns.io, dns2.nebuladns.io {
+  # Public DoH on :443 (TLS terminated here). Backend DoH listens on dnsdist:8443.
+  reverse_proxy https://dnsdist:8443 {
+    header_up Host {host}
+    transport http {
+      tls
+      tls_insecure_skip_verify
+    }
+  }
+}
