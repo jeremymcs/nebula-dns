@@ -1,7 +1,7 @@
 # Nebula DNS — production droplet stack
 # Usage (on droplet): cp .env.example .env && docker compose pull && docker compose up -d
 #
-# UI and admin-ui deploy to Vercel; this stack runs API + DNS data plane only.
+# UI and admin-ui deploy to Vercel; this stack runs API + DNS data plane + ClickHouse.
 
 name: nebula-dns
 
@@ -13,8 +13,12 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3000"
+      CLICKHOUSE_URL: http://clickhouse:8123
     expose:
       - "3000"
+    depends_on:
+      clickhouse:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/health"]
       interval: 15s
@@ -28,14 +32,44 @@ services:
     env_file: .env
     environment:
       PORT: "8080"
+      CLICKHOUSE_URL: http://clickhouse:8123
     expose:
       - "8080"
+    depends_on:
+      clickhouse:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/health"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.1
+    restart: unless-stopped
+    environment:
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-nebula}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-change-me}
+      CLICKHOUSE_DB: ${CLICKHOUSE_DATABASE:-nebula_dns}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+      - ../../scripts/init-clickhouse.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./clickhouse/max-memory.xml:/etc/clickhouse-server/config.d/max-memory.xml:ro
+    expose:
+      - "8123"
+      - "9000"
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8123/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
 
   unbound:
     image: ghcr.io/jeremymcs/nebula-dns-unbound:${IMAGE_TAG:-latest}
@@ -91,20 +125,6 @@ services:
         condition: service_healthy
       dnsdist:
         condition: service_started
-
-  clickhouse:
-    profiles: ["clickhouse-local"]
-    image: clickhouse/clickhouse-server:24.1
-    restart: unless-stopped
-    environment:
-      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-nebula}
-      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-change-me}
-      CLICKHOUSE_DB: ${CLICKHOUSE_DATABASE:-nebula_dns}
-    volumes:
-      - clickhouse-data:/var/lib/clickhouse
-      - ../../scripts/init-clickhouse.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    ports:
-      - "127.0.0.1:8123:8123"
 
 volumes:
   caddy_data:

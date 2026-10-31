@@ -11,16 +11,17 @@
 | API + DNS data plane | Single DigitalOcean droplet (~4 GB), Docker Compose in `deploy/droplet/` |
 | PostgreSQL | Neon (Vercel Marketplace) |
 | Redis | Upstash (Vercel Marketplace) |
-| Query logs | ClickHouse Cloud (optional local ClickHouse compose profile) |
+| Query logs | ClickHouse on droplet (Docker Compose) |
 
 ## Pre-launch checklist (no secrets in repo)
 
-1. Provision Neon + Upstash from Vercel Marketplace; set `DATABASE_URL` (`sslmode=require`) and `REDIS_URL` on the droplet.
-2. Provision ClickHouse Cloud; set `CLICKHOUSE_*` on API and policy-svc.
-3. Generate new JWT and encryption keys (`openssl rand`) — see droplet runbook.
-4. Configure Cloudflare **DNS only** A records: `api`, `dns1`, `dns2` → droplet IP.
-5. Configure Vercel env: `API_URL=https://api.nebuladns.io` on the app project.
-6. Rotate any credential types that ever appeared in git history (see PR description).
+1. Provision Neon from Vercel Marketplace; set `DATABASE_URL` (`sslmode=require`) on the droplet (copy from `POSTGRES_URL` if needed).
+2. Provision Upstash from Vercel Marketplace; set `REDIS_URL` (`rediss://`) on the droplet for API and policy-svc (copy from `KV_URL` if needed).
+3. Set `CLICKHOUSE_*` in droplet `.env`; ClickHouse runs in Compose (see runbook memory limits).
+4. Generate new JWT and encryption keys (`openssl rand`) — see droplet runbook.
+5. Configure Cloudflare **DNS only** A records: `api`, `dns1`, `dns2` → droplet IP.
+6. Configure Vercel env: `API_URL=https://api.nebuladns.io` on the app project.
+7. Rotate any credential types that ever appeared in git history (see PR description).
 
 ## Deprecated paths
 
