@@ -12,6 +12,8 @@ import * as bcrypt from 'bcrypt';
 
 import { AdminService } from './admin.service';
 import { AdminSessionService } from './admin-session.service';
+import { AdminHealthService } from './admin-health.service';
+import { AdminActivityService } from './admin-activity.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { ClickHouseService } from '../clickhouse/clickhouse.service';
 import { EmailService } from '../email/email.service';
@@ -20,6 +22,7 @@ import { Admin } from './entities/admin.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
 import { Location } from '../locations/entities/location.entity';
 import { User } from '../users/entities/user.entity';
+import { AgentInstallation } from '../agents/entities/agent-installation.entity';
 import { CreateMspTenantDto } from './dto/msp-onboarding.dto';
 
 // Mock manager functions
@@ -149,6 +152,12 @@ describe('AdminService', () => {
           },
         },
         {
+          provide: getRepositoryToken(AgentInstallation),
+          useValue: {
+            count: jest.fn().mockResolvedValue(0),
+          },
+        },
+        {
           provide: DataSource,
           useValue: dataSource,
         },
@@ -217,6 +226,7 @@ describe('AdminService', () => {
           provide: AdminActivityService,
           useValue: {
             log: jest.fn().mockResolvedValue({ id: 'activity-id' }),
+            query: jest.fn(),
           },
         },
       ],
@@ -495,6 +505,23 @@ describe('AdminService', () => {
         service.createMspTenant(validDto, 'admin-uuid-1234'),
       ).rejects.toThrow();
       expect(queryRunner.release).toHaveBeenCalled();
+    });
+  });
+
+  describe('login MFA session', () => {
+    it('returns mfaRequired with password-only JWT after successful login', async () => {
+      jest.spyOn(bcrypt, 'compare').mockResolvedValue(true as never)
+      adminRepository.findOne.mockResolvedValue(mockAdmin as Admin)
+      adminRepository.update.mockResolvedValue(undefined as any)
+
+      const result = await service.login(
+        { email: 'admin@nebula.local', password: 'ValidPassword123!' },
+        { userAgent: 'test', ipAddress: '127.0.0.1' },
+      );
+
+      expect(result.mfaRequired).toBe(true);
+      expect(result.mfaEnrollmentRequired).toBe(false);
+      expect(result.accessToken).toBe('mock-jwt-token');
     });
   });
 });

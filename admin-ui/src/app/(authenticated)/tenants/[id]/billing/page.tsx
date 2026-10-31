@@ -257,7 +257,11 @@ export default function BillingPage({ params }: BillingPageProps) {
                 Failed to load billing information
               </h3>
               <p className="mt-1 text-sm text-danger-700 dark:text-danger-300">
-                {error.message || 'Please try again later.'}
+                {error.message ||
+                  'Billing data could not be loaded. This is expected when Stripe is disabled at launch or billing tables are still being migrated.'}
+              </p>
+              <p className="mt-2 text-sm text-space-600 dark:text-space-400">
+                You can still manage the tenant from MSP details. Configure Stripe and run database migrations to enable full billing operations.
               </p>
               <button
                 onClick={() => mutate()}

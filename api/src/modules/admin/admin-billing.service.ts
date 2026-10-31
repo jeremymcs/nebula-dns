@@ -107,12 +107,30 @@ export class AdminBillingService {
     const subscription =
       await this.subscriptionsService.getSubscription(tenantId);
 
-    // 3. Get trial status
-    const trialStatus = await this.trialsService.getTrialStatus(tenantId);
+    // 3. Get trial status (graceful when trial_history table missing)
+    let trialStatus: Awaited<
+      ReturnType<TrialsService['getTrialStatus']>
+    > = { hasActiveTrial: false, availableTrials: [] };
+    try {
+      trialStatus = await this.trialsService.getTrialStatus(tenantId);
+    } catch (error) {
+      this.logger.warn(
+        `Trial status unavailable for tenant ${tenantId}: ${(error as Error).message}`,
+      );
+    }
 
     // 4. Get grace period info
-    const graceInfo =
-      await this.subscriptionLapseService.getGracePeriodInfo(tenantId);
+    let graceInfo: Awaited<
+      ReturnType<SubscriptionLapseService['getGracePeriodInfo']>
+    > | null = null;
+    try {
+      graceInfo =
+        await this.subscriptionLapseService.getGracePeriodInfo(tenantId);
+    } catch (error) {
+      this.logger.warn(
+        `Grace period info unavailable for tenant ${tenantId}: ${(error as Error).message}`,
+      );
+    }
 
     // 5. Build response
     const response: SubscriptionStatusResponseDto = {
@@ -136,7 +154,7 @@ export class AdminBillingService {
     }
 
     // 7. Add grace period info if applicable
-    if (graceInfo.subscriptionStatus === 'grace' && graceInfo.graceStartDate) {
+    if (graceInfo?.subscriptionStatus === 'grace' && graceInfo.graceStartDate) {
       response.gracePeriod = {
         startDate: graceInfo.graceStartDate.toISOString(),
         daysRemaining: graceInfo.daysRemaining || 0,
@@ -180,8 +198,8 @@ export class AdminBillingService {
     const subscription =
       await this.subscriptionsService.getSubscription(tenantId);
 
-    // Return empty if no billing setup
-    if (!subscription?.stripeCustomerId) {
+    // Return empty if no billing setup or Stripe is not configured at launch
+    if (!subscription?.stripeCustomerId || !this.paymentsService.isConfigured()) {
       return {
         data: [],
         pagination: { cursor: null, hasMore: false },
@@ -189,41 +207,50 @@ export class AdminBillingService {
     }
 
     // 2. Fetch invoices from Stripe
-    const { invoices, hasMore } = await this.paymentsService.listInvoices(
-      subscription.stripeCustomerId,
-      {
-        limit: query.limit || 20,
-        startingAfter: query.cursor,
-      },
-    );
+    try {
+      const { invoices, hasMore } = await this.paymentsService.listInvoices(
+        subscription.stripeCustomerId,
+        {
+          limit: query.limit || 20,
+          startingAfter: query.cursor,
+        },
+      );
 
-    // 3. Map Stripe invoices to DTOs
-    const data: InvoiceDto[] = invoices.map((inv) => ({
-      id: inv.id,
-      number: inv.number || '',
-      status: inv.status || 'unknown',
-      amountDue: inv.amount_due,
-      amountPaid: inv.amount_paid,
-      currency: inv.currency,
-      created: new Date(inv.created * 1000).toISOString(),
-      dueDate: inv.due_date
-        ? new Date(inv.due_date * 1000).toISOString()
-        : undefined,
-      paidAt: inv.status_transitions?.paid_at
-        ? new Date(inv.status_transitions.paid_at * 1000).toISOString()
-        : undefined,
-      hasPdf: !!inv.invoice_pdf,
-    }));
+      const data: InvoiceDto[] = invoices.map((inv) => ({
+        id: inv.id,
+        number: inv.number || '',
+        status: inv.status || 'unknown',
+        amountDue: inv.amount_due,
+        amountPaid: inv.amount_paid,
+        currency: inv.currency,
+        created: new Date(inv.created * 1000).toISOString(),
+        dueDate: inv.due_date
+          ? new Date(inv.due_date * 1000).toISOString()
+          : undefined,
+        paidAt: inv.status_transitions?.paid_at
+          ? new Date(inv.status_transitions.paid_at * 1000).toISOString()
+          : undefined,
+        hasPdf: !!inv.invoice_pdf,
+      }));
 
-    this.logger.debug(`Listed ${data.length} invoices for tenant ${tenantId}`);
+      this.logger.debug(`Listed ${data.length} invoices for tenant ${tenantId}`);
 
-    return {
-      data,
-      pagination: {
-        cursor: hasMore && data.length > 0 ? data[data.length - 1].id : null,
-        hasMore,
-      },
-    };
+      return {
+        data,
+        pagination: {
+          cursor: hasMore && data.length > 0 ? data[data.length - 1].id : null,
+          hasMore,
+        },
+      };
+    } catch (error) {
+      this.logger.warn(
+        `Invoice list unavailable for tenant ${tenantId}: ${(error as Error).message}`,
+      );
+      return {
+        data: [],
+        pagination: { cursor: null, hasMore: false },
+      };
+    }
   }
 
   /**

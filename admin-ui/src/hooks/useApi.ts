@@ -305,6 +305,34 @@ export function useAdminTenantSearch(query: string, limit: number = 8) {
 }
 
 // ============================================
+// Admin dashboard stats
+// ============================================
+
+export interface AdminDashboardStats {
+  mspCount: number
+  tenantCount: number
+  adminCount: number
+  agentInstallationCount: number | null
+  health: {
+    overallStatus: 'healthy' | 'degraded' | 'unhealthy'
+    healthyServiceCount: number
+    totalServiceCount: number
+    isMockData: boolean
+  }
+  recentActivity: Array<{
+    id: string
+    action: string
+    adminEmail?: string
+    createdAt: string
+    summary?: string
+  }>
+}
+
+export function useAdminDashboardStats() {
+  return useSWR<AdminDashboardStats>('/admin/stats', adminFetcher, defaultConfig)
+}
+
+// ============================================
 // System Health Types
 // ============================================
 

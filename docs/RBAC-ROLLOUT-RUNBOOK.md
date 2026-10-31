@@ -3,7 +3,37 @@
 // Nebula DNS - RBAC Enforcement Rollout Runbook
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-This runbook documents the procedure for safely enabling RBAC enforcement for admin endpoints in Nebula DNS.
+This runbook documents the procedure for safely enabling RBAC enforcement for admin endpoints in **Flux Shield** (powered by Flux Labs).
+
+## Flux Shield production hostnames
+
+| Surface | URL |
+|---------|-----|
+| Tenant / shield UI | https://shield.fluxlabs.net |
+| Admin console | https://admin.shield.fluxlabs.net |
+| Control-plane API | https://api.shield.fluxlabs.net |
+
+Set these environment variables on the **API** deployment (and matching URLs on admin-ui where noted):
+
+| Variable | Production value | Purpose |
+|----------|------------------|---------|
+| `ADMIN_URL` | `https://admin.shield.fluxlabs.net` | Links in admin invite / MFA emails |
+| `FRONTEND_URL` | `https://shield.fluxlabs.net` | Tenant-facing links from API |
+| `CORS_ORIGINS` | Include `https://admin.shield.fluxlabs.net` and `https://shield.fluxlabs.net` | Browser access to API |
+
+### Enabling RBAC enforcement (do not change code defaults)
+
+Code ships with **`ADMIN_RBAC_ENABLED=false`** (fail-open for rollout). To enforce roles in production:
+
+1. Ensure at least one `super_admin` is assigned (Phase 1 below).
+2. Keep **`ADMIN_RBAC_SHADOW_MODE=true`** for 24–48 hours after deploy; review `rbac_shadow_denied` audit entries.
+3. Set on the API service:
+   - `ADMIN_RBAC_ENABLED=true`
+   - `ADMIN_RBAC_SHADOW_MODE=false` (after shadow soak)
+4. Redeploy or rolling-restart API pods so env vars take effect.
+5. Monitor 403 rates on admin routes and the Admin RBAC Grafana dashboard.
+
+Rollback: set `ADMIN_RBAC_ENABLED=false` (and optionally re-enable shadow mode) without redeploying application code.
 
 ## Overview
 
@@ -73,7 +103,7 @@ NEXT STEPS:
 
 ```bash
 # Login as the super_admin and verify access
-curl -X POST https://admin-api.nebuladns.io/admin/auth/login \
+curl -X POST https://api.shield.fluxlabs.net/admin/login \
   -H "Content-Type: application/json" \
   -d '{"email":"ops-lead@company.com","password":"..."}'
 
@@ -222,7 +252,7 @@ kubectl logs -l app=nebula-api -n nebula-dns --tail=50 | grep -i rbac
 
 ```bash
 # Test endpoint access (should work for all admins now)
-curl -X GET https://admin-api.nebuladns.io/admin/health \
+curl -X GET https://api.shield.fluxlabs.net/admin/system/health \
   -H "Authorization: Bearer $ADMIN_TOKEN"
 ```
 

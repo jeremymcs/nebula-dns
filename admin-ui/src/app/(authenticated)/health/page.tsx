@@ -489,6 +489,10 @@ export default function SystemHealthPage() {
     return { total, avg, peak }
   }, [health?.queryVolume, period])
 
+  const usesMockAnalytics =
+    health?.errorRates?.isMockData === true ||
+    health?.queryVolume?.isMockData === true
+
   // Error state
   if (error) {
     return (
@@ -530,6 +534,23 @@ export default function SystemHealthPage() {
 
   return (
     <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {usesMockAnalytics && (
+        <div
+          role="status"
+          className="flex items-start gap-3 rounded-xl border border-warning-300 dark:border-warning-700 bg-warning-50 dark:bg-warning-900/20 px-4 py-3"
+        >
+          <ExclamationTriangleIcon className="h-5 w-5 text-warning-600 dark:text-warning-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-warning-800 dark:text-warning-200">
+              Analytics data is simulated
+            </p>
+            <p className="text-sm text-warning-700 dark:text-warning-300 mt-1">
+              ClickHouse is unavailable or not configured. Error rates and query volume shown below may be placeholder values — do not use them for operational decisions.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Page Header */}
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
