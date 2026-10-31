@@ -42,6 +42,10 @@ func NewHandlers(policySvc *policy.Service, policyCache *cache.PolicyCache, ch *
 // Healthz handles simple liveness check for K8s probes (no dependency checks)
 func (h *Handlers) Healthz(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	if r.Method == http.MethodHead {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": "ok",
 	})
@@ -50,6 +54,10 @@ func (h *Handlers) Healthz(w http.ResponseWriter, r *http.Request) {
 // Health handles detailed health check requests
 func (h *Handlers) Health(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	if r.Method == http.MethodHead {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 
 	// Report ClickHouse status without affecting overall health.
 	// ClickHouse is a non-critical dependency; degraded CH must not mark

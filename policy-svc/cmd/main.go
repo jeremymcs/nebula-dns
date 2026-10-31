@@ -122,7 +122,9 @@ func main() {
 
 	// Routes
 	r.Get("/healthz", h.Healthz)
+	r.Head("/healthz", h.Healthz)
 	r.Get("/health", h.Health)
+	r.Head("/health", h.Health)
 	r.Get("/ready", h.Ready)
 	r.Get("/live", h.Live)
 	r.Post("/evaluate", h.Evaluate)

@@ -3,7 +3,7 @@ FROM powerdns/dnsdist-19:latest
 
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl ca-certificates getent \
+    curl ca-certificates libc-bin \
     && rm -rf /var/lib/apt/lists/*
 
 COPY deploy/droplet/dnsdist.conf /etc/dnsdist/dnsdist.conf
