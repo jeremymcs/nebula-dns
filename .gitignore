@@ -52,3 +52,10 @@ coverage/
 
 # Local plans (may contain credentials)
 .plans/
+config/certs/*.key
+deploy/droplet/certs/*.key
+deploy/droplet/certs/server.crt
+deploy/droplet/.env
+terraform.tfvars
+**/*.tfvars
+!**/*.tfvars.example
