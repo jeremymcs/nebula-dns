@@ -28,6 +28,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { CheckIcon } from '@heroicons/react/24/solid'
 import Link from 'next/link'
+import { ProductFooter } from '@/components/ProductFooter'
 
 /**
  * Theme toggle button for light/dark mode
@@ -466,6 +467,8 @@ export default function AcceptInvitePage() {
         <p className="mt-8 text-xs text-center text-space-500 dark:text-space-400 max-w-sm mx-auto lg:mx-0">
           This is a restricted area. Your account credentials will be used to access administrative functions.
         </p>
+
+        <ProductFooter variant="auth" className="max-w-sm mx-auto lg:mx-0" />
       </div>
     </div>
   )

@@ -174,7 +174,8 @@ export default function TermsPage() {
             5. Intellectual Property
           </h2>
           <p className="text-space-400 mb-4">
-            The Service, including all software, features, content, and trademarks, is owned by Nebula DNS
+            The Service, including all software, features, content, and trademarks, is owned by Flux Labs
+            and operated under the Nebula DNS product name.
             and protected by intellectual property laws. We grant you a limited, non-exclusive,
             non-transferable license to use the Service in accordance with these Terms.
           </p>
@@ -336,7 +337,7 @@ export default function TermsPage() {
             10. Indemnification
           </h2>
           <p className="text-space-400">
-            You agree to indemnify, defend, and hold harmless Nebula DNS and its officers, directors,
+            You agree to indemnify, defend, and hold harmless Flux Labs and its officers, directors,
             employees, and agents from any claims, losses, damages, liabilities, and expenses (including
             legal fees) arising from your use of the Service, violation of these Terms, or infringement
             of any third-party rights.
@@ -354,7 +355,7 @@ export default function TermsPage() {
           </p>
           <p className="text-space-400">
             Any disputes arising from these Terms or the Service shall be resolved exclusively in the
-            state or federal courts located in San Francisco County, California.
+            state or federal courts located in Bay County, Florida.
           </p>
         </section>
 
@@ -395,7 +396,7 @@ export default function TermsPage() {
               </a>
             </p>
             <p className="text-space-300">
-              <strong className="text-white">Address:</strong> Nebula DNS, 123 Security Blvd, San Francisco, CA 94105
+              <strong className="text-white">Address:</strong> Flux Labs, Panama City Beach, FL 32407, United States
             </p>
           </div>
         </section>
