@@ -1,0 +1,112 @@
+# Nebula DNS — production droplet stack
+# Usage (on droplet): cp .env.example .env && docker compose pull && docker compose up -d
+#
+# UI and admin-ui deploy to Vercel; this stack runs API + DNS data plane only.
+
+name: nebula-dns
+
+services:
+  api:
+    image: ghcr.io/jeremymcs/nebula-dns-api:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+
+  policy-svc:
+    image: ghcr.io/jeremymcs/nebula-dns-policy-svc:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: "8080"
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  unbound:
+    image: ghcr.io/jeremymcs/nebula-dns-unbound:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    expose:
+      - "53"
+    healthcheck:
+      test: ["CMD", "drill", "@127.0.0.1", "google.com"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  dnsdist:
+    build:
+      context: ../..
+      dockerfile: deploy/droplet/dnsdist.Dockerfile
+    image: ghcr.io/jeremymcs/nebula-dns-dnsdist:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POLICY_SVC_URL: http://policy-svc:8080
+    volumes:
+      - ./certs:/etc/dnsdist/certs:ro
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+      - "853:853/tcp"
+    expose:
+      - "8443"
+      - "8083"
+    depends_on:
+      policy-svc:
+        condition: service_healthy
+      unbound:
+        condition: service_started
+    cap_add:
+      - NET_BIND_SERVICE
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+      dnsdist:
+        condition: service_started
+
+  clickhouse:
+    profiles: ["clickhouse-local"]
+    image: clickhouse/clickhouse-server:24.1
+    restart: unless-stopped
+    environment:
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-nebula}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-change-me}
+      CLICKHOUSE_DB: ${CLICKHOUSE_DATABASE:-nebula_dns}
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+      - ../../scripts/init-clickhouse.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "127.0.0.1:8123:8123"
+
+volumes:
+  caddy_data:
+  caddy_config:
+  clickhouse-data:

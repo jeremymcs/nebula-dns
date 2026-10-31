@@ -1,8 +1,9 @@
-# Nebula DNS - Deployment Workflow
-# Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+# Nebula DNS - Droplet deployment workflow
+# Builds data-plane images to GHCR and rolls the production droplet via SSH.
+# UI and admin-ui deploy on Vercel — not built here.
 #
-# Builds all 6 Docker images and deploys to production via Helm.
-# CI and Security scans run independently on push via their own workflows.
+# Required secrets: DROPLET_HOST, DROPLET_SSH_KEY
+# Optional: DROPLET_USER (default root), DROPLET_DEPLOY_PATH (default /opt/nebula-dns/deploy/droplet)
 
 name: Deploy
 
@@ -11,175 +12,67 @@ on:
     branches: [main]
   workflow_dispatch:
 
-env:
-  DOCR_REGISTRY: registry.digitalocean.com/nebula-dns
-
 permissions:
   contents: read
-  actions: read
+  packages: write
+
+env:
+  DEPLOY_PATH: /opt/nebula-dns/deploy/droplet
 
 jobs:
-  # Build and Push API Image
   build-api:
-    name: Build API
-    uses: ./.github/workflows/_build-push-image.yml
+    uses: ./.github/workflows/_build-push-ghcr.yml
     with:
       service: api
       context: ./api
-      registry: registry.digitalocean.com/nebula-dns
       image_name: nebula-dns-api
-    secrets:
-      DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
-  # Build and Push UI Image
-  build-ui:
-    name: Build UI
-    uses: ./.github/workflows/_build-push-image.yml
-    with:
-      service: ui
-      context: ./ui
-      registry: registry.digitalocean.com/nebula-dns
-      image_name: nebula-dns-ui
-    secrets:
-      DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-
-  # Build and Push Admin UI Image
-  build-admin-ui:
-    name: Build Admin UI
-    uses: ./.github/workflows/_build-push-image.yml
-    with:
-      service: admin-ui
-      context: ./admin-ui
-      registry: registry.digitalocean.com/nebula-dns
-      image_name: nebula-dns-admin-ui
-    secrets:
-      DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-
-  # Build and Push Policy Service Image
   build-policy-svc:
-    name: Build Policy Service
-    uses: ./.github/workflows/_build-push-image.yml
+    uses: ./.github/workflows/_build-push-ghcr.yml
     with:
       service: policy-svc
       context: ./policy-svc
-      registry: registry.digitalocean.com/nebula-dns
       image_name: nebula-dns-policy-svc
-    secrets:
-      DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
-  # Build and Push dnsdist Image
   build-dnsdist:
-    name: Build dnsdist
-    uses: ./.github/workflows/_build-push-image.yml
+    uses: ./.github/workflows/_build-push-ghcr.yml
     with:
       service: dnsdist
       context: .
-      dockerfile: ./dnsdist/Dockerfile
-      registry: registry.digitalocean.com/nebula-dns
+      dockerfile: deploy/droplet/dnsdist.Dockerfile
       image_name: nebula-dns-dnsdist
-    secrets:
-      DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
-  # Build and Push Unbound Image
   build-unbound:
-    name: Build Unbound
-    uses: ./.github/workflows/_build-push-image.yml
+    uses: ./.github/workflows/_build-push-ghcr.yml
     with:
       service: unbound
       context: ./config/unbound
-      registry: registry.digitalocean.com/nebula-dns
       image_name: nebula-dns-unbound
-    secrets:
-      DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
-  # Deploy to Production
-  deploy-production:
-    name: Deploy to Production
-    needs: [build-api, build-ui, build-admin-ui, build-policy-svc, build-dnsdist, build-unbound]
+  deploy-droplet:
+    name: Deploy droplet stack
+    needs: [build-api, build-policy-svc, build-dnsdist, build-unbound]
     runs-on: ubuntu-latest
     environment: production
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install doctl
-        uses: digitalocean/action-doctl@v2
+      - name: Roll out on droplet
+        uses: appleboy/ssh-action@v1.2.0
         with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER || 'root' }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            DEPLOY_PATH="${{ secrets.DROPLET_DEPLOY_PATH || '/opt/nebula-dns/deploy/droplet' }}"
+            cd "${DEPLOY_PATH}"
+            export IMAGE_TAG="${{ github.sha }}"
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker compose ps
 
-      - name: Configure kubectl for production cluster
-        run: doctl kubernetes cluster kubeconfig save ${{ secrets.DOKS_CLUSTER_ID_PRODUCTION }}
-
-      - name: Install Helm
-        uses: azure/setup-helm@v4
-
-      - name: Unblock stuck Helm release
+      - name: Deployment summary
         run: |
-          STATUS=$(helm status nebula-dns -n nebula-dns -o json 2>/dev/null | jq -r '.info.status' || echo "not-found")
-          echo "Current Helm release status: $STATUS"
-          if [[ "$STATUS" == "pending-upgrade" || "$STATUS" == "pending-install" || "$STATUS" == "pending-rollback" ]]; then
-            echo "Release is stuck in $STATUS — rolling back to unblock..."
-            helm rollback nebula-dns 0 -n nebula-dns || kubectl delete secret -n nebula-dns -l "owner=helm,name=nebula-dns,status=$STATUS" || true
-          fi
-
-      - name: Deploy to production via Helm
-        run: |
-          helm upgrade nebula-dns ./helm/safedns \
-            --install \
-            --namespace nebula-dns \
-            --atomic \
-            --wait \
-            --timeout 15m \
-            --history-max 10 \
-            --set global.imageRegistry=${{ env.DOCR_REGISTRY }} \
-            --set api.image.tag=${{ github.sha }} \
-            --set ui.image.tag=${{ github.sha }} \
-            --set adminUi.image.tag=${{ github.sha }} \
-            --set policySvc.image.tag=${{ github.sha }} \
-            --set dnsdist.image.tag=${{ github.sha }} \
-            --set unbound.image.tag=${{ github.sha }} \
-            -f ./helm/safedns/values-production.yaml
-
-      - name: Capture migration job logs on failure
-        if: failure()
-        run: |
-          JOB=$(kubectl get job -n nebula-dns -l app.kubernetes.io/component=db-migration -o name 2>/dev/null | head -1)
-          echo "=== Migration Job Status ==="
-          kubectl get job -n nebula-dns -l app.kubernetes.io/component=db-migration -o wide || true
-          echo "=== Migration Pod Logs (via job) ==="
-          if [[ -n "$JOB" ]]; then
-            kubectl logs -n nebula-dns "$JOB" --all-containers --tail=300 2>/dev/null || true
-          fi
-          echo "=== Migration Pod Logs (via label) ==="
-          kubectl logs -n nebula-dns -l app.kubernetes.io/component=db-migration --all-containers --tail=300 --prefix 2>/dev/null || true
-          echo "=== All pods in namespace ==="
-          kubectl get pods -n nebula-dns -o wide || true
-          echo "=== Migration Pod Events ==="
-          kubectl get events -n nebula-dns --sort-by='.lastTimestamp' | tail -30 || true
-
-      - name: Verify deployments
-        run: |
-          RELEASE=nebula-dns-nebuladns
-          kubectl rollout status deployment/${RELEASE}-api -n nebula-dns --timeout=5m
-          kubectl rollout status deployment/${RELEASE}-ui -n nebula-dns --timeout=5m
-          kubectl rollout status deployment/${RELEASE}-admin-ui -n nebula-dns --timeout=5m
-          kubectl rollout status deployment/${RELEASE}-dnsdist -n nebula-dns --timeout=5m
-          # policy-svc and unbound are optional (may use external services in production)
-          kubectl rollout status deployment/${RELEASE}-policy-svc -n nebula-dns --timeout=5m 2>/dev/null || echo "policy-svc not deployed (using external or disabled)"
-          kubectl rollout status statefulset/${RELEASE}-unbound -n nebula-dns --timeout=5m 2>/dev/null || echo "unbound not deployed (using external or disabled)"
-
-      - name: Run smoke test
-        run: |
-          RELEASE=nebula-dns-nebuladns
-          kubectl exec -n nebula-dns deployment/${RELEASE}-api -- curl -sf http://localhost:4010/health || \
-          kubectl exec -n nebula-dns deployment/${RELEASE}-api -- curl -sf http://localhost:3000/health || \
-          echo "Warning: health check inconclusive, checking pod status..."
-          kubectl get pods -n nebula-dns -l app.kubernetes.io/component=api
-          echo "API pods running"
-
-      - name: Generate deployment summary
-        run: |
-          echo "# Production Deployment" >> $GITHUB_STEP_SUMMARY
-          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Endpoints:** https://app.nebuladns.io | https://api.nebuladns.io | https://admin.nebuladns.io" >> $GITHUB_STEP_SUMMARY
+          echo "## Droplet deployment" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Commit:** \`${{ github.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "**API:** https://api.nebuladns.io/health" >> "$GITHUB_STEP_SUMMARY"
+          echo "**App (Vercel):** https://app.nebuladns.io" >> "$GITHUB_STEP_SUMMARY"
