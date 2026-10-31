@@ -1,8 +1,11 @@
-# Build a signed Flux Shield Agent MSI (WiX 3.x).
-# Signing: see Sign-Code.ps1 (PFX base64, Key Vault secret, or Azure Trusted Signing env vars).
+# Build Flux Shield Agent MSI on your Windows machine (signing happens locally).
 param(
   [string] $Version = "1.0.0",
+  [string] $PfxPath = $env:FLUXSHIELD_SIGN_PFX_PATH,
+  [string] $PfxPassword = $env:FLUXSHIELD_SIGN_PFX_PASSWORD,
+  [string] $CertThumbprint = $env:FLUXSHIELD_SIGN_CERT_THUMBPRINT,
   [switch] $SkipSign,
+  [switch] $RequireSign,
   [switch] $SkipGoBuild
 )
 
@@ -22,9 +25,28 @@ if (-not $SkipGoBuild) {
 $exe = Join-Path $dist "fluxshield-agent.exe"
 if (-not (Test-Path $exe)) { throw "Missing $exe" }
 
-$signArgs = @{ Path = @($exe) }
-if ($SkipSign) { $signArgs.SkipSign = $true }
-& (Join-Path $PSScriptRoot "Sign-Code.ps1") @signArgs
+function Invoke-FluxSign {
+  param([string[]] $Files)
+  if ($RequireSign -and -not $SkipSign) {
+    $hasCred = $PfxPath -or $CertThumbprint `
+      -or $env:FLUXSHIELD_SIGN_PFX_PATH -or $env:FLUXSHIELD_SIGN_CERT_THUMBPRINT `
+      -or $env:FLUXSHIELD_SIGN_PFX_BASE64
+    if (-not $hasCred) {
+      throw "RequireSign: pass -PfxPath or -CertThumbprint (or set FLUXSHIELD_SIGN_* env vars)"
+    }
+  }
+  $signParams = @{ Path = $Files }
+  if ($SkipSign) {
+    $signParams.SkipSign = $true
+  } else {
+    if ($PfxPath) { $signParams.PfxPath = $PfxPath }
+    if ($PfxPassword) { $signParams.PfxPassword = $PfxPassword }
+    if ($CertThumbprint) { $signParams.CertThumbprint = $CertThumbprint }
+  }
+  & (Join-Path $PSScriptRoot "Sign-Code.ps1") @signParams
+}
+
+Invoke-FluxSign -Files @($exe)
 
 if (-not (Get-Command candle.exe -ErrorAction SilentlyContinue)) {
   throw "WiX Toolset not found. Install: choco install wixtoolset -y"
@@ -47,9 +69,8 @@ Write-Host "Linking MSI..."
 & light.exe -nologo $obj -out $msi
 if ($LASTEXITCODE -ne 0) { throw "light failed" }
 
-$signMsi = @{ Path = @($msi) }
-if ($SkipSign) { $signMsi.SkipSign = $true }
-& (Join-Path $PSScriptRoot "Sign-Code.ps1") @signMsi
+Invoke-FluxSign -Files @($msi)
 
+Write-Host ""
 Write-Host "Built: $msi"
 Write-Host "Silent install: msiexec /i `"$msiName`" INSTALLTOKEN=<token> /qn"

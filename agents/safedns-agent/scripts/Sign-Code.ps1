@@ -7,6 +7,8 @@ param(
   [string] $PfxPath = $env:FLUXSHIELD_SIGN_PFX_PATH,
   [string] $PfxPassword = $env:FLUXSHIELD_SIGN_PFX_PASSWORD,
 
+  [string] $CertThumbprint = $env:FLUXSHIELD_SIGN_CERT_THUMBPRINT,
+
   [string] $PfxBase64 = $env:FLUXSHIELD_SIGN_PFX_BASE64,
 
   [string] $KeyVaultName = $env:AZURE_SIGNING_KEY_VAULT,
@@ -73,8 +75,24 @@ function Sign-WithPfx {
   foreach ($f in $Files) {
     if (-not (Test-Path $f)) { throw "Missing file to sign: $f" }
     Write-Host "Signing (PFX): $f"
-    & $signtool sign /f $Pfx /p $Password /fd sha256 /tr "http://timestamp.digicert.com" /td sha256 /d $Description /du $DescriptionUrl $f
+    if ($Password) {
+      & $signtool sign /f $Pfx /p $Password /fd sha256 /tr "http://timestamp.digicert.com" /td sha256 /d $Description /du $DescriptionUrl $f
+    } else {
+      & $signtool sign /f $Pfx /fd sha256 /tr "http://timestamp.digicert.com" /td sha256 /d $Description /du $DescriptionUrl $f
+    }
     if ($LASTEXITCODE -ne 0) { throw "signtool failed for $f" }
+  }
+}
+
+function Sign-WithThumbprint {
+  param([string[]] $Files, [string] $Thumbprint)
+  $signtool = Find-SignTool
+  $sha1 = ($Thumbprint -replace " ", "").ToUpperInvariant()
+  foreach ($f in $Files) {
+    if (-not (Test-Path $f)) { throw "Missing file to sign: $f" }
+    Write-Host "Signing (cert store SHA1 $sha1): $f"
+    & $signtool sign /sha1 $sha1 /fd sha256 /tr "http://timestamp.digicert.com" /td sha256 /d $Description /du $DescriptionUrl $f
+    if ($LASTEXITCODE -ne 0) { throw "signtool failed for $f (is the cert in LocalMachine\My with private key?)" }
   }
 }
 
@@ -115,6 +133,11 @@ function Sign-WithTrustedSigning {
 
 if ($SkipSign) {
   Write-Warning "SkipSign set — artifacts left unsigned"
+  exit 0
+}
+
+if ($CertThumbprint) {
+  Sign-WithThumbprint -Files $Path -Thumbprint $CertThumbprint
   exit 0
 }
 
