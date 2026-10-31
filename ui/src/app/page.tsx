@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { ThemeContext } from '@/contexts/ThemeContext'
 import { CSSStarField } from '@/components/StarField'
 import { SunIcon, MoonIcon } from '@heroicons/react/24/outline'
+import { ProductFooter } from '@/components/ui/ProductFooter'
 
 // Theme toggle button component
 function ThemeToggle() {
@@ -301,6 +302,8 @@ export default function LoginPage() {
               </div>
             </form>
           )}
+
+          <ProductFooter variant="auth" />
         </div>
       </div>
     </div>

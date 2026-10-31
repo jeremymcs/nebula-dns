@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { ThemeContext } from '@/contexts/ThemeContext'
 import { SunIcon, MoonIcon, ShieldCheckIcon } from '@heroicons/react/24/outline'
+import { ProductFooter } from '@/components/ProductFooter'
 
 /**
  * Theme toggle button for light/dark mode
@@ -264,6 +265,8 @@ export default function AdminLoginPage() {
           <p className="mt-8 text-xs text-center text-space-500 dark:text-space-400">
             This is a restricted area. Unauthorized access attempts are logged and monitored.
           </p>
+
+          <ProductFooter variant="auth" />
         </div>
       </div>
     </div>

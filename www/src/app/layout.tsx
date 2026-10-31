@@ -7,6 +7,13 @@ import Link from 'next/link'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { APP_URL } from '@/lib/config'
+import {
+  COPYRIGHT_HOLDER,
+  currentCopyrightYear,
+  FLUX_LABS_NAME,
+  FLUX_LABS_URL,
+  PRODUCT_NAME,
+} from '@/lib/branding'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -21,11 +28,25 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Nebula DNS — Enterprise DNS Security & Content Filtering',
-  description: 'Protect your organization from malware, phishing, and unwanted content at the DNS level. Easy to deploy, powerful to manage.',
+  metadataBase: new URL('https://www.nebuladns.io'),
+  title: {
+    default: `${PRODUCT_NAME} — Enterprise DNS Security & Content Filtering`,
+    template: `%s · ${PRODUCT_NAME}`,
+  },
+  description:
+    'Protect your organization from malware, phishing, and unwanted content at the DNS level. Easy to deploy, powerful to manage.',
+  applicationName: PRODUCT_NAME,
   icons: {
     icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
     apple: '/favicon.svg',
+  },
+  openGraph: {
+    siteName: PRODUCT_NAME,
+    title: `${PRODUCT_NAME} — Enterprise DNS Security`,
+    description:
+      'Protect your organization from malware, phishing, and unwanted content at the DNS layer.',
+    type: 'website',
+    url: 'https://www.nebuladns.io',
   },
 }
 
@@ -41,7 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <div className="flex justify-between items-center h-16">
 
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2.5 group">
+                <Link href="/" className="flex items-center gap-2.5 group" aria-label={PRODUCT_NAME}>
                   <div className="relative h-9 w-9 rounded-xl bg-gradient-to-br from-primary-600 to-accent-600 flex items-center justify-center shadow-glow group-hover:shadow-glow-lg transition-all">
                     {/* Nebula shield icon */}
                     <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -50,7 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary-500/20 to-accent-500/20 blur-sm -z-10" />
                   </div>
                   <span className="text-lg font-bold text-white tracking-tight">
-                    Nebula<span className="text-gradient ml-0.5">DNS</span>
+                    Nebula<span className="text-gradient ml-0.5"> DNS</span>
                   </span>
                 </Link>
 
@@ -113,7 +134,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                       </svg>
                     </div>
                     <span className="text-base font-bold text-white">
-                      Nebula<span className="text-gradient">DNS</span>
+                      Nebula<span className="text-gradient"> DNS</span>
                     </span>
                   </Link>
                   <p className="text-sm text-space-400 leading-relaxed max-w-xs">
@@ -194,7 +215,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
               {/* Footer bottom */}
               <div className="pt-8 border-t border-space-800 flex flex-col md:flex-row justify-between items-center gap-4">
-                <p className="text-sm text-space-500">© 2026 Nebula DNS. All rights reserved.</p>
+                <div className="text-center md:text-left space-y-1">
+                  <p className="text-sm text-space-500">
+                    © {currentCopyrightYear()} {COPYRIGHT_HOLDER}. {PRODUCT_NAME} is a product of {COPYRIGHT_HOLDER}.
+                  </p>
+                  <p className="text-xs text-space-500">
+                    Powered by{' '}
+                    <a
+                      href={FLUX_LABS_URL}
+                      className="text-space-400 hover:text-space-200 transition-colors underline-offset-2 hover:underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {FLUX_LABS_NAME}
+                    </a>
+                  </p>
+                </div>
                 <div className="flex items-center gap-6">
                   {[
                     { href: '/privacy', label: 'Privacy' },
