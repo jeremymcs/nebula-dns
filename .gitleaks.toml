@@ -69,6 +69,7 @@ paths = [
   '''yarn\.lock''',
   '''pnpm-lock\.yaml''',
   '''deploy/droplet/docker-compose\.yml''',
+  '''ui/scripts/start-api-for-e2e\.sh''',
 ]
 
 regexes = [
@@ -79,6 +80,8 @@ regexes = [
   '''(?i)fake[_-]?token''',
   # Known test values
   '''test-jwt-secret''',
+  '''test-jwt-secret-for-e2e-tests''',
+  '''JWT_SECRET:-test-jwt-secret-for-e2e-tests''',
   '''your-secret-key-here''',
   '''change-me''',
   '''placeholder''',

@@ -12,8 +12,8 @@ type TenantTier = 'home' | 'enterprise' | 'msp'
  */
 export async function login(page: Page, tier: TenantTier = 'enterprise') {
   await installBackendMocks(page, tier)
-  await page.goto('/login')
-  await page.evaluate(({ tier }) => {
+
+  await page.addInitScript(({ tier }) => {
     const tierConfig = {
       home: {
         id: 'home-tenant-1',
@@ -54,6 +54,8 @@ export async function login(page: Page, tier: TenantTier = 'enterprise') {
       clientLimit: tier === 'msp' ? null : undefined
     }))
   }, { tier })
+
+  await page.goto('/login', { waitUntil: 'domcontentloaded' })
 }
 
 /**
@@ -82,7 +84,15 @@ export async function loginAsMSP(page: Page) {
  */
 export async function loginAndNavigate(page: Page, path: string, tier: TenantTier = 'enterprise') {
   await login(page, tier)
-  await page.goto(path)
+  await page.goto(path, { waitUntil: 'domcontentloaded' })
+  await expectDashboardShell(page)
+}
+
+export async function expectDashboardShell(page: Page) {
+  const shell = page.locator(
+    'h1, h2, [role="heading"], [role="banner"], nav a[href="/dashboard"]',
+  )
+  await shell.first().waitFor({ state: 'visible', timeout: 20_000 })
 }
 
 /**
@@ -99,6 +109,6 @@ export async function logout(page: Page) {
  * Wait for page to be fully loaded with data
  */
 export async function waitForPageLoad(page: Page) {
-  // Wait for network to be idle
-  await page.waitForLoadState('networkidle')
+  await page.waitForLoadState('domcontentloaded')
+  await expectDashboardShell(page)
 }

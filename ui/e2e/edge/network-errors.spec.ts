@@ -9,8 +9,8 @@ test.describe('Network Errors - Timeout Handling', () => {
     await loginAndNavigate(page, '/dashboard')
 
     // Mock slow API response that times out
-    await page.route('**/backend/**/policies', async (route) => {
-      await new Promise(resolve => setTimeout(resolve, 60000)) // 60s timeout
+    await page.route('**/backend/policies**', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 5000))
       route.abort('timedout')
     })
 
@@ -42,7 +42,7 @@ test.describe('Network Errors - Timeout Handling', () => {
     const hasRetry = await retryButton.isVisible().catch(() => false)
 
     // Cleanup
-    await page.unroute('**/backend/**/policies')
+    await page.unroute('**/backend/policies**')
   })
 
   test('should show error when server is unreachable', async ({ page }) => {
