@@ -14,6 +14,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { FullPageLoading } from '@/components/LoadingSpinner'
 import { useAuth } from '@/contexts/AuthContext'
 import { Header, SessionWarningModal } from '@/components/layout'
+import { ProductFooter } from '@/components/ProductFooter'
 
 // Session warning appears 5 minutes before expiry
 const SESSION_WARNING_MINUTES = 5
@@ -129,7 +130,7 @@ export default function AuthenticatedLayout({
   }
 
   return (
-    <div className="min-h-screen bg-space-50 dark:bg-space-950">
+    <div className="min-h-screen bg-space-50 dark:bg-space-950 flex flex-col">
       {/* Session Warning Modal */}
       <SessionWarningModal
         isOpen={showWarningModal}
@@ -143,9 +144,11 @@ export default function AuthenticatedLayout({
       <Header />
 
       {/* Main Content */}
-      <main className="pb-20 lg:pb-0">
+      <main className="flex-1 pb-20 lg:pb-0">
         {children}
       </main>
+
+      <ProductFooter variant="dashboard" className="pb-6" />
     </div>
   )
 }

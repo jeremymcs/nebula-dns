@@ -23,13 +23,24 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Nebula DNS - Admin Dashboard',
-  description: 'Nebula DNS Control Plane - Enterprise DNS Security & Content Filtering',
+  metadataBase: new URL('https://app.nebuladns.io'),
+  title: {
+    default: 'Nebula DNS',
+    template: '%s · Nebula DNS',
+  },
+  description:
+    'Nebula DNS — enterprise DNS security, threat intelligence, and content filtering for your organization.',
+  applicationName: 'Nebula DNS',
   icons: {
-    icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-    ],
+    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
     apple: '/favicon.svg',
+  },
+  openGraph: {
+    siteName: 'Nebula DNS',
+    title: 'Nebula DNS',
+    description:
+      'Enterprise DNS security and content filtering. Protect your network at the DNS layer.',
+    type: 'website',
   },
 }
 

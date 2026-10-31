@@ -127,6 +127,7 @@ export class EmailService implements OnModuleInit {
   private readonly fromName: string;
   private readonly docsUrl: string;
   private readonly sendgridApiKey: string;
+  private readonly fluxLabsUrl = 'https://fluxlabs.net';
   private isConfigured = false;
 
   constructor(private configService: ConfigService) {
@@ -154,18 +155,54 @@ export class EmailService implements OnModuleInit {
     }
   }
 
+  private stripHtml(html: string): string {
+    return html
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<[^>]+>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  /** Appended to all transactional HTML emails for consistent legal/branding footer. */
+  private transactionalEmailFooterHtml(): string {
+    const year = new Date().getFullYear();
+    return `
+<div data-nebula-email-footer style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center;">
+  <p style="font-size: 12px; color: #9ca3af; margin: 0 0 6px 0;">Nebula DNS</p>
+  <p style="font-size: 11px; color: #9ca3af; margin: 0;">
+    © ${year} <a href="${this.fluxLabsUrl}" style="color: #6b7280; text-decoration: none;">Flux Labs</a>
+    · <a href="${this.fluxLabsUrl}" style="color: #6b7280; text-decoration: none;">Powered by Flux Labs</a>
+  </p>
+</div>`;
+  }
+
+  private appendTransactionalFooter(htmlContent: string): string {
+    if (htmlContent.includes('data-nebula-email-footer')) {
+      return htmlContent;
+    }
+    if (htmlContent.includes('</body>')) {
+      return htmlContent.replace(
+        '</body>',
+        `${this.transactionalEmailFooterHtml()}</body>`,
+      );
+    }
+    return `${htmlContent}${this.transactionalEmailFooterHtml()}`;
+  }
+
   private async sendEmail(
     to: string,
     subject: string,
     htmlContent: string,
     textContent?: string,
   ): Promise<boolean> {
+    const htmlWithFooter = this.appendTransactionalFooter(htmlContent);
+
     if (!this.isConfigured) {
       // Development mode - log the email
       this.logger.log(`[DEV] Email to: ${to}`);
       this.logger.log(`[DEV] Subject: ${subject}`);
       this.logger.log(
-        `[DEV] Content preview: ${(textContent || htmlContent).substring(0, 200)}...`,
+        `[DEV] Content preview: ${(textContent || htmlWithFooter).substring(0, 200)}...`,
       );
       return true;
     }
@@ -178,8 +215,8 @@ export class EmailService implements OnModuleInit {
           name: this.fromName,
         },
         subject,
-        text: textContent || this.stripHtml(htmlContent),
-        html: htmlContent,
+        text: textContent || this.stripHtml(htmlWithFooter),
+        html: htmlWithFooter,
       };
 
       await sgMail.send(msg);
@@ -192,14 +229,6 @@ export class EmailService implements OnModuleInit {
       );
       return false;
     }
-  }
-
-  private stripHtml(html: string): string {
-    return html
-      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-      .replace(/<[^>]+>/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
   }
 
   async sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean> {
@@ -1002,6 +1031,8 @@ Reset performed by: ${data.resetByEmail}
     attachmentBuffer: Buffer,
     filename: string,
   ): Promise<boolean> {
+    const htmlWithFooter = this.appendTransactionalFooter(htmlContent);
+
     if (!this.isConfigured) {
       this.logger.log(`[DEV] Email with attachment to: ${to}`);
       this.logger.log(`[DEV] Subject: ${subject}`);
@@ -1019,8 +1050,8 @@ Reset performed by: ${data.resetByEmail}
           name: this.fromName,
         },
         subject,
-        html: htmlContent,
-        text: this.stripHtml(htmlContent),
+        html: htmlWithFooter,
+        text: this.stripHtml(htmlWithFooter),
         attachments: [
           {
             content: attachmentBuffer.toString('base64'),

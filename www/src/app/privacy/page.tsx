@@ -325,7 +325,7 @@ export default function PrivacyPage() {
               </a>
             </p>
             <p className="text-space-300">
-              <strong className="text-white">Address:</strong> Nebula DNS, 123 Security Blvd, San Francisco, CA 94105
+              <strong className="text-white">Address:</strong> Flux Labs, Panama City Beach, FL 32407, United States
             </p>
           </div>
         </section>

@@ -22,6 +22,7 @@ import { SuspendedBanner } from '@/components/banners/SuspendedBanner'
 import { ImpersonationBanner } from '@/components/banners/ImpersonationBanner'
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus'
 import { useImpersonation } from '@/hooks/useImpersonation'
+import { ProductFooter } from '@/components/ui/ProductFooter'
 
 function Breadcrumbs() {
   const pathname = usePathname()
@@ -140,7 +141,7 @@ export function DashboardLayout({ children, showBreadcrumbs = true }: DashboardL
   return (
     <ErrorBoundary name="AppLayout" showReload>
       <CommandBarProvider>
-        <div className="min-h-screen bg-space-50 dark:bg-space-950">
+        <div className="min-h-screen bg-space-50 dark:bg-space-950 flex flex-col">
           {/* US-028: Grace Period Warning Banner */}
           {gracePeriodInfo?.subscriptionStatus === 'grace' && gracePeriodInfo.daysRemaining !== null && (
             <GracePeriodBanner
@@ -164,7 +165,7 @@ export function DashboardLayout({ children, showBreadcrumbs = true }: DashboardL
             <TopNav />
           </ErrorBoundary>
 
-          <main className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 pt-8 pb-20 lg:pb-12">
+          <main className="mx-auto max-w-[1600px] w-full flex-1 px-4 sm:px-6 lg:px-8 pt-8 pb-8 lg:pb-6">
             {showBreadcrumbs && <Breadcrumbs />}
             <AnimatePresence mode="wait">
               <motion.div
@@ -180,6 +181,8 @@ export function DashboardLayout({ children, showBreadcrumbs = true }: DashboardL
               </motion.div>
             </AnimatePresence>
           </main>
+
+          <ProductFooter variant="dashboard" className="pb-20 lg:pb-6" />
 
           <ErrorBoundary name="MobileNav">
             <MobileNav />
