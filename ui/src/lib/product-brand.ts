@@ -11,18 +11,16 @@ export const PRODUCT_WORDMARK = {
   accent: 'Shield',
 } as const
 
-/** Full legal/marketing lockup. */
-export const PRODUCT_LOCKUP = 'Flux Shield by Flux Labs' as const
-
-export const PRODUCT_TAGLINE = 'Security platform by Flux Labs' as const
+/** Optional subtitle under the logo (no company name). */
+export const PRODUCT_TAGLINE = 'Modular security platform' as const
 
 export const PRODUCT_LOGIN_HERO_ACCENT = 'Enterprise DNS filtering' as const
 
 export const PRODUCT_META_DESCRIPTION =
-  'Flux Shield — modular security platform. DNS Filter for threat blocking and content filtering; more modules coming soon.' as const
+  'Modular security platform with DNS Filter for threat blocking, content filtering, and analytics.' as const
 
 export const PRODUCT_MARKETING_TAGLINE =
-  'Modular security platform — DNS Filter today, DMARC next' as const
+  'DNS Filter today — more modules on the roadmap' as const
 
 /** Platform modules (nav / IA). */
 export const PRODUCT_MODULE_DNS_FILTER = 'DNS Filter' as const

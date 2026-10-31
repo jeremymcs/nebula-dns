@@ -2,7 +2,6 @@
 
 import {
   ADMIN_PORTAL_NAME,
-  PRODUCT_LOCKUP,
   PRODUCT_META_DESCRIPTION,
   PRODUCT_NAME,
   PRODUCT_TAGLINE,
@@ -11,7 +10,6 @@ import {
 
 export {
   ADMIN_PORTAL_NAME,
-  PRODUCT_LOCKUP,
   PRODUCT_META_DESCRIPTION,
   PRODUCT_NAME,
   PRODUCT_TAGLINE,
@@ -21,7 +19,6 @@ export {
 export const FLUX_LABS_NAME = 'Flux Labs' as const
 export const FLUX_LABS_URL = 'https://fluxlabs.net' as const
 export const FLUX_LABS_LOCATION = 'Panama City Beach, FL' as const
-export const COPYRIGHT_HOLDER = FLUX_LABS_NAME
 
 export function currentCopyrightYear(): number {
   return new Date().getFullYear()
