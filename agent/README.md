@@ -10,6 +10,11 @@ Domain-joined machines use a **local stub resolver on 127.0.0.1** with zone-base
 
 ```powershell
 fluxshield-agent.exe install --token "<installation-token-from-app>"
+# or: .\scripts\install.ps1 -Token "<token>"
 ```
+
+- Device secret + DoH token: **DPAPI LOCAL_MACHINE** under `%ProgramData%\FluxShield\credentials\` (not in `config.json`).
+- Emergency restore: `fluxshield-agent.exe recover-dns`
+- Full notes: [INSTALL-WINDOWS.md](../agents/safedns-agent/docs/INSTALL-WINDOWS.md)
 
 Generate the token from **Dashboard → Agents → Download** (optionally link a location for site IP updater + internal DNS zones).
