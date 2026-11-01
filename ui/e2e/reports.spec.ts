@@ -3,6 +3,7 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAndNavigate, waitForPageLoad } from './helpers/auth'
+import { pageHeading } from './helpers/selectors'
 
 test.describe('Reports - Main Page', () => {
   test.beforeEach(async ({ page }) => {
@@ -12,7 +13,7 @@ test.describe('Reports - Main Page', () => {
 
   test('should display reports page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/reports/)
-    await expect(page.getByRole('heading', { name: /reports|analytics/i })).toBeVisible()
+    await expect(pageHeading(page, /reports & analytics/i)).toBeVisible()
   })
 
   test('should display query metrics', async ({ page }) => {
@@ -259,7 +260,7 @@ test.describe('Reports - Scheduled Reports', () => {
     await loginAndNavigate(page, '/dashboard/reports/scheduled')
     await waitForPageLoad(page)
 
-    await expect(page.getByRole('heading', { name: /scheduled reports/i })).toBeVisible()
+    await expect(pageHeading(page, /scheduled reports/i)).toBeVisible()
   })
 
   test('should list existing scheduled reports', async ({ page }) => {

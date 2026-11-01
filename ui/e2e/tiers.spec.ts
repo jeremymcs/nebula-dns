@@ -397,7 +397,7 @@ test.describe('US-037: MSP Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/msp\/templates/)
-    await expect(pageHeading(page, /^templates$/i)).toBeVisible()
+    await expect(pageHeading(page, /policy templates/i)).toBeVisible()
   })
 
   test('should access MSP Cross-Client Reporting', async ({ page }) => {

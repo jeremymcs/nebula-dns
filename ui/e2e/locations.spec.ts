@@ -3,7 +3,7 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAndNavigate, waitForPageLoad } from './helpers/auth'
-import { pageHeading } from './helpers/selectors'
+import { pageHeading, addZoneButton, zoneNameInput } from './helpers/selectors'
 
 test.describe('Locations - List View', () => {
   test.beforeEach(async ({ page }) => {
@@ -13,7 +13,7 @@ test.describe('Locations - List View', () => {
 
   test('should display locations page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/locations/)
-    await expect(pageHeading(page, /protection zones|zones/i)).toBeVisible()
+    await expect(pageHeading(page, /protection zones/i)).toBeVisible()
   })
 
   test('should display locations list', async ({ page }) => {
@@ -25,14 +25,13 @@ test.describe('Locations - List View', () => {
       await expect(locationsList).toBeVisible()
     } else {
       // Check for empty state
-      const emptyState = page.getByText(/no locations|add your first location/i)
-      await expect(emptyState).toBeVisible()
+      const emptyState = page.getByText(/no locations yet|no matching zones|zones/i)
+      await expect(emptyState.first()).toBeVisible()
     }
   })
 
   test('should have add location button', async ({ page }) => {
-    const addButton = page.getByRole('button', { name: /add location|new location|create location/i })
-    await expect(addButton).toBeVisible()
+    await expect(addZoneButton(page)).toBeVisible()
   })
 
   test('should show location details in table', async ({ page }) => {
@@ -77,20 +76,18 @@ test.describe('Locations - Create New Location', () => {
   })
 
   test('should open create location modal/form', async ({ page }) => {
-    const addButton = page.getByRole('button', { name: /add location|new location|create location/i })
-    await addButton.click()
+    await addZoneButton(page).click()
 
     // Should show form with location name input
-    const nameInput = page.getByLabel(/location name|name/i).or(page.getByPlaceholder(/location name/i)).first()
+    const nameInput = zoneNameInput(page)
     await expect(nameInput).toBeVisible({ timeout: 5000 })
   })
 
   test('should create new location with basic details', async ({ page }) => {
-    const addButton = page.getByRole('button', { name: /add location|new location|create location/i })
-    await addButton.click()
+    await addZoneButton(page).click()
 
     // Fill location name
-    const nameInput = page.getByLabel(/location name|name/i).or(page.getByPlaceholder(/location name/i)).first()
+    const nameInput = zoneNameInput(page)
     await nameInput.fill('E2E Test Office')
 
     // Fill description if available
@@ -116,8 +113,7 @@ test.describe('Locations - Create New Location', () => {
   })
 
   test('should validate required fields', async ({ page }) => {
-    const addButton = page.getByRole('button', { name: /add location|new location|create location/i })
-    await addButton.click()
+    await addZoneButton(page).click()
 
     // Try to submit without required fields
     const submitButton = page.getByRole('button', { name: /create|add|save/i }).last()
@@ -129,8 +125,7 @@ test.describe('Locations - Create New Location', () => {
   })
 
   test('should select location type if available', async ({ page }) => {
-    const addButton = page.getByRole('button', { name: /add location|new location|create location/i })
-    await addButton.click()
+    await addZoneButton(page).click()
 
     // Look for location type selection (office, home, datacenter, etc.)
     const typeSelector = page.getByLabel(/location type|type/i)

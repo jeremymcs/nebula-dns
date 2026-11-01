@@ -91,9 +91,9 @@ export function getMockResponse(rawUrl, method = 'GET', authHeader = '') {
   }
 
   const tier =
-    authHeader.includes('home') || pathname.includes('home-tenant')
+    authHeader.includes('home') || pathname.includes('home-tenant') || authHeader.includes('e2e-home')
       ? 'home'
-      : authHeader.includes('msp') || pathname.includes('msp-tenant')
+      : authHeader.includes('msp') || pathname.includes('msp-tenant') || authHeader.includes('e2e-msp')
         ? 'msp'
         : 'enterprise'
 

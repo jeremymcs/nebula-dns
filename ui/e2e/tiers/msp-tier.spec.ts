@@ -133,7 +133,7 @@ test.describe('US-037: MSP Tier Template Library', () => {
     await waitForPageLoad(page)
     
     await expect(page).toHaveURL(/\/dashboard\/msp\/templates/)
-    await expect(pageHeading(page, /^templates$/i)).toBeVisible()
+    await expect(pageHeading(page, /policy templates/i)).toBeVisible()
   })
 
   test('can view available templates', async ({ page }) => {

@@ -3,6 +3,7 @@
 
 import { test, expect, devices } from '@playwright/test'
 import { loginAndNavigate, waitForPageLoad } from './helpers/auth'
+import { loginHeading, pageHeading } from './helpers/selectors'
 
 test.describe('Responsive Design - Mobile (375x667)', () => {
   test.beforeEach(async ({ page }) => {
@@ -10,46 +11,26 @@ test.describe('Responsive Design - Mobile (375x667)', () => {
   })
 
   test('should display login page on mobile', async ({ page }) => {
-    await page.goto('/login')
-    await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible()
-    await expect(page.getByLabel(/email/i)).toBeVisible()
-    await expect(page.getByLabel(/password/i)).toBeVisible()
+    await page.goto('/')
+    await expect(loginHeading(page)).toBeVisible()
+    await expect(page.getByLabel(/email address/i)).toBeVisible()
+    await expect(page.getByLabel(/^password$/i)).toBeVisible()
   })
 
   test('should display dashboard on mobile', async ({ page }) => {
     await loginAndNavigate(page, '/dashboard')
     await waitForPageLoad(page)
 
-    await expect(page.getByRole('heading', { name: /mission control|dashboard/i })).toBeVisible()
+    await expect(pageHeading(page, /^dashboard$/i)).toBeVisible()
   })
 
   test('should show mobile navigation menu', async ({ page }) => {
     await loginAndNavigate(page, '/dashboard')
     await waitForPageLoad(page)
 
-    // Look for hamburger menu or mobile nav button
-    const menuButton = page.getByRole('button', { name: /menu|navigation|open menu/i }).or(
-      page.locator('button[aria-label*="menu"]')
-    )
-
-    const hasMenuButton = await menuButton.isVisible().catch(() => false)
-
-    if (hasMenuButton) {
-      await expect(menuButton).toBeVisible()
-
-      // Click to open menu
-      await menuButton.click()
-
-      // Navigation should be visible
-      const nav = page.getByRole('navigation')
-      await expect(nav).toBeVisible()
-    } else {
-      // Navigation might always be visible
-      const nav = page.getByRole('navigation')
-      if (await nav.isVisible()) {
-        await expect(nav).toBeVisible()
-      }
-    }
+    await page.getByRole('button', { name: 'Open navigation menu' }).click()
+    await expect(page.getByRole('dialog', { name: 'Navigation menu' })).toBeVisible()
+    await expect(page.getByRole('link', { name: /^policies$/i }).first()).toBeVisible()
   })
 
   test('should stack stats cards vertically on mobile', async ({ page }) => {
@@ -159,15 +140,15 @@ test.describe('Responsive Design - Tablet (768x1024)', () => {
   })
 
   test('should display login page on tablet', async ({ page }) => {
-    await page.goto('/login')
-    await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible()
+    await page.goto('/')
+    await expect(loginHeading(page)).toBeVisible()
   })
 
   test('should display dashboard on tablet', async ({ page }) => {
     await loginAndNavigate(page, '/dashboard')
     await waitForPageLoad(page)
 
-    await expect(page.getByRole('heading', { name: /mission control|dashboard/i })).toBeVisible()
+    await expect(pageHeading(page, /^dashboard$/i)).toBeVisible()
   })
 
   test('should show sidebar navigation on tablet', async ({ page }) => {
@@ -240,15 +221,15 @@ test.describe('Responsive Design - Desktop (1920x1080)', () => {
   })
 
   test('should display login page on desktop', async ({ page }) => {
-    await page.goto('/login')
-    await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible()
+    await page.goto('/')
+    await expect(loginHeading(page)).toBeVisible()
   })
 
   test('should display dashboard on desktop', async ({ page }) => {
     await loginAndNavigate(page, '/dashboard')
     await waitForPageLoad(page)
 
-    await expect(page.getByRole('heading', { name: /mission control|dashboard/i })).toBeVisible()
+    await expect(pageHeading(page, /^dashboard$/i)).toBeVisible()
   })
 
   test('should show full sidebar on desktop', async ({ page }) => {
@@ -334,7 +315,7 @@ test.describe('Responsive Design - Touch Interactions', () => {
   })
 
   test('should support touch interactions', async ({ page }) => {
-    await page.goto('/login')
+    await page.goto('/')
 
     const emailInput = page.getByLabel(/email/i)
     await emailInput.tap()
@@ -360,14 +341,14 @@ test.describe('Responsive Design - Orientation Changes', () => {
     await loginAndNavigate(page, '/dashboard')
     await waitForPageLoad(page)
 
-    await expect(page.getByRole('heading', { name: /mission control|dashboard/i })).toBeVisible()
+    await expect(pageHeading(page, /^dashboard$/i)).toBeVisible()
 
     // Switch to landscape
     await page.setViewportSize({ width: 667, height: 375 })
     await page.waitForTimeout(500)
 
     // Dashboard should still be visible and functional
-    await expect(page.getByRole('heading', { name: /mission control|dashboard/i })).toBeVisible()
+    await expect(pageHeading(page, /^dashboard$/i)).toBeVisible()
   })
 
   test('should handle landscape to portrait on tablet', async ({ page }) => {
@@ -376,19 +357,19 @@ test.describe('Responsive Design - Orientation Changes', () => {
     await loginAndNavigate(page, '/dashboard')
     await waitForPageLoad(page)
 
-    await expect(page.getByRole('heading', { name: /mission control|dashboard/i })).toBeVisible()
+    await expect(pageHeading(page, /^dashboard$/i)).toBeVisible()
 
     // Switch to portrait
     await page.setViewportSize({ width: 768, height: 1024 })
     await page.waitForTimeout(500)
 
-    await expect(page.getByRole('heading', { name: /mission control|dashboard/i })).toBeVisible()
+    await expect(pageHeading(page, /^dashboard$/i)).toBeVisible()
   })
 })
 
 test.describe('Responsive Design - Text Scaling', () => {
   test('should handle increased font size', async ({ page }) => {
-    await page.goto('/login')
+    await page.goto('/')
 
     // Simulate increased text size (accessibility)
     await page.addStyleTag({
@@ -396,7 +377,7 @@ test.describe('Responsive Design - Text Scaling', () => {
     })
 
     // Page should still be usable
-    await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible()
+    await expect(loginHeading(page)).toBeVisible()
     await expect(page.getByLabel(/email/i)).toBeVisible()
   })
 })

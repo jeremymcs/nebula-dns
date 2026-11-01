@@ -18,12 +18,11 @@ test.describe('MSP Client Management', () => {
     
     // Verify client table/list is present
     const clientTable = page.locator('table')
-    if (await clientTable.isVisible()) {
-      await expect(clientTable).toBeVisible()
-      
-      // Check for table headers
-      await expect(page.getByText(/name|domain|status|created/i)).toBeVisible()
-    }
+    const clientCards = page.locator('[class*="grid"], [class*="card"]').filter({ hasText: /client/i })
+    const hasTable = await clientTable.isVisible().catch(() => false)
+    const hasCards = (await clientCards.count()) > 0
+    expect(hasTable || hasCards).toBeTruthy()
+    await expect(page.getByText(/acme corp/i)).toBeVisible({ timeout: 10000 })
   })
 
   test('should add new client', async ({ page }) => {

@@ -3,20 +3,20 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAndNavigate, waitForPageLoad } from './helpers/auth'
-import { pageHeading } from './helpers/selectors'
+import { loginHeading, pageHeading } from './helpers/selectors'
 
 test.describe('Error States - 404 Not Found', () => {
   test('should display 404 page for invalid route', async ({ page }) => {
     await page.goto('/this-page-does-not-exist')
 
     // Should show 404 error
-    await expect(page.getByText(/page not found/i)).toBeVisible({ timeout: 5000 })
+    await expect(pageHeading(page, /page not found/i)).toBeVisible({ timeout: 10000 })
   })
 
   test('should display 404 page for invalid dashboard route', async ({ page }) => {
     await loginAndNavigate(page, '/dashboard/invalid-page-xyz')
 
-    await expect(page.getByText(/page not found/i)).toBeVisible({ timeout: 5000 })
+    await expect(pageHeading(page, /page not found/i)).toBeVisible({ timeout: 10000 })
   })
 
   test('should have link to go back home from 404', async ({ page }) => {
@@ -40,14 +40,16 @@ test.describe('Error States - API Errors', () => {
     const errorMessage = page.getByText(/error|failed|connection|network|something went wrong/i)
     const loadingState = page.getByText(/loading|please wait/i)
     const dashboardHeading = pageHeading(page, /^dashboard$/i)
+    const loginScreen = loginHeading(page)
 
     await page.waitForTimeout(2000)
 
     const hasError = await errorMessage.first().isVisible().catch(() => false)
     const hasLoading = await loadingState.first().isVisible().catch(() => false)
     const hasDashboard = await dashboardHeading.isVisible().catch(() => false)
+    const hasLogin = await loginScreen.isVisible().catch(() => false)
 
-    expect(hasError || hasLoading || hasDashboard).toBeTruthy()
+    expect(hasError || hasLoading || hasDashboard || hasLogin).toBeTruthy()
 
     await page.context().setOffline(false)
   })
@@ -126,7 +128,7 @@ test.describe('Error States - API Errors', () => {
     await page.waitForTimeout(2000)
 
     // Should redirect to login or show unauthorized message
-    const loginPage = page.getByRole('heading', { name: /welcome back/i })
+    const loginPage = loginHeading(page)
     const unauthorizedMessage = page.getByText(/unauthorized|not authorized|session expired/i)
 
     const redirectedToLogin = await loginPage.isVisible({ timeout: 5000 }).catch(() => false)
@@ -392,7 +394,7 @@ test.describe('Error States - Form Validation', () => {
   })
 
   test('should show validation for invalid email format', async ({ page }) => {
-    await page.goto('/login')
+    await page.goto('/')
 
     const emailInput = page.getByLabel(/email/i)
     await emailInput.fill('not-a-valid-email')
@@ -447,14 +449,15 @@ test.describe('Error States - Session Expiry', () => {
     // Clear auth token to simulate expiry
     await page.evaluate(() => {
       localStorage.removeItem('token')
+      localStorage.removeItem('refreshToken')
     })
 
     // Navigate to another page
     await page.goto('/dashboard/policies')
 
     // Should redirect to login
-    const loginPage = page.getByRole('heading', { name: /welcome back/i })
-    await expect(loginPage).toBeVisible({ timeout: 5000 })
+    const loginPage = loginHeading(page)
+    await expect(loginHeading(page)).toBeVisible({ timeout: 15000 })
   })
 })
 

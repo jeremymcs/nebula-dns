@@ -3,6 +3,7 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAndNavigate, waitForPageLoad } from '../helpers/auth'
+import { pageHeading } from '../helpers/selectors'
 
 test.describe('SIEM Integration', () => {
   test.beforeEach(async ({ page }) => {
@@ -11,14 +12,8 @@ test.describe('SIEM Integration', () => {
   })
 
   test('should display SIEM section in integrations', async ({ page }) => {
-    // Look for SIEM section
-    const siemSection = page.getByText(/siem|security.*information|security.*event/i)
-    const siemLink = page.getByRole('link', { name: /siem|security.*information/i })
-    
-    const sectionVisible = await siemSection.isVisible().catch(() => false)
-    const linkVisible = await siemLink.isVisible().catch(() => false)
-    
-    expect(sectionVisible || linkVisible).toBeTruthy()
+    await expect(pageHeading(page, /^integrations$/i)).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/splunk siem/i)).toBeVisible({ timeout: 10000 })
   })
 
   test('should navigate to SIEM configuration page', async ({ page }) => {

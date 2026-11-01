@@ -3,26 +3,19 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAsMSP, waitForPageLoad } from '../helpers/auth'
+import { pageHeading } from '../helpers/selectors'
 
 test.describe('MSP Policy Templates', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsMSP(page)
-    await page.goto('/dashboard/templates')
+    await page.goto('/dashboard/msp/templates')
     await waitForPageLoad(page)
   })
 
   test('should view template library', async ({ page }) => {
-    await expect(page).toHaveURL(/\/dashboard\/templates/)
-    await expect(page.getByRole('heading', { name: /templates?|template (library|list)/i })).toBeVisible()
-    
-    // Verify templates are displayed
-    const templateList = page.locator('[class*="template"], table')
-    if (await templateList.isVisible()) {
-      await expect(templateList).toBeVisible()
-      
-      // Check for template columns/headers
-      await expect(page.getByText(/name|description|category|type/i)).toBeVisible()
-    }
+    await expect(page).toHaveURL(/\/dashboard\/msp\/templates/)
+    await expect(pageHeading(page, /policy templates/i)).toBeVisible()
+    await expect(page.getByText(/baseline security/i)).toBeVisible({ timeout: 15000 })
   })
 
   test('should create new template', async ({ page }) => {

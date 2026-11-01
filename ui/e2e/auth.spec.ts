@@ -2,12 +2,13 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import { test, expect } from '@playwright/test'
+import { loginHeading } from './helpers/selectors'
 import { installBackendMocks } from './helpers/mock-backend'
 
 test.describe('Authentication', () => {
   test('should display login page', async ({ page }) => {
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible()
+    await expect(loginHeading(page)).toBeVisible()
     await expect(page.getByLabel(/email address/i)).toBeVisible()
     await expect(page.getByLabel(/^password$/i)).toBeVisible()
   })
@@ -25,7 +26,7 @@ test.describe('Authentication', () => {
   test('should redirect to login when accessing protected route', async ({ page }) => {
     await page.goto('/dashboard')
     await expect(page).toHaveURL('/')
-    await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible()
+    await expect(loginHeading(page)).toBeVisible()
   })
 
   test.skip('should navigate to forgot password', async ({ page }) => {

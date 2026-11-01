@@ -3,6 +3,7 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAndNavigate, waitForPageLoad } from './helpers/auth'
+import { pageHeading } from './helpers/selectors'
 
 test.describe('Settings - Main Page', () => {
   test.beforeEach(async ({ page }) => {
@@ -12,7 +13,7 @@ test.describe('Settings - Main Page', () => {
 
   test('should display settings page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/settings/)
-    await expect(page.getByRole('heading', { name: /settings|account settings/i })).toBeVisible()
+    await expect(pageHeading(page, /^settings$/i)).toBeVisible()
   })
 
   test('should show settings navigation', async ({ page }) => {
@@ -42,7 +43,7 @@ test.describe('Settings - Security', () => {
 
   test('should display security settings page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/settings\/security/)
-    await expect(page.getByRole('heading', { name: /security/i })).toBeVisible()
+    await expect(pageHeading(page, /^security$/i)).toBeVisible()
   })
 
   test('should show MFA toggle', async ({ page }) => {
@@ -138,7 +139,7 @@ test.describe('Settings - Team Management', () => {
 
   test('should display team page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/settings\/team/)
-    await expect(page.getByRole('heading', { name: /team|team members|users/i })).toBeVisible()
+    await expect(pageHeading(page, /team|users/i)).toBeVisible()
   })
 
   test('should list team members', async ({ page }) => {
@@ -265,7 +266,7 @@ test.describe('Settings - API Keys', () => {
 
   test('should display API keys page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/settings\/api-keys/)
-    await expect(page.getByRole('heading', { name: /api keys/i })).toBeVisible()
+    await expect(pageHeading(page, /api keys/i)).toBeVisible()
   })
 
   test('should list existing API keys', async ({ page }) => {

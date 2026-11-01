@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import { test, expect } from '@playwright/test'
-import { pageHeading } from './helpers/selectors'
+import { pageHeading, loginHeading } from './helpers/selectors'
 
 test.describe('Public Navigation', () => {
   test('should load the home page', async ({ page }) => {
@@ -12,7 +12,7 @@ test.describe('Public Navigation', () => {
 
   test('should have working login link', async ({ page }) => {
     await page.goto('/')
-    await expect(pageHeading(page, /welcome back/i)).toBeVisible()
+    await expect(loginHeading(page)).toBeVisible()
   })
 })
 
@@ -27,12 +27,12 @@ test.describe('Responsive Design', () => {
   test('should be responsive on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 })
     await page.goto('/')
-    await expect(pageHeading(page, /welcome back/i)).toBeVisible()
+    await expect(loginHeading(page)).toBeVisible()
   })
 
   test('should be responsive on tablet', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 })
     await page.goto('/')
-    await expect(pageHeading(page, /welcome back/i)).toBeVisible()
+    await expect(loginHeading(page)).toBeVisible()
   })
 })

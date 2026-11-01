@@ -5,6 +5,7 @@
 import { test, expect } from '@playwright/test'
 import { loginAsEnterprise, loginAsMSP, waitForPageLoad } from '../helpers/auth'
 import { SKIP_STRIPE_BILLING } from '../helpers/launch-features'
+import { billingTab } from '../helpers/selectors'
 
 test.describe.skip(`US-037: Invoice Management — ${SKIP_STRIPE_BILLING}`, () => {
   test.beforeEach(async ({ page }) => {
@@ -13,7 +14,7 @@ test.describe.skip(`US-037: Invoice Management — ${SKIP_STRIPE_BILLING}`, () =
     await waitForPageLoad(page)
     
     // Navigate to invoices section
-    const invoicesTab = page.getByRole('tab', { name: /invoices|billing history/i })
+    const invoicesTab = billingTab(page, /invoices/i)
     if (await invoicesTab.isVisible()) {
       await invoicesTab.click()
       await waitForPageLoad(page)
@@ -143,7 +144,7 @@ test.describe('US-037: Invoice - MSP Tier', () => {
 
   test('MSP tier sees aggregated invoices', async ({ page }) => {
     // Navigate to invoices
-    const invoicesTab = page.getByRole('tab', { name: /invoices/i })
+    const invoicesTab = billingTab(page, /invoices/i)
     if (await invoicesTab.isVisible()) {
       await invoicesTab.click()
       await waitForPageLoad(page)
@@ -155,7 +156,7 @@ test.describe('US-037: Invoice - MSP Tier', () => {
   })
 
   test('MSP tier can download invoices', async ({ page }) => {
-    const invoicesTab = page.getByRole('tab', { name: /invoices/i })
+    const invoicesTab = billingTab(page, /invoices/i)
     if (await invoicesTab.isVisible()) {
       await invoicesTab.click()
       await waitForPageLoad(page)

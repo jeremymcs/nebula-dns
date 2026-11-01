@@ -37,7 +37,8 @@ export async function login(page: Page, tier: TenantTier = 'enterprise') {
 
     const config = tierConfig[tier]
 
-    localStorage.setItem('token', 'test-token-for-e2e')
+    localStorage.setItem('token', `test-token-for-e2e-${tier}`)
+    localStorage.setItem('refreshToken', 'test-refresh-for-e2e')
     localStorage.setItem('user', JSON.stringify({
       id: `user-${tier}-1`,
       email: config.email,
@@ -56,7 +57,8 @@ export async function login(page: Page, tier: TenantTier = 'enterprise') {
     }))
   }, { tier })
 
-  await page.goto('/', { waitUntil: 'domcontentloaded' })
+  await page.goto('/dashboard', { waitUntil: 'domcontentloaded' })
+  await expectDashboardShell(page)
 }
 
 /**
@@ -90,12 +92,11 @@ export async function loginAndNavigate(page: Page, path: string, tier: TenantTie
 }
 
 export async function expectDashboardShell(page: Page) {
-  const dashboardNav = page.getByRole('link', { name: /^dashboard$/i })
-  const appBrand = page.getByRole('link', { name: /flux shield/i })
-  await Promise.race([
-    dashboardNav.waitFor({ state: 'visible', timeout: 20_000 }),
-    appBrand.waitFor({ state: 'visible', timeout: 20_000 }),
-  ])
+  const shell = page
+    .getByRole('link', { name: /flux shield/i })
+    .or(page.getByRole('heading', { level: 1, name: /^dashboard$/i }))
+    .or(page.locator('a[href="/dashboard"]').first())
+  await shell.first().waitFor({ state: 'visible', timeout: 20_000 })
 }
 
 /**
