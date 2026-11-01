@@ -44,7 +44,7 @@ describe('AppController (e2e)', () => {
     it('/health/ready (GET) - should return readiness', () => {
       return e2eRequest(app.getHttpServer())
         .get('/health/ready')
-        .expect((res) => {
+        .expect((res: any) => {
           expect([200, 503]).toContain(res.status);
           expect(res.body).toHaveProperty('ready');
         });

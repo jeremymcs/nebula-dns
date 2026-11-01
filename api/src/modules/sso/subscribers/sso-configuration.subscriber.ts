@@ -7,7 +7,7 @@ import {
   InsertEvent,
   UpdateEvent,
 } from 'typeorm';
-import { SsoConfiguration } from './entities/sso-configuration.entity';
+import { SsoConfiguration } from '../entities/sso-configuration.entity';
 
 @EventSubscriber()
 export class SsoConfigurationSubscriber

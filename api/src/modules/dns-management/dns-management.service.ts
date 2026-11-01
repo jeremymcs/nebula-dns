@@ -596,7 +596,11 @@ export class DnsManagementService {
   }
 
   private tokenFingerprint(token: string): string {
-    return crypto.createHash('sha256').update(token).digest('hex').slice(0, 16);
+    return crypto
+      .createHmac('sha256', this.encryptionKey)
+      .update(token)
+      .digest('hex')
+      .slice(0, 16);
   }
 
   private toConnectionDto(
