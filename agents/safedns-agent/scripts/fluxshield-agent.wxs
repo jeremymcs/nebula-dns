@@ -36,30 +36,18 @@
       <ComponentRef Id="AgentExe" />
     </Feature>
 
-    <Binary Id="WixCA" SourceFile="$(var.WixCAPath)" />
-
-    <!-- Enroll + install Windows service (deferred, elevated) -->
-    <SetProperty Id="EnrollAgent"
-                 Before="EnrollAgent"
-                 Sequence="execute"
-                 Value="&quot;[#FluxShieldAgentExe]&quot; install --token [INSTALLTOKEN] --roles &quot;[INSTALLROLES]&quot;" />
-
+    <!-- Commit-phase CA: can read INSTALLTOKEN (deferred/WixQuietExec needs WixCA.dll) -->
     <CustomAction Id="EnrollAgent"
-                  BinaryKey="WixCA"
-                  DllEntry="WixQuietExec64"
-                  Execute="deferred"
+                  FileKey="FluxShieldAgentExe"
+                  ExeCommand="install --token [INSTALLTOKEN] --roles &quot;[INSTALLROLES]&quot;"
+                  Execute="commit"
                   Impersonate="no"
                   Return="check" />
 
-    <SetProperty Id="UninstallAgent"
-                 Before="UninstallAgent"
-                 Sequence="execute"
-                 Value="&quot;[#FluxShieldAgentExe]&quot; uninstall" />
-
     <CustomAction Id="UninstallAgent"
-                  BinaryKey="WixCA"
-                  DllEntry="WixQuietExec64"
-                  Execute="deferred"
+                  FileKey="FluxShieldAgentExe"
+                  ExeCommand="uninstall"
+                  Execute="commit"
                   Impersonate="no"
                   Return="ignore" />
 
