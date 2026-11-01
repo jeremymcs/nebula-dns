@@ -128,8 +128,10 @@ async function installUiMocks(page) {
     if (url.includes('/reports/blocks-by-category')) {
       await route.fulfill(
         json([
-          { category: 'Malware', count: 520, percentage: 42 },
-          { category: 'Phishing', count: 310, percentage: 25 },
+          { category: 'Malware', count: 1247, percentage: 42 },
+          { category: 'Phishing', count: 892, percentage: 30 },
+          { category: 'Gambling', count: 567, percentage: 19 },
+          { category: 'Adult', count: 310, percentage: 9 },
         ]),
       )
       return
@@ -285,6 +287,37 @@ async function installAdminMocks(page) {
       await route.fulfill(json({ data: [], pagination: { cursor: null, hasMore: false } }))
       return
     }
+    if (url.includes('/admin/system/errors')) {
+      await route.fulfill(json([]))
+      return
+    }
+    if (url.includes('/admin/system/certificates')) {
+      await route.fulfill(
+        json({
+          certificates: [],
+          checkedAt: new Date().toISOString(),
+        }),
+      )
+      return
+    }
+    if (url.includes('/admin/tenants')) {
+      await route.fulfill(
+        json({
+          data: [
+            {
+              id: 'tenant-1',
+              name: 'Acme Corp',
+              slug: 'acme',
+              tier: 'enterprise',
+              status: 'active',
+              createdAt: new Date().toISOString(),
+            },
+          ],
+          pagination: { cursor: null, hasMore: false },
+        }),
+      )
+      return
+    }
     await route.fulfill(json({ data: [], pagination: { cursor: null, hasMore: false } }))
   })
 }
@@ -342,7 +375,9 @@ async function main() {
 
   await shot(page, 'ui-dashboard.png', `${UI_BASE}/dashboard`, '[data-flux-dashboard]')
   await shot(page, 'ui-policies.png', `${UI_BASE}/dashboard/policies`, '[data-flux-app-shell]')
+  await shot(page, 'ui-investigate.png', `${UI_BASE}/dashboard/investigate`, '[data-flux-app-shell]')
   await shot(page, 'ui-reports.png', `${UI_BASE}/dashboard/reports`, '[data-flux-app-shell]')
+  await shot(page, 'ui-locations.png', `${UI_BASE}/dashboard/locations`, '[data-flux-app-shell]')
   await shot(page, 'ui-settings.png', `${UI_BASE}/dashboard/settings`, '[data-flux-app-shell]')
 
   await page.unroute('**/backend/**')
@@ -358,6 +393,9 @@ async function main() {
   await page.waitForTimeout(800)
   await page.screenshot({ path: path.join(OUT, 'admin-dashboard.png') })
   console.log('saved', path.join(OUT, 'admin-dashboard.png'))
+
+  await shot(page, 'admin-tenants.png', `${ADMIN_BASE}/tenants`, '[data-flux-dashboard]')
+  await shot(page, 'admin-health.png', `${ADMIN_BASE}/health`, '[data-flux-dashboard]')
 
   const emailPage = await context.newPage()
   const emailHtml = fs.readFileSync(EMAIL_PREVIEW, 'utf8')

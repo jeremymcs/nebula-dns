@@ -4,6 +4,7 @@
   "author": "Jeremy McSpadden <jeremy@fluxlabs.net>",
   "private": true,
   "scripts": {
+    "prebuild": "node scripts/sync-design-tokens.js",
     "dev": "next dev -p 4011",
     "build": "next build",
     "start": "next start",

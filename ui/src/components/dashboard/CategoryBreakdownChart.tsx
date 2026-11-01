@@ -1,20 +1,13 @@
 /**
  * Nebula DNS - Category Breakdown Chart Component
- * Donut/Pie chart for blocked categories
+ * Design C — proportion stack + category rows (matches Flux Shield dashboard spec)
  */
 
 'use client'
 
 import { useMemo } from 'react'
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Legend,
-  Tooltip,
-} from 'recharts'
 import { Card, CardHeader } from '@/components/ui'
+import { FLUX_CHART_COLORS } from '@/lib/chart-colors'
 
 interface CategoryData {
   category: string
@@ -26,104 +19,75 @@ interface CategoryBreakdownChartProps {
   isLoading?: boolean
 }
 
-import { FLUX_CHART_COLORS } from '@/lib/chart-colors'
-
-// Color palette for categories
-const COLORS = [...FLUX_CHART_COLORS]
-
-// Custom tooltip
-function CustomTooltip({ active, payload }: any) {
-  if (!active || !payload?.[0]) return null
-
-  const data = payload[0]
-  return (
-    <div className="bg-white dark:bg-space-800 px-4 py-3 rounded-xl shadow-xl ring-1 ring-space-200 dark:ring-space-700">
-      <div className="flex items-center gap-2">
-        <div 
-          className="w-3 h-3 rounded-full" 
-          style={{ backgroundColor: data.payload.fill }}
-        />
-        <span className="font-medium text-space-900 dark:text-white">
-          {data.name}
-        </span>
-      </div>
-      <p className="mt-1 text-sm text-space-500 dark:text-space-400">
-        {data.value.toLocaleString()} blocks ({data.payload.percent}%)
-      </p>
-    </div>
-  )
-}
-
-// Custom legend
-function CustomLegend({ payload }: any) {
-  return (
-    <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-4">
-      {payload?.map((entry: any, index: number) => (
-        <div key={index} className="flex items-center gap-1.5">
-          <div 
-            className="w-2.5 h-2.5 rounded-full" 
-            style={{ backgroundColor: entry.color }}
-          />
-          <span className="text-xs text-space-600 dark:text-space-400">
-            {entry.value}
-          </span>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 export function CategoryBreakdownChart({ data, isLoading }: CategoryBreakdownChartProps) {
-  const chartData = useMemo(() => {
-    const total = data.reduce((sum, d) => sum + d.count, 0)
-    return data.map((d, i) => ({
+  const { rows, total } = useMemo(() => {
+    const totalCount = data.reduce((sum, d) => sum + d.count, 0)
+    const rows = data.map((d, i) => ({
       name: d.category,
-      value: d.count,
-      percent: total > 0 ? ((d.count / total) * 100).toFixed(1) : 0,
-      fill: COLORS[i % COLORS.length],
+      count: d.count,
+      percent: totalCount > 0 ? (d.count / totalCount) * 100 : 0,
+      color: FLUX_CHART_COLORS[i % FLUX_CHART_COLORS.length],
     }))
+    return { rows, total: totalCount }
   }, [data])
 
   if (isLoading) {
     return (
       <Card padding="md">
-        <CardHeader title="Categories Blocked" subtitle="Loading..." />
-        <div className="h-64 flex items-center justify-center">
-          <div className="w-40 h-40 skeleton rounded-full" />
-        </div>
+        <CardHeader title="Categories blocked" subtitle="Loading..." />
+        <div className="mt-4 h-32 skeleton rounded-lg" />
+      </Card>
+    )
+  }
+
+  if (rows.length === 0 || total === 0) {
+    return (
+      <Card padding="md">
+        <CardHeader title="Categories blocked" subtitle="No blocks in this period" />
+        <p className="py-10 text-center text-sm text-mut">No category data yet.</p>
       </Card>
     )
   }
 
   return (
-    <Card padding="md">
-      <CardHeader 
-        title="Categories Blocked" 
-        subtitle="Distribution of blocked content"
+    <Card padding="md" className="overflow-visible">
+      <CardHeader
+        title="Categories blocked"
+        subtitle={total.toLocaleString() + ' total'}
       />
-      <div className="h-72 mt-4">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="45%"
-              innerRadius={60}
-              outerRadius={90}
-              paddingAngle={3}
-              dataKey="value"
-              stroke="none"
-            >
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.fill} />
-              ))}
-            </Pie>
-            <Tooltip content={<CustomTooltip />} />
-            <Legend content={<CustomLegend />} />
-          </PieChart>
-        </ResponsiveContainer>
+      <div className="mx-1 mt-4 flex h-2 gap-0.5 overflow-hidden rounded">
+        {rows.map((row) => (
+          <div
+            key={row.name}
+            style={{
+              flex: row.percent,
+              backgroundColor: row.color,
+              minWidth: row.percent > 0 ? '4px' : undefined,
+            }}
+            title={`${row.name} ${row.percent.toFixed(1)}%`}
+          />
+        ))}
+      </div>
+      <div className="mt-3 space-y-0 divide-y divide-[var(--fs-line)]">
+        {rows.slice(0, 6).map((row) => (
+          <div
+            key={row.name}
+            className="grid grid-cols-[1fr_auto_3.5rem] items-center gap-2.5 py-2.5 first:pt-1"
+          >
+            <span className="flex min-w-0 items-center gap-2 text-sm text-[var(--fs-txt)]">
+              <span
+                className="h-2 w-2 shrink-0 rounded-[2px]"
+                style={{ backgroundColor: row.color }}
+              />
+              <span className="truncate">{row.name}</span>
+            </span>
+            <span className="font-mono text-[11.5px] text-mut">{row.percent.toFixed(1)}%</span>
+            <span className="text-right text-sm font-medium tabular-nums text-ink">
+              {row.count.toLocaleString()}
+            </span>
+          </div>
+        ))}
       </div>
     </Card>
   )
 }
-

@@ -6,9 +6,7 @@
  */
 
 @tailwind base;
-@import '../../../shared/flux-shield-design-tokens.css';
 @tailwind components;
-@import '../../../shared/flux-shield-components.css';
 @tailwind utilities;
 
 @layer base {

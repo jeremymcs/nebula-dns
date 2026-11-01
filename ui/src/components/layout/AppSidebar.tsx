@@ -59,7 +59,7 @@ export function AppSidebar() {
   return (
     <aside
       data-flux-app-shell
-      className="hidden lg:flex w-[248px] shrink-0 flex-col border-r fs-hairline bg-canvas dark:bg-space-950 px-3 py-3.5"
+      className="hidden lg:flex w-[248px] shrink-0 flex-col border-r border-[var(--fs-line)] bg-[#FBFBFD] dark:bg-space-950 px-3 py-3.5"
     >
       <div className="flex items-center gap-2 px-2 py-2">
         <ShieldMark className="h-7 w-7 rounded-[7px] shadow-none" iconClassName="h-4 w-4" />
@@ -92,32 +92,38 @@ export function AppSidebar() {
                     key={item.href}
                     href={item.href}
                     className={clsx(
+                      'flex items-center gap-2.5 rounded-[7px] px-2.5 py-1.5 text-[13px] leading-none',
                       active
-                        ? 'fs-sidebar-item-active'
-                        : 'fs-sidebar-item hover:bg-white/60 dark:hover:bg-space-900/40',
+                        ? 'fs-sidebar-item-active font-medium text-ink'
+                        : 'text-[var(--fs-txt)] hover:bg-white/80 dark:hover:bg-space-900/40',
                     )}
                   >
                     <Icon
                       className={clsx(
-                        'h-[15px] w-[15px] shrink-0',
-                        active ? 'text-primary-700' : 'text-space-400',
+                        'h-4 w-4 shrink-0 stroke-[1.6]',
+                        active ? 'text-[var(--fs-navy)]' : 'text-[#8A93A8]',
                       )}
+                      aria-hidden
                     />
-                    <span className="truncate">{item.name}</span>
+                    <span className="min-w-0 flex-1 truncate">{item.name}</span>
                     {item.badge === 'Live' && (
                       <span
-                        className="ml-auto h-1.5 w-1.5 rounded-full bg-accent-500 shadow-[0_0_0_3px_rgba(255,110,98,0.18)]"
+                        className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-accent-500 shadow-[0_0_0_3px_rgba(255,110,98,0.18)]"
                         aria-hidden
                       />
                     )}
                     {item.badge && item.badge !== 'Live' && (
-                      <span className="ml-auto text-[10px] font-medium text-mut">{item.badge}</span>
+                      <span className="ml-auto shrink-0 text-[10px] font-medium leading-none text-mut pl-2">
+                        {item.badge}
+                      </span>
                     )}
                     {countBadge && (
-                      <span className="ml-auto font-mono text-[10.5px] text-mut">{countBadge}</span>
+                      <span className="ml-auto shrink-0 font-mono text-[10.5px] leading-none text-mut pl-2">
+                        {countBadge}
+                      </span>
                     )}
                     {item.shortcut && !countBadge && !item.badge && (
-                      <span className="ml-auto font-mono text-[10.5px] text-mut">
+                      <span className="ml-auto shrink-0 font-mono text-[10.5px] leading-none text-mut pl-2">
                         {item.shortcut.replace('G ', '')}
                       </span>
                     )}

@@ -88,7 +88,7 @@ export default function LoginPage() {
 
   return (
     <AuthShell
-      eyebrow={mfaRequired ? 'Security' : 'Sign in'}
+      eyebrow={mfaRequired ? 'Security' : undefined}
       title={
         mfaRequired ? (
           <>

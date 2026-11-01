@@ -49,33 +49,34 @@ export function ModuleSwitcher({ variant = 'menu' }: ModuleSwitcherProps) {
 
   if (variant === 'segment') {
     return (
-      <div className="flex rounded-lg bg-[#F0F2F7] dark:bg-space-900 p-0.5 text-xs">
+      <div className="flex flex-nowrap rounded-lg bg-[#F0F2F7] dark:bg-space-900 p-0.5 text-[11px] leading-tight">
         {modules.map((mod) => {
           const isActive = mod.id === active.id
           if (!mod.available) {
             return (
               <span
                 key={mod.id}
-                className="flex-1 text-center py-1.5 rounded-md text-mut cursor-not-allowed"
+                className="flex min-w-0 flex-1 items-center justify-center gap-0.5 whitespace-nowrap rounded-md px-1 py-1.5 text-mut cursor-not-allowed"
                 title={mod.hint}
               >
-                {mod.label}
-                <span className="ml-1 text-[10px] text-danger-600">{mod.hint === 'Coming soon' ? 'soon' : ''}</span>
+                DMARC
+                <span className="text-[10px] text-[#C9443A]">soon</span>
               </span>
             )
           }
+          const shortLabel = mod.id === 'dns-management' ? 'DNS Mgmt' : 'DNS Filter'
           return (
             <Link
               key={mod.id}
               href={mod.href}
               className={clsx(
-                'flex-1 text-center py-1.5 rounded-md transition-colors',
+                'flex min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-md px-1 py-1.5 transition-colors',
                 isActive
                   ? 'bg-white dark:bg-space-800 text-ink font-medium shadow-[0_0_0_1px_rgba(11,21,48,0.06),0_1px_2px_rgba(11,21,48,0.08)]'
                   : 'text-mut hover:text-txt',
               )}
             >
-              {mod.label}
+              {shortLabel}
             </Link>
           )
         })}
