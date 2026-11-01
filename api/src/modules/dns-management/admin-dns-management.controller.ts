@@ -33,6 +33,8 @@ import {
   SetPlatformConnectionDto,
   TenantZoneResponseDto,
   UpdateZonePermissionsDto,
+  DiscoverPlatformAccountsDto,
+  PlatformAccountOptionDto,
 } from './dto/dns-management.dto';
 
 interface AdminRequestUser {
@@ -70,9 +72,23 @@ export class AdminDnsManagementController {
     return this.dnsManagementService.setPlatformConnection({
       label: dto.label,
       apiToken: dto.apiToken,
+      accountId: dto.accountId,
       adminId: this.adminId(req),
       ipAddress: req.ip,
     });
+  }
+
+  @Post('connection/discover-accounts')
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary:
+      'List Cloudflare accounts visible to a token (does not store the token)',
+  })
+  discoverAccounts(
+    @Body() dto: DiscoverPlatformAccountsDto,
+  ): Promise<PlatformAccountOptionDto[]> {
+    return this.dnsManagementService.discoverPlatformAccounts(dto.apiToken);
   }
 
   @Post('connection/verify')
@@ -95,6 +111,7 @@ export class AdminDnsManagementController {
   ): Promise<PlatformConnectionResponseDto> {
     return this.dnsManagementService.rotatePlatformConnection({
       apiToken: dto.apiToken,
+      accountId: dto.accountId,
       adminId: this.adminId(req),
       ipAddress: req.ip,
     });

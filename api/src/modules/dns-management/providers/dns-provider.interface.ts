@@ -50,12 +50,19 @@ export interface DnsProviderCredentials {
 
 export interface TokenVerifyResult {
   status: 'active' | 'invalid';
-  accountId?: string;
+  /** Cloudflare API token id from /user/tokens/verify — not an account id. */
+  tokenId?: string;
   scopes?: string[];
+}
+
+export interface DnsProviderAccount {
+  id: string;
+  name: string;
 }
 
 export interface DnsProvider {
   verifyToken(apiToken: string): Promise<TokenVerifyResult>;
+  listAccounts(apiToken: string): Promise<DnsProviderAccount[]>;
   listAccountZones(apiToken: string): Promise<DnsProviderZone[]>;
   createZone(
     apiToken: string,

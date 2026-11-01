@@ -74,6 +74,7 @@ export class DnsManagementService {
   async setPlatformConnection(params: {
     label: string;
     apiToken: string;
+    accountId?: string;
     adminId: string;
     ipAddress?: string;
   }): Promise<PlatformConnectionResponseDto> {
@@ -81,6 +82,11 @@ export class DnsManagementService {
     if (verify.status !== 'active') {
       throw new BadRequestException('Cloudflare token verification failed');
     }
+
+    const accountId = await this.resolvePlatformAccountId(
+      params.apiToken,
+      params.accountId,
+    );
 
     const ciphertext = encrypt(params.apiToken, this.encryptionKey);
     const fingerprint = this.tokenFingerprint(ciphertext);
@@ -100,7 +106,7 @@ export class DnsManagementService {
         verifiedAt: new Date(),
         createdByAdminId: params.adminId,
         metadata: {
-          accountId: verify.accountId,
+          accountId,
           scopes: verify.scopes,
         },
       });
@@ -113,7 +119,7 @@ export class DnsManagementService {
       connection.lastRotatedAt = new Date();
       connection.metadata = {
         ...connection.metadata,
-        accountId: verify.accountId,
+        accountId,
         scopes: verify.scopes,
       };
     }
@@ -148,9 +154,10 @@ export class DnsManagementService {
 
     connection.status = DnsPlatformConnectionStatus.ACTIVE;
     connection.verifiedAt = new Date();
+    const accountId = await this.ensureConnectionAccountId(connection, token);
     connection.metadata = {
       ...connection.metadata,
-      accountId: verify.accountId,
+      accountId,
       scopes: verify.scopes,
     };
     const saved = await this.connectionRepository.save(connection);
@@ -166,15 +173,27 @@ export class DnsManagementService {
 
   async rotatePlatformConnection(params: {
     apiToken: string;
+    accountId?: string;
     adminId: string;
     ipAddress?: string;
   }): Promise<PlatformConnectionResponseDto> {
     return this.setPlatformConnection({
       label: (await this.requireActiveConnection()).label,
       apiToken: params.apiToken,
+      accountId: params.accountId,
       adminId: params.adminId,
       ipAddress: params.ipAddress,
     });
+  }
+
+  async discoverPlatformAccounts(apiToken: string): Promise<
+    Array<{ id: string; name: string }>
+  > {
+    const verify = await this.dnsProvider.verifyToken(apiToken);
+    if (verify.status !== 'active') {
+      throw new BadRequestException('Cloudflare token verification failed');
+    }
+    return this.dnsProvider.listAccounts(apiToken);
   }
 
   async revokePlatformConnection(params: {
@@ -418,10 +437,11 @@ export class DnsManagementService {
   }): Promise<AdminZoneListItemDto & { assignment?: TenantZoneResponseDto }> {
     const connection = await this.requireActiveConnection();
     const token = this.decryptToken(connection.tokenCiphertext);
+    const accountId = await this.ensureConnectionAccountId(connection, token);
 
     const created = await this.dnsProvider.createZone(token, {
       name: params.dto.name,
-      accountId: connection.metadata?.accountId,
+      accountId,
     });
 
     await this.mergeInventoryEntry(connection, created);
@@ -601,6 +621,78 @@ export class DnsManagementService {
       .update(tokenCiphertext)
       .digest('hex')
       .slice(0, 16);
+  }
+
+  /**
+   * Resolves a Cloudflare account id accessible by the token.
+   * When multiple accounts are visible, accountId must be supplied explicitly.
+   */
+  private async resolvePlatformAccountId(
+    apiToken: string,
+    accountId?: string,
+  ): Promise<string> {
+    const accounts = await this.dnsProvider.listAccounts(apiToken);
+    if (accounts.length === 0) {
+      throw new BadRequestException(
+        'Cloudflare token cannot access any accounts',
+      );
+    }
+
+    if (accountId) {
+      const match = accounts.find((account) => account.id === accountId);
+      if (!match) {
+        throw new BadRequestException(
+          'Cloudflare account ID is not accessible with this token',
+        );
+      }
+      return accountId;
+    }
+
+    if (accounts.length === 1) {
+      return accounts[0].id;
+    }
+
+    throw new BadRequestException(
+      'Token can access multiple Cloudflare accounts; specify accountId',
+    );
+  }
+
+  /**
+   * Re-resolves and persists account id when missing or no longer valid
+   * (e.g. legacy rows that stored the API token id instead of the account id).
+   */
+  private async ensureConnectionAccountId(
+    connection: DnsPlatformConnection,
+    apiToken: string,
+    requestedAccountId?: string,
+  ): Promise<string> {
+    const stored = connection.metadata?.accountId;
+    const accounts = await this.dnsProvider.listAccounts(apiToken);
+    const storedIsValid =
+      stored !== undefined &&
+      accounts.some((account) => account.id === stored);
+
+    let accountId: string;
+    if (requestedAccountId) {
+      accountId = await this.resolvePlatformAccountId(
+        apiToken,
+        requestedAccountId,
+      );
+    } else if (storedIsValid) {
+      accountId = stored!;
+    } else {
+      accountId = await this.resolvePlatformAccountId(apiToken);
+    }
+
+    if (accountId !== stored) {
+      connection.metadata = {
+        ...connection.metadata,
+        accountId,
+      };
+      await this.connectionRepository.save(connection);
+    }
+
+    return accountId;
   }
 
   private toConnectionDto(
