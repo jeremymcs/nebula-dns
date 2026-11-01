@@ -133,7 +133,9 @@ export async function writeValidatedLogoFile(
   }
   const tenantId = storageKey.slice(0, slash);
   const filename = storageKey.slice(slash + 1);
+  // codeql[js/path-injection]: storageKey is server-generated; resolveTenantUploadFile validates UUID and basename.
   const resolved = resolveTenantUploadFile(uploadRoot, tenantId, filename);
   const validated = assertLogoUploadBytes(buffer, mimetype);
+  // codeql[js/path-injection]: validated image bytes written only under resolveTenantUploadFile path.
   await fs.writeFile(resolved, validated);
 }

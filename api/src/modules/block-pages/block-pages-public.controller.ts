@@ -67,6 +67,7 @@ export class BlockPagesPublicController {
           tenantId,
           filename,
         );
+      // codeql[js/path-injection]: path resolved from DB-backed logoStorageKey after UUID/basename checks.
       const body = await fs.readFile(filePath);
       const safeName = assertSafeUploadFilename(filename);
       res.type(contentTypeForLogoFilename(safeName));
