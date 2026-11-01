@@ -36,7 +36,10 @@ describe('AppController (e2e)', () => {
         .get('/health')
         .expect(200)
         .expect((res: any) => {
-          expect(res.body.status).toMatch(/^(healthy|degraded|unhealthy)$/);
+          expect(['healthy', 'degraded', 'unhealthy']).toContain(
+            res.body.status,
+          );
+          expect(res.body).toHaveProperty('timestamp');
           expect(res.body).toHaveProperty('dependencies');
         });
     });

@@ -111,9 +111,7 @@ describe('Policy Evaluation E2E Tests', () => {
 
   describe('Query Logging', () => {
     it('should require authentication for query logs', async () => {
-      const response = await request(app.getHttpServer()).get(
-        '/reports/logs',
-      );
+      const response = await request(app.getHttpServer()).get('/reports/logs');
 
       expect(response.status).toBe(401);
     });

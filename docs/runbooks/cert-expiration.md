@@ -62,6 +62,8 @@
 - **Challenge type:** DNS-01 (required for wildcard certs)
 - **DNS provider:** DigitalOcean (via external-dns)
 
+**DigitalOcean droplet (Flux Shield production):** TLS is issued by **Caddy** (HTTP-01), not cert-manager. Caddy obtains **one certificate per hostname** (`api.shield.fluxlabs.net`, `dns1|dns2.shield.fluxlabs.net`, and legacy `*.nebuladns.io`). `deploy/droplet/scripts/sync-caddy-certs.sh` copies them into `./certs/` for dnsdist; the systemd timer `nebula-dns-sync-certs` runs daily with `--reload-if-changed`. After manual Caddy or cert fixes, run the sync script and restart dnsdist if the hash changed. See `deploy/droplet/README.md`.
+
 ### Warning Signs
 
 - `certmanager_certificate_expiration_timestamp_seconds` < 2592000 (30 days)

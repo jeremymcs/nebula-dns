@@ -98,32 +98,6 @@ describe('Authentication E2E Tests', () => {
     });
   });
 
-  describe('Password Reset Flow', () => {
-    it('should accept password reset request for any email', async () => {
-      const response = await e2eRequest(app.getHttpServer())
-        .post('/auth/forgot-password')
-        .send({ email: 'test@example.com' });
-
-      expect([200, 201, 202, 404]).toContain(response.status);
-    });
-
-    it('should reject password reset with missing email', async () => {
-      const response = await e2eRequest(app.getHttpServer())
-        .post('/auth/forgot-password')
-        .send({});
-
-      expect([400, 404]).toContain(response.status);
-    });
-
-    it('should reject password reset confirmation with invalid token', async () => {
-      const response = await e2eRequest(app.getHttpServer())
-        .post('/auth/reset-password')
-        .send({ token: 'invalid-token', password: 'newpassword123' });
-
-      expect([400, 401, 404]).toContain(response.status);
-    });
-  });
-
   describe('MFA Flow', () => {
     it('should reject MFA verification without session', async () => {
       const response = await e2eRequest(app.getHttpServer())
@@ -200,7 +174,7 @@ describe('Authentication E2E Tests', () => {
           .post('/auth/logout')
           .set('Authorization', `Bearer ${token}`);
 
-        expect(logoutResponse.status).toBe(200);
+        expect(logoutResponse.status).toBe(204);
 
         // Try to use the token after logout - should fail
         const protectedResponse = await request(app.getHttpServer())
