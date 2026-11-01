@@ -8,7 +8,7 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { FullPageLoading } from '@/components/LoadingSpinner'
 import { HomeDashboard } from '@/components/home/HomeDashboard'
@@ -20,6 +20,14 @@ import {
   TopBlockedList,
   ActivityFeed,
 } from '@/components/dashboard'
+import {
+  useSummaryStats,
+  useQueryTrends,
+  useBlocksByCategory,
+  useTopBlocked,
+  usePolicies,
+  useLocations,
+} from '@/hooks/useApi'
 import {
   MagnifyingGlassIcon,
   ShieldExclamationIcon,
@@ -51,6 +59,52 @@ function useIsImpersonating(): boolean {
 function EnterpriseDashboard() {
   const { user } = useAuth()
   const isImpersonating = useIsImpersonating()
+  const period = '24h'
+
+  const { data: summary, isLoading: summaryLoading } = useSummaryStats(period)
+  const { data: queryTrends, isLoading: trendsLoading } = useQueryTrends(period)
+  const { data: categoryStats, isLoading: categoryLoading } = useBlocksByCategory(period)
+  const { data: topBlocked, isLoading: topBlockedLoading } = useTopBlocked(period, 8)
+  const { data: policiesPage, isLoading: policiesLoading } = usePolicies()
+  const { data: locationsPage, isLoading: locationsLoading } = useLocations()
+
+  const chartData = useMemo(
+    () =>
+      (queryTrends || []).map((point) => ({
+        timestamp: point.timestamp,
+        queries: point.total,
+        blocked: point.blocked,
+      })),
+    [queryTrends],
+  )
+
+  const categoryChartData = useMemo(
+    () =>
+      (categoryStats || []).map((item) => ({
+        category: item.category,
+        count: item.count,
+      })),
+    [categoryStats],
+  )
+
+  const activityData = useMemo(
+    () =>
+      (topBlocked || []).slice(0, 8).map((item, index) => ({
+        id: `activity-${index}`,
+        type: 'block' as const,
+        domain: item.domain,
+        category: item.category,
+        timestamp: item.lastBlocked,
+      })),
+    [topBlocked],
+  )
+
+  const formatMetric = (value: number | undefined) =>
+    value === undefined ? '--' : value.toLocaleString()
+
+  const policiesActive = policiesPage?.data?.length ?? 0
+  const locationsCount = locationsPage?.data?.length ?? 0
+  const metricsLoading = summaryLoading || policiesLoading || locationsLoading
 
   return (
     <div className="pb-12 space-y-12">
@@ -108,14 +162,14 @@ function EnterpriseDashboard() {
       <HeroMetricsGrid columns={4}>
         <HeroMetric
           title="Total Queries"
-          value="--"
+          value={metricsLoading ? '--' : formatMetric(summary?.totalQueries)}
           icon={<MagnifyingGlassIcon className="w-6 h-6" />}
           trend={{ value: 0, isUp: true }}
           subtitle="Last 24 hours"
         />
         <HeroMetric
           title="Threats Blocked"
-          value="--"
+          value={metricsLoading ? '--' : formatMetric(summary?.threatsBlocked)}
           icon={<ShieldExclamationIcon className="w-6 h-6" />}
           trend={{ value: 0, isUp: true }}
           subtitle="Last 24 hours"
@@ -123,14 +177,14 @@ function EnterpriseDashboard() {
         />
         <HeroMetric
           title="Policies Active"
-          value="--"
+          value={metricsLoading ? '--' : String(policiesActive)}
           icon={<DocumentTextIcon className="w-6 h-6" />}
           subtitle="Across all locations"
           variant="primary"
         />
         <HeroMetric
           title="Locations"
-          value="--"
+          value={metricsLoading ? '--' : String(locationsCount)}
           icon={<MapPinIcon className="w-6 h-6" />}
           subtitle="Protected networks"
           variant="success"
@@ -139,17 +193,17 @@ function EnterpriseDashboard() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <QueryTrendsChart data={[]} isLoading={true} />
-        <CategoryBreakdownChart data={[]} isLoading={true} />
+        <QueryTrendsChart data={chartData} isLoading={trendsLoading} />
+        <CategoryBreakdownChart data={categoryChartData} isLoading={categoryLoading} />
       </div>
 
       {/* Activity Row */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-1">
-          <TopBlockedList data={[]} isLoading={true} />
+          <TopBlockedList data={topBlocked || []} isLoading={topBlockedLoading} />
         </div>
         <div className="xl:col-span-2">
-          <ActivityFeed data={[]} isLoading={true} />
+          <ActivityFeed data={activityData} isLoading={topBlockedLoading} />
         </div>
       </div>
     </div>

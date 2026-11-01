@@ -5,6 +5,7 @@
 import { test, expect } from '@playwright/test'
 import { loginAsMSP, loginAsEnterprise, waitForPageLoad } from '../helpers/auth'
 import { pageHeading } from '../helpers/selectors'
+import { SKIP_STRIPE_BILLING } from '../helpers/launch-features'
 
 test.describe('US-037: MSP Tier Navigation', () => {
   test.beforeEach(async ({ page }) => {
@@ -182,7 +183,7 @@ test.describe('US-037: MSP Tier Multi-Tenant Dashboard', () => {
     await waitForPageLoad(page)
     
     // Should access MSP reporting/dashboard
-    await expect(page.getByRole('heading', { name: /reporting|dashboard|overview/i })).toBeVisible()
+    await expect(pageHeading(page, /reporting/i)).toBeVisible()
   })
 
   test('can view all clients aggregated data', async ({ page }) => {
@@ -231,7 +232,7 @@ test.describe('US-037: MSP Tier Billing (Own Account)', () => {
 
   test('sees billing for own MSP account', async ({ page }) => {
     // Should show their own billing, not client billing
-    const billingHeading = page.getByRole('heading', { name: /billing|subscription/i })
+    const billingHeading = pageHeading(page, /billing.*usage/i)
     await expect(billingHeading).toBeVisible()
     
     // Should NOT say "client billing"
@@ -246,6 +247,7 @@ test.describe('US-037: MSP Tier Billing (Own Account)', () => {
   })
 
   test('can manage own payment methods', async ({ page }) => {
+    test.skip(true, SKIP_STRIPE_BILLING)
     // Should have access to payment methods
     const paymentMethodsLink = page.getByRole('link', { name: /payment methods/i })
     

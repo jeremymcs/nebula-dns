@@ -304,7 +304,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, refreshTokens])
 
   // Compute MSP convenience values
-  const isMsp = mspInfo?.isMsp ?? false
+  const isMsp = mspInfo?.isMsp ?? tier === 'msp'
   const currentOrg = mspInfo?.currentOrg ?? null
   const organizations = mspInfo?.organizations ?? []
 

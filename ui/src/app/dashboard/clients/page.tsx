@@ -12,12 +12,12 @@ import { BuildingOffice2Icon, PlusIcon } from '@heroicons/react/24/outline'
 import { Badge, Card, Button } from '@/components/ui'
 
 export default function ClientsPage() {
-  const { isMsp, user } = useAuth()
+  const { isMspTier, user } = useAuth()
   const { clients, loading, createClient } = useMspClients()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   // Show access denied if not MSP
-  if (!loading && !isMsp) {
+  if (!loading && !isMspTier) {
     return (
       <div className="text-center py-20">
         <BuildingOffice2Icon className="mx-auto h-16 w-16 text-space-300 dark:text-space-600" />
