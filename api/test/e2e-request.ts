@@ -3,7 +3,7 @@
  * Uses a unique client IP per HTTP verb so strict login rate limits do not flake across suites.
  */
 
-import request, { SuperTest, Test } from 'supertest';
+import request from 'supertest';
 
 type HttpMethod = 'get' | 'post' | 'patch' | 'put' | 'delete' | 'options';
 
@@ -16,7 +16,7 @@ function clientIp(): string {
 }
 
 function withIp(server: Parameters<typeof request>[0], method: HttpMethod, url: string) {
-  const agent: SuperTest<Test> = request(server);
+  const agent = request(server);
   const ip = clientIp();
   switch (method) {
     case 'get':
