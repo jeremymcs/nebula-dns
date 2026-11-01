@@ -513,16 +513,14 @@ export function getMockResponse(rawUrl, method = 'GET', authHeader = '') {
   if (pathname.startsWith('/msp/clients')) {
     if (method === 'POST') {
       return json({
-        client: {
-          id: `client-${Date.now()}`,
-          name: 'New Test Client',
-          slug: 'new-test-client',
-          status: 'active',
-          plan: 'enterprise',
-          locationCount: 0,
-          userCount: 1,
-          createdAt: new Date().toISOString(),
-        },
+        id: `client-${Date.now()}`,
+        name: 'New Test Client',
+        slug: 'new-test-client',
+        status: 'active',
+        plan: 'enterprise',
+        locationCount: 0,
+        userCount: 1,
+        createdAt: new Date().toISOString(),
       })
     }
     return json({

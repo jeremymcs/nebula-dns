@@ -35,21 +35,16 @@ test.describe('Error States - API Errors', () => {
   test('should handle network errors gracefully', async ({ page }) => {
     await loginAndNavigate(page, '/dashboard')
     await page.context().setOffline(true)
-    await page.reload()
+    await page.reload({ waitUntil: 'domcontentloaded' })
 
-    const errorMessage = page.getByText(/error|failed|connection|network|something went wrong/i)
-    const loadingState = page.getByText(/loading|please wait/i)
-    const dashboardHeading = pageHeading(page, /^dashboard$/i)
-    const loginScreen = loginHeading(page)
+    await page.waitForTimeout(3000)
 
-    await page.waitForTimeout(2000)
+    const offlineShell = page
+      .getByText(/error|failed|connection|network|something went wrong|offline/i)
+      .or(page.getByRole('link', { name: /flux shield/i }))
+      .or(loginHeading(page))
 
-    const hasError = await errorMessage.first().isVisible().catch(() => false)
-    const hasLoading = await loadingState.first().isVisible().catch(() => false)
-    const hasDashboard = await dashboardHeading.isVisible().catch(() => false)
-    const hasLogin = await loginScreen.isVisible().catch(() => false)
-
-    expect(hasError || hasLoading || hasDashboard || hasLogin).toBeTruthy()
+    await expect(offlineShell.first()).toBeVisible({ timeout: 15000 })
 
     await page.context().setOffline(false)
   })

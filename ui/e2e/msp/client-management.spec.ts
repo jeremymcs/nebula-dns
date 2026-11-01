@@ -26,39 +26,11 @@ test.describe('MSP Client Management', () => {
   })
 
   test('should add new client', async ({ page }) => {
-    // Click add client button
-    const addButton = page.getByRole('button', { name: /add (new )?client|create (new )?client/i })
-    
-    if (await addButton.isVisible()) {
-      await addButton.click()
-      await page.waitForTimeout(300)
-      
-      // Verify form modal appears
-      await expect(page.getByText(/add (new )?client|create/i)).toBeVisible()
-      
-      // Fill required fields
-      const clientNameInput = page.getByLabel(/client (name|company)|name|company/i)
-      if (await clientNameInput.isVisible()) {
-        await clientNameInput.fill(`Test Client ${Date.now()}`)
-        
-        const domainInput = page.getByLabel(/domain|primary domain/i)
-        if (await domainInput.isVisible()) {
-          await domainInput.fill(`test${Date.now()}.com`)
-          
-          // Submit form
-          const submitButton = page.getByRole('button', { name: /create|save|add client/i })
-          if (await submitButton.isVisible()) {
-            await submitButton.click()
-            await page.waitForTimeout(500)
-            
-            // Verify success
-            const successMessage = page.getByText(/success|created|added|client/i)
-            const hasSuccess = await successMessage.count() > 0
-            expect(hasSuccess).toBeTruthy()
-          }
-        }
-      }
-    }
+    await page.getByRole('button', { name: /add client/i }).click()
+    await page.getByLabel(/organization name/i).fill(`Test Client ${Date.now()}`)
+    await page.getByLabel(/admin email/i).fill('newclient@example.com')
+    await page.getByRole('button', { name: /^create client$/i }).click()
+    await expect(page.getByRole('heading', { name: /client created successfully/i })).toBeVisible({ timeout: 10000 })
   })
 
   test('should edit client details', async ({ page }) => {
