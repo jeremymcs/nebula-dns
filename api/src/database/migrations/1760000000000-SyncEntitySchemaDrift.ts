@@ -321,6 +321,11 @@ export class SyncEntitySchemaDrift1760000000000 implements MigrationInterface {
       UPDATE "sso_configurations" SET "provider_type" = 'saml' WHERE "provider_type" IS NULL
     `);
     await queryRunner.query(`
+      UPDATE "sso_configurations"
+      SET "type" = COALESCE("type", "provider_type", 'saml')
+      WHERE "type" IS NULL
+    `);
+    await queryRunner.query(`
       ALTER TABLE "sso_configurations" ALTER COLUMN "provider_type" SET NOT NULL
     `);
     await queryRunner.query(`

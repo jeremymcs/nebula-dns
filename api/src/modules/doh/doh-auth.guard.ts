@@ -1,8 +1,5 @@
 /**
- * Nebula DNS - Enterprise DNS Security Platform
- * DoH Authentication Guard
- *
- * Validates agent tokens for DoH requests
+ * Flux Shield - DoH Authentication Guard
  */
 
 import {
@@ -14,7 +11,10 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { createHash, timingSafeEqual } from 'crypto';
 import { Location } from '../locations/entities/location.entity';
+import { LocationsService } from '../locations/locations.service';
+import { AgentInstallation } from '../agents/entities/agent-installation.entity';
 
 @Injectable()
 export class DoHAuthGuard implements CanActivate {
@@ -23,65 +23,89 @@ export class DoHAuthGuard implements CanActivate {
   constructor(
     @InjectRepository(Location)
     private locationRepository: Repository<Location>,
+    @InjectRepository(AgentInstallation)
+    private agentRepository: Repository<AgentInstallation>,
+    private readonly locationsService: LocationsService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers['authorization'];
-    const locationId = request.headers['x-location-id'];
+    const locationIdHeader = request.headers['x-location-id'];
+    const deviceIdHeader = request.headers['x-agent-device-id'];
 
-    if (!authHeader) {
-      this.logger.warn('DoH request without authorization header');
+    if (!authHeader?.startsWith('Bearer ')) {
       throw new UnauthorizedException('Missing authorization header');
     }
 
-    if (!authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Invalid authorization format');
-    }
-
     const token = authHeader.slice(7);
-
-    // Token format: <tenantId>:<locationToken>
     const parts = token.split(':');
     if (parts.length < 2) {
       throw new UnauthorizedException('Invalid token format');
     }
 
     const tenantId = parts[0];
-    const locationToken = parts.slice(1).join(':');
+    const secret = parts.slice(1).join(':');
 
-    // Validate location exists and token matches
-    // In production, this would check against a token table
-    if (!locationId) {
-      throw new UnauthorizedException('Missing X-Location-ID header');
-    }
-
-    try {
-      const location = await this.locationRepository.findOne({
-        where: { id: locationId, tenantId },
+    if (deviceIdHeader && typeof deviceIdHeader === 'string') {
+      const agent = await this.agentRepository.findOne({
+        where: { tenantId, deviceId: deviceIdHeader },
       });
-
-      if (!location) {
-        this.logger.warn(
-          `Location not found: ${locationId} for tenant ${tenantId}`,
-        );
-        throw new UnauthorizedException('Invalid location');
+      if (!agent?.dohTokenHash) {
+        throw new UnauthorizedException('Invalid agent credentials');
+      }
+      if (!this.secretMatches(agent.dohTokenHash, secret)) {
+        throw new UnauthorizedException('Invalid agent credentials');
       }
 
-      // Store auth info on request for later use
+      const locationId = agent.locationId || locationIdHeader;
+      if (!locationId) {
+        throw new UnauthorizedException('Agent is not assigned to a location');
+      }
+
       request.dohAuth = {
         tenantId,
         locationId,
-        locationToken,
+        token,
+        deviceId: deviceIdHeader,
       };
-
       return true;
-    } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
-      this.logger.error('DoH auth error', error);
-      throw new UnauthorizedException('Authentication failed');
     }
+
+    if (!locationIdHeader) {
+      throw new UnauthorizedException('Missing X-Location-ID header');
+    }
+
+    const validation = await this.locationsService.validateToken(secret);
+    if (
+      !validation.valid ||
+      validation.tenantId !== tenantId ||
+      validation.locationId !== locationIdHeader
+    ) {
+      const location = await this.locationRepository.findOne({
+        where: { id: locationIdHeader, tenantId },
+      });
+      if (!location) {
+        throw new UnauthorizedException('Invalid location');
+      }
+      throw new UnauthorizedException('Invalid location token');
+    }
+
+    request.dohAuth = {
+      tenantId,
+      locationId: locationIdHeader,
+      token,
+    };
+
+    return true;
+  }
+
+  private secretMatches(expectedHash: string, secret: string): boolean {
+    const actualHash = createHash('sha256').update(secret).digest('hex');
+    const expected = Buffer.from(expectedHash, 'utf8');
+    const actual = Buffer.from(actualHash, 'utf8');
+    return (
+      expected.length === actual.length && timingSafeEqual(expected, actual)
+    );
   }
 }

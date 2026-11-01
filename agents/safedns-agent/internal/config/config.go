@@ -2,7 +2,6 @@
 package config
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -18,17 +17,25 @@ type InternalDomain struct {
 // ForwarderConfig contains settings for forwarder mode
 type ForwarderConfig struct {
 	Enabled         bool             `json:"enabled"`
-	ListenAddress   string           `json:"listen_address"`   // e.g., "0.0.0.0:53"
-	InternalDomains []InternalDomain `json:"internal_domains"` // Split-DNS rules
+	ListenAddress   string           `json:"listen_address"`   // e.g., "127.0.0.1:53"
+	InternalDomains []InternalDomain `json:"internal_domains"` // Legacy/manual split-DNS rules
+	InternalZones   []string         `json:"internal_zones"`   // Tenant/location zones from API
 	CacheTTL        int              `json:"cache_ttl"`        // Cache TTL in seconds
 	CacheSize       int              `json:"cache_size"`       // Max cache entries
 	Timeout         int              `json:"timeout"`          // Query timeout in ms
-	FallbackDNS     []string         `json:"fallback_dns"`     // Fallback if cloud unreachable
+	FallbackDNS     []string         `json:"fallback_dns"`     // Optional break-glass (default disabled)
+	AllowPublicFallback bool         `json:"allow_public_fallback"`
 }
 
 // Config represents the agent configuration
 type Config struct {
 	mu sync.RWMutex
+
+	// Agent identity (stored locally after enrollment)
+	DeviceID     string   `json:"device_id"`
+	DeviceSecret string   `json:"device_secret,omitempty"`
+	TenantID     string   `json:"tenant_id"`
+	Roles        []string `json:"roles"`
 
 	// Server configuration
 	APIEndpoint string `json:"api_endpoint"`
@@ -55,19 +62,21 @@ type Config struct {
 // DefaultConfig returns a new config with default values
 func DefaultConfig() *Config {
 	return &Config{
-		APIEndpoint:       "https://api.nebuladns.io",
-		DoHEndpoint:       "https://dns.nebuladns.io/dns-query",
-		DNSServers:        []string{"dns1.nebuladns.io", "dns2.nebuladns.io"},
+		APIEndpoint:       "https://api.shield.fluxlabs.net",
+		DoHEndpoint:       "https://dns.shield.fluxlabs.net/dns-query",
+		DNSServers:        []string{"dns1.shield.fluxlabs.net", "dns2.shield.fluxlabs.net"},
 		HeartbeatInterval: 60,
 		AutoUpdate:        true,
 		LogLevel:          "info",
+		Roles:             []string{"dns-enforce"},
 		Forwarder: ForwarderConfig{
-			Enabled:       false,
+			Enabled:       true,
 			ListenAddress: "127.0.0.1:53",
 			CacheTTL:      300,
 			CacheSize:     10000,
 			Timeout:       5000,
-			FallbackDNS:   []string{"1.1.1.1", "8.8.8.8"},
+			FallbackDNS:   []string{},
+			AllowPublicFallback: false,
 		},
 	}
 }
@@ -76,51 +85,22 @@ func DefaultConfig() *Config {
 func ConfigPath() string {
 	switch runtime.GOOS {
 	case "windows":
-		return filepath.Join(os.Getenv("ProgramData"), "NebulaDNS", "config.json")
+		return filepath.Join(os.Getenv("ProgramData"), "FluxShield", "config.json")
 	case "darwin":
-		return "/Library/Application Support/NebulaDNS/config.json"
+		return "/Library/Application Support/FluxShield/config.json"
 	default: // linux
-		return "/etc/nebuladns/config.json"
+		return "/etc/fluxshield/config.json"
 	}
 }
 
 // Load reads configuration from disk
 func (c *Config) Load() error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	path := ConfigPath()
-	data, err := os.ReadFile(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// Use defaults if no config exists
-			return nil
-		}
-		return err
-	}
-
-	return json.Unmarshal(data, c)
+	return loadFromDisk(c)
 }
 
 // Save writes configuration to disk
 func (c *Config) Save() error {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-
-	path := ConfigPath()
-
-	// Ensure directory exists
-	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return err
-	}
-
-	data, err := json.MarshalIndent(c, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	return os.WriteFile(path, data, 0600)
+	return saveToDisk(c)
 }
 
 // GetAPIEndpoint returns the API endpoint thread-safely
@@ -151,4 +131,22 @@ func (c *Config) GetDNSServers() []string {
 	servers := make([]string, len(c.DNSServers))
 	copy(servers, c.DNSServers)
 	return servers
+}
+
+func (c *Config) GetDeviceID() string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.DeviceID
+}
+
+func (c *Config) GetDeviceSecret() string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.DeviceSecret
+}
+
+func (c *Config) GetDoHToken() string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.Token
 }
