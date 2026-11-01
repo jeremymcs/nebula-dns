@@ -32,6 +32,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { Request, Response } from 'express';
+import { getClientIp } from '@/common/http/client-ip';
 
 import { AdminService, AdminLoginContext } from './admin.service';
 import { AdminHealthService } from './admin-health.service';
@@ -162,7 +163,7 @@ export class AdminController {
   ): Promise<AdminLoginResponseDto> {
     const context: AdminLoginContext = {
       userAgent: req.headers['user-agent'] || 'Unknown',
-      ipAddress: this.getClientIp(req, ip),
+      ipAddress: getClientIp(req, { fallback: '0.0.0.0' }),
       externalDeviceId: this.getExternalDeviceId(req),
     };
     return this.adminService.login(loginDto, context);
@@ -181,7 +182,7 @@ export class AdminController {
   ): Promise<AdminLoginResponseDto> {
     const context: AdminLoginContext = {
       userAgent: req.headers['user-agent'] || 'Unknown',
-      ipAddress: this.getClientIp(req, ip),
+      ipAddress: getClientIp(req, { fallback: '0.0.0.0' }),
       externalDeviceId: this.getExternalDeviceId(req),
     };
     return this.adminService.refreshAdminSession(dto.refreshToken, context);
@@ -281,7 +282,7 @@ export class AdminController {
     }
     const context: AdminLoginContext = {
       userAgent: req.headers['user-agent'] || 'Unknown',
-      ipAddress: this.getClientIp(req, ip),
+      ipAddress: getClientIp(req, { fallback: '0.0.0.0' }),
       externalDeviceId: this.getExternalDeviceId(req),
     };
     return this.adminService.createMfaVerifiedSession(admin, context);
@@ -320,7 +321,7 @@ export class AdminController {
     }
     const context: AdminLoginContext = {
       userAgent: req.headers['user-agent'] || 'Unknown',
-      ipAddress: this.getClientIp(req, ip),
+      ipAddress: getClientIp(req, { fallback: '0.0.0.0' }),
       externalDeviceId: this.getExternalDeviceId(req),
     };
     return this.adminService.createMfaVerifiedSession(admin, context);
@@ -559,7 +560,10 @@ export class AdminController {
       throw new UnauthorizedException('No token provided');
     }
     const token = authHeader.replace('Bearer ', '');
-    return this.adminService.endImpersonation(token, this.getClientIp(req, ip));
+    return this.adminService.endImpersonation(
+      token,
+      getClientIp(req, { fallback: '0.0.0.0' }),
+    );
   }
 
   /**
@@ -601,7 +605,7 @@ export class AdminController {
     return this.adminService.startImpersonation(
       adminUser,
       tenantId,
-      this.getClientIp(req, ip),
+      getClientIp(req, { fallback: '0.0.0.0' }),
       {
         reason: body?.reason,
         externalDeviceId,
@@ -643,7 +647,7 @@ export class AdminController {
     await this.adminService.logout(
       user.adminId,
       user.jti,
-      this.getClientIp(req, req.ip || '0.0.0.0'),
+      getClientIp(req, { fallback: '0.0.0.0' }),
     );
     return { message: 'Logged out successfully' };
   }
@@ -1315,27 +1319,6 @@ export class AdminController {
       paymentMethodId,
       admin.adminId,
     );
-  }
-
-  /**
-   * Extract client IP from request, handling proxies
-   */
-  private getClientIp(req: Request, defaultIp: string): string {
-    // Check for forwarded headers (when behind proxy/load balancer)
-    const forwarded = req.headers['x-forwarded-for'];
-    if (forwarded) {
-      const ips = Array.isArray(forwarded)
-        ? forwarded[0]
-        : forwarded.split(',')[0];
-      return ips.trim();
-    }
-
-    const realIp = req.headers['x-real-ip'];
-    if (realIp) {
-      return Array.isArray(realIp) ? realIp[0] : realIp;
-    }
-
-    return defaultIp || req.ip || '0.0.0.0';
   }
 
   private getExternalDeviceId(req: Request): string | undefined {

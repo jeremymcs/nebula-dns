@@ -26,6 +26,7 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { Request } from 'express';
+import { getClientIp } from '@/common/http/client-ip';
 
 import { AdminUsersService } from './admin-users.service';
 import { AdminInvitationsService } from './admin-invitations.service';
@@ -205,7 +206,7 @@ export class AdminUsersController {
       admin.adminId,
       id,
       dto,
-      this.getClientIp(req, ip),
+      getClientIp(req, { fallback: '0.0.0.0' }),
     );
     return { message: 'Admin suspended successfully' };
   }
@@ -236,7 +237,7 @@ export class AdminUsersController {
     await this.adminUsersService.reactivateAdmin(
       admin.adminId,
       id,
-      this.getClientIp(req, ip),
+      getClientIp(req, { fallback: '0.0.0.0' }),
     );
     return { message: 'Admin reactivated successfully' };
   }
@@ -269,7 +270,7 @@ export class AdminUsersController {
     await this.adminUsersService.resetAdminMfa(
       admin.adminId,
       id,
-      this.getClientIp(req, ip),
+      getClientIp(req, { fallback: '0.0.0.0' }),
     );
     return {
       message:
@@ -308,7 +309,7 @@ export class AdminUsersController {
     return this.adminInvitationsService.createInvitation(
       admin.adminId,
       dto,
-      this.getClientIp(req, ip),
+      getClientIp(req, { fallback: '0.0.0.0' }),
     );
   }
 
@@ -366,26 +367,8 @@ export class AdminUsersController {
     await this.adminInvitationsService.revokeInvitation(
       admin.adminId,
       id,
-      this.getClientIp(req, ip),
+      getClientIp(req, { fallback: '0.0.0.0' }),
     );
     return { message: 'Invitation revoked successfully' };
-  }
-
-  /**
-   * Extract client IP from request, handling proxies
-   */
-  private getClientIp(req: Request, ip: string): string {
-    const forwarded = req.headers['x-forwarded-for'];
-    if (forwarded) {
-      const ips = Array.isArray(forwarded)
-        ? forwarded[0]
-        : forwarded.split(',')[0];
-      return ips.trim();
-    }
-    const realIp = req.headers['x-real-ip'];
-    if (realIp) {
-      return Array.isArray(realIp) ? realIp[0] : realIp;
-    }
-    return ip || req.ip || '0.0.0.0';
   }
 }

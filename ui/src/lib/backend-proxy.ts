@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import {
   buildUpstreamRequestHeaders,
   copyUpstreamResponseHeaders,
+  applySignedFluxClientIpHeaders,
 } from './backend-proxy-utils'
 
 export {
@@ -26,6 +27,11 @@ export async function proxyBackendRequest(
   const { apiUrl, timeoutMs = 30_000 } = options
   const url = `${apiUrl.replace(/\/$/, '')}/${pathSegments.join('/')}${req.nextUrl.search}`
   const headers = buildUpstreamRequestHeaders(req.headers)
+  applySignedFluxClientIpHeaders(
+    headers,
+    req.headers,
+    process.env.FLUX_CLIENT_IP_SECRET,
+  )
   const body = ['GET', 'HEAD'].includes(req.method) ? undefined : req.body
 
   try {

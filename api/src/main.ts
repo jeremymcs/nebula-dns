@@ -15,6 +15,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
+import { getExpressTrustProxySetting } from './common/http/client-ip';
 import { validateEncryptionConfig } from './config/encryption.config';
 
 async function bootstrap() {
@@ -31,6 +32,12 @@ async function bootstrap() {
   }
 
   const app = await NestFactory.create(AppModule);
+
+  const trustProxy = getExpressTrustProxySetting();
+  app.getHttpAdapter().getInstance().set('trust proxy', trustProxy);
+  logger.log(
+    `Trust proxy: ${trustProxy === false ? 'disabled' : JSON.stringify(trustProxy)}`,
+  );
 
   // Request body size limits (prevent DoS via large payloads)
   const bodyLimit = process.env.MAX_BODY_SIZE || '1mb';

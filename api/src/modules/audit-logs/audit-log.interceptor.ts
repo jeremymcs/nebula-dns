@@ -8,6 +8,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { tryGetClientIp } from '@/common/http/client-ip';
 import { AuditLogsService } from './audit-logs.service';
 import { AuditAction, AuditResourceType } from './entities/audit-log.entity';
 
@@ -46,7 +47,7 @@ export class AuditLogInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest();
     const tenantId = request.user?.tenantId;
     const userId = request.user?.id;
-    const ipAddress = request.ip || request.connection?.remoteAddress;
+    const ipAddress = tryGetClientIp(request);
     const userAgent = request.headers['user-agent'];
 
     // Capture old value before the action (for updates/deletes)

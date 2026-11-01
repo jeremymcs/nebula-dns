@@ -14,21 +14,16 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Request, Response } from 'express';
+import { getClientIp } from '@/common/http/client-ip';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import { ConfigService } from '@nestjs/config';
 import { BlockPagesService } from './block-pages.service';
 import { CreateAccessRequestDto } from './dto/block-page.dto';
-import {
-  assertSafeUploadFilename,
-} from './block-page-upload.util';
+import { assertSafeUploadFilename } from './block-page-upload.util';
 
 function resolveClientIp(req: Request): string {
-  const forwarded = req.headers['x-forwarded-for'];
-  if (typeof forwarded === 'string' && forwarded.length > 0) {
-    return forwarded.split(',')[0].trim();
-  }
-  return req.ip || req.socket.remoteAddress || 'unknown';
+  return getClientIp(req);
 }
 
 function contentTypeForLogoFilename(filename: string): string {

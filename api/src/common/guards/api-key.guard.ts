@@ -19,6 +19,7 @@ import { Reflector } from '@nestjs/core';
 import { ApiKeysService } from '@/modules/api-keys/api-keys.service';
 import { ApiKeyScope } from '@/modules/api-keys/entities/api-key.entity';
 import { isIpAllowed, normalizeIp } from '@/common/utils/ip-validator.util';
+import { getClientIp } from '@/common/http/client-ip';
 import { AuditLogsService } from '@/modules/audit-logs/audit-logs.service';
 
 export const API_KEY_SCOPES_KEY = 'api_key_scopes';
@@ -54,7 +55,7 @@ export class ApiKeyGuard implements CanActivate {
     const { apiKey: keyEntity, tenantId } = result;
 
     // Get client IP address
-    const clientIp = this.getClientIp(request);
+    const clientIp = getClientIp(request, { fallback: '' });
 
     // Check IP allowlist if configured
     if (!isIpAllowed(clientIp, keyEntity.allowedIps, keyEntity.allowedCidrs)) {
@@ -137,7 +138,7 @@ export class ApiKeyGuard implements CanActivate {
           request.method,
           response.statusCode,
           responseTime,
-          request.ip,
+          clientIp,
           request.headers['user-agent'],
         )
         .catch(() => {
@@ -164,30 +165,6 @@ export class ApiKeyGuard implements CanActivate {
     // Query parameter support removed — API keys in URLs leak via logs, referrers, and browser history
 
     return null;
-  }
-
-  /**
-   * Extracts the client IP address from the request.
-   * Checks proxy headers first, then falls back to direct connection.
-   */
-  private getClientIp(request: any): string {
-    // Check for proxy headers
-    const forwardedFor = request.headers['x-forwarded-for'];
-    if (forwardedFor) {
-      const ips = (
-        typeof forwardedFor === 'string' ? forwardedFor : forwardedFor[0]
-      )
-        .split(',')
-        .map((ip: string) => ip.trim());
-      return ips[0];
-    }
-
-    const realIp = request.headers['x-real-ip'];
-    if (realIp) {
-      return typeof realIp === 'string' ? realIp : realIp[0];
-    }
-
-    return request.ip || request.socket?.remoteAddress || '';
   }
 
   /**
