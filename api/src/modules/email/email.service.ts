@@ -174,11 +174,31 @@ export class EmailService implements OnModuleInit {
   }
 
   private stripHtml(html: string): string {
-    return html
-      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    const capped = html.slice(0, 500_000);
+    let withoutStyle = this.removeHtmlTagBlock(capped, 'style');
+    withoutStyle = this.removeHtmlTagBlock(withoutStyle, 'script');
+    return withoutStyle
       .replace(/<[^>]+>/g, '')
       .replace(/\s+/g, ' ')
       .trim();
+  }
+
+  private removeHtmlTagBlock(html: string, tagName: string): string {
+    const open = `<${tagName}`;
+    const close = `</${tagName}>`;
+    let result = html;
+    let lower = result.toLowerCase();
+    let start = lower.indexOf(open);
+    while (start !== -1) {
+      const end = lower.indexOf(close, start);
+      if (end === -1) {
+        break;
+      }
+      result = result.slice(0, start) + result.slice(end + close.length);
+      lower = result.toLowerCase();
+      start = lower.indexOf(open);
+    }
+    return result;
   }
 
   /** Appended to all transactional HTML emails for consistent legal/branding footer. */

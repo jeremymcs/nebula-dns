@@ -19,6 +19,7 @@ import * as fs from 'fs/promises';
 import { ConfigService } from '@nestjs/config';
 import { BlockPagesService } from './block-pages.service';
 import { CreateAccessRequestDto } from './dto/block-page.dto';
+import { resolveTenantUploadFile } from './block-page-upload.util';
 
 function resolveClientIp(req: Request): string {
   const forwarded = req.headers['x-forwarded-for'];
@@ -49,8 +50,11 @@ export class BlockPagesPublicController {
     @Param('filename') filename: string,
     @Res() res: Response,
   ) {
-    const safeName = path.basename(filename);
-    const filePath = path.join(this.uploadRoot, tenantId, safeName);
+    const filePath = resolveTenantUploadFile(
+      this.uploadRoot,
+      tenantId,
+      filename,
+    );
     try {
       await fs.access(filePath);
       return res.sendFile(filePath);

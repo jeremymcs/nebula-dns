@@ -69,6 +69,7 @@
     "qrcode": "^1.5.3",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
+    "sanitize-html": "^2.18.1",
     "socket.io": "^4.8.3",
     "stripe": "^20.0.0",
     "typeorm": "^0.3.19",
@@ -93,6 +94,7 @@
     "@types/passport-local": "^1.0.38",
     "@types/pdfkit": "^0.17.4",
     "@types/qrcode": "^1.5.5",
+    "@types/sanitize-html": "^2.16.2",
     "@types/supertest": "^6.0.3",
     "@types/uuid": "^9.0.7",
     "@typescript-eslint/eslint-plugin": "^6.18.0",
@@ -128,6 +130,9 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
+    "transformIgnorePatterns": [
+      "/node_modules/(?!sanitize-html|htmlparser2|domhandler|domelementtype|dom-serializer|entities|is-plain-object|parse-srcset|postcss|deepmerge|escape-string-regexp)/"
+    ],
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/$1"
     }

@@ -32,6 +32,7 @@ import {
   sanitizeCss,
   sanitizeCustomHtml,
 } from './block-page-html.util';
+import { resolveTenantUploadKey } from './block-page-upload.util';
 import { renderSafeMarkdown } from './block-page-markdown.util';
 import { TenantsService } from '../tenants/tenants.service';
 import { Tenant } from '../tenants/entities/tenant.entity';
@@ -576,13 +577,13 @@ export class BlockPagesService {
 
     const page = await this.findOne(tenantId, blockPageId);
     const ext = path.extname(file.originalname) || '.png';
-    const key = `${tenantId}/${blockPageId}${ext}`;
-    const dir = path.join(this.uploadRoot, tenantId);
-    await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(path.join(this.uploadRoot, key), file.buffer);
+    const { absolutePath, storageKey, publicFilename } =
+      resolveTenantUploadKey(this.uploadRoot, tenantId, blockPageId, ext);
+    await fs.mkdir(path.dirname(absolutePath), { recursive: true });
+    await fs.writeFile(absolutePath, file.buffer);
 
-    page.logoStorageKey = key;
-    page.logoUrl = `/block-pages/public/logos/${tenantId}/${path.basename(key)}`;
+    page.logoStorageKey = storageKey;
+    page.logoUrl = `/block-pages/public/logos/${tenantId}/${publicFilename}`;
     return this.blockPageRepository.save(page);
   }
 
@@ -592,10 +593,6 @@ export class BlockPagesService {
     dto: CreateAccessRequestDto,
     ip: string,
   ): Promise<{ success: true; requestId: string }> {
-    if (dto.companyWebsite) {
-      return { success: true, requestId: 'accepted' };
-    }
-
     await this.assertAccessRequestRateLimits(ip, dto.domain);
 
     const domain = normalizeDomain(dto.domain);
@@ -612,6 +609,10 @@ export class BlockPagesService {
 
     if (dto.turnstileToken) {
       await this.verifyTurnstile(dto.turnstileToken, ip);
+    }
+
+    if (dto.companyWebsite?.trim()) {
+      return { success: true, requestId: 'accepted' };
     }
 
     const request = await this.createAccessRequest(

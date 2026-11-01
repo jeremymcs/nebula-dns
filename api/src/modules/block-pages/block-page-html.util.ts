@@ -1,3 +1,12 @@
+import type { IOptions } from 'sanitize-html';
+
+// CommonJS interop for Jest (sanitize-html ships ESM entrypoints).
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const sanitizeHtml = require('sanitize-html') as (
+  dirty: string,
+  options?: IOptions,
+) => string;
+
 const HTML_ENTITIES: Record<string, string> = {
   '&': '&amp;',
   '<': '&lt;',
@@ -15,19 +24,52 @@ export function escapeHtml(str: string): string {
 
 export function sanitizeCss(css: string): string {
   return css
-    .replace(/javascript:/gi, '')
+    .replace(/javascript\s*:/gi, '')
+    .replace(/vbscript\s*:/gi, '')
+    .replace(/data\s*:/gi, '')
+    .replace(/file\s*:/gi, '')
     .replace(/expression\s*\(/gi, '')
-    .replace(/url\s*\(\s*['"]*\s*data:/gi, 'url(')
     .replace(/@import/gi, '');
 }
 
+const CUSTOM_HTML_OPTIONS: IOptions = {
+  allowedTags: [
+    'b',
+    'i',
+    'em',
+    'strong',
+    'a',
+    'p',
+    'br',
+    'ul',
+    'ol',
+    'li',
+    'span',
+    'div',
+    'h1',
+    'h2',
+    'h3',
+    'img',
+    'section',
+    'article',
+    'header',
+    'footer',
+    'main',
+  ],
+  allowedAttributes: {
+    a: ['href', 'name', 'target', 'rel'],
+    img: ['src', 'alt', 'width', 'height'],
+    '*': ['class', 'id', 'style'],
+  },
+  allowedSchemes: ['http', 'https', 'mailto'],
+  allowedSchemesByTag: {
+    img: ['http', 'https'],
+  },
+  disallowedTagsMode: 'discard',
+};
+
 export function sanitizeCustomHtml(html: string): string {
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
-    .replace(/on\w+\s*=\s*[^\s>]*/gi, '')
-    .replace(/javascript:/gi, '')
-    .replace(/data:/gi, '');
+  return sanitizeHtml(html, CUSTOM_HTML_OPTIONS);
 }
 
 export function normalizeDomain(domain: string): string {
