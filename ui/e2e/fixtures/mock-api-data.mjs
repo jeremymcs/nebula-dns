@@ -550,6 +550,13 @@ export function getMockResponse(rawUrl, method = 'GET', authHeader = '') {
           description: 'Default MSP security template',
           version: 1,
           updatedAt: new Date().toISOString(),
+          config: {
+            blockCategories: ['malware', 'phishing'],
+            warnCategories: [],
+            threatBlocking: { enabled: true, feeds: ['malware', 'phishing'] },
+            safesearch: { enabled: false, services: [], settings: {} },
+            schedules: [],
+          },
         },
       ],
     })
