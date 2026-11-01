@@ -31,7 +31,8 @@
     "migrate:partner-users": "ts-node -r tsconfig-paths/register src/scripts/migrations/migrate-partner-users.ts",
     "migrate:assign-tiers": "ts-node -r tsconfig-paths/register src/scripts/migrations/assign-default-tiers.ts",
     "migrate:all": "npm run migrate:partners && npm run migrate:partner-users && npm run migrate:assign-tiers",
-    "script:backup-partner-data": "ts-node -r tsconfig-paths/register src/scripts/backup-partner-data.ts"
+    "script:backup-partner-data": "ts-node -r tsconfig-paths/register src/scripts/backup-partner-data.ts",
+    "email:previews": "ts-node -r tsconfig-paths/register scripts/render-email-previews.ts"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.500.0",

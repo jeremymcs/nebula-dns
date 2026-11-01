@@ -145,7 +145,7 @@ describe('BlockPagesService', () => {
         },
         {
           provide: EmailService,
-          useValue: { sendTransactionalHtml: jest.fn() },
+          useValue: { sendTransactionalHtml: jest.fn(), sendRendered: jest.fn() },
         },
         {
           provide: ConfigService,

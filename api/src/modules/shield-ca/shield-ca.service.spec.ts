@@ -24,6 +24,7 @@ describe('ShieldCaService', () => {
   const userRepo = { find: jest.fn() };
   const emailService = {
     sendTransactionalHtml: jest.fn().mockResolvedValue(true),
+    sendRendered: jest.fn().mockResolvedValue(true),
   };
 
   beforeEach(async () => {
@@ -137,10 +138,12 @@ describe('ShieldCaService', () => {
 
     const sent = await service.sendRotationAlertEmails();
     expect(sent).toBe(1);
-    expect(emailService.sendTransactionalHtml).toHaveBeenCalledWith(
+    expect(emailService.sendRendered).toHaveBeenCalledWith(
       'admin@acme.test',
-      expect.stringContaining('rotation'),
-      expect.stringContaining('Shield Certificate'),
+      expect.objectContaining({
+        subject: expect.stringContaining('rotation'),
+        html: expect.stringContaining('Shield Certificate'),
+      }),
     );
     expect(redis.set).toHaveBeenCalled();
   });
