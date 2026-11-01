@@ -17,7 +17,7 @@
               - img [ref=e18]
             - generic [ref=e20]:
               - img [ref=e22]
-              - generic [ref=e24]: MSP Provider Inc
+              - generic [ref=e24]: Acme Corp
             - button [ref=e26] [cursor=pointer]:
               - img [ref=e27]
               - generic [ref=e29]: Managed by MSP Provider Inc

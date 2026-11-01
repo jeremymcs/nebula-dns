@@ -142,7 +142,7 @@ test.describe('US-014: Billing Page Usage Breakdown', () => {
 
       // Table should have columns: Name, Policy, Created, Status
       await expect(page.getByText(/location name|name/i)).toBeVisible()
-      await expect(page.getByText(/policy/i)).toBeVisible()
+      await expect(page.getByRole('columnheader', { name: /policy/i })).toBeVisible()
       await expect(page.getByText(/created/i)).toBeVisible()
       await expect(page.getByText(/status/i)).toBeVisible()
     }

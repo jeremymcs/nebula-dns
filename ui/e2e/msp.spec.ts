@@ -3,7 +3,7 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import { test, expect } from '@playwright/test'
-import { loginAsMSP, loginAsEnterprise, waitForPageLoad } from './helpers/auth'
+import { loginAsMSP, loginAsEnterprise, waitForPageLoad, expectTierRestricted } from './helpers/auth'
 import { pageHeading } from './helpers/selectors'
 
 test.describe('US-037: MSP Client List Page', () => {
@@ -576,10 +576,6 @@ test.describe('US-037: Non-MSP Tier Restrictions', () => {
     await page.goto('/dashboard/msp/templates')
     await waitForPageLoad(page)
 
-    const upgradePrompt = page.getByText(/upgrade.*msp/i)
-    const accessDenied = page.getByText(/access denied|not available/i)
-
-    const hasRestriction = await upgradePrompt.isVisible() || await accessDenied.isVisible()
-    expect(hasRestriction).toBeTruthy()
+    await expect(page.getByRole('heading', { name: /msp feature only|upgrade required|access denied/i })).toBeVisible()
   })
 })

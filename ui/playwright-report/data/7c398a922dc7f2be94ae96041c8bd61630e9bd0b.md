@@ -1,0 +1,172 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - navigation [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]:
+            - link "Flux Shield" [ref=e8] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e10]
+              - generic [ref=e15]: Flux Shield
+            - button "Switch platform module" [ref=e17] [cursor=pointer]:
+              - text: DNS Filter
+              - img [ref=e18]
+            - generic [ref=e20]:
+              - img [ref=e22]
+              - generic [ref=e24]: Enterprise Corp
+          - generic [ref=e25]:
+            - link "Policies" [ref=e26] [cursor=pointer]:
+              - /url: /dashboard/policies
+              - img [ref=e27]
+              - text: Policies
+            - link "Zones" [ref=e29] [cursor=pointer]:
+              - /url: /dashboard/locations
+              - img [ref=e30]
+              - text: Zones
+            - link "Investigate" [ref=e33] [cursor=pointer]:
+              - /url: /dashboard/investigate
+              - img [ref=e34]
+              - text: Investigate
+            - link "Reports" [ref=e36] [cursor=pointer]:
+              - /url: /dashboard/reports
+              - img [ref=e37]
+              - text: Reports
+            - link "Insights" [ref=e39] [cursor=pointer]:
+              - /url: /dashboard/insights
+              - img [ref=e40]
+              - text: Insights
+            - link "Playbooks" [ref=e42] [cursor=pointer]:
+              - /url: /dashboard/playbooks
+              - img [ref=e43]
+              - text: Playbooks
+          - generic [ref=e45]:
+            - button "Open command bar" [ref=e46] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e49]: ⌘K
+            - button "Toggle theme" [ref=e50] [cursor=pointer]:
+              - img [ref=e51]
+            - button "Account menu" [ref=e53] [cursor=pointer]:
+              - generic [ref=e55]: EU
+              - generic [ref=e56]: Enterprise
+              - img [ref=e57]
+    - main [ref=e59]:
+      - navigation [ref=e60]:
+        - link "Dashboard" [ref=e62] [cursor=pointer]:
+          - /url: /dashboard
+        - generic [ref=e63]:
+          - img [ref=e64]
+          - generic [ref=e66]: Billing
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - generic [ref=e70]:
+            - heading "Billing & Usage" [level=1] [ref=e71]
+            - paragraph [ref=e72]: Manage your query bundles and view usage
+          - button "Download CSV" [ref=e74] [cursor=pointer]:
+            - img [ref=e76]
+            - text: Download CSV
+        - generic [ref=e78]:
+          - generic [ref=e80]:
+            - img [ref=e83]
+            - generic [ref=e85]:
+              - paragraph [ref=e86]: Query Balance
+              - paragraph [ref=e88]: 2.5M
+          - generic [ref=e90]:
+            - img [ref=e93]
+            - generic [ref=e95]:
+              - paragraph [ref=e96]: Today's Usage
+              - paragraph [ref=e98]: 42.0K
+          - generic [ref=e100]:
+            - img [ref=e103]
+            - generic [ref=e105]:
+              - paragraph [ref=e106]: This Month
+              - paragraph [ref=e108]: 1.3M
+          - generic [ref=e110]:
+            - img [ref=e113]
+            - generic [ref=e115]:
+              - paragraph [ref=e116]: Overage
+              - paragraph [ref=e118]: "0"
+        - navigation [ref=e120]:
+          - button "Usage Overview" [active] [ref=e121] [cursor=pointer]:
+            - generic [ref=e122]: Usage Overview
+          - button "Query Bundles" [ref=e123] [cursor=pointer]:
+            - generic [ref=e124]: Query Bundles
+          - button "Purchase History" [ref=e125] [cursor=pointer]:
+            - generic [ref=e126]: Purchase History
+          - button "Invoices" [ref=e127] [cursor=pointer]:
+            - generic [ref=e128]: Invoices
+          - button "Usage by Client" [ref=e129] [cursor=pointer]:
+            - generic [ref=e130]: Usage by Client
+        - generic [ref=e132]:
+          - generic [ref=e133]:
+            - generic [ref=e135]:
+              - heading "Usage Breakdown" [level=3] [ref=e136]
+              - paragraph [ref=e137]: October 1, 2026 - October 31, 2026
+            - generic [ref=e138]:
+              - generic [ref=e139]:
+                - paragraph [ref=e140]: Current Period Cost
+                - paragraph [ref=e141]: $30.00
+              - generic [ref=e142]:
+                - paragraph [ref=e143]: Projected Monthly Cost
+                - paragraph [ref=e144]: $99.00
+            - generic [ref=e146]:
+              - heading "Locations (1)" [level=3] [ref=e147]
+              - table [ref=e149]:
+                - rowgroup [ref=e150]:
+                  - row "Location Name Policy Created Status" [ref=e151]:
+                    - columnheader "Location Name" [ref=e152]
+                    - columnheader "Policy" [ref=e153]
+                    - columnheader "Created" [ref=e154]
+                    - columnheader "Status" [ref=e155]
+                - rowgroup [ref=e156]:
+                  - row "HQ Network Default Policy Feb 1, 2026 active" [ref=e157]:
+                    - cell "HQ Network" [ref=e158]:
+                      - generic [ref=e159]:
+                        - img [ref=e160]
+                        - generic [ref=e163]: HQ Network
+                    - cell "Default Policy" [ref=e164]
+                    - cell "Feb 1, 2026" [ref=e165]
+                    - cell "active" [ref=e166]:
+                      - generic [ref=e167]: active
+          - generic [ref=e168]:
+            - generic [ref=e170]:
+              - heading "Usage History" [level=3] [ref=e171]
+              - paragraph [ref=e172]: Last 6 months
+            - generic [ref=e175]:
+              - list [ref=e177]:
+                - listitem [ref=e178]:
+                  - img "Clients legend icon" [ref=e179]
+                  - text: Clients
+                - listitem [ref=e181]:
+                  - img "Locations legend icon" [ref=e182]
+                  - text: Locations
+                - listitem [ref=e184]:
+                  - img "Policies legend icon" [ref=e185]
+                  - text: Policies
+                - listitem [ref=e187]:
+                  - img "Queries (M) legend icon" [ref=e188]
+                  - text: Queries (M)
+              - application [ref=e190]:
+                - generic [ref=e216]:
+                  - generic [ref=e217]:
+                    - generic [ref=e219]: May 2026
+                    - generic [ref=e221]: Jun 2026
+                  - generic [ref=e222]:
+                    - generic [ref=e224]: "0"
+                    - generic [ref=e226]: "0.75"
+                    - generic [ref=e228]: "1.5"
+                    - generic [ref=e230]: "2.25"
+                    - generic [ref=e232]: "3"
+    - contentinfo "Site footer" [ref=e233]:
+      - paragraph [ref=e234]:
+        - text: © 2026 · Powered by
+        - link "Flux Labs" [ref=e235] [cursor=pointer]:
+          - /url: https://fluxlabs.net
+    - button [ref=e236] [cursor=pointer]:
+      - img [ref=e239]
+    - generic [ref=e241]: Meet Orion- Your AI Co-Pilot
+  - generic [ref=e243]: "0"
+```

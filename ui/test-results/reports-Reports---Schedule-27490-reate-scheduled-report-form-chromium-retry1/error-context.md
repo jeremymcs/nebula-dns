@@ -1,7 +1,7 @@
 # Page snapshot
 
 ```yaml
-- generic [active] [ref=e1]:
+- generic [ref=e1]:
   - alert [ref=e2]
   - generic [ref=e3]:
     - banner [ref=e4]:
@@ -69,20 +69,101 @@
           - generic [ref=e74]:
             - heading "Scheduled Reports" [level=1] [ref=e75]
             - paragraph [ref=e76]: Automate report delivery to your team
-          - button "New Scheduled Report" [ref=e77] [cursor=pointer]:
+          - button "New Scheduled Report" [active] [ref=e77] [cursor=pointer]:
             - img [ref=e78]
             - text: New Scheduled Report
-        - generic [ref=e80]:
-          - img [ref=e81]
-          - heading "No scheduled reports" [level=3] [ref=e83]
-          - paragraph [ref=e84]: Create a scheduled report to automatically receive insights via email.
-          - button "Create Your First Report" [ref=e85] [cursor=pointer]
-    - contentinfo "Site footer" [ref=e86]:
-      - paragraph [ref=e87]:
+        - table [ref=e81]:
+          - rowgroup [ref=e82]:
+            - row "Report Schedule Recipients Status Next Run Actions" [ref=e83]:
+              - columnheader "Report" [ref=e84]
+              - columnheader "Schedule" [ref=e85]
+              - columnheader "Recipients" [ref=e86]
+              - columnheader "Status" [ref=e87]
+              - columnheader "Next Run" [ref=e88]
+              - columnheader "Actions" [ref=e89]
+          - rowgroup [ref=e90]:
+            - row "Weekly Security Summary undefined at undefined 1 recipient Active 11/2/2026, 4:31:50 PM" [ref=e91]:
+              - cell "Weekly Security Summary" [ref=e92]:
+                - generic [ref=e93]: Weekly Security Summary
+              - cell "undefined at undefined" [ref=e94]:
+                - generic [ref=e95]:
+                  - img [ref=e96]
+                  - text: undefined at undefined
+              - cell "1 recipient" [ref=e98]:
+                - generic [ref=e99]:
+                  - img [ref=e100]
+                  - text: 1 recipient
+              - cell "Active" [ref=e102]:
+                - generic [ref=e103]:
+                  - img [ref=e104]
+                  - text: Active
+              - cell "11/2/2026, 4:31:50 PM" [ref=e106]
+              - cell [ref=e107]:
+                - generic [ref=e108]:
+                  - button "Run Now" [ref=e109] [cursor=pointer]:
+                    - img [ref=e110]
+                  - button "Pause" [ref=e112] [cursor=pointer]:
+                    - img [ref=e113]
+                  - button "Edit" [ref=e115] [cursor=pointer]:
+                    - img [ref=e116]
+                  - button "Delete" [ref=e118] [cursor=pointer]:
+                    - img [ref=e119]
+        - generic [ref=e122]:
+          - heading "New Scheduled Report" [level=2] [ref=e123]
+          - generic [ref=e124]:
+            - generic [ref=e125]:
+              - generic [ref=e126]: Report Name *
+              - textbox "Weekly Security Summary" [ref=e127]
+            - generic [ref=e128]:
+              - generic [ref=e129]: Description
+              - textbox "Optional description..." [ref=e130]
+            - generic [ref=e131]:
+              - generic [ref=e132]: Report Type *
+              - combobox [ref=e133]:
+                - option "Summary Report" [selected]
+                - option "Threat Report"
+                - option "Top Blocked Domains"
+                - option "Activity Report"
+                - option "Compliance Report"
+            - generic [ref=e134]:
+              - generic [ref=e135]:
+                - generic [ref=e136]: Frequency *
+                - combobox [ref=e137]:
+                  - option "Daily"
+                  - option "Weekly" [selected]
+                  - option "Monthly"
+              - generic [ref=e138]:
+                - generic [ref=e139]: Day of Week
+                - combobox [ref=e140]:
+                  - option "Sunday"
+                  - option "Monday" [selected]
+                  - option "Tuesday"
+                  - option "Wednesday"
+                  - option "Thursday"
+                  - option "Friday"
+                  - option "Saturday"
+            - generic [ref=e141]:
+              - generic [ref=e142]:
+                - generic [ref=e143]: Time
+                - textbox [ref=e144]: 08:00
+              - generic [ref=e145]:
+                - generic [ref=e146]: Format
+                - combobox [ref=e147]:
+                  - option "PDF" [selected]
+                  - option "CSV"
+                  - option "HTML"
+            - generic [ref=e148]:
+              - generic [ref=e149]: Recipients *
+              - textbox "email1@example.com, email2@example.com" [ref=e150]
+              - paragraph [ref=e151]: Separate multiple emails with commas
+            - generic [ref=e152]:
+              - button "Create Report" [ref=e153] [cursor=pointer]
+              - button "Cancel" [ref=e154] [cursor=pointer]
+    - contentinfo "Site footer" [ref=e155]:
+      - paragraph [ref=e156]:
         - text: © 2026 · Powered by
-        - link "Flux Labs" [ref=e88] [cursor=pointer]:
+        - link "Flux Labs" [ref=e157] [cursor=pointer]:
           - /url: https://fluxlabs.net
-    - button [ref=e89] [cursor=pointer]:
-      - img [ref=e92]
-    - generic [ref=e94]: Meet Orion- Your AI Co-Pilot
+    - button [ref=e158] [cursor=pointer]:
+      - img [ref=e160]
 ```

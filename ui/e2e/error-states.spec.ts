@@ -453,10 +453,8 @@ test.describe('Error States - Session Expiry', () => {
       localStorage.removeItem('user')
     })
 
-    await page.reload()
+    await page.reload({ waitUntil: 'domcontentloaded' })
 
-    // Should redirect to login
-    const loginPage = loginHeading(page)
     await expect(loginHeading(page)).toBeVisible({ timeout: 15000 })
   })
 })

@@ -32,7 +32,7 @@ interface Client {
 }
 
 export default function MspTemplatesPage() {
-  const { isMsp, organizations } = useAuth()
+  const { isMspTier, organizations } = useAuth()
   const { showToast } = useToast()
   const { data: templatesData, isLoading } = useMspTemplates()
   const [search, setSearch] = useState('')
@@ -255,7 +255,7 @@ export default function MspTemplatesPage() {
   }
 
   // Redirect non-MSP users
-  if (!isMsp) {
+  if (!isMspTier) {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-center">
         <DocumentDuplicateIcon className="h-12 w-12 text-space-400 mb-4" />

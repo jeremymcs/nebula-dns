@@ -54,142 +54,117 @@
               - generic [ref=e56]: Enterprise
               - img [ref=e57]
     - main [ref=e59]:
-      - navigation [ref=e60]:
-        - link "Dashboard" [ref=e62] [cursor=pointer]:
-          - /url: /dashboard
-        - generic [ref=e63]:
-          - img [ref=e64]
-          - generic [ref=e66]: Policies
-      - generic [ref=e68]:
-        - generic [ref=e69]:
-          - generic [ref=e70]:
-            - heading "Policies" [level=1] [ref=e71]
-            - paragraph [ref=e72]: Manage DNS filtering policies for your locations
-          - generic [ref=e73]:
-            - link "Visual Builder" [ref=e74] [cursor=pointer]:
-              - /url: /dashboard/policy-builder
-              - button "Visual Builder" [ref=e75]:
-                - img [ref=e77]
-                - text: Visual Builder
-            - button "Create Policy" [ref=e79] [cursor=pointer]:
-              - img [ref=e81]
-              - text: Create Policy
-        - generic [ref=e83]:
-          - generic [ref=e84]:
-            - img [ref=e86]
-            - generic [ref=e88]:
-              - paragraph [ref=e89]: Sample Policies
-              - paragraph [ref=e90]: Showing sample policies. Import them to use as starting templates for your organization.
-          - button "Import Samples" [ref=e91] [cursor=pointer]:
-            - img [ref=e93]
-            - text: Import Samples
-        - generic [ref=e95]:
-          - generic [ref=e96] [cursor=pointer]:
-            - generic [ref=e97]:
-              - generic [ref=e99]:
-                - img [ref=e101]
-                - generic [ref=e103]: Default
-              - heading "Default Policy" [level=3] [ref=e104]
-              - paragraph [ref=e105]: Baseline security policy with threat protection enabled
-            - generic [ref=e106]:
-              - generic [ref=e107]:
-                - generic [ref=e108]: Version
-                - generic [ref=e109]: v1
-              - generic [ref=e110]:
-                - generic [ref=e111]: Threat Protection
-                - generic [ref=e112]: ACTIVE
-              - generic [ref=e113]:
-                - generic [ref=e114]: SafeSearch
-                - generic [ref=e115]: INACTIVE
-              - generic [ref=e116]:
-                - text: Blocked Categories
-                - generic [ref=e117]:
-                  - generic [ref=e118]: malware
-                  - generic [ref=e119]: phishing
-                  - generic [ref=e120]: scam
-                  - generic [ref=e121]: "+1"
-            - generic [ref=e122]:
-              - generic [ref=e123]: Modified 11/1/2026
-              - generic [ref=e124]:
-                - button "History" [ref=e125]:
-                  - img [ref=e127]
-                  - text: History
-                - button "Edit" [ref=e129]:
-                  - img [ref=e131]
-                  - text: Edit
-          - generic [ref=e133] [cursor=pointer]:
-            - generic [ref=e134]:
-              - img [ref=e138]
-              - heading "Family Safe" [level=3] [ref=e140]
-              - paragraph [ref=e141]: Block adult content, violence, and enforce safe search
-            - generic [ref=e142]:
-              - generic [ref=e143]:
-                - generic [ref=e144]: Version
-                - generic [ref=e145]: v1
-              - generic [ref=e146]:
-                - generic [ref=e147]: Threat Protection
-                - generic [ref=e148]: ACTIVE
-              - generic [ref=e149]:
-                - generic [ref=e150]: SafeSearch
-                - generic [ref=e151]: ACTIVE
-              - generic [ref=e152]:
-                - text: Blocked Categories
+      - generic [ref=e61]:
+        - generic [ref=e62]:
+          - heading "Dashboard" [level=1] [ref=e63]
+          - paragraph [ref=e64]: Enterprise Corp • DNS security at a glance
+        - generic [ref=e65]:
+          - generic [ref=e69]:
+            - generic [ref=e70]:
+              - paragraph [ref=e71]: Total Queries
+              - paragraph [ref=e72]: 125,000
+              - paragraph [ref=e73]: Last 24 hours
+              - generic [ref=e74]: ↑ 0%
+            - img [ref=e77]
+          - generic [ref=e82]:
+            - generic [ref=e83]:
+              - paragraph [ref=e84]: Threats Blocked
+              - paragraph [ref=e85]: "890"
+              - paragraph [ref=e86]: Last 24 hours
+              - generic [ref=e87]: ↑ 0%
+            - img [ref=e90]
+          - generic [ref=e95]:
+            - generic [ref=e96]:
+              - paragraph [ref=e97]: Policies Active
+              - paragraph [ref=e98]: "0"
+              - paragraph [ref=e99]: Across all locations
+            - img [ref=e102]
+          - generic [ref=e107]:
+            - generic [ref=e108]:
+              - paragraph [ref=e109]: Locations
+              - paragraph [ref=e110]: "0"
+              - paragraph [ref=e111]: Protected networks
+            - img [ref=e114]
+        - generic [ref=e117]:
+          - generic [ref=e118]:
+            - generic [ref=e120]:
+              - heading "Query Trends" [level=3] [ref=e121]
+              - paragraph [ref=e122]: Total queries vs blocked over time
+            - application [ref=e126]:
+              - generic [ref=e139]:
+                - generic [ref=e140]:
+                  - generic [ref=e142]: Sun, Nov 1
+                  - generic [ref=e144]: Sat, Oct 31
+                  - generic [ref=e146]: Fri, Oct 30
+                  - generic [ref=e148]: Thu, Oct 29
+                  - generic [ref=e150]: Wed, Oct 28
+                  - generic [ref=e152]: Mon, Oct 26
                 - generic [ref=e153]:
-                  - generic [ref=e154]: adult
-                  - generic [ref=e155]: violence
-                  - generic [ref=e156]: drugs
-                  - generic [ref=e157]: "+4"
-            - generic [ref=e158]:
-              - generic [ref=e159]: Modified 11/1/2026
-              - generic [ref=e160]:
-                - button "History" [ref=e161]:
-                  - img [ref=e163]
-                  - text: History
-                - button "Edit" [ref=e165]:
-                  - img [ref=e167]
-                  - text: Edit
-                - button "Delete" [ref=e169]:
-                  - img [ref=e171]
-                  - text: Delete
-          - generic [ref=e173] [cursor=pointer]:
-            - generic [ref=e174]:
-              - img [ref=e178]
-              - heading "Corporate Security" [level=3] [ref=e180]
-              - paragraph [ref=e181]: High security for business environments
-            - generic [ref=e182]:
-              - generic [ref=e183]:
-                - generic [ref=e184]: Version
-                - generic [ref=e185]: v1
-              - generic [ref=e186]:
-                - generic [ref=e187]: Threat Protection
-                - generic [ref=e188]: ACTIVE
-              - generic [ref=e189]:
-                - generic [ref=e190]: SafeSearch
-                - generic [ref=e191]: ACTIVE
-              - generic [ref=e192]:
-                - text: Blocked Categories
-                - generic [ref=e193]:
-                  - generic [ref=e194]: malware
-                  - generic [ref=e195]: phishing
-                  - generic [ref=e196]: hacking
-                  - generic [ref=e197]: "+8"
-            - generic [ref=e198]:
-              - generic [ref=e199]: Modified 11/1/2026
-              - generic [ref=e200]:
-                - button "History" [ref=e201]:
-                  - img [ref=e203]
-                  - text: History
-                - button "Edit" [ref=e205]:
-                  - img [ref=e207]
-                  - text: Edit
-                - button "Delete" [ref=e209]:
-                  - img [ref=e211]
-                  - text: Delete
-    - contentinfo "Site footer" [ref=e213]:
-      - paragraph [ref=e214]:
+                  - generic [ref=e155]: "0"
+                  - generic [ref=e157]: 4k
+                  - generic [ref=e159]: 7k
+                  - generic [ref=e161]: 11k
+                  - generic [ref=e163]: 14k
+          - generic [ref=e164]:
+            - generic [ref=e166]:
+              - heading "Categories Blocked" [level=3] [ref=e167]
+              - paragraph [ref=e168]: Distribution of blocked content
+            - generic [ref=e171]:
+              - generic [ref=e173]:
+                - generic [ref=e176]: malware
+                - generic [ref=e179]: phishing
+              - application [ref=e180]
+        - generic [ref=e188]:
+          - generic [ref=e190]:
+            - generic [ref=e192]:
+              - heading "Top Blocked" [level=3] [ref=e193]
+              - paragraph [ref=e194]: Most frequently blocked domains
+            - generic [ref=e195]:
+              - generic [ref=e196]:
+                - generic [ref=e198]: "1"
+                - generic [ref=e200]:
+                  - generic [ref=e201]: bad.example.com
+                  - generic [ref=e202]: malware
+                - generic [ref=e205]:
+                  - text: "120"
+                  - paragraph [ref=e206]: blocks
+              - generic [ref=e207]:
+                - generic [ref=e209]: "2"
+                - generic [ref=e211]:
+                  - generic [ref=e212]: phish.example.com
+                  - generic [ref=e213]: phishing
+                - generic [ref=e216]:
+                  - text: "80"
+                  - paragraph [ref=e217]: blocks
+          - generic [ref=e219]:
+            - generic [ref=e220]:
+              - generic [ref=e221]:
+                - heading "Live Activity" [level=3] [ref=e222]
+                - paragraph [ref=e223]: Recent DNS queries
+              - generic [ref=e227]: Live
+            - generic [ref=e228]:
+              - generic [ref=e229]:
+                - img [ref=e231]
+                - generic [ref=e233]:
+                  - generic [ref=e234]:
+                    - generic [ref=e235]: bad.example.com
+                    - generic [ref=e236]: Blocked
+                  - generic [ref=e238]: malware
+                - generic [ref=e239]: Just now
+              - generic [ref=e240]:
+                - img [ref=e242]
+                - generic [ref=e244]:
+                  - generic [ref=e245]:
+                    - generic [ref=e246]: phish.example.com
+                    - generic [ref=e247]: Blocked
+                  - generic [ref=e249]: phishing
+                - generic [ref=e250]: Just now
+    - contentinfo "Site footer" [ref=e251]:
+      - paragraph [ref=e252]:
         - text: © 2026 · Powered by
-        - link "Flux Labs" [ref=e215] [cursor=pointer]:
+        - link "Flux Labs" [ref=e253] [cursor=pointer]:
           - /url: https://fluxlabs.net
-    - button [ref=e216] [cursor=pointer]:
-      - img [ref=e218]
+    - button [ref=e254] [cursor=pointer]:
+      - img [ref=e256]
+  - generic [ref=e258]: "0"
 ```

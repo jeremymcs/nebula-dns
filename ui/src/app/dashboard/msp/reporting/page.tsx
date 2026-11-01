@@ -9,9 +9,9 @@ import { ChartBarIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '@/contexts/AuthContext'
 
 export default function CrossClientReportingPage() {
-  const { isMsp } = useAuth()
+  const { isMspTier } = useAuth()
 
-  if (!isMsp) {
+  if (!isMspTier) {
     return (
       <div className="text-center py-20">
         <ChartBarIcon className="mx-auto h-16 w-16 text-space-300 dark:text-space-600" />

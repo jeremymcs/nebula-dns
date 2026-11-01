@@ -43,17 +43,10 @@ test.describe('Settings - Security', () => {
   })
 
   test('should show MFA toggle', async ({ page }) => {
-    const mfaToggle = page.getByLabel(/multi-factor|mfa|two-factor|2fa/i)
-
-    if (await mfaToggle.isVisible()) {
-      await expect(mfaToggle).toBeVisible()
-    } else {
-      // Alternative: MFA section heading
-      const mfaSection = page.getByText(/multi-factor|mfa|two-factor authentication/i)
-      if (await mfaSection.isVisible()) {
-        await expect(mfaSection).toBeVisible()
-      }
-    }
+    const mfaSection = page.getByRole('heading', { name: /multi-factor|mfa|two-factor/i }).or(
+      page.getByText(/multi-factor|two-factor authentication/i),
+    )
+    await expect(mfaSection.first()).toBeVisible({ timeout: 10000 })
   })
 
   test('should enable MFA', async ({ page }) => {
@@ -153,8 +146,7 @@ test.describe('Settings - Team Management', () => {
   })
 
   test('should have invite member button', async ({ page }) => {
-    const inviteButton = page.getByRole('button', { name: /invite|add member|add user/i })
-    await expect(inviteButton).toBeVisible()
+    await expect(page.getByRole('button', { name: /invite member/i })).toBeVisible({ timeout: 15000 })
   })
 
   test('should open invite member form', async ({ page }) => {
@@ -409,7 +401,7 @@ test.describe('Settings - Integrations/Webhooks', () => {
     if (await createButton.isVisible()) {
       await createButton.click()
 
-      const urlInput = page.getByLabel(/url|webhook url|endpoint/i).first()
+      const urlInput = page.getByRole('dialog').getByRole('textbox').nth(1)
       await expect(urlInput).toBeVisible({ timeout: 5000 })
     } else {
       test.skip()
@@ -443,12 +435,6 @@ test.describe('Settings - SSO Configuration', () => {
     await loginAndNavigate(page, '/dashboard/settings/sso')
     await waitForPageLoad(page)
 
-    const ssoSection = page.getByText(/single sign-on|sso|saml|oauth/i)
-
-    if (await ssoSection.isVisible()) {
-      await expect(ssoSection).toBeVisible()
-    } else {
-      test.skip()
-    }
+    await expect(page.getByRole('heading', { name: /single sign-on|sso/i })).toBeVisible()
   })
 })
