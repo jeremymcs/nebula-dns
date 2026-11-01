@@ -28,6 +28,7 @@ import {
   AdminZoneListItemDto,
   CreatePlatformZoneDto,
   PlatformConnectionResponseDto,
+  PlatformConnectionStatusEnvelopeDto,
   RevokePlatformConnectionDto,
   RotatePlatformConnectionDto,
   SetPlatformConnectionDto,
@@ -57,8 +58,10 @@ export class AdminDnsManagementController {
   @ApiOperation({
     summary: 'Platform Cloudflare connection status (no secret)',
   })
-  getConnection(): Promise<PlatformConnectionResponseDto | null> {
-    return this.dnsManagementService.getPlatformConnectionStatus();
+  getConnection(): Promise<PlatformConnectionStatusEnvelopeDto> {
+    return this.dnsManagementService.getPlatformConnectionStatus().then(
+      (connection) => ({ connection }),
+    );
   }
 
   @Post('connection')

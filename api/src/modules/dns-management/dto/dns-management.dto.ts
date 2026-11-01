@@ -96,6 +96,15 @@ export class PlatformConnectionResponseDto {
   inventorySyncedAt?: string;
 }
 
+export class PlatformConnectionStatusEnvelopeDto {
+  @ApiProperty({
+    type: PlatformConnectionResponseDto,
+    nullable: true,
+    description: 'Active platform connection, or null when not configured',
+  })
+  connection: PlatformConnectionResponseDto | null;
+}
+
 export class AssignZoneDto {
   @ApiProperty()
   @IsUUID()

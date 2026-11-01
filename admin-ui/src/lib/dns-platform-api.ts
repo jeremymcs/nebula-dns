@@ -2,6 +2,7 @@
  * Admin DNS Platform API helpers
  */
 import { API_URL } from '@/lib/api';
+import { fetchJson } from '@/lib/http-json';
 
 function authHeaders(): HeadersInit {
   const token =
@@ -37,19 +38,17 @@ export interface AdminZoneRow {
   tenantName?: string;
 }
 
+type ConnectionEnvelope = {
+  connection: PlatformConnectionStatus | null;
+};
+
 export async function fetchPlatformConnection(): Promise<PlatformConnectionStatus | null> {
-  const res = await fetch(`${API_URL}/admin/dns-management/connection`, {
-    headers: authHeaders(),
-  });
-  if (res.status === 404) {
-    return null;
-  }
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({}));
-    throw new Error(error.message || 'Failed to load connection');
-  }
-  const body = await res.json();
-  return body ?? null;
+  const body = await fetchJson<ConnectionEnvelope>(
+    `${API_URL}/admin/dns-management/connection`,
+    { headers: authHeaders() },
+    { fallback: { connection: null } },
+  );
+  return body.connection ?? null;
 }
 
 export async function savePlatformConnection(input: {
@@ -57,57 +56,56 @@ export async function savePlatformConnection(input: {
   apiToken: string;
   accountId?: string;
 }): Promise<PlatformConnectionStatus> {
-  const res = await fetch(`${API_URL}/admin/dns-management/connection`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(input),
-  });
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({}));
-    throw new Error(error.message || 'Failed to save connection');
-  }
-  return res.json();
+  return fetchJson<PlatformConnectionStatus>(
+    `${API_URL}/admin/dns-management/connection`,
+    {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(input),
+    },
+  );
 }
 
 export async function discoverPlatformAccounts(apiToken: string): Promise<
   Array<{ id: string; name: string }>
 > {
-  const res = await fetch(
+  return fetchJson<Array<{ id: string; name: string }>>(
     `${API_URL}/admin/dns-management/connection/discover-accounts`,
     {
       method: 'POST',
       headers: authHeaders(),
       body: JSON.stringify({ apiToken }),
     },
+    { fallback: [] },
   );
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({}));
-    throw new Error(error.message || 'Failed to list accounts');
-  }
-  return res.json();
 }
 
 export async function syncPlatformZones(): Promise<AdminZoneRow[]> {
-  const res = await fetch(`${API_URL}/admin/dns-management/zones/sync`, {
-    method: 'POST',
-    headers: authHeaders(),
-  });
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({}));
-    throw new Error(error.message || 'Sync failed');
-  }
-  return res.json();
+  return fetchJson<AdminZoneRow[]>(
+    `${API_URL}/admin/dns-management/zones/sync`,
+    {
+      method: 'POST',
+      headers: authHeaders(),
+    },
+    { fallback: [] },
+  );
 }
 
 export async function listPlatformZones(): Promise<AdminZoneRow[]> {
-  const res = await fetch(`${API_URL}/admin/dns-management/zones`, {
-    headers: authHeaders(),
-  });
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({}));
-    throw new Error(error.message || 'Failed to list zones');
-  }
-  return res.json();
+  return fetchJson<AdminZoneRow[]>(
+    `${API_URL}/admin/dns-management/zones`,
+    { headers: authHeaders() },
+    { fallback: [] },
+  );
+}
+
+export interface CreatePlatformZoneResult {
+  providerZoneId: string;
+  zoneName: string;
+  status: string;
+  nameServers: string[];
+  assignmentId?: string;
+  tenantId?: string;
 }
 
 export async function assignZone(
@@ -119,7 +117,7 @@ export async function assignZone(
     canDeleteRecords?: boolean;
   },
 ) {
-  const res = await fetch(
+  return fetchJson<unknown>(
     `${API_URL}/admin/dns-management/zones/${encodeURIComponent(providerZoneId)}/assign`,
     {
       method: 'POST',
@@ -127,25 +125,18 @@ export async function assignZone(
       body: JSON.stringify(body),
     },
   );
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({}));
-    throw new Error(error.message || 'Assign failed');
-  }
-  return res.json();
 }
 
 export async function createPlatformZone(body: {
   name: string;
   tenantId?: string;
-}) {
-  const res = await fetch(`${API_URL}/admin/dns-management/zones`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({}));
-    throw new Error(error.message || 'Create zone failed');
-  }
-  return res.json();
+}): Promise<CreatePlatformZoneResult> {
+  return fetchJson<CreatePlatformZoneResult>(
+    `${API_URL}/admin/dns-management/zones`,
+    {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(body),
+    },
+  );
 }
