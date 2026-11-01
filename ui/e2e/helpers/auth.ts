@@ -1,7 +1,7 @@
 // Nebula DNS - E2E Test Authentication Helpers
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-import { Page } from '@playwright/test'
+import { Page, expect } from '@playwright/test'
 import { installBackendMocks } from './mock-backend'
 
 type TenantTier = 'home' | 'enterprise' | 'msp'
@@ -115,4 +115,24 @@ export async function logout(page: Page) {
 export async function waitForPageLoad(page: Page) {
   await page.waitForLoadState('domcontentloaded')
   await expectDashboardShell(page)
+}
+
+/** Home tier dashboard title (Family Protection). */
+export function homeDashboardHeading(page: Page) {
+  return page.getByRole('heading', { level: 1, name: /family protection|dashboard/i })
+}
+
+/** Assert tier-gated page shows upgrade / access messaging. */
+export async function expectTierRestricted(page: Page) {
+  const restriction = page
+    .getByRole('heading', { name: /upgrade required|access denied|msp feature only/i })
+    .or(
+      page.getByText(
+        /upgrade.*enterprise|upgrade.*msp|enterprise.*required|msp.*required|msp feature only|access denied|forbidden|not available|upgrade required|contact support to upgrade/i,
+      ),
+    )
+    .or(page.getByRole('button', { name: /upgrade to (enterprise|msp)/i }))
+    .or(page.getByRole('link', { name: /upgrade to (enterprise|msp)/i }))
+
+  await expect(restriction.first()).toBeVisible({ timeout: 15_000 })
 }

@@ -3,7 +3,7 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import { test, expect } from '@playwright/test'
-import { loginAsHome, loginAsEnterprise, loginAsMSP, waitForPageLoad } from './helpers/auth'
+import { loginAsHome, loginAsEnterprise, loginAsMSP, waitForPageLoad, expectTierRestricted, homeDashboardHeading } from './helpers/auth'
 import { pageHeading } from './helpers/selectors'
 
 test.describe('US-037: Home Tier Feature Access', () => {
@@ -15,7 +15,7 @@ test.describe('US-037: Home Tier Feature Access', () => {
 
   test('should access dashboard with Home tier', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard/)
-    await expect(pageHeading(page, /^dashboard$/i)).toBeVisible()
+    await expect(homeDashboardHeading(page)).toBeVisible()
   })
 
   test('should access basic locations page', async ({ page }) => {
@@ -67,59 +67,33 @@ test.describe('US-037: Home Tier Feature Access', () => {
   })
 
   test('should NOT access SIEM page', async ({ page }) => {
-    await page.goto('/dashboard/settings/security/siem')
+    await page.goto('/dashboard/settings/integrations')
     await waitForPageLoad(page)
-
-    // Should either redirect or show upgrade prompt
-    const upgradePrompt = page.getByText(/upgrade.*enterprise/i)
-    const accessDenied = page.getByText(/access denied|not available/i)
-
-    const hasRestriction = await upgradePrompt.isVisible() || await accessDenied.isVisible()
-    expect(hasRestriction).toBeTruthy()
+    await expectTierRestricted(page)
   })
 
   test('should NOT access SSO settings', async ({ page }) => {
-    await page.goto('/dashboard/settings/security/sso')
+    await page.goto('/dashboard/settings/sso')
     await waitForPageLoad(page)
-
-    const upgradePrompt = page.getByText(/upgrade.*enterprise/i)
-    const accessDenied = page.getByText(/access denied|not available/i)
-
-    const hasRestriction = await upgradePrompt.isVisible() || await accessDenied.isVisible()
-    expect(hasRestriction).toBeTruthy()
+    await expectTierRestricted(page)
   })
 
   test('should NOT access API Keys page', async ({ page }) => {
-    await page.goto('/dashboard/settings/security/api-keys')
+    await page.goto('/dashboard/settings/api-keys')
     await waitForPageLoad(page)
-
-    const upgradePrompt = page.getByText(/upgrade.*enterprise/i)
-    const accessDenied = page.getByText(/access denied|not available/i)
-
-    const hasRestriction = await upgradePrompt.isVisible() || await accessDenied.isVisible()
-    expect(hasRestriction).toBeTruthy()
+    await expectTierRestricted(page)
   })
 
   test('should NOT access MSP Clients page', async ({ page }) => {
     await page.goto('/dashboard/clients')
     await waitForPageLoad(page)
-
-    const upgradePrompt = page.getByText(/upgrade.*msp/i)
-    const accessDenied = page.getByText(/access denied|not available/i)
-
-    const hasRestriction = await upgradePrompt.isVisible() || await accessDenied.isVisible()
-    expect(hasRestriction).toBeTruthy()
+    await expectTierRestricted(page)
   })
 
   test('should NOT access MSP Templates page', async ({ page }) => {
     await page.goto('/dashboard/msp/templates')
     await waitForPageLoad(page)
-
-    const upgradePrompt = page.getByText(/upgrade.*msp/i)
-    const accessDenied = page.getByText(/access denied|not available/i)
-
-    const hasRestriction = await upgradePrompt.isVisible() || await accessDenied.isVisible()
-    expect(hasRestriction).toBeTruthy()
+    await expectTierRestricted(page)
   })
 
   test('should show Home tier badge on restricted features', async ({ page }) => {
@@ -203,39 +177,36 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
   })
 
   test('should access SIEM integration page', async ({ page }) => {
-    await page.goto('/dashboard/settings/security/siem')
+    await page.goto('/dashboard/settings/integrations')
     await waitForPageLoad(page)
 
-    await expect(page).toHaveURL(/\/dashboard\/settings\/security\/siem/)
-    // Should show SIEM configuration, not upgrade prompt
-    const upgradePrompt = page.getByText(/upgrade to access/i)
-    expect(await upgradePrompt.isVisible()).toBeFalsy()
+    await expect(page).toHaveURL(/\/dashboard\/settings\/integrations/)
+    await expect(pageHeading(page, /^integrations$/i)).toBeVisible()
+    await expect(page.getByText(/siem integrations/i)).toBeVisible()
   })
 
   test('should access SSO settings page', async ({ page }) => {
-    await page.goto('/dashboard/settings/security/sso')
+    await page.goto('/dashboard/settings/sso')
     await waitForPageLoad(page)
 
-    await expect(page).toHaveURL(/\/dashboard\/settings\/security\/sso/)
-    const upgradePrompt = page.getByText(/upgrade to access/i)
-    expect(await upgradePrompt.isVisible()).toBeFalsy()
+    await expect(page).toHaveURL(/\/dashboard\/settings\/sso/)
+    await expect(pageHeading(page, /single sign-on|sso/i)).toBeVisible()
   })
 
   test('should access API Keys management', async ({ page }) => {
-    await page.goto('/dashboard/settings/security/api-keys')
+    await page.goto('/dashboard/settings/api-keys')
     await waitForPageLoad(page)
 
-    await expect(page).toHaveURL(/\/dashboard\/settings\/security\/api-keys/)
+    await expect(page).toHaveURL(/\/dashboard\/settings\/api-keys/)
     await expect(pageHeading(page, /api keys/i)).toBeVisible()
   })
 
   test('should access Webhooks page', async ({ page }) => {
-    await page.goto('/dashboard/settings/security/webhooks')
+    await page.goto('/dashboard/settings/integrations')
     await waitForPageLoad(page)
 
-    await expect(page).toHaveURL(/\/dashboard\/settings\/security\/webhooks/)
-    const upgradePrompt = page.getByText(/upgrade to access/i)
-    expect(await upgradePrompt.isVisible()).toBeFalsy()
+    await expect(page).toHaveURL(/\/dashboard\/settings\/integrations/)
+    await expect(page.getByText(/webhooks/i).first()).toBeVisible()
   })
 
   test('should access Security Score page', async ({ page }) => {
@@ -281,34 +252,19 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
   test('should NOT access MSP Clients page', async ({ page }) => {
     await page.goto('/dashboard/clients')
     await waitForPageLoad(page)
-
-    const upgradePrompt = page.getByText(/upgrade.*msp/i)
-    const accessDenied = page.getByText(/access denied|not available/i)
-
-    const hasRestriction = await upgradePrompt.isVisible() || await accessDenied.isVisible()
-    expect(hasRestriction).toBeTruthy()
+    await expectTierRestricted(page)
   })
 
   test('should NOT access MSP Templates', async ({ page }) => {
     await page.goto('/dashboard/msp/templates')
     await waitForPageLoad(page)
-
-    const upgradePrompt = page.getByText(/upgrade.*msp/i)
-    const accessDenied = page.getByText(/access denied|not available/i)
-
-    const hasRestriction = await upgradePrompt.isVisible() || await accessDenied.isVisible()
-    expect(hasRestriction).toBeTruthy()
+    await expectTierRestricted(page)
   })
 
   test('should NOT access MSP Cross-Reporting', async ({ page }) => {
     await page.goto('/dashboard/msp/reporting')
     await waitForPageLoad(page)
-
-    const upgradePrompt = page.getByText(/upgrade.*msp/i)
-    const accessDenied = page.getByText(/access denied|not available/i)
-
-    const hasRestriction = await upgradePrompt.isVisible() || await accessDenied.isVisible()
-    expect(hasRestriction).toBeTruthy()
+    await expectTierRestricted(page)
   })
 
   test('navigation should show enterprise features', async ({ page }) => {
@@ -360,10 +316,10 @@ test.describe('US-037: MSP Tier Feature Access', () => {
   test('should access all Enterprise features', async ({ page }) => {
     // MSP tier should have all Enterprise features
     const enterprisePages = [
-      '/dashboard/settings/security/siem',
-      '/dashboard/settings/security/sso',
-      '/dashboard/settings/security/api-keys',
-      '/dashboard/settings/security/webhooks',
+      '/dashboard/settings/integrations',
+      '/dashboard/settings/sso',
+      '/dashboard/settings/api-keys',
+      '/dashboard/settings/integrations',
       '/dashboard/security-score',
       '/dashboard/playbooks',
       '/dashboard/insights'

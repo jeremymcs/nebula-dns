@@ -450,6 +450,7 @@ test.describe('Error States - Session Expiry', () => {
     await page.evaluate(() => {
       localStorage.removeItem('token')
       localStorage.removeItem('refreshToken')
+      localStorage.removeItem('user')
     })
 
     // Navigate to another page

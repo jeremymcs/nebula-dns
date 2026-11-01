@@ -11,6 +11,7 @@ import { useState } from 'react'
 import { useApiKeys } from '@/hooks/useApi'
 import { api } from '@/lib/api'
 import { useToast } from '@/components/Toast'
+import { TierFeatureGate } from '@/components/tiers/TierFeatureGate'
 import { 
   KeyIcon,
   PlusIcon,
@@ -149,6 +150,7 @@ export default function ApiKeysPage() {
   }
 
   return (
+    <TierFeatureGate feature="api-keys">
     <div className="space-y-6 p-8">
       <div className="flex justify-between items-center">
         <div>
@@ -429,5 +431,6 @@ export default function ApiKeysPage() {
         </div>
       )}
     </div>
+    </TierFeatureGate>
   )
 }

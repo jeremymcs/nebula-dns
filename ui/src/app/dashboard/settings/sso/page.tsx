@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react'
 import { KeyIcon, BuildingOfficeIcon, CheckCircleIcon, ExclamationTriangleIcon, ArrowDownTrayIcon, ArrowPathIcon, ShieldCheckIcon } from '@heroicons/react/24/outline'
 import { useSsoConfig } from '@/hooks/useApi'
 import { api, API_URL } from '@/lib/api'
+import { TierFeatureGate } from '@/components/tiers/TierFeatureGate'
 
 interface SsoConfig {
   id?: string
@@ -246,6 +247,7 @@ export default function SsoSettingsPage() {
   }
 
   return (
+    <TierFeatureGate feature="sso">
     <div className="p-8 max-w-4xl">
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -596,5 +598,6 @@ export default function SsoSettingsPage() {
         </div>
       </div>
     </div>
+    </TierFeatureGate>
   )
 }

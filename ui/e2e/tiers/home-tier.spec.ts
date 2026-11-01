@@ -3,7 +3,7 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import { test, expect } from '@playwright/test'
-import { loginAsHome, waitForPageLoad } from '../helpers/auth'
+import { loginAsHome, waitForPageLoad, expectTierRestricted } from '../helpers/auth'
 import { pageHeading } from '../helpers/selectors'
 
 test.describe('US-037: Home Tier Navigation', () => {
@@ -98,71 +98,39 @@ test.describe('US-037: Home Tier Feature Access Control', () => {
   })
 
   test('Home tier cannot access SIEM', async ({ page }) => {
-    await page.goto('/dashboard/settings/security/siem')
+    await page.goto('/dashboard/settings/integrations')
     await waitForPageLoad(page)
-    
-    // Should show upgrade prompt or access denied
-    const upgradePrompt = page.getByText(/upgrade.*enterprise|enterprise.*required|not available/i)
-    const accessDenied = page.getByText(/access denied|forbidden/i)
-    
-    const isRestricted = await upgradePrompt.isVisible() || await accessDenied.isVisible()
-    expect(isRestricted).toBeTruthy()
+    await expectTierRestricted(page)
   })
 
   test('Home tier cannot access SSO settings', async ({ page }) => {
-    await page.goto('/dashboard/settings/security/sso')
+    await page.goto('/dashboard/settings/sso')
     await waitForPageLoad(page)
-    
-    const upgradePrompt = page.getByText(/upgrade.*enterprise|enterprise.*required/i)
-    const accessDenied = page.getByText(/access denied|forbidden/i)
-    
-    const isRestricted = await upgradePrompt.isVisible() || await accessDenied.isVisible()
-    expect(isRestricted).toBeTruthy()
+    await expectTierRestricted(page)
   })
 
   test('Home tier cannot access API Keys', async ({ page }) => {
-    await page.goto('/dashboard/settings/security/api-keys')
+    await page.goto('/dashboard/settings/api-keys')
     await waitForPageLoad(page)
-    
-    const upgradePrompt = page.getByText(/upgrade.*enterprise|enterprise.*required/i)
-    const accessDenied = page.getByText(/access denied|forbidden/i)
-    
-    const isRestricted = await upgradePrompt.isVisible() || await accessDenied.isVisible()
-    expect(isRestricted).toBeTruthy()
+    await expectTierRestricted(page)
   })
 
   test('Home tier cannot access Webhooks', async ({ page }) => {
-    await page.goto('/dashboard/settings/security/webhooks')
+    await page.goto('/dashboard/settings/integrations')
     await waitForPageLoad(page)
-    
-    const upgradePrompt = page.getByText(/upgrade.*enterprise|enterprise.*required/i)
-    const accessDenied = page.getByText(/access denied|forbidden/i)
-    
-    const isRestricted = await upgradePrompt.isVisible() || await accessDenied.isVisible()
-    expect(isRestricted).toBeTruthy()
+    await expectTierRestricted(page)
   })
 
   test('Home tier cannot access Clients page', async ({ page }) => {
     await page.goto('/dashboard/clients')
     await waitForPageLoad(page)
-    
-    // Should show MSP upgrade prompt
-    const mspUpgrade = page.getByText(/upgrade.*msp|msp.*required|client.*management/i)
-    const accessDenied = page.getByText(/access denied|forbidden/i)
-    
-    const isRestricted = await mspUpgrade.isVisible() || await accessDenied.isVisible()
-    expect(isRestricted).toBeTruthy()
+    await expectTierRestricted(page)
   })
 
   test('Home tier cannot access MSP Templates', async ({ page }) => {
     await page.goto('/dashboard/msp/templates')
     await waitForPageLoad(page)
-    
-    const mspUpgrade = page.getByText(/upgrade.*msp|msp.*required/i)
-    const accessDenied = page.getByText(/access denied|forbidden/i)
-    
-    const isRestricted = await mspUpgrade.isVisible() || await accessDenied.isVisible()
-    expect(isRestricted).toBeTruthy()
+    await expectTierRestricted(page)
   })
 })
 
@@ -172,33 +140,22 @@ test.describe('US-037: Home Tier Upgrade Prompts', () => {
   })
 
   test('shows upgrade prompt for premium features', async ({ page }) => {
-    // Navigate to a premium feature
-    await page.goto('/dashboard/settings/security/siem')
+    await page.goto('/dashboard/settings/integrations')
     await waitForPageLoad(page)
-    
-    // Should show upgrade prompt
-    const upgradeButton = page.getByRole('button', { name: /upgrade|get.*enterprise/i })
-    await expect(upgradeButton).toBeVisible()
-    
-    // Should explain what's needed
-    const upgradeText = page.getByText(/enterprise.*required|premium.*feature|upgrade.*access/i)
-    expect(await upgradeText.count()).toBeGreaterThan(0)
+
+    await expect(page.getByRole('heading', { name: /upgrade required/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: /upgrade to enterprise/i })).toBeVisible()
   })
 
   test('upgrade prompt links to billing', async ({ page }) => {
-    await page.goto('/dashboard/settings/security/sso')
+    await page.goto('/dashboard/settings/sso')
     await waitForPageLoad(page)
-    
-    const upgradeButton = page.getByRole('button', { name: /upgrade/i })
-    
-    if (await upgradeButton.isVisible()) {
-      // Click upgrade button
-      await upgradeButton.click()
-      await waitForPageLoad(page)
-      
-      // Should navigate to billing or upgrade page
-      await expect(page).toHaveURL(/\/billing|\/upgrade|subscription/)
-    }
+
+    const upgradeButton = page.getByRole('link', { name: /upgrade to enterprise/i })
+    await expect(upgradeButton).toBeVisible()
+    await upgradeButton.click()
+    await waitForPageLoad(page)
+    await expect(page).toHaveURL(/\/dashboard\/billing/)
   })
 
   test('shows feature comparison', async ({ page }) => {

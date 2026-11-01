@@ -206,6 +206,56 @@ export function getMockResponse(rawUrl, method = 'GET', authHeader = '') {
   }
 
   if (pathname.startsWith('/webhooks')) {
+    if (method === 'POST') {
+      return json({
+        data: {
+          id: 'webhook-e2e-1',
+          name: 'E2E Webhook',
+          url: 'https://hooks.example.com/e2e',
+          events: ['policy.created'],
+          isEnabled: true,
+          failureCount: 0,
+        },
+      })
+    }
+    return json(emptyPage)
+  }
+
+  if (pathname.startsWith('/sso')) {
+    return json({
+      data: {
+        providerType: null,
+        isEnabled: false,
+        autoProvisionUsers: true,
+        defaultRole: 'readonly',
+      },
+    })
+  }
+
+  if (pathname.startsWith('/users') || pathname.startsWith('/team')) {
+    if (method === 'POST') {
+      return json({
+        id: 'user-invite-e2e',
+        email: 'invited@example.com',
+        role: 'readonly',
+        status: 'pending',
+      })
+    }
+    return json({ data: [tierUsers[tier]], pagination: { cursor: null, hasMore: false } })
+  }
+
+  if (pathname.startsWith('/scheduled-reports')) {
+    if (method === 'POST') {
+      return json({
+        data: {
+          id: 'sched-e2e-1',
+          name: 'Weekly Summary',
+          schedule: '0 9 * * 1',
+          format: 'pdf',
+          isEnabled: true,
+        },
+      })
+    }
     return json(emptyPage)
   }
 

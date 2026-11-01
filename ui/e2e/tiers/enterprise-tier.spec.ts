@@ -79,7 +79,7 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
   })
 
   test('Enterprise tier can access SIEM', async ({ page }) => {
-    await page.goto('/dashboard/settings/security/siem')
+    await page.goto('/dashboard/settings/integrations')
     await waitForPageLoad(page)
     
     // Should access without upgrade prompt
@@ -92,7 +92,7 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
   })
 
   test('Enterprise tier can access SSO/SAML', async ({ page }) => {
-    await page.goto('/dashboard/settings/security/sso')
+    await page.goto('/dashboard/settings/sso')
     await waitForPageLoad(page)
     
     const upgradePrompt = page.getByText(/upgrade.*enterprise/i)
@@ -104,7 +104,7 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
   })
 
   test('Enterprise tier can access API key management', async ({ page }) => {
-    await page.goto('/dashboard/settings/security/api-keys')
+    await page.goto('/dashboard/settings/api-keys')
     await waitForPageLoad(page)
     
     const upgradePrompt = page.getByText(/upgrade.*enterprise/i)
@@ -115,7 +115,7 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
   })
 
   test('Enterprise tier can access Webhooks', async ({ page }) => {
-    await page.goto('/dashboard/settings/security/webhooks')
+    await page.goto('/dashboard/settings/integrations')
     await waitForPageLoad(page)
     
     const upgradePrompt = page.getByText(/upgrade.*enterprise/i)

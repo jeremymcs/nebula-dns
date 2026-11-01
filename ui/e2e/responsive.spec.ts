@@ -56,7 +56,7 @@ test.describe('Responsive Design - Mobile (375x667)', () => {
     await loginAndNavigate(page, '/dashboard/locations')
     await waitForPageLoad(page)
 
-    await expect(page.getByRole('heading', { name: /locations/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /protection zones|zones|locations/i })).toBeVisible()
   })
 
   test('should display reports page on mobile', async ({ page }) => {

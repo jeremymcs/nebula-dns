@@ -321,9 +321,9 @@ test.describe('US-037: MSP Tier No Upgrade Prompts', () => {
     const pages = [
       '/dashboard/clients',
       '/dashboard/msp/templates',
-      '/dashboard/settings/security/siem',
-      '/dashboard/settings/security/sso',
-      '/dashboard/settings/security/api-keys',
+      '/dashboard/settings/integrations',
+      '/dashboard/settings/sso',
+      '/dashboard/settings/api-keys',
       '/dashboard/security-score',
       '/dashboard/playbooks'
     ]
