@@ -24,6 +24,7 @@ import { PaymentsService } from './payments.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { EmailService } from '../email/email.service';
 import { ConfigService } from '@nestjs/config';
+import { billingDashboardUrl, resolveAppUrl } from '../../common/public-urls';
 // US-028: Grace period management for MSP subscription lapses
 import { SubscriptionLapseService } from '../subscription-lapse/subscription-lapse.service';
 
@@ -41,8 +42,7 @@ export class PaymentsController {
     // US-028: Inject subscription lapse service for grace period management
     private readonly subscriptionLapseService: SubscriptionLapseService,
   ) {
-    this.frontendUrl =
-      this.configService.get('FRONTEND_URL') || 'http://localhost:4001';
+    this.frontendUrl = resolveAppUrl(this.configService);
   }
 
   @Post('checkout')
@@ -237,7 +237,7 @@ export class PaymentsController {
       await this.emailService.sendPaymentFailedEmail({
         to: customerEmail,
         companyName: customerName,
-        updatePaymentUrl: `${this.frontendUrl}/dashboard/settings?tab=billing`,
+        updatePaymentUrl: billingDashboardUrl(this.frontendUrl),
       });
     }
   }

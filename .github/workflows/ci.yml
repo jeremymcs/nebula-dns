@@ -175,6 +175,17 @@ jobs:
           DISABLE_RATE_LIMIT: 'true'
           NODE_ENV: test
 
+      - name: Verify production build output
+        working-directory: ./api
+        run: |
+          npm run build
+          test -f dist/main.js
+
+      - name: Verify API Docker image entrypoint
+        run: |
+          docker build -f api/Dockerfile --target production -t nebula-dns-api:ci ./api
+          docker run --rm --entrypoint sh nebula-dns-api:ci -c 'test -f /app/dist/main.js'
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:

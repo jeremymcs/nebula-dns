@@ -20,6 +20,10 @@ import { Admin } from './entities/admin.entity';
 import { AdminActivityService } from './admin-activity.service';
 import { EmailService } from '../email/email.service';
 import {
+  defaultAdminInviterName,
+  resolveAdminUrl,
+} from '../../common/public-urls';
+import {
   CreateAdminInvitationDto,
   AcceptAdminInvitationDto,
   AdminInvitationResponseDto,
@@ -158,17 +162,14 @@ export class AdminInvitationsService {
     const inviter = await this.adminRepository.findOne({
       where: { id: invitedByAdminId },
     });
-    const adminUrl = this.configService.get<string>(
-      'ADMIN_URL',
-      'https://admin.nebuladns.com',
-    );
+    const adminUrl = resolveAdminUrl(this.configService);
     const inviteUrl = `${adminUrl}/invite/accept?token=${token}`;
 
     let emailSent = false;
     try {
       emailSent = await this.emailService.sendAdminInviteEmail({
         to: normalizedEmail,
-        inviterName: inviter?.name || 'Nebula DNS Admin',
+        inviterName: inviter?.name || defaultAdminInviterName(),
         inviterEmail: inviter?.email || '',
         role: dto.role,
         inviteUrl,

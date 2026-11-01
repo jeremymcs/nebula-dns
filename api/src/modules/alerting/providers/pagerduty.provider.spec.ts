@@ -3,6 +3,7 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { PagerDutyProvider } from './pagerduty.provider';
+import { DEFAULT_PRODUCT_NAME } from '../../../common/product-branding';
 import {
   AlertEvent,
   AlertSeverity,
@@ -68,10 +69,10 @@ describe('PagerDutyProvider', () => {
   });
 
   describe('generateDedupKey', () => {
-    it('should use consistent format: nebuladns:source:type:identifier', () => {
+    it('should use consistent format: flux-shield:source:type:identifier', () => {
       // Use private method via reflection
       const dedupKey = (provider as any).generateDedupKey(mockAlert);
-      expect(dedupKey).toBe('nebuladns:policy-svc:system_health:service_down');
+      expect(dedupKey).toBe('flux-shield:policy-svc:system_health:service_down');
     });
 
     it('should use alert.metadata.identifier when present', () => {
@@ -80,7 +81,7 @@ describe('PagerDutyProvider', () => {
         metadata: { identifier: 'custom-id' },
       };
       const dedupKey = (provider as any).generateDedupKey(alert);
-      expect(dedupKey).toBe('nebuladns:policy-svc:system_health:custom-id');
+      expect(dedupKey).toBe('flux-shield:policy-svc:system_health:custom-id');
     });
 
     it('should fall back to alert.id when no identifier in metadata', () => {
@@ -89,7 +90,7 @@ describe('PagerDutyProvider', () => {
         metadata: {},
       };
       const dedupKey = (provider as any).generateDedupKey(alert);
-      expect(dedupKey).toBe('nebuladns:policy-svc:system_health:alert-123');
+      expect(dedupKey).toBe('flux-shield:policy-svc:system_health:alert-123');
     });
 
     it('should fall back to alert.id when no metadata', () => {
@@ -103,7 +104,7 @@ describe('PagerDutyProvider', () => {
         timestamp: new Date(),
       };
       const dedupKey = (provider as any).generateDedupKey(alert);
-      expect(dedupKey).toBe('nebuladns:stripe:billing:alert-456');
+      expect(dedupKey).toBe('flux-shield:stripe:billing:alert-456');
     });
 
     it('should produce same output for same inputs (deterministic)', () => {
@@ -115,7 +116,7 @@ describe('PagerDutyProvider', () => {
 
   describe('toPagerDutyPayload', () => {
     it('should create valid Events API v2 payload structure', () => {
-      const dedupKey = 'nebuladns:policy-svc:system_health:service_down';
+      const dedupKey = 'flux-shield:policy-svc:system_health:service_down';
       const payload = (provider as any).toPagerDutyPayload(
         mockAlert,
         validRoutingKey,
@@ -131,7 +132,7 @@ describe('PagerDutyProvider', () => {
           source: mockAlert.source,
           severity: mockAlert.severity,
           timestamp: mockAlert.timestamp.toISOString(),
-          component: 'Nebula DNS',
+          component: DEFAULT_PRODUCT_NAME,
           class: mockAlert.type,
           custom_details: {
             message: mockAlert.message,
@@ -139,7 +140,7 @@ describe('PagerDutyProvider', () => {
             service: 'policy-svc',
           },
         },
-        client: 'Nebula DNS',
+        client: DEFAULT_PRODUCT_NAME,
       });
     });
 

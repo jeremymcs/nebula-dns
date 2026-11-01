@@ -7,6 +7,10 @@
 
 import { plainToInstance } from 'class-transformer';
 import {
+  DEFAULT_EMAIL_FROM_ADDRESS,
+  DEFAULT_EMAIL_FROM_NAME,
+} from '../common/product-branding';
+import {
   IsString,
   IsNumber,
   IsOptional,
@@ -74,11 +78,11 @@ class EnvironmentVariables {
 
   @IsString()
   @IsOptional()
-  EMAIL_FROM_ADDRESS: string = 'noreply@nebuladns.io';
+  EMAIL_FROM_ADDRESS: string = DEFAULT_EMAIL_FROM_ADDRESS;
 
   @IsString()
   @IsOptional()
-  EMAIL_FROM_NAME: string = 'Nebula DNS';
+  EMAIL_FROM_NAME: string = DEFAULT_EMAIL_FROM_NAME;
 
   // Stripe
   @IsString()
@@ -243,8 +247,8 @@ export default () => ({
   },
   email: {
     sendgridApiKey: process.env.SENDGRID_API_KEY,
-    fromAddress: process.env.EMAIL_FROM_ADDRESS || 'noreply@nebuladns.io',
-    fromName: process.env.EMAIL_FROM_NAME || 'Nebula DNS',
+    fromAddress: process.env.EMAIL_FROM_ADDRESS || DEFAULT_EMAIL_FROM_ADDRESS,
+    fromName: process.env.EMAIL_FROM_NAME || DEFAULT_EMAIL_FROM_NAME,
   },
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY,

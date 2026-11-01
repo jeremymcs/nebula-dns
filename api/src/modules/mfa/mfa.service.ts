@@ -12,6 +12,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
+import { DEFAULT_PRODUCT_NAME } from '../../common/product-branding';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { UserMfa } from './entities/user-mfa.entity';
@@ -243,7 +244,7 @@ export class MfaService {
     }
 
     // Generate QR code URL (otpauth format)
-    const issuer = this.configService.get('APP_NAME', 'Nebula DNS');
+    const issuer = this.configService.get('PRODUCT_NAME', DEFAULT_PRODUCT_NAME);
     const otpauthUrl = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(user.email)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`;
 
     return {

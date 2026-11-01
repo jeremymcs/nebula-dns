@@ -18,6 +18,10 @@ import {
   InvitationInfoDto,
 } from './dto/invitation.dto';
 import { EmailService } from '../email/email.service';
+import {
+  defaultTenantDisplayName,
+  resolveAppUrl,
+} from '../../common/public-urls';
 
 @Injectable()
 export class InvitationsService {
@@ -92,10 +96,10 @@ export class InvitationsService {
     ]);
 
     // Send invitation email
-    const inviteUrl = `${process.env.APP_URL || 'http://localhost:4001'}/invite/accept?token=${token}`;
+    const inviteUrl = `${resolveAppUrl(process.env)}/invite/accept?token=${token}`;
     const sent = await this.emailService.sendInviteUserEmail({
       to: dto.email,
-      tenantName: tenant?.name || 'Nebula DNS',
+      tenantName: tenant?.name || defaultTenantDisplayName(),
       inviterName: inviter?.name || 'A team member',
       inviterEmail: inviter?.email || '',
       role: dto.role,
@@ -289,10 +293,10 @@ export class InvitationsService {
     });
 
     // Resend email
-    const inviteUrl = `${process.env.APP_URL || 'http://localhost:4001'}/invite/accept?token=${token}`;
+    const inviteUrl = `${resolveAppUrl(process.env)}/invite/accept?token=${token}`;
     const sent = await this.emailService.sendInviteUserEmail({
       to: invitation.email,
-      tenantName: invitation.tenant?.name || 'Nebula DNS',
+      tenantName: invitation.tenant?.name || defaultTenantDisplayName(),
       inviterName:
         currentUser?.name || invitation.invitedBy?.name || 'A team member',
       inviterEmail: currentUser?.email || invitation.invitedBy?.email || '',
