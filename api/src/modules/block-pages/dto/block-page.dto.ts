@@ -6,18 +6,29 @@ import {
   IsUrl,
   IsEmail,
   Matches,
+  IsIn,
+  IsInt,
+  Min,
+  Max,
+  ValidateIf,
+  MaxLength,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateBlockPageDto {
   @IsString()
   @IsNotEmpty()
   name: string;
 
+  @IsIn(['tenant', 'msp'])
+  @IsOptional()
+  scope?: 'tenant' | 'msp';
+
   @IsBoolean()
   @IsOptional()
   isDefault?: boolean;
 
-  // Branding
+  @ValidateIf((o) => o.logoUrl !== undefined && o.logoUrl !== '')
   @IsUrl()
   @IsOptional()
   logoUrl?: string;
@@ -32,9 +43,16 @@ export class CreateBlockPageDto {
 
   @Matches(/^#[0-9A-Fa-f]{6}$/)
   @IsOptional()
+  secondaryColor?: string;
+
+  @Matches(/^#[0-9A-Fa-f]{6}$/)
+  @IsOptional()
+  accentColor?: string;
+
+  @Matches(/^#[0-9A-Fa-f]{6}$/)
+  @IsOptional()
   textColor?: string;
 
-  // Content
   @IsString()
   @IsOptional()
   title?: string;
@@ -42,6 +60,10 @@ export class CreateBlockPageDto {
   @IsString()
   @IsOptional()
   message?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  messageMarkdown?: boolean;
 
   @IsBoolean()
   @IsOptional()
@@ -53,11 +75,23 @@ export class CreateBlockPageDto {
 
   @IsBoolean()
   @IsOptional()
+  showReason?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
   showTimestamp?: boolean;
 
   @IsBoolean()
   @IsOptional()
   showRequestAccess?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  showPoweredBy?: boolean;
+
+  @IsString()
+  @IsOptional()
+  language?: string;
 
   @IsString()
   @IsOptional()
@@ -67,7 +101,6 @@ export class CreateBlockPageDto {
   @IsOptional()
   customHtml?: string;
 
-  // Footer
   @IsString()
   @IsOptional()
   footerText?: string;
@@ -76,12 +109,15 @@ export class CreateBlockPageDto {
   @IsOptional()
   supportEmail?: string;
 
+  @ValidateIf((o) => o.supportUrl !== undefined && o.supportUrl !== '')
   @IsUrl()
   @IsOptional()
   supportUrl?: string;
 }
 
 export class UpdateBlockPageDto extends CreateBlockPageDto {}
+
+export class UpdatePlatformBlockPageDto extends CreateBlockPageDto {}
 
 export class CreateAccessRequestDto {
   @IsString()
@@ -94,6 +130,11 @@ export class CreateAccessRequestDto {
 
   @IsString()
   @IsOptional()
+  blockReason?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(2000)
   reason?: string;
 
   @IsEmail()
@@ -102,7 +143,25 @@ export class CreateAccessRequestDto {
 
   @IsString()
   @IsOptional()
+  @MaxLength(255)
+  requesterName?: string;
+
+  @IsString()
+  @IsOptional()
   locationToken?: string;
+
+  @IsString()
+  @IsOptional()
+  tenantId?: string;
+
+  /** Honeypot — must be empty */
+  @IsOptional()
+  @IsString()
+  companyWebsite?: string;
+
+  @IsOptional()
+  @IsString()
+  turnstileToken?: string;
 }
 
 export class ReviewAccessRequestDto {
@@ -114,7 +173,18 @@ export class ReviewAccessRequestDto {
   @IsOptional()
   reviewNote?: string;
 
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(8760)
+  expiresInHours?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  addToAllowList?: boolean;
+
   @IsString()
   @IsOptional()
-  expiresInHours?: number; // For approved requests, how long to allow
+  allowListId?: string;
 }

@@ -7,6 +7,15 @@ api.nebuladns.io {
   reverse_proxy api:3000
 }
 
+# HTTP sinkhole for block-page DNS answers (see docs/modules/block-pages/DROPLET-DEPLOY.md)
+:80 {
+  rewrite * /block-pages/public/serve
+  reverse_proxy api:3000 {
+    header_up X-Forwarded-Host {http.request.host}
+    header_up X-Real-IP {http.request.remote.host}
+  }
+}
+
 dns1.nebuladns.io, dns2.nebuladns.io {
   # Single ACME certificate with SANs for both names (used by Caddy DoH and synced to dnsdist DoT).
   # Public DoH on :443 (TLS terminated here). Backend DoH listens on dnsdist:8443.

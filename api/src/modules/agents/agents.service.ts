@@ -17,6 +17,7 @@ import {
   AgentHeartbeatDto,
   UpdateAgentDto,
 } from './dto/agent.dto';
+import { ShieldCaService } from '../shield-ca/shield-ca.service';
 
 export interface AgentVersion {
   version: string;
@@ -79,6 +80,7 @@ export class AgentsService {
     private agentRepository: Repository<AgentInstallation>,
     @InjectRepository(Tenant)
     private tenantRepository: Repository<Tenant>,
+    private readonly shieldCaService: ShieldCaService,
   ) {}
 
   async getAgentVersions(): Promise<Record<AgentPlatform, AgentVersion>> {
@@ -249,6 +251,20 @@ export class AgentsService {
       latestVersion: updateAvailable ? latestVersion.version : undefined,
       downloadUrl: updateAvailable ? latestVersion.downloadUrl : undefined,
     };
+  }
+
+  async getShieldCaCertificateForDevice(deviceId: string): Promise<string> {
+    const agent = await this.agentRepository.findOne({ where: { deviceId } });
+    if (!agent) {
+      throw new NotFoundException('Agent not registered');
+    }
+    const tenant = await this.tenantRepository.findOne({
+      where: { id: agent.tenantId },
+    });
+    if (!tenant?.settings?.installShieldCaOnAgent) {
+      throw new BadRequestException('Shield CA deployment is disabled for this tenant');
+    }
+    return this.shieldCaService.getCertificatePem(agent.tenantId);
   }
 
   private isNewerVersion(latest: string, current: string): boolean {

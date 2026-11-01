@@ -466,6 +466,39 @@ func (c *PolicyCache) IsTenantSuspended(ctx context.Context, tenantID string) bo
 	return status == models.SubscriptionSuspended
 }
 
+// BlockContextPayload is stored when sinkhole block pages are used.
+type BlockContextPayload struct {
+	TenantID   string `json:"tenantId"`
+	LocationID string `json:"locationId"`
+	Category   string `json:"category,omitempty"`
+	Reason     string `json:"reason,omitempty"`
+}
+
+// SetBlockContext records tenant/category context for HTTP block page rendering.
+func (c *PolicyCache) SetBlockContext(ctx context.Context, clientIP, domain string, payload BlockContextPayload) error {
+	if clientIP == "" || domain == "" {
+		return nil
+	}
+	key := "blockctx:" + clientIP + ":" + domain
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	return c.redis.Set(ctx, key, data, 10*time.Minute).Err()
+}
+
+// SetBlockedDomainSni indexes blocked domains for HTTPS SNI routing and leaf issuance.
+func (c *PolicyCache) SetBlockedDomainSni(ctx context.Context, tenantID, domain string) error {
+	if tenantID == "" || domain == "" {
+		return nil
+	}
+	pipe := c.redis.Pipeline()
+	pipe.Set(ctx, "blockdomainsni:"+domain, tenantID, 10*time.Minute)
+	pipe.Set(ctx, "blockdomain:"+tenantID+":"+domain, "1", 10*time.Minute)
+	_, err := pipe.Exec(ctx)
+	return err
+}
+
 // Ping verifies Redis connectivity for readiness checks
 func (c *PolicyCache) Ping(ctx context.Context) error {
 	return c.redis.Ping(ctx).Err()

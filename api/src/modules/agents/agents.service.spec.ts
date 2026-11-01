@@ -17,6 +17,7 @@ import {
   AgentHeartbeatDto,
   UpdateAgentDto,
 } from './dto/agent.dto';
+import { ShieldCaService } from '../shield-ca/shield-ca.service';
 
 describe('AgentsService', () => {
   let service: AgentsService;
@@ -55,6 +56,10 @@ describe('AgentsService', () => {
     findOne: jest.fn(),
   };
 
+  const mockShieldCaService = {
+    getCertificatePemForTenant: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -66,6 +71,10 @@ describe('AgentsService', () => {
         {
           provide: getRepositoryToken(Tenant),
           useValue: mockTenantRepository,
+        },
+        {
+          provide: ShieldCaService,
+          useValue: mockShieldCaService,
         },
       ],
     }).compile();

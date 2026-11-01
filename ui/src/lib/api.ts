@@ -345,11 +345,19 @@ export const api = {
   getAccessRequests: () =>
     request<{ data: any[]; pagination: { cursor: string | null; hasMore: boolean } }>('/block-pages/access-requests'),
   
-  reviewAccessRequest: (id: string, action: 'approve' | 'deny', reason?: string) =>
+  reviewAccessRequest: (
+    id: string,
+    status: 'approved' | 'denied',
+    options?: { reviewNote?: string; expiresInHours?: number; addToAllowList?: boolean },
+  ) =>
     request<any>(`/block-pages/access-requests/${id}/review`, {
       method: 'POST',
-      body: JSON.stringify({ action, reason }),
+      body: JSON.stringify({ status, ...options }),
     }),
+
+  getShieldCaMetadata: () => request<{ data: any }>('/shield-ca/metadata'),
+
+  shieldCaDownloadUrl: (path: string) => `/backend${path}`,
 
   // API Keys
   getApiKeys: () =>

@@ -8,6 +8,7 @@ import { PolicyVersion } from './entities/policy-version.entity';
 import { Location } from '../locations/entities/location.entity';
 import { CustomList } from '../lists/entities/custom-list.entity';
 import { CustomListEntry } from '../lists/entities/custom-list-entry.entity';
+import { Tenant } from '../tenants/entities/tenant.entity';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { CustomListEntry } from '../lists/entities/custom-list-entry.entity';
       Location,
       CustomList,
       CustomListEntry,
+      Tenant,
     ]),
   ],
   controllers: [PoliciesController],

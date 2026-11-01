@@ -14,6 +14,15 @@ import {
   CreateAccessRequestDto,
   ReviewAccessRequestDto,
 } from './dto/block-page.dto';
+import { ConfigService } from '@nestjs/config';
+import { TenantsService } from '../tenants/tenants.service';
+import { ListsService } from '../lists/lists.service';
+import { PolicyCompilerService } from '../policies/policy-compiler.service';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { RedisService } from '../redis/redis.service';
+import { EmailService } from '../email/email.service';
+import { Tenant } from '../tenants/entities/tenant.entity';
+import { Location } from '../locations/entities/location.entity';
 
 describe('BlockPagesService', () => {
   let service: BlockPagesService;
@@ -36,6 +45,13 @@ describe('BlockPagesService', () => {
     showDomain: true,
     showCategory: true,
     showTimestamp: true,
+    scope: 'tenant',
+    secondaryColor: '#4B7CBB',
+    accentColor: '#FF6E62',
+    showReason: true,
+    showPoweredBy: false,
+    language: 'en',
+    messageMarkdown: false,
     showRequestAccess: true,
     customCss: undefined,
     customHtml: undefined,
@@ -92,6 +108,37 @@ describe('BlockPagesService', () => {
           provide: getRepositoryToken(AccessRequest),
           useValue: mockAccessRequestRepository,
         },
+        { provide: getRepositoryToken(Tenant), useValue: { findOne: jest.fn() } },
+        { provide: getRepositoryToken(Location), useValue: { find: jest.fn().mockResolvedValue([]), findOne: jest.fn() } },
+        { provide: TenantsService, useValue: {} },
+        {
+          provide: ListsService,
+          useValue: {
+            findAll: jest.fn().mockResolvedValue({
+              data: [],
+              pagination: { cursor: null, hasMore: false },
+            }),
+            create: jest.fn().mockResolvedValue({ id: 'allow-list-1' }),
+            addEntries: jest.fn().mockResolvedValue({ added: 1, skipped: 0 }),
+          },
+        },
+        { provide: PolicyCompilerService, useValue: { compile: jest.fn() } },
+        { provide: AuditLogsService, useValue: { log: jest.fn() } },
+        {
+          provide: RedisService,
+          useValue: {
+            get: jest.fn(),
+            getClient: jest.fn().mockReturnValue({
+              incr: jest.fn().mockResolvedValue(1),
+              expire: jest.fn(),
+            }),
+          },
+        },
+        { provide: EmailService, useValue: { sendTransactionalHtml: jest.fn() } },
+        {
+          provide: ConfigService,
+          useValue: { get: jest.fn().mockReturnValue('/tmp/uploads') },
+        },
       ],
     }).compile();
 
@@ -143,7 +190,7 @@ describe('BlockPagesService', () => {
       await service.create(mockTenantId, dto);
 
       expect(mockBlockPageRepository.update).toHaveBeenCalledWith(
-        { tenantId: mockTenantId, isDefault: true },
+        { tenantId: mockTenantId, scope: 'tenant', isDefault: true },
         { isDefault: false },
       );
     });
@@ -194,7 +241,7 @@ describe('BlockPagesService', () => {
 
       expect(result).toEqual(mockBlockPage);
       expect(mockBlockPageRepository.findOne).toHaveBeenCalledWith({
-        where: { tenantId: mockTenantId, isDefault: true },
+        where: { tenantId: mockTenantId, scope: 'tenant', isDefault: true },
       });
     });
 
@@ -294,7 +341,7 @@ describe('BlockPagesService', () => {
 
       expect(result.isDefault).toBe(true);
       expect(mockBlockPageRepository.update).toHaveBeenCalledWith(
-        { tenantId: mockTenantId, isDefault: true },
+        { tenantId: mockTenantId, scope: 'tenant', isDefault: true },
         { isDefault: false },
       );
     });
@@ -414,9 +461,9 @@ describe('BlockPagesService', () => {
         context,
       );
 
-      expect(html).toContain('Request Access');
+      expect(html).toContain('Request unblock');
       expect(html).toContain('textarea');
-      expect(html).toContain('req-123');
+      expect(html).toContain('requesterEmail');
     });
 
     it('should hide request access form when disabled', () => {
@@ -434,7 +481,7 @@ describe('BlockPagesService', () => {
         context,
       );
 
-      expect(html).not.toContain('Request Access');
+      expect(html).not.toContain('Request unblock');
       expect(html).not.toContain('<textarea name="reason"'); // The actual form textarea element
       expect(html).not.toContain('<div class="request-form">');
     });
@@ -463,15 +510,17 @@ describe('BlockPagesService', () => {
       );
 
       expect(result).toEqual(mockAccessRequest);
-      expect(mockAccessRequestRepository.create).toHaveBeenCalledWith({
-        tenantId: mockTenantId,
-        domain: dto.domain,
-        category: dto.category,
-        reason: dto.reason,
-        requesterEmail: dto.requesterEmail,
-        requesterIp: '192.168.1.100',
-        status: 'pending',
-      });
+      expect(mockAccessRequestRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tenantId: mockTenantId,
+          domain: dto.domain,
+          category: dto.category,
+          reason: dto.reason,
+          requesterEmail: dto.requesterEmail,
+          requesterIp: '192.168.1.100',
+          status: 'pending',
+        }),
+      );
     });
   });
 

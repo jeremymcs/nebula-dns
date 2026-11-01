@@ -7,6 +7,7 @@ import { Location } from '../locations/entities/location.entity';
 import { CustomList } from '../lists/entities/custom-list.entity';
 import { CustomListEntry } from '../lists/entities/custom-list-entry.entity';
 import { RedisService } from '../redis/redis.service';
+import { Tenant } from '../tenants/entities/tenant.entity';
 
 export interface CompiledPolicy {
   tenantId: string;
@@ -56,6 +57,8 @@ export class PolicyCompilerService {
     private readonly listRepository: Repository<CustomList>,
     @InjectRepository(CustomListEntry)
     private readonly listEntryRepository: Repository<CustomListEntry>,
+    @InjectRepository(Tenant)
+    private readonly tenantRepository: Repository<Tenant>,
     private readonly redisService: RedisService,
   ) {}
 
@@ -171,7 +174,6 @@ export class PolicyCompilerService {
       }
     }
 
-    // Build schedules
     const schedules: Schedule[] = (config.schedules || []).map((s) => ({
       name: s.name,
       days: this.parseDays(s.days),
@@ -182,6 +184,13 @@ export class PolicyCompilerService {
       timezone: s.timezone || 'UTC',
       additionalCategories: s.additionalCategories || [],
     }));
+
+    const tenant = await this.tenantRepository.findOne({
+      where: { id: tenantId },
+    });
+    const blockResponseType =
+      config.blockResponseType ||
+      (tenant?.settings?.blockPageEnabled ? 'blockpage' : 'NXDOMAIN');
 
     const compiled: CompiledPolicy = {
       tenantId,
@@ -196,7 +205,7 @@ export class PolicyCompilerService {
       safesearchEnabled: config.safesearch?.enabled || false,
       safesearchRules,
       schedules,
-      blockResponseType: 'NXDOMAIN',
+      blockResponseType,
       updatedAt: new Date().toISOString(),
     };
 

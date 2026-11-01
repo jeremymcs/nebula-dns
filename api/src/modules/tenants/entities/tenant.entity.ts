@@ -28,6 +28,8 @@ export interface TenantSettings {
   mspDisplayName?: string;
   mspSupportUrl?: string;
   mspSupportEmail?: string;
+  /** When true, Windows agent installs Shield CA into LocalMachine\\Root */
+  installShieldCaOnAgent?: boolean;
 }
 
 // Tenant represents an Organization (sub-client) in the MSP hierarchy

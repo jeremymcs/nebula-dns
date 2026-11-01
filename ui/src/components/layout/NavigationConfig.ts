@@ -70,6 +70,7 @@ export const navigationGroups: NavigationGroup[] = [
       { name: 'Networks', href: '/dashboard/locations', icon: WifiIcon, description: 'Home & roaming networks', shortcut: 'G Z', featureKey: 'locations' }, // Updated for Home tier
       { name: 'Custom Lists', href: '/dashboard/lists', icon: ListBulletIcon, description: 'Allow & block lists', shortcut: 'G L', featureKey: 'lists' },
       { name: 'Block Pages', href: '/dashboard/block-pages', icon: NoSymbolIcon, description: 'Block page templates', featureKey: 'block-pages' },
+      { name: 'Shield Certificate', href: '/dashboard/shield-certificate', icon: ShieldCheckIcon, description: 'HTTPS block page CA', featureKey: 'block-pages' },
     ]
   },
   {

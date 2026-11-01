@@ -1,15 +1,19 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '@/common/entities/base.entity';
 import { Tenant } from '../../tenants/entities/tenant.entity';
+import type { BlockPageScope } from '../block-pages.constants';
 
 @Entity('block_pages')
 export class BlockPage extends BaseEntity {
-  @Column({ name: 'tenant_id', type: 'uuid' })
-  tenantId: string;
+  @Column({ name: 'tenant_id', type: 'uuid', nullable: true })
+  tenantId: string | null;
 
-  @ManyToOne(() => Tenant)
+  @ManyToOne(() => Tenant, { nullable: true })
   @JoinColumn({ name: 'tenant_id' })
-  tenant: Tenant;
+  tenant: Tenant | null;
+
+  @Column({ type: 'varchar', length: 20, default: 'tenant' })
+  scope: BlockPageScope;
 
   @Column({ type: 'varchar', length: 255 })
   name: string;
@@ -33,9 +37,25 @@ export class BlockPage extends BaseEntity {
     name: 'primary_color',
     type: 'varchar',
     length: 7,
-    default: '#4f46e5',
+    default: '#1E3B78',
   })
   primaryColor: string;
+
+  @Column({
+    name: 'secondary_color',
+    type: 'varchar',
+    length: 7,
+    default: '#4B7CBB',
+  })
+  secondaryColor: string;
+
+  @Column({
+    name: 'accent_color',
+    type: 'varchar',
+    length: 7,
+    default: '#FF6E62',
+  })
+  accentColor: string;
 
   @Column({
     name: 'text_color',
@@ -67,6 +87,21 @@ export class BlockPage extends BaseEntity {
 
   @Column({ name: 'show_request_access', type: 'boolean', default: true })
   showRequestAccess: boolean;
+
+  @Column({ name: 'show_reason', type: 'boolean', default: true })
+  showReason: boolean;
+
+  @Column({ name: 'show_powered_by', type: 'boolean', default: false })
+  showPoweredBy: boolean;
+
+  @Column({ type: 'varchar', length: 10, default: 'en' })
+  language: string;
+
+  @Column({ name: 'message_markdown', type: 'boolean', default: false })
+  messageMarkdown: boolean;
+
+  @Column({ name: 'logo_storage_key', type: 'text', nullable: true })
+  logoStorageKey: string | null;
 
   @Column({ name: 'custom_css', type: 'text', nullable: true })
   customCss: string;

@@ -48,6 +48,10 @@ type Config struct {
 	// Forwarder mode settings
 	Forwarder ForwarderConfig `json:"forwarder"`
 
+	// Shield CA (HTTPS block pages)
+	InstallShieldCa bool `json:"install_shield_ca"`
+	DeviceID        string `json:"device_id"`
+
 	// Cached policy data
 	PolicyVersion string `json:"policy_version"`
 }
@@ -135,6 +139,18 @@ func (c *Config) GetLocationID() string {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.LocationID
+}
+
+func (c *Config) GetDeviceID() string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.DeviceID
+}
+
+func (c *Config) GetInstallShieldCa() bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.InstallShieldCa
 }
 
 // SetLocationID sets the location ID thread-safely

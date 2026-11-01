@@ -31,6 +31,7 @@ import { RedisModule } from './modules/redis/redis.module';
 
 // P2 Features
 import { BlockPagesModule } from './modules/block-pages/block-pages.module';
+import { ShieldCaModule } from './modules/shield-ca/shield-ca.module';
 import { ApiKeysModule } from './modules/api-keys/api-keys.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
 import { SiemModule } from './modules/siem/siem.module';
@@ -164,6 +165,7 @@ import { getPostgresSslConfig } from './database/pg-ssl';
 
     // P2 Features
     BlockPagesModule,
+    ShieldCaModule,
     ApiKeysModule,
     InvitationsModule,
     SiemModule,

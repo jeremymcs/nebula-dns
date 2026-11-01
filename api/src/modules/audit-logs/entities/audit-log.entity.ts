@@ -69,6 +69,7 @@ export type AuditResourceType =
   | 'api_key'
   | 'sso'
   | 'block_page'
+  | 'access_request'
   | 'template'
   | 'admin';
 

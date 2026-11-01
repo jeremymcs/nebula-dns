@@ -166,10 +166,27 @@ export class AuditLogsController {
   }
 
   @Put()
-  @Put(':id')
   @HttpCode(HttpStatus.FORBIDDEN)
   @ApiOperation({
     summary: 'Update audit logs (not permitted)',
+    description:
+      'PUT operations are not permitted on audit logs. Audit logs are immutable for compliance and security purposes.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Audit logs cannot be modified',
+  })
+  async updateAllAuditLogsPut(): Promise<never> {
+    throw new ForbiddenException(
+      'UPDATE operations are not permitted on audit logs. ' +
+        'Audit logs are immutable for compliance and security purposes.',
+    );
+  }
+
+  @Put(':id')
+  @HttpCode(HttpStatus.FORBIDDEN)
+  @ApiOperation({
+    summary: 'Update a single audit log (not permitted)',
     description:
       'PUT operations are not permitted on audit logs. Audit logs are immutable for compliance and security purposes.',
   })
@@ -185,10 +202,27 @@ export class AuditLogsController {
   }
 
   @Patch()
-  @Patch(':id')
   @HttpCode(HttpStatus.FORBIDDEN)
   @ApiOperation({
     summary: 'Modify audit logs (not permitted)',
+    description:
+      'PATCH operations are not permitted on audit logs. Audit logs are immutable for compliance and security purposes.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Audit logs cannot be modified',
+  })
+  async updateAllAuditLogsPatch(): Promise<never> {
+    throw new ForbiddenException(
+      'UPDATE operations are not permitted on audit logs. ' +
+        'Audit logs are immutable for compliance and security purposes.',
+    );
+  }
+
+  @Patch(':id')
+  @HttpCode(HttpStatus.FORBIDDEN)
+  @ApiOperation({
+    summary: 'Modify a single audit log (not permitted)',
     description:
       'PATCH operations are not permitted on audit logs. Audit logs are immutable for compliance and security purposes.',
   })
@@ -204,7 +238,6 @@ export class AuditLogsController {
   }
 
   @Delete()
-  @Delete(':id')
   @HttpCode(HttpStatus.FORBIDDEN)
   @ApiOperation({
     summary: 'Delete audit logs (not permitted)',
@@ -215,7 +248,25 @@ export class AuditLogsController {
     status: 403,
     description: 'Forbidden - Audit logs cannot be deleted',
   })
-  async deleteAuditLog(): Promise<never> {
+  async deleteAllAuditLogs(): Promise<never> {
+    throw new ForbiddenException(
+      'DELETE operations are not permitted on audit logs. ' +
+        'Audit logs are immutable for compliance and security purposes.',
+    );
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.FORBIDDEN)
+  @ApiOperation({
+    summary: 'Delete a single audit log (not permitted)',
+    description:
+      'DELETE operations are not permitted on audit logs. Audit logs are immutable for compliance and security purposes.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Audit logs cannot be deleted',
+  })
+  async deleteAuditLogById(): Promise<never> {
     throw new ForbiddenException(
       'DELETE operations are not permitted on audit logs. ' +
         'Audit logs are immutable for compliance and security purposes.',

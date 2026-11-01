@@ -9,6 +9,7 @@
 process.env.NODE_ENV = 'test';
 process.env.ADMIN_JWT_SECRET =
   process.env.ADMIN_JWT_SECRET || 'test-admin-jwt-secret-for-e2e';
+process.env.DISABLE_RATE_LIMIT = process.env.DISABLE_RATE_LIMIT || 'true';
 
 // Set reasonable timeouts for tests
 jest.setTimeout(30000);

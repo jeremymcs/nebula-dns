@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -161,6 +162,17 @@ func (h *Handlers) Evaluate(w http.ResponseWriter, r *http.Request) {
 
 	// Evaluate policy normally for active/grace tenants
 	result := h.policySvc.Evaluate(r.Context(), &req)
+
+    if result.Decision == "BLOCK" && (result.BlockType == models.BlockTypeBlockPage || strings.EqualFold(result.BlockType, "blockpage")) {
+		domain := strings.TrimSuffix(strings.ToLower(req.QName), ".")
+		_ = h.cache.SetBlockContext(r.Context(), req.ClientIP, domain, cache.BlockContextPayload{
+			TenantID:   req.TenantID,
+			LocationID: req.LocationID,
+			Category:   result.Category,
+			Reason:     result.Reason,
+		})
+		_ = h.cache.SetBlockedDomainSni(r.Context(), req.TenantID, domain)
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)

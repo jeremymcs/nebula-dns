@@ -75,12 +75,12 @@ describe('Billing E2E Tests - Payment Methods, Invoices, Subscriptions', () => {
     });
 
     it('should create checkout session with valid parameters', async () => {
-      const loginResponse = await request(
-        app.getHttpServer('/auth/login')(),
-      ).post.send({
-        email: 'admin@example.com',
-        password: 'AdminPassword123!',
-      });
+      const loginResponse = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          email: 'admin@example.com',
+          password: 'AdminPassword123!',
+        });
 
       if (loginResponse.status === 200 && loginResponse.body.accessToken) {
         const token = loginResponse.body.accessToken;

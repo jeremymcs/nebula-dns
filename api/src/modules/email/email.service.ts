@@ -205,6 +205,14 @@ export class EmailService implements OnModuleInit {
     return `${htmlContent}${this.transactionalEmailFooterHtml()}`;
   }
 
+  async sendTransactionalHtml(
+    to: string,
+    subject: string,
+    htmlContent: string,
+  ): Promise<boolean> {
+    return this.sendEmail(to, subject, htmlContent);
+  }
+
   private async sendEmail(
     to: string,
     subject: string,

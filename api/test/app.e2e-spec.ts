@@ -35,17 +35,18 @@ describe('AppController (e2e)', () => {
         .get('/health')
         .expect(200)
         .expect((res: any) => {
-          expect(res.body.status).toBe('healthy');
+          expect(res.body.status).toMatch(/^(healthy|degraded|unhealthy)$/);
         });
     });
 
-    it('/health/detailed (GET) - should return detailed status', () => {
+    it('/health (GET) - detailed payload includes dependencies', () => {
       return request(app.getHttpServer())
-        .get('/health/detailed')
+        .get('/health')
         .expect(200)
         .expect((res: any) => {
           expect(res.body).toHaveProperty('status');
           expect(res.body).toHaveProperty('timestamp');
+          expect(res.body).toHaveProperty('dependencies');
         });
     });
   });

@@ -154,6 +154,7 @@ jobs:
           REDIS_URL: redis://localhost:6379
           JWT_SECRET: test-jwt-secret
           ADMIN_JWT_SECRET: test-admin-jwt-secret
+          DISABLE_RATE_LIMIT: 'true'
           NODE_ENV: test
 
       - name: Upload coverage

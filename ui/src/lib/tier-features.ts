@@ -318,6 +318,7 @@ export function canAccessRoute(tier: TenantTier | undefined, route: string): boo
     '/dashboard/locations': 'locations',
     '/dashboard/lists': 'lists',
     '/dashboard/block-pages': 'block-pages',
+    '/dashboard/shield-certificate': 'block-pages',
     '/dashboard/logs': 'logs',
     '/dashboard/logs/live': 'live-stream',
     '/dashboard/reports': 'reports',

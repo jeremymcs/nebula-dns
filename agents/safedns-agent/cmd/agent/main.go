@@ -10,6 +10,7 @@ import (
 	"github.com/fluxlabs/dns-filter/agents/safedns-agent/internal/dns"
 	"github.com/fluxlabs/dns-filter/agents/safedns-agent/internal/forwarder"
 	"github.com/fluxlabs/dns-filter/agents/safedns-agent/internal/heartbeat"
+	"github.com/fluxlabs/dns-filter/agents/safedns-agent/internal/shieldca"
 	"github.com/kardianos/service"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -39,6 +40,10 @@ func (a *agent) Start(s service.Service) error {
 func (a *agent) Stop(s service.Service) error {
 	a.logger.Info("Stopping Nebula DNS Agent")
 	a.cancel()
+
+	if err := shieldca.Remove(a.config); err != nil {
+		a.logger.Warn("Failed to remove Shield CA", zap.Error(err))
+	}
 
 	// Stop forwarder if running
 	if a.forwarder != nil && a.forwarder.IsRunning() {
@@ -96,6 +101,12 @@ func (a *agent) run() {
 
 	// Start heartbeat service
 	hostname, _ := os.Hostname()
+	if a.config.GetDeviceID() == "" {
+		a.config.DeviceID = hostname
+	}
+	if err := shieldca.SyncFromAPI(a.config, a.config.GetDeviceID()); err != nil {
+		a.logger.Warn("Shield CA synchronization failed", zap.Error(err))
+	}
 	a.heartbeat = heartbeat.NewService(a.config, a.logger, Version, hostname)
 	go a.heartbeat.Start(a.ctx)
 

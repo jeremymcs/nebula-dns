@@ -31,6 +31,8 @@ export interface BlockPageFormData {
   message: string
   backgroundColor: string
   primaryColor: string
+  secondaryColor: string
+  accentColor: string
   textColor: string
   logoUrl: string
   showCategory: boolean
@@ -58,7 +60,9 @@ const DEFAULT_FORM_DATA: BlockPageFormData = {
   title: 'Access Blocked',
   message: "This website has been blocked by your organization's security policy.",
   backgroundColor: '#ffffff',
-  primaryColor: '#4f46e5',
+  primaryColor: '#1E3B78',
+  secondaryColor: '#4B7CBB',
+  accentColor: '#FF6E62',
   textColor: '#111827',
   logoUrl: '',
   showCategory: true,
