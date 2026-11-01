@@ -99,6 +99,15 @@ export async function listPlatformZones(): Promise<AdminZoneRow[]> {
   );
 }
 
+export interface CreatePlatformZoneResult {
+  providerZoneId: string;
+  zoneName: string;
+  status: string;
+  nameServers: string[];
+  assignmentId?: string;
+  tenantId?: string;
+}
+
 export async function assignZone(
   providerZoneId: string,
   body: {
@@ -108,7 +117,7 @@ export async function assignZone(
     canDeleteRecords?: boolean;
   },
 ) {
-  return fetchJson(
+  return fetchJson<unknown>(
     `${API_URL}/admin/dns-management/zones/${encodeURIComponent(providerZoneId)}/assign`,
     {
       method: 'POST',
@@ -121,8 +130,8 @@ export async function assignZone(
 export async function createPlatformZone(body: {
   name: string;
   tenantId?: string;
-}) {
-  return fetchJson(
+}): Promise<CreatePlatformZoneResult> {
+  return fetchJson<CreatePlatformZoneResult>(
     `${API_URL}/admin/dns-management/zones`,
     {
       method: 'POST',
