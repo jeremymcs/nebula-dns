@@ -35,9 +35,3 @@ paths:
   - ui/app
   - policy-svc/internal
   - policy-svc/cmd
-
-# Additional configuration
-packs:
-  - codeql/javascript-queries
-  - codeql/typescript-queries
-  - codeql/go-queries
