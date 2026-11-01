@@ -2,14 +2,14 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import { test, expect } from '@playwright/test'
-import { loginAndNavigate, waitForPageLoad } from '../helpers/auth'
+import { loginAndNavigate, waitForPageLoad, expectDashboardShell } from '../helpers/auth'
 
 test.describe('Rate Limiting - Error Handling', () => {
   test('should show rate limit message after too many requests', async ({ page }) => {
     await loginAndNavigate(page, '/dashboard')
 
     // Mock 429 Too Many Requests response
-    await page.route('**/api/**/policies', (route) => {
+    await page.route('**/backend/policies**', (route) => {
       route.fulfill({
         status: 429,
         headers: {
@@ -39,15 +39,14 @@ test.describe('Rate Limiting - Error Handling', () => {
     }
 
     // Page should still have UI structure
-    const heading = page.locator('h1, h2, [role="heading"]')
-    await expect(heading.first()).toBeVisible()
+    await expectDashboardShell(page)
 
     // Should not show stale/invalid data
     const bodyText = await page.textContent('body')
     expect(bodyText).toBeTruthy()
 
     // Cleanup
-    await page.unroute('**/api/**/policies')
+    await page.unroute('**/backend/policies**')
   })
 
   test('should allow retry after rate limit window expires', async ({ page }) => {
@@ -56,7 +55,7 @@ test.describe('Rate Limiting - Error Handling', () => {
     // Simulate rate limit scenario with retry functionality
     let retryWindowElapsed = false
 
-    await page.route('**/api/**', (route) => {
+    await page.route('**/backend/**', (route) => {
       const url = route.request().url()
 
       // Only mock specific endpoints, let auth through
@@ -95,8 +94,7 @@ test.describe('Rate Limiting - Error Handling', () => {
     await page.waitForTimeout(2000)
 
     // Page should be functional
-    const heading = page.locator('h1, h2, [role="heading"]')
-    await expect(heading.first()).toBeVisible()
+    await expectDashboardShell(page)
 
     // Body should have content
     const bodyText = await page.textContent('body')
@@ -110,7 +108,7 @@ test.describe('Rate Limiting - Error Handling', () => {
     expect(hasValidContent).toBeTruthy()
 
     // Cleanup
-    await page.unroute('**/api/**')
+    await page.unroute('**/backend/**')
   })
 
   test('should show appropriate rate limit counter or retry info', async ({ page }) => {
@@ -120,7 +118,7 @@ test.describe('Rate Limiting - Error Handling', () => {
     const retryAfterSeconds = 30
     const resetTime = Math.floor(Date.now() / 1000) + retryAfterSeconds
 
-    await page.route('**/api/**/lists', (route) => {
+    await page.route('**/backend/lists**', (route) => {
       route.fulfill({
         status: 429,
         headers: {
@@ -145,8 +143,7 @@ test.describe('Rate Limiting - Error Handling', () => {
     const hasError = await errorMessage.isVisible({ timeout: 5000 }).catch(() => false)
 
     // Page should handle error gracefully
-    const heading = page.locator('h1, h2, [role="heading"]')
-    await expect(heading.first()).toBeVisible()
+    await expectDashboardShell(page)
 
     // Should show some UI feedback
     const bodyText = await page.textContent('body')
@@ -161,6 +158,6 @@ test.describe('Rate Limiting - Error Handling', () => {
     expect(hasContent).toBeTruthy()
 
     // Cleanup
-    await page.unroute('**/api/**/lists')
+    await page.unroute('**/backend/lists**')
   })
 })

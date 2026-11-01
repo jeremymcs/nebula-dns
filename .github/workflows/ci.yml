@@ -87,6 +87,7 @@ jobs:
           DATABASE_URL: postgresql://test:test@localhost:5432/nebula_test
           REDIS_URL: redis://localhost:6379
           JWT_SECRET: test-jwt-secret
+          ADMIN_JWT_SECRET: test-admin-jwt-secret
           NODE_ENV: test
 
       - name: Run E2E tests
@@ -96,6 +97,7 @@ jobs:
           DATABASE_URL: postgresql://test:test@localhost:5432/nebula_test
           REDIS_URL: redis://localhost:6379
           JWT_SECRET: test-jwt-secret
+          ADMIN_JWT_SECRET: test-admin-jwt-secret
           NODE_ENV: test
 
       - name: Upload coverage

@@ -98,7 +98,7 @@ jobs:
 
       - name: Run edge case E2E tests
         working-directory: ./ui
-        run: npx playwright test e2e/edge --project=chromium --reporter=html,line
+        run: npx playwright test e2e/edge --project=chromium --workers=2 --reporter=html,line
         env:
           CI: true
           TEST_BASE_URL: http://localhost:4011

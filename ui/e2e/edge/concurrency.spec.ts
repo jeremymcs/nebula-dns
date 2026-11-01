@@ -111,7 +111,7 @@ test.describe('Concurrency - Double-Click Prevention', () => {
     let concurrentCalls = 0
     let maxConcurrent = 0
 
-    await page.route('**/api/v1/lists/**', async (route) => {
+    await page.route('**/backend/lists/**', async (route) => {
       apiCallCount++
       concurrentCalls++
       maxConcurrent = Math.max(maxConcurrent, concurrentCalls)
@@ -155,6 +155,6 @@ test.describe('Concurrency - Double-Click Prevention', () => {
     expect(bodyText!.length).toBeGreaterThan(10)
 
     // Cleanup
-    await page.unroute('**/api/v1/lists/**')
+    await page.unroute('**/backend/lists/**')
   })
 })

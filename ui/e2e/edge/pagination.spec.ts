@@ -62,7 +62,7 @@ test.describe('Pagination - Large Dataset Handling', () => {
       createdAt: new Date().toISOString()
     }))
 
-    await page.route('**/api/**/lists', (route) => {
+    await page.route('**/backend/**/lists', (route) => {
       route.fulfill({
         status: 200,
         body: JSON.stringify(largeDataset)
@@ -98,7 +98,7 @@ test.describe('Pagination - Large Dataset Handling', () => {
     }
 
     // Cleanup
-    await page.unroute('**/api/**/lists')
+    await page.unroute('**/backend/**/lists')
   })
 
   test('should reflect current page in URL for pagination', async ({ page }) => {
@@ -142,7 +142,7 @@ test.describe('Pagination - Large Dataset Handling', () => {
     await loginAndNavigate(page, '/dashboard')
 
     // Mock empty dataset
-    await page.route('**/api/**/policies', (route) => {
+    await page.route('**/backend/**/policies', (route) => {
       route.fulfill({
         status: 200,
         body: JSON.stringify([])
@@ -181,6 +181,6 @@ test.describe('Pagination - Large Dataset Handling', () => {
     expect(hasEmptyState || hasCreateButton || bodyText!.length > 10).toBeTruthy()
 
     // Cleanup
-    await page.unroute('**/api/**/policies')
+    await page.unroute('**/backend/**/policies')
   })
 })

@@ -7,7 +7,7 @@ import { loginAndNavigate, waitForPageLoad } from '../helpers/auth'
 test.describe('Webhooks - List Page', () => {
   test.beforeEach(async ({ page }) => {
     // Mock webhooks API
-    await page.route('**/api/v1/webhooks', (route) => {
+    await page.route('**/backend/webhooks', (route) => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -130,7 +130,7 @@ test.describe('Webhooks - List Page', () => {
 test.describe('Webhooks - Create Webhook', () => {
   test.beforeEach(async ({ page }) => {
     // Mock empty webhooks list
-    await page.route('**/api/v1/webhooks', (route) => {
+    await page.route('**/backend/webhooks', (route) => {
       if (route.request().method() === 'GET') {
         route.fulfill({
           status: 200,
@@ -283,7 +283,7 @@ test.describe('Webhooks - Create Webhook', () => {
 test.describe('Webhooks - Test Webhook', () => {
   test.beforeEach(async ({ page }) => {
     // Mock webhooks API with test endpoint
-    await page.route('**/api/v1/webhooks', (route) => {
+    await page.route('**/backend/webhooks', (route) => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -301,7 +301,7 @@ test.describe('Webhooks - Test Webhook', () => {
       })
     })
 
-    await page.route('**/api/v1/webhooks/*/test', (route) => {
+    await page.route('**/backend/webhooks/*/test', (route) => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -354,7 +354,7 @@ test.describe('Webhooks - Test Webhook', () => {
 test.describe('Webhooks - Delivery History', () => {
   test.beforeEach(async ({ page }) => {
     // Mock webhooks API with delivery history
-    await page.route('**/api/v1/webhooks', (route) => {
+    await page.route('**/backend/webhooks', (route) => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -372,7 +372,7 @@ test.describe('Webhooks - Delivery History', () => {
       })
     })
 
-    await page.route('**/api/v1/webhooks/*/deliveries', (route) => {
+    await page.route('**/backend/webhooks/*/deliveries', (route) => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -464,7 +464,7 @@ test.describe('Webhooks - Delivery History', () => {
 test.describe('Webhooks - Edit and Delete', () => {
   test.beforeEach(async ({ page }) => {
     // Mock webhooks API
-    await page.route('**/api/v1/webhooks', (route) => {
+    await page.route('**/backend/webhooks', (route) => {
       if (route.request().method() === 'GET') {
         route.fulfill({
           status: 200,
@@ -484,7 +484,7 @@ test.describe('Webhooks - Edit and Delete', () => {
       }
     })
 
-    await page.route('**/api/v1/webhooks/*', (route) => {
+    await page.route('**/backend/webhooks/*', (route) => {
       if (route.request().method() === 'PUT' || route.request().method() === 'PATCH') {
         route.fulfill({
           status: 200,

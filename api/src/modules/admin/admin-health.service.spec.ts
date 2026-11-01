@@ -242,16 +242,23 @@ describe('AdminHealthService', () => {
     });
 
     it('should measure latency', async () => {
-      mockFetch.mockImplementation(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(() => resolve({ ok: true, status: 200 }), 10),
-          ),
-      );
+      jest.useFakeTimers();
+      try {
+        mockFetch.mockImplementation(
+          () =>
+            new Promise((resolve) => {
+              setTimeout(() => resolve({ ok: true, status: 200 }), 50);
+            }),
+        );
 
-      const result = await service.checkPolicySvc();
+        const resultPromise = service.checkPolicySvc();
+        await jest.advanceTimersByTimeAsync(50);
+        const result = await resultPromise;
 
-      expect(result.latencyMs).toBeGreaterThanOrEqual(10);
+        expect(result.latencyMs).toBeGreaterThanOrEqual(50);
+      } finally {
+        jest.useRealTimers();
+      }
     });
   });
 

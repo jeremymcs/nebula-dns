@@ -9,8 +9,8 @@ test.describe('Network Errors - Timeout Handling', () => {
     await loginAndNavigate(page, '/dashboard')
 
     // Mock slow API response that times out
-    await page.route('**/api/**/policies', async (route) => {
-      await new Promise(resolve => setTimeout(resolve, 60000)) // 60s timeout
+    await page.route('**/backend/policies**', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 5000))
       route.abort('timedout')
     })
 
@@ -42,14 +42,14 @@ test.describe('Network Errors - Timeout Handling', () => {
     const hasRetry = await retryButton.isVisible().catch(() => false)
 
     // Cleanup
-    await page.unroute('**/api/**/policies')
+    await page.unroute('**/backend/policies**')
   })
 
   test('should show error when server is unreachable', async ({ page }) => {
     await loginAndNavigate(page, '/dashboard')
 
     // Mock connection failure
-    await page.route('**/api/**/reports/**', (route) => {
+    await page.route('**/backend/**/reports/**', (route) => {
       route.abort('connectionrefused')
     })
 
@@ -76,7 +76,7 @@ test.describe('Network Errors - Timeout Handling', () => {
     // Verify no stale data is shown when error occurs
     expect(dataCount).toBeLessThan(100)
 
-    await page.unroute('**/api/**/reports/**')
+    await page.unroute('**/backend/**/reports/**')
   })
 
   test('should allow user to retry failed request', async ({ page }) => {
@@ -85,7 +85,7 @@ test.describe('Network Errors - Timeout Handling', () => {
     await loginAndNavigate(page, '/dashboard')
 
     // First request fails, second succeeds
-    await page.route('**/api/**/locations', (route) => {
+    await page.route('**/backend/**/locations', (route) => {
       requestCount++
       if (requestCount === 1) {
         route.abort('failed')
@@ -124,7 +124,7 @@ test.describe('Network Errors - Timeout Handling', () => {
       }
     }
 
-    await page.unroute('**/api/**/locations')
+    await page.unroute('**/backend/**/locations')
   })
 
   test('should handle partial load error gracefully', async ({ page }) => {
@@ -135,7 +135,7 @@ test.describe('Network Errors - Timeout Handling', () => {
 
     // Mock partial failure - only specific endpoint fails
     let callCount = 0
-    await page.route('**/api/v1/lists/123/**', (route) => {
+    await page.route('**/backend/lists/123/**', (route) => {
       callCount++
       route.abort('failed')
     })
@@ -160,6 +160,6 @@ test.describe('Network Errors - Timeout Handling', () => {
     expect(bodyHasContent).toBeTruthy()
 
     // Cleanup
-    await page.unroute('**/api/v1/lists/123/**')
+    await page.unroute('**/backend/lists/123/**')
   })
 })
