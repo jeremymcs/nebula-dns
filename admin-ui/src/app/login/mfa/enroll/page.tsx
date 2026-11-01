@@ -9,6 +9,8 @@ import {
   adminMfaEnrollVerify,
 } from '@/lib/api'
 import { ProductFooter } from '@/components/ProductFooter'
+import { PrintBackupCodesButton } from '@/components/mfa/PrintBackupCodesButton'
+import { ClipboardDocumentIcon } from '@heroicons/react/24/outline'
 
 export default function AdminMfaEnrollPage() {
   const router = useRouter()
@@ -19,6 +21,7 @@ export default function AdminMfaEnrollPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [setupLoading, setSetupLoading] = useState(true)
+  const [copyNotice, setCopyNotice] = useState('')
 
   useEffect(() => {
     const token = localStorage.getItem('admin_token')
@@ -58,6 +61,19 @@ export default function AdminMfaEnrollPage() {
       setError(err instanceof Error ? err.message : 'Invalid verification code')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const accountLabel = admin?.email ?? 'Admin account'
+
+  const copyAllBackupCodes = async () => {
+    if (!backupCodes.length) return
+    try {
+      await navigator.clipboard.writeText(backupCodes.join('\n'))
+      setCopyNotice('Backup codes copied to clipboard')
+      setTimeout(() => setCopyNotice(''), 3000)
+    } catch {
+      setCopyNotice('Unable to copy codes')
     }
   }
 
@@ -110,6 +126,27 @@ export default function AdminMfaEnrollPage() {
                     <span key={c}>{c}</span>
                   ))}
                 </div>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    className="btn-secondary inline-flex items-center"
+                    onClick={copyAllBackupCodes}
+                    aria-label="Copy all backup codes"
+                  >
+                    <ClipboardDocumentIcon className="h-4 w-4 mr-2" aria-hidden />
+                    Copy all
+                  </button>
+                  <PrintBackupCodesButton
+                    codes={backupCodes}
+                    accountLabel={accountLabel}
+                    onError={(message) => setError(message)}
+                  />
+                </div>
+                {copyNotice ? (
+                  <p className="mt-2 text-xs text-success-600 dark:text-success-400" role="status">
+                    {copyNotice}
+                  </p>
+                ) : null}
               </div>
             )}
 

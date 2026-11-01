@@ -11,6 +11,8 @@ import { Card, Button, Input, Badge, Modal, Tabs } from '@/components/ui'
 import { useToast } from '@/components/Toast'
 import { useSessions, useAuditLogs } from '@/hooks/useApi'
 import { api, API_URL } from '@/lib/api'
+import { useAuth } from '@/contexts/AuthContext'
+import { PrintBackupCodesButton } from '@/components/mfa/PrintBackupCodesButton'
 import { exportArrayToCsv } from '@/lib/export'
 import {
   ShieldCheckIcon,
@@ -69,6 +71,8 @@ interface AuditLog {
 
 export default function SecuritySettingsPage() {
   const { showToast } = useToast()
+  const { user } = useAuth()
+  const accountLabel = user?.email ?? user?.name ?? 'Account'
 
   // API hooks for sessions and audit logs
   const { data: sessionsData, error: sessionsError, isLoading: sessionsLoading, mutate: mutateSessions } = useSessions()
@@ -582,6 +586,8 @@ export default function SecuritySettingsPage() {
                     >
                       <span>{code}</span>
                       <button
+                        type="button"
+                        aria-label={`Copy backup code ${index + 1}`}
                         onClick={() => copyToClipboard(code, index)}
                         className="p-1.5 hover:bg-space-200 dark:hover:bg-space-600 rounded-lg transition-colors"
                       >
@@ -593,6 +599,25 @@ export default function SecuritySettingsPage() {
                       </button>
                     </div>
                   ))}
+                </div>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    onClick={() => {
+                      const codesText = setupData.backupCodes.join('\n')
+                      navigator.clipboard.writeText(codesText)
+                      showToast('success', 'All codes copied to clipboard')
+                    }}
+                  >
+                    <ClipboardDocumentIcon className="h-4 w-4 mr-2" />
+                    Copy All Codes
+                  </Button>
+                  <PrintBackupCodesButton
+                    codes={setupData.backupCodes}
+                    accountLabel={accountLabel}
+                    onError={(message) => showToast('error', message)}
+                  />
                 </div>
               </div>
             </div>
@@ -1166,19 +1191,28 @@ export default function SecuritySettingsPage() {
           </p>
         </div>
 
-        <div className="mt-6 flex justify-between">
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-3">
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={() => {
+                const codesText = newBackupCodes.join('\n')
+                navigator.clipboard.writeText(codesText)
+                showToast('success', 'All codes copied to clipboard')
+              }}
+            >
+              <ClipboardDocumentIcon className="h-4 w-4 mr-2" />
+              Copy All Codes
+            </Button>
+            <PrintBackupCodesButton
+              codes={newBackupCodes}
+              accountLabel={accountLabel}
+              onError={(message) => showToast('error', message)}
+            />
+          </div>
           <Button
-            variant="secondary"
-            onClick={() => {
-              const codesText = newBackupCodes.join('\n')
-              navigator.clipboard.writeText(codesText)
-              showToast('success', 'All codes copied to clipboard')
-            }}
-          >
-            <ClipboardDocumentIcon className="h-4 w-4 mr-2" />
-            Copy All Codes
-          </Button>
-          <Button
+            type="button"
             onClick={() => {
               setShowBackupCodesModal(false)
               setNewBackupCodes([])

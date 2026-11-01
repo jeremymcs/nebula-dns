@@ -38,6 +38,8 @@ test.describe('MFA - Multi-Factor Authentication', () => {
         name: /Set Up Two-Factor Authentication/i,
       })
       await expect(setupDialog).toBeVisible({ timeout: 15000 })
+      const printBackupCodes = page.getByRole('button', { name: /print backup codes/i })
+      await expect(printBackupCodes).toBeVisible({ timeout: 15000 })
       return
     }
 
