@@ -52,10 +52,15 @@ coverage/
 
 # Local plans (may contain credentials)
 .plans/
+.plans/GO-LIVE-PLAN.md
 config/certs/*.key
 deploy/droplet/certs/*.key
 deploy/droplet/certs/server.crt
 deploy/droplet/.env
+# Private key / credential bundles (generate locally or mount from secrets)
+*.pem
+*.p12
+*.pfx
 terraform.tfvars
 **/*.tfvars
 !**/*.tfvars.example
