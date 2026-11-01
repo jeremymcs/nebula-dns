@@ -17,7 +17,6 @@ import {
   ChevronDownIcon,
   SunIcon,
   MoonIcon,
-  RocketLaunchIcon,
 } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 import { useAuth } from '@/contexts/AuthContext'
@@ -69,63 +68,65 @@ export function Header() {
   )
 
   return (
-    <header className="sticky top-0 z-50 w-full overflow-visible">
-      {/* Glass effect background — must not intercept taps (Safari mobile) */}
-      <div className="pointer-events-none absolute inset-0 bg-white/80 dark:bg-space-900/80 backdrop-blur-xl border-b border-space-200 dark:border-space-800" />
-
-      <nav className="relative mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+    <header className="sticky top-0 z-50 w-full border-b fs-hairline bg-canvas/80 dark:bg-space-950/80 backdrop-blur-md">
+      <nav className="mx-auto max-w-[1600px] px-4 sm:px-7">
+        <div className="flex h-[52px] items-center justify-between gap-3">
           {/* Logo and Title */}
-          <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-3 group">
-              <ShieldMark className="h-10 w-10" />
-              <div className="hidden sm:flex flex-col">
-                <span className="text-xl font-bold text-space-900 dark:text-white">
+          <div className="flex min-w-0 items-center gap-3">
+            <Link href="/" className="flex shrink-0 items-center gap-2.5">
+              <ShieldMark className="h-8 w-8" />
+              <div className="hidden sm:flex flex-col leading-tight">
+                <span className="text-[15px] font-semibold tracking-tight text-ink">
                   <ProductWordmark />
                 </span>
-                <span className="text-xs font-medium text-space-500 dark:text-space-400 -mt-0.5">
+                <span className="text-[11px] font-medium text-mut">
                   {ADMIN_PORTAL_NAME}
                 </span>
               </div>
             </Link>
 
             {/* Navigation Links - Filtered by Role */}
-            <div className="hidden md:flex items-center gap-1 ml-4 border-l border-space-200 dark:border-space-700 pl-4">
-              {filteredNavigation.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={clsx(
-                    'px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                    (pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href)))
-                      ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                      : 'text-space-600 dark:text-space-400 hover:bg-space-100 dark:hover:bg-space-800 hover:text-space-900 dark:hover:text-white'
-                  )}
-                >
-                  {item.name}
-                </Link>
-              ))}
+            <div className="hidden lg:flex items-center gap-0.5 ml-2 pl-3 border-l fs-hairline">
+              {filteredNavigation.map((item) => {
+                const active =
+                  pathname === item.href ||
+                  (item.href !== '/' && pathname?.startsWith(item.href))
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={clsx(
+                      'px-2.5 py-1.5 rounded-lg text-[13px] font-medium transition-colors',
+                      active
+                        ? 'text-ink bg-white dark:bg-space-900 shadow-[0_0_0_1px_var(--fs-line)]'
+                        : 'text-mut hover:text-ink hover:bg-white/80 dark:hover:bg-space-900/80',
+                    )}
+                  >
+                    {item.name}
+                  </Link>
+                )
+              })}
             </div>
           </div>
 
           {/* Search - Desktop only */}
-          <div className="hidden md:block flex-1 max-w-sm mx-4">
+          <div className="hidden md:block flex-1 max-w-sm mx-2">
             <TenantSearchDropdown />
           </div>
 
           {/* Right section */}
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             {/* Theme Toggle */}
             <button
               type="button"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2 rounded-xl text-space-500 hover:text-space-900 dark:hover:text-white hover:bg-space-100 dark:hover:bg-space-800 transition-colors touch-manipulation"
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-mut hover:text-ink hover:bg-white dark:hover:bg-space-900 shadow-[0_0_0_1px_var(--fs-line)] transition-colors touch-manipulation"
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? (
-                <SunIcon className="h-5 w-5" />
+                <SunIcon className="h-4 w-4" />
               ) : (
-                <MoonIcon className="h-5 w-5" />
+                <MoonIcon className="h-4 w-4" />
               )}
             </button>
 
@@ -134,21 +135,20 @@ export function Header() {
               <Menu.Button
                 type="button"
                 aria-label="Account menu"
-                className="flex items-center gap-2 p-1.5 pr-3 rounded-xl hover:bg-space-100 dark:hover:bg-space-800 transition-colors touch-manipulation"
+                className="flex items-center gap-1.5 rounded-lg py-1 pl-1 pr-2 text-[13px] hover:bg-white dark:hover:bg-space-900 shadow-[0_0_0_1px_var(--fs-line)] transition-colors touch-manipulation"
               >
-                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center">
-                  <span className="text-xs font-bold text-white">
+                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-primary-500 to-accent-500">
+                  <span className="text-[10px] font-bold text-white">
                     {admin?.name ? getInitials(admin.name) : 'AD'}
                   </span>
                 </div>
-                <span className="hidden sm:block text-sm font-medium text-space-700 dark:text-space-300">
+                <span className="hidden sm:block font-medium text-ink max-w-[6rem] truncate">
                   {admin?.name?.split(' ')[0] || 'Admin'}
                 </span>
-                {/* Role badge in header */}
                 {adminRole && (
                   <AdminRoleBadge role={adminRole} size="sm" className="hidden sm:inline-flex" />
                 )}
-                <ChevronDownIcon className="h-4 w-4 text-space-400" />
+                <ChevronDownIcon className="h-3.5 w-3.5 text-mut" />
               </Menu.Button>
 
               <Transition
@@ -160,24 +160,24 @@ export function Header() {
                 leaveFrom="transform opacity-100 scale-100"
                 leaveTo="transform opacity-0 scale-95"
               >
-                <Menu.Items className="absolute right-0 z-[100] mt-2 w-64 origin-top-right rounded-xl bg-white dark:bg-space-800 shadow-lg ring-1 ring-space-900/5 dark:ring-white/10 focus:outline-none p-1 touch-manipulation">
+                <Menu.Items className="absolute right-0 z-[100] mt-2 w-64 origin-top-right rounded-xl fs-card p-1 shadow-lg focus:outline-none touch-manipulation">
                   {/* Admin Info Header with Role */}
-                  <div className="px-3 py-2 border-b border-space-100 dark:border-space-700">
+                  <div className="px-3 py-2 border-b fs-hairline">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-space-900 dark:text-white">
+                      <p className="text-sm font-medium text-ink">
                         {admin?.name || 'Admin User'}
                       </p>
                       {adminRole && <AdminRoleBadge role={adminRole} size="sm" />}
                     </div>
-                    <p className="text-xs text-space-500 dark:text-space-400 truncate mt-0.5">
+                    <p className="text-xs text-mut truncate mt-0.5">
                       {admin?.email || 'admin@example.com'}
                     </p>
                     {/* Permissions list */}
-                    <div className="mt-2 pt-2 border-t border-space-100 dark:border-space-700">
-                      <p className="text-xs font-medium text-space-500 dark:text-space-400 mb-1">
+                    <div className="mt-2 pt-2 border-t fs-hairline">
+                      <p className="text-xs font-medium text-mut mb-1">
                         Permissions:
                       </p>
-                      <ul className="text-xs text-space-600 dark:text-space-400 space-y-0.5">
+                      <ul className="text-xs text-txt space-y-0.5">
                         <li className="flex items-center gap-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-success-500" />
                           View dashboards & MSPs

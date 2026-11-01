@@ -130,7 +130,7 @@ export default function AuthenticatedLayout({
   }
 
   return (
-    <div className="min-h-screen bg-space-50 dark:bg-space-950 flex flex-col">
+    <div className="min-h-screen bg-canvas dark:bg-space-950 flex flex-col">
       {/* Session Warning Modal */}
       <SessionWarningModal
         isOpen={showWarningModal}

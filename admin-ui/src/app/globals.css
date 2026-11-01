@@ -6,7 +6,9 @@
  */
 
 @tailwind base;
+@import '../../../shared/flux-shield-design-tokens.css';
 @tailwind components;
+@import '../../../shared/flux-shield-components.css';
 @tailwind utilities;
 
 @layer base {
@@ -98,7 +100,17 @@
    * ============================================ */
 
   .card {
-    @apply bg-white dark:bg-space-800/50 rounded-2xl shadow-sm ring-1 ring-space-900/5 dark:ring-white/5;
+    /* Design C — mirrors .fs-card (Tailwind @apply cannot reference imported components) */
+    background: var(--fs-panel);
+    border-radius: 0.875rem;
+    box-shadow:
+      0 0 0 1px rgba(11, 21, 48, 0.06),
+      0 1px 2px rgba(11, 21, 48, 0.04),
+      0 8px 24px -16px rgba(11, 21, 48, 0.12);
+  }
+
+  html.dark .card {
+    box-shadow: 0 0 0 1px var(--fs-line);
   }
 
   .card-glass {
