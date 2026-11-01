@@ -4,6 +4,7 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAsMSP, loginAsEnterprise, waitForPageLoad } from './helpers/auth'
+import { pageHeading } from './helpers/selectors'
 
 test.describe('US-037: MSP Client List Page', () => {
   test.beforeEach(async ({ page }) => {
@@ -14,7 +15,7 @@ test.describe('US-037: MSP Client List Page', () => {
 
   test('should display clients list page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/clients/)
-    await expect(page.getByRole('heading', { name: /clients/i })).toBeVisible()
+    await expect(pageHeading(page, /^clients$/i)).toBeVisible()
   })
 
   test('should display client list table with columns', async ({ page }) => {
@@ -175,7 +176,7 @@ test.describe('US-037: MSP Client Creation Flow', () => {
 
     // Should show success message or redirect to client list
     const successMessage = page.getByText(/client created|successfully added/i)
-    const clientsList = page.getByRole('heading', { name: /^clients$/i })
+    const clientsList = pageHeading(page, /^clients$/i)
 
     const wasSuccessful = await successMessage.isVisible({ timeout: 5000 }) ||
                          await clientsList.isVisible({ timeout: 5000 })
@@ -376,7 +377,7 @@ test.describe('US-037: MSP Template Management', () => {
 
   test('should display MSP templates page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/msp\/templates/)
-    await expect(page.getByRole('heading', { name: /templates/i })).toBeVisible()
+    await expect(pageHeading(page, /^templates$/i)).toBeVisible()
   })
 
   test('should show list of available templates', async ({ page }) => {

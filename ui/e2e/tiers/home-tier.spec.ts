@@ -4,6 +4,7 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAsHome, waitForPageLoad } from '../helpers/auth'
+import { pageHeading } from '../helpers/selectors'
 
 test.describe('US-037: Home Tier Navigation', () => {
   test.beforeEach(async ({ page }) => {
@@ -78,7 +79,7 @@ test.describe('US-037: Home Tier Navigation', () => {
     
     // Should have access
     await expect(page).toHaveURL(/\/dashboard\/billing/)
-    await expect(page.getByRole('heading', { name: /billing|subscription/i })).toBeVisible()
+    await expect(pageHeading(page, /billing.*usage/i)).toBeVisible()
   })
 })
 
@@ -260,7 +261,7 @@ test.describe('US-037: Home Tier Usage Limits', () => {
     await waitForPageLoad(page)
     
     await expect(page).toHaveURL(/\/dashboard\/policies/)
-    await expect(page.getByRole('heading', { name: /policies/i })).toBeVisible()
+    await expect(pageHeading(page, /^policies$/i)).toBeVisible()
     
     // Should be able to create policies
     const createButton = page.getByRole('button', { name: /create.*policy|new.*policy/i })

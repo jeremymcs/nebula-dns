@@ -3,6 +3,7 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAndNavigate, waitForPageLoad } from './helpers/auth'
+import { pageHeading } from './helpers/selectors'
 
 test.describe('Lists - Overview', () => {
   test.beforeEach(async ({ page }) => {
@@ -12,7 +13,7 @@ test.describe('Lists - Overview', () => {
 
   test('should display lists page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/lists/)
-    await expect(page.getByRole('heading', { name: /lists|blocklists|allowlists/i })).toBeVisible()
+    await expect(pageHeading(page, /domain lists/i)).toBeVisible()
   })
 
   test('should show tabs for blocklists and allowlists', async ({ page }) => {

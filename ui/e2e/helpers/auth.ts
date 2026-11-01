@@ -43,7 +43,8 @@ export async function login(page: Page, tier: TenantTier = 'enterprise') {
       email: config.email,
       name: config.name,
       role: 'admin',
-      tenantId: config.id
+      tenantId: config.id,
+      tenantTier: tier,
     }))
     localStorage.setItem('tenant', JSON.stringify({
       id: config.id,
@@ -55,7 +56,7 @@ export async function login(page: Page, tier: TenantTier = 'enterprise') {
     }))
   }, { tier })
 
-  await page.goto('/login', { waitUntil: 'domcontentloaded' })
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
 }
 
 /**
@@ -89,10 +90,12 @@ export async function loginAndNavigate(page: Page, path: string, tier: TenantTie
 }
 
 export async function expectDashboardShell(page: Page) {
-  const shell = page.locator(
-    'h1, h2, [role="heading"], [role="banner"], nav a[href="/dashboard"]',
-  )
-  await shell.first().waitFor({ state: 'visible', timeout: 20_000 })
+  const dashboardNav = page.getByRole('link', { name: /^dashboard$/i })
+  const appBrand = page.getByRole('link', { name: /flux shield/i })
+  await Promise.race([
+    dashboardNav.waitFor({ state: 'visible', timeout: 20_000 }),
+    appBrand.waitFor({ state: 'visible', timeout: 20_000 }),
+  ])
 }
 
 /**
@@ -102,7 +105,7 @@ export async function logout(page: Page) {
   await page.evaluate(() => {
     localStorage.clear()
   })
-  await page.goto('/login')
+  await page.goto('/')
 }
 
 /**

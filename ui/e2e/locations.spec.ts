@@ -3,6 +3,7 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAndNavigate, waitForPageLoad } from './helpers/auth'
+import { pageHeading } from './helpers/selectors'
 
 test.describe('Locations - List View', () => {
   test.beforeEach(async ({ page }) => {
@@ -12,7 +13,7 @@ test.describe('Locations - List View', () => {
 
   test('should display locations page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/locations/)
-    await expect(page.getByRole('heading', { name: /locations/i })).toBeVisible()
+    await expect(pageHeading(page, /protection zones|zones/i)).toBeVisible()
   })
 
   test('should display locations list', async ({ page }) => {

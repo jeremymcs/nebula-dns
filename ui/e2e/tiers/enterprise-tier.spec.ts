@@ -4,6 +4,7 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAsEnterprise, loginAsHome, waitForPageLoad } from '../helpers/auth'
+import { pageHeading } from '../helpers/selectors'
 
 test.describe('US-037: Enterprise Tier Navigation', () => {
   test.beforeEach(async ({ page }) => {
@@ -110,7 +111,7 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
     expect(await upgradePrompt.isVisible()).toBeFalsy()
     
     // Should show API keys interface
-    await expect(page.getByRole('heading', { name: /api keys/i })).toBeVisible()
+    await expect(pageHeading(page, /api keys/i)).toBeVisible()
   })
 
   test('Enterprise tier can access Webhooks', async ({ page }) => {
@@ -131,7 +132,7 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
     
     // Should access without restriction
     await expect(page).toHaveURL(/\/dashboard\/security-score/)
-    await expect(page.getByRole('heading', { name: /security.*score/i })).toBeVisible()
+    await expect(pageHeading(page, /security.*score/i)).toBeVisible()
   })
 
   test('Enterprise tier can access Playbooks', async ({ page }) => {
@@ -139,7 +140,7 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
     await waitForPageLoad(page)
     
     await expect(page).toHaveURL(/\/dashboard\/playbooks/)
-    await expect(page.getByRole('heading', { name: /playbook/i })).toBeVisible()
+    await expect(pageHeading(page, /playbook/i)).toBeVisible()
   })
 
   test('Enterprise tier can access Policy Builder', async ({ page }) => {

@@ -4,8 +4,9 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAsEnterprise, loginAsMSP, waitForPageLoad } from '../helpers/auth'
+import { SKIP_STRIPE_BILLING } from '../helpers/launch-features'
 
-test.describe('US-037: Invoice Management', () => {
+test.describe.skip(`US-037: Invoice Management — ${SKIP_STRIPE_BILLING}`, () => {
   test.beforeEach(async ({ page }) => {
     await loginAsEnterprise(page)
     await page.goto('/dashboard/billing')

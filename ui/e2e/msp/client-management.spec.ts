@@ -3,6 +3,7 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAsMSP, waitForPageLoad } from '../helpers/auth'
+import { pageHeading } from '../helpers/selectors'
 
 test.describe('MSP Client Management', () => {
   test.beforeEach(async ({ page }) => {
@@ -13,7 +14,7 @@ test.describe('MSP Client Management', () => {
 
   test('should view client list', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/clients/)
-    await expect(page.getByRole('heading', { name: /clients?|customers?/i })).toBeVisible()
+    await expect(pageHeading(page, /^clients$/i)).toBeVisible()
     
     // Verify client table/list is present
     const clientTable = page.locator('table')

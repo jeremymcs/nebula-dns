@@ -4,6 +4,7 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAsHome, loginAsEnterprise, loginAsMSP, waitForPageLoad } from './helpers/auth'
+import { pageHeading } from './helpers/selectors'
 
 test.describe('US-037: Home Tier Feature Access', () => {
   test.beforeEach(async ({ page }) => {
@@ -14,7 +15,7 @@ test.describe('US-037: Home Tier Feature Access', () => {
 
   test('should access dashboard with Home tier', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard/)
-    await expect(page.getByRole('heading', { name: /mission control|dashboard/i })).toBeVisible()
+    await expect(pageHeading(page, /^dashboard$/i)).toBeVisible()
   })
 
   test('should access basic locations page', async ({ page }) => {
@@ -22,7 +23,7 @@ test.describe('US-037: Home Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/locations/)
-    await expect(page.getByRole('heading', { name: /locations/i })).toBeVisible()
+    await expect(pageHeading(page, /protection zones|zones/i)).toBeVisible()
   })
 
   test('should access family members page', async ({ page }) => {
@@ -30,7 +31,7 @@ test.describe('US-037: Home Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/family/)
-    await expect(page.getByRole('heading', { name: /family/i })).toBeVisible()
+    await expect(pageHeading(page, /family/i)).toBeVisible()
   })
 
   test('should access policies page', async ({ page }) => {
@@ -38,7 +39,7 @@ test.describe('US-037: Home Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/policies/)
-    await expect(page.getByRole('heading', { name: /policies/i })).toBeVisible()
+    await expect(pageHeading(page, /^policies$/i)).toBeVisible()
   })
 
   test('should access lists page', async ({ page }) => {
@@ -46,7 +47,7 @@ test.describe('US-037: Home Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/lists/)
-    await expect(page.getByRole('heading', { name: /lists/i })).toBeVisible()
+    await expect(pageHeading(page, /domain lists/i)).toBeVisible()
   })
 
   test('should access reports page', async ({ page }) => {
@@ -54,7 +55,7 @@ test.describe('US-037: Home Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/reports/)
-    await expect(page.getByRole('heading', { name: /reports/i })).toBeVisible()
+    await expect(pageHeading(page, /^reports$/i)).toBeVisible()
   })
 
   test('should access agents page (roaming protection)', async ({ page }) => {
@@ -62,7 +63,7 @@ test.describe('US-037: Home Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/agents/)
-    await expect(page.getByRole('heading', { name: /agents/i })).toBeVisible()
+    await expect(pageHeading(page, /^agents$/i)).toBeVisible()
   })
 
   test('should NOT access SIEM page', async ({ page }) => {
@@ -181,7 +182,7 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
 
   test('should access dashboard with Enterprise tier', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard/)
-    await expect(page.getByRole('heading', { name: /mission control|dashboard/i })).toBeVisible()
+    await expect(pageHeading(page, /^dashboard$/i)).toBeVisible()
   })
 
   test('should access all core features', async ({ page }) => {
@@ -225,7 +226,7 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/settings\/security\/api-keys/)
-    await expect(page.getByRole('heading', { name: /api keys/i })).toBeVisible()
+    await expect(pageHeading(page, /api keys/i)).toBeVisible()
   })
 
   test('should access Webhooks page', async ({ page }) => {
@@ -242,7 +243,7 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/security-score/)
-    await expect(page.getByRole('heading', { name: /security score/i })).toBeVisible()
+    await expect(pageHeading(page, /security score/i)).toBeVisible()
   })
 
   test('should access Playbooks page', async ({ page }) => {
@@ -250,7 +251,7 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/playbooks/)
-    await expect(page.getByRole('heading', { name: /playbooks/i })).toBeVisible()
+    await expect(pageHeading(page, /^playbooks$/i)).toBeVisible()
   })
 
   test('should access Policy Builder page', async ({ page }) => {
@@ -258,7 +259,7 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/policy-builder/)
-    await expect(page.getByRole('heading', { name: /policy builder/i })).toBeVisible()
+    await expect(pageHeading(page, /policy builder/i)).toBeVisible()
   })
 
   test('should access Templates marketplace', async ({ page }) => {
@@ -266,7 +267,7 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/templates/)
-    await expect(page.getByRole('heading', { name: /templates/i })).toBeVisible()
+    await expect(pageHeading(page, /^templates$/i)).toBeVisible()
   })
 
   test('should access AI Insights page', async ({ page }) => {
@@ -274,7 +275,7 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/insights/)
-    await expect(page.getByRole('heading', { name: /insights/i })).toBeVisible()
+    await expect(pageHeading(page, /^insights$/i)).toBeVisible()
   })
 
   test('should NOT access MSP Clients page', async ({ page }) => {
@@ -353,7 +354,7 @@ test.describe('US-037: MSP Tier Feature Access', () => {
 
   test('should access dashboard with MSP tier', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard/)
-    await expect(page.getByRole('heading', { name: /mission control|dashboard/i })).toBeVisible()
+    await expect(pageHeading(page, /^dashboard$/i)).toBeVisible()
   })
 
   test('should access all Enterprise features', async ({ page }) => {
@@ -384,7 +385,7 @@ test.describe('US-037: MSP Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/clients/)
-    await expect(page.getByRole('heading', { name: /clients/i })).toBeVisible()
+    await expect(pageHeading(page, /^clients$/i)).toBeVisible()
 
     // Should not show upgrade prompt
     const upgradePrompt = page.getByText(/upgrade to access/i)
@@ -396,7 +397,7 @@ test.describe('US-037: MSP Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/msp\/templates/)
-    await expect(page.getByRole('heading', { name: /templates/i })).toBeVisible()
+    await expect(pageHeading(page, /^templates$/i)).toBeVisible()
   })
 
   test('should access MSP Cross-Client Reporting', async ({ page }) => {
@@ -404,7 +405,7 @@ test.describe('US-037: MSP Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/msp\/reporting/)
-    await expect(page.getByRole('heading', { name: /reporting/i })).toBeVisible()
+    await expect(pageHeading(page, /reporting/i)).toBeVisible()
   })
 
   test('should have client selector in navigation', async ({ page }) => {

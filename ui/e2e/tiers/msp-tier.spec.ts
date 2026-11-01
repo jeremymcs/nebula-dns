@@ -4,6 +4,7 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAsMSP, loginAsEnterprise, waitForPageLoad } from '../helpers/auth'
+import { pageHeading } from '../helpers/selectors'
 
 test.describe('US-037: MSP Tier Navigation', () => {
   test.beforeEach(async ({ page }) => {
@@ -67,7 +68,7 @@ test.describe('US-037: MSP Tier Client Management', () => {
 
   test('can access client management page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/clients/)
-    await expect(page.getByRole('heading', { name: /clients/i })).toBeVisible()
+    await expect(pageHeading(page, /^clients$/i)).toBeVisible()
   })
 
   test('can view client list', async ({ page }) => {
@@ -131,7 +132,7 @@ test.describe('US-037: MSP Tier Template Library', () => {
     await waitForPageLoad(page)
     
     await expect(page).toHaveURL(/\/dashboard\/msp\/templates/)
-    await expect(page.getByRole('heading', { name: /template/i })).toBeVisible()
+    await expect(pageHeading(page, /^templates$/i)).toBeVisible()
   })
 
   test('can view available templates', async ({ page }) => {

@@ -93,13 +93,18 @@ export async function installBackendMocks(
       )
       return
     }
-    await route.fulfill(
-      jsonResponse({ status: 'active', canResolve: true }),
-    )
+    await route.fulfill(jsonResponse({ status: 'active', canResolve: true }))
   })
 
   await page.route('**/backend/auth/organizations', async (route) => {
-    await route.fulfill(jsonResponse({ organizations: [] }))
+    await route.fulfill(
+      jsonResponse({
+        isMsp: tier === 'msp',
+        partnerId: tier === 'msp' ? 'msp-partner-1' : null,
+        currentOrg: null,
+        organizations: [],
+      }),
+    )
   })
 
   await page.route('**/backend/api-keys**', async (route) => {

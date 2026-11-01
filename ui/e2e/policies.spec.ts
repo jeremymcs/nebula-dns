@@ -3,6 +3,7 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAndNavigate, waitForPageLoad } from './helpers/auth'
+import { pageHeading } from './helpers/selectors'
 
 test.describe('Policies - List View', () => {
   test.beforeEach(async ({ page }) => {
@@ -12,7 +13,7 @@ test.describe('Policies - List View', () => {
 
   test('should display policies page heading', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/policies/)
-    await expect(page.getByRole('heading', { name: /policies/i })).toBeVisible()
+    await expect(pageHeading(page, /^policies$/i)).toBeVisible()
   })
 
   test('should display policy list table', async ({ page }) => {
