@@ -27,6 +27,8 @@ policy-service/policy-service
 # Logs
 *.log
 logs/
+# ...but not app routes/components named "logs"
+!ui/src/**/logs/
 
 # OS
 .DS_Store

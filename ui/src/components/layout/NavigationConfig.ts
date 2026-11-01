@@ -94,7 +94,7 @@ export const navigationGroups: NavigationGroup[] = [
     items: [
       { name: 'Agents', href: '/dashboard/agents', icon: ComputerDesktopIcon, description: 'Roaming clients', featureKey: 'agents' },
       { name: 'Playbooks', href: '/dashboard/playbooks', icon: BoltIcon, description: 'Incident response', badge: 'New', featureKey: 'playbooks' },
-      { name: 'Integrations', href: '/dashboard/integrations', icon: CpuChipIcon, description: 'Third-party integrations', featureKey: 'integrations' },
+      { name: 'Integrations', href: '/dashboard/settings/integrations', icon: CpuChipIcon, description: 'Third-party integrations', featureKey: 'integrations' },
     ]
   },
   {

@@ -163,25 +163,50 @@ export function useLocationStats(period: string = '7d') {
   )
 }
 
+export interface QueryLogRow {
+  id: string
+  timestamp: string
+  locationId?: string
+  locationName?: string
+  domain: string
+  queryType?: string
+  clientIp?: string
+  action: 'allow' | 'block' | 'rewrite'
+  reason?: string
+  category?: string
+  responseTime?: number
+  cached?: boolean
+  threatType?: string
+  policyId?: string
+}
+
+export interface QueryLogsPage {
+  data: QueryLogRow[]
+  total: number
+  pagination: { cursor: string | null; hasMore: boolean }
+}
+
 export function useQueryLogs(params?: {
   cursor?: string
   limit?: number
   action?: string
   locationId?: string
   domain?: string
-}) {
+  dateFrom?: string
+}, config?: SWRConfiguration) {
   const searchParams = new URLSearchParams()
   if (params?.cursor) searchParams.set('cursor', params.cursor)
   if (params?.limit) searchParams.set('limit', params.limit.toString())
   if (params?.action) searchParams.set('action', params.action)
   if (params?.locationId) searchParams.set('locationId', params.locationId)
   if (params?.domain) searchParams.set('domain', params.domain)
-  
+  if (params?.dateFrom) searchParams.set('dateFrom', params.dateFrom)
+
   const query = searchParams.toString()
-  return useSWR(
+  return useSWR<QueryLogsPage>(
     `/reports/logs${query ? `?${query}` : ''}`,
     fetcher,
-    defaultConfig
+    { ...defaultConfig, ...config }
   )
 }
 
