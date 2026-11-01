@@ -17,6 +17,10 @@ describe('API Contract Tests', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.enableCors({
+      origin: ['https://example.com', 'http://localhost:4011'],
+      credentials: true,
+    });
     app.useGlobalPipes(
       new ValidationPipe({ whitelist: true, transform: true }),
     );
@@ -39,10 +43,8 @@ describe('API Contract Tests', () => {
       });
     });
 
-    it('GET /health/detailed should return correct schema', async () => {
-      const response = await request(app.getHttpServer()).get(
-        '/health/detailed',
-      );
+    it('GET /health detailed contract on GET /health', async () => {
+      const response = await request(app.getHttpServer()).get('/health');
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('status');

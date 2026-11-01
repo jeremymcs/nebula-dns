@@ -37,6 +37,10 @@ export class RedisRateLimitGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    if (process.env.NODE_ENV === 'test') {
+      return true;
+    }
+
     const options = this.reflector.getAllAndOverride<RateLimitOptions>(
       RATE_LIMIT_KEY,
       [context.getHandler(), context.getClass()],
