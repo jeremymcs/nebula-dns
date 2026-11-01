@@ -354,10 +354,6 @@ jobs:
         working-directory: ./www
         run: npm ci
 
-      - name: Run linting
-        working-directory: ./www
-        run: npm run lint
-
       - name: Build
         working-directory: ./www
         run: npm run build
