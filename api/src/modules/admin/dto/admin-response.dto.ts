@@ -61,9 +61,14 @@ export class AdminLoginResponseDto {
   })
   accessToken: string;
 
+  @ApiPropertyOptional({
+    description: 'Opaque rotating refresh token (admin mobile / Phase 0)',
+  })
+  refreshToken?: string;
+
   @ApiProperty({
     description: 'Token expiry time in seconds',
-    example: 28800,
+    example: 900,
   })
   expiresIn: number;
 

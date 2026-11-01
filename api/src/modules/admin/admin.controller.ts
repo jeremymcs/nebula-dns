@@ -95,6 +95,11 @@ import {
   AdminMfaEnrollStartResponseDto,
   AdminMfaVerifyResponseDto,
 } from './dto/admin-mfa.dto';
+import {
+  AdminRefreshTokenDto,
+  StartImpersonationBodyDto,
+} from '../mobile/dto/mobile.dto';
+import { AdminSessionResponse } from './admin-session.service';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { AdminRolesGuard } from './guards/admin-roles.guard';
 import { AdminMfaGuard } from './guards/admin-mfa.guard';
@@ -158,8 +163,76 @@ export class AdminController {
     const context: AdminLoginContext = {
       userAgent: req.headers['user-agent'] || 'Unknown',
       ipAddress: this.getClientIp(req, ip),
+      externalDeviceId: this.getExternalDeviceId(req),
     };
     return this.adminService.login(loginDto, context);
+  }
+
+  @Post('refresh')
+  @SkipAdminMfa()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Refresh admin access token using rotating refresh token' })
+  async refreshAdminTokens(
+    @Body() dto: AdminRefreshTokenDto,
+    @Req() req: Request,
+    @Ip() ip: string,
+  ): Promise<AdminLoginResponseDto> {
+    const context: AdminLoginContext = {
+      userAgent: req.headers['user-agent'] || 'Unknown',
+      ipAddress: this.getClientIp(req, ip),
+      externalDeviceId: this.getExternalDeviceId(req),
+    };
+    return this.adminService.refreshAdminSession(dto.refreshToken, context);
+  }
+
+  @Get('sessions')
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({ summary: 'List active admin sessions' })
+  async listSessions(
+    @Req() req: Request,
+    @Query('adminId', new ParseUUIDPipe({ optional: true })) targetAdminId?: string,
+  ): Promise<{ data: AdminSessionResponse[] }> {
+    const user = req.user as AdminUser;
+    const adminId =
+      targetAdminId &&
+      (user.role === AdminRole.SUPER_ADMIN || user.role === AdminRole.ADMIN)
+        ? targetAdminId
+        : user.adminId;
+
+    if (targetAdminId && targetAdminId !== user.adminId && user.role === AdminRole.VIEWER) {
+      throw new BadRequestException('Viewers may only list their own sessions');
+    }
+
+    const sessions = await this.adminService.getSessions(adminId, user.jti);
+    return { data: sessions };
+  }
+
+  @Delete('sessions/:sessionId')
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN)
+  @ApiBearerAuth('admin-jwt')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async revokeSession(
+    @Req() req: Request,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Query('adminId', new ParseUUIDPipe({ optional: true })) targetAdminId?: string,
+  ): Promise<void> {
+    const user = req.user as AdminUser;
+    const adminId = targetAdminId ?? user.adminId;
+
+    if (
+      targetAdminId &&
+      targetAdminId !== user.adminId &&
+      user.role !== AdminRole.SUPER_ADMIN
+    ) {
+      throw new BadRequestException(
+        'Only super_admin may revoke another admin session',
+      );
+    }
+
+    await this.adminService.revokeSession(adminId, sessionId, user.jti);
   }
 
   /**
@@ -201,6 +274,7 @@ export class AdminController {
     const context: AdminLoginContext = {
       userAgent: req.headers['user-agent'] || 'Unknown',
       ipAddress: this.getClientIp(req, ip),
+      externalDeviceId: this.getExternalDeviceId(req),
     };
     return this.adminService.createMfaVerifiedSession(admin, context);
   }
@@ -239,6 +313,7 @@ export class AdminController {
     const context: AdminLoginContext = {
       userAgent: req.headers['user-agent'] || 'Unknown',
       ipAddress: this.getClientIp(req, ip),
+      externalDeviceId: this.getExternalDeviceId(req),
     };
     return this.adminService.createMfaVerifiedSession(admin, context);
   }
@@ -509,14 +584,24 @@ export class AdminController {
   })
   async startImpersonation(
     @Param('tenantId') tenantId: string,
+    @Body() body: StartImpersonationBodyDto,
     @Req() req: Request,
     @Ip() ip: string,
   ): Promise<StartImpersonationResponseDto> {
     const adminUser = req.user as AdminUser;
+    const externalDeviceId = this.getExternalDeviceId(req);
     return this.adminService.startImpersonation(
       adminUser,
       tenantId,
       this.getClientIp(req, ip),
+      {
+        reason: body?.reason,
+        externalDeviceId,
+        appVersion:
+          typeof req.headers['x-app-version'] === 'string'
+            ? req.headers['x-app-version']
+            : undefined,
+      },
     );
   }
 
@@ -1232,5 +1317,13 @@ export class AdminController {
     }
 
     return defaultIp || req.ip || '0.0.0.0';
+  }
+
+  private getExternalDeviceId(req: Request): string | undefined {
+    const header = req.headers['x-device-id'];
+    if (typeof header === 'string' && header.length > 0) {
+      return header.slice(0, 128);
+    }
+    return undefined;
   }
 }

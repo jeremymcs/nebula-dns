@@ -2,7 +2,7 @@
 // Separate authentication system for internal administrators
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -42,6 +42,9 @@ import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 import { TrialsModule } from '../trials/trials.module';
 import { SubscriptionLapseModule } from '../subscription-lapse/subscription-lapse.module';
 import { AlertingModule } from '../alerting/alerting.module';
+import { AdminRefreshToken } from '../mobile/entities/admin-refresh-token.entity';
+import { AdminRefreshTokenService } from '../mobile/admin-refresh-token.service';
+import { MobileModule } from '../mobile/mobile.module';
 
 /**
  * Admin Module
@@ -51,7 +54,7 @@ import { AlertingModule } from '../alerting/alerting.module';
  *
  * - Uses separate ADMIN_JWT_SECRET (not JWT_SECRET)
  * - Uses named strategy 'admin-jwt' (not default 'jwt')
- * - 8-hour session duration (workday sessions)
+ * - 15-minute access tokens with rotating refresh tokens (mobile Phase 0)
  * - Tokens have issuer 'nebula-admin' to distinguish from tenant tokens
  *
  * Components:
@@ -67,14 +70,14 @@ import { AlertingModule } from '../alerting/alerting.module';
     // Passport with admin-jwt as default strategy for this module
     PassportModule.register({ defaultStrategy: 'admin-jwt' }),
 
-    // JWT configuration with separate secret and 8-hour expiry
+    // JWT configuration with separate secret and 15-minute access TTL
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('ADMIN_JWT_SECRET'),
         signOptions: {
-          expiresIn: '8h', // 8-hour workday session per CONTEXT.md
+          expiresIn: configService.get<string>('ADMIN_JWT_EXPIRY') || '15m',
           issuer: 'nebula-admin', // Distinguishes from tenant tokens
         },
       }),
@@ -86,6 +89,7 @@ import { AlertingModule } from '../alerting/alerting.module';
       AdminMfa,
       AdminInvitation,
       AdminActivityLog,
+      AdminRefreshToken,
       Tenant,
       Location,
       User,
@@ -112,6 +116,7 @@ import { AlertingModule } from '../alerting/alerting.module';
     TrialsModule,
     SubscriptionLapseModule,
     AlertingModule,
+    forwardRef(() => MobileModule),
   ],
 
   // Admin API endpoints
@@ -121,6 +126,7 @@ import { AlertingModule } from '../alerting/alerting.module';
   providers: [
     AdminService,
     AdminSessionService,
+    AdminRefreshTokenService,
     AdminHealthService,
     AdminBillingService,
     AdminDashboardService,
@@ -137,6 +143,8 @@ import { AlertingModule } from '../alerting/alerting.module';
   // Export service and guard for use by other modules
   exports: [
     AdminService,
+    AdminSessionService,
+    AdminRefreshTokenService,
     AdminHealthService,
     AdminBillingService,
     AdminActivityService,

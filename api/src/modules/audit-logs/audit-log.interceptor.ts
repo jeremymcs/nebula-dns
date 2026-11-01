@@ -82,6 +82,19 @@ export class AuditLogInterceptor implements NestInterceptor {
             newValue,
             ipAddress,
             userAgent,
+            metadata: {
+              ...(request.headers['x-device-id']
+                ? { deviceId: String(request.headers['x-device-id']).slice(0, 128) }
+                : {}),
+              ...(request.headers['x-app-version']
+                ? {
+                    appVersion: String(request.headers['x-app-version']).slice(
+                      0,
+                      64,
+                    ),
+                  }
+                : {}),
+            },
           });
         } catch (error) {
           // Don't fail the request if audit logging fails
