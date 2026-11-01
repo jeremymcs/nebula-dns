@@ -119,7 +119,7 @@ export default function BillingPage() {
 
         {activeTab === 'bundles' && (
               <div className="grid gap-4 md:grid-cols-3">
-                {bundles?.map((bundle) => (
+                {(Array.isArray(bundles) ? bundles : []).map((bundle) => (
                   <Card key={bundle.id} className="p-6">
                     <div className="flex items-center gap-2 mb-4">
                       <BoltIcon className="h-5 w-5 text-cyan-400" />

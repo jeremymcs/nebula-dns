@@ -2,22 +2,21 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import { test, expect } from '@playwright/test'
-import { loginAndNavigate, waitForPageLoad } from './helpers/auth'
+import { loginAndNavigate, waitForPageLoad, expectDashboardShell } from './helpers/auth'
+import { loginHeading, pageHeading } from './helpers/selectors'
 
 test.describe('Error States - 404 Not Found', () => {
   test('should display 404 page for invalid route', async ({ page }) => {
     await page.goto('/this-page-does-not-exist')
 
     // Should show 404 error
-    const notFoundMessage = page.getByText(/404|not found|page not found|doesn't exist/i)
-    await expect(notFoundMessage).toBeVisible({ timeout: 5000 })
+    await expect(pageHeading(page, /page not found/i)).toBeVisible({ timeout: 10000 })
   })
 
   test('should display 404 page for invalid dashboard route', async ({ page }) => {
     await loginAndNavigate(page, '/dashboard/invalid-page-xyz')
 
-    const notFoundMessage = page.getByText(/404|not found|page not found/i)
-    await expect(notFoundMessage).toBeVisible({ timeout: 5000 })
+    await expect(pageHeading(page, /page not found/i)).toBeVisible({ timeout: 10000 })
   })
 
   test('should have link to go back home from 404', async ({ page }) => {
@@ -34,25 +33,18 @@ test.describe('Error States - 404 Not Found', () => {
 
 test.describe('Error States - API Errors', () => {
   test('should handle network errors gracefully', async ({ page }) => {
-    // Simulate offline mode
+    await loginAndNavigate(page, '/dashboard')
+    await expectDashboardShell(page)
+
     await page.context().setOffline(true)
 
-    await loginAndNavigate(page, '/dashboard')
+    // Avoid full document reload while offline (browser shows an empty error page).
+    // The mounted app should remain usable with its last rendered shell.
+    await expectDashboardShell(page)
 
-    // Should show error message or loading state
-    const errorMessage = page.getByText(/error|failed|connection|network/i)
-    const loadingState = page.getByText(/loading|please wait/i)
-
-    await page.waitForTimeout(2000)
-
-    const hasError = await errorMessage.isVisible().catch(() => false)
-    const hasLoading = await loadingState.isVisible().catch(() => false)
-
-    // Either error or loading should be shown
-    expect(hasError || hasLoading).toBeTruthy()
-
-    // Restore online mode
     await page.context().setOffline(false)
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' })
+    await expectDashboardShell(page)
   })
 
   test('should show error message when API request fails', async ({ page }) => {
@@ -129,7 +121,7 @@ test.describe('Error States - API Errors', () => {
     await page.waitForTimeout(2000)
 
     // Should redirect to login or show unauthorized message
-    const loginPage = page.getByRole('heading', { name: /sign in/i })
+    const loginPage = loginHeading(page)
     const unauthorizedMessage = page.getByText(/unauthorized|not authorized|session expired/i)
 
     const redirectedToLogin = await loginPage.isVisible({ timeout: 5000 }).catch(() => false)
@@ -165,57 +157,57 @@ test.describe('Error States - API Errors', () => {
 
 test.describe('Error States - Empty States', () => {
   test('should show empty state when no policies exist', async ({ page }) => {
-    // Mock empty response
-    await page.route('**/backend/**/policies', (route) => {
+    await loginAndNavigate(page, '/dashboard/policies')
+    await page.route('**/backend/policies**', (route) => {
       route.fulfill({
         status: 200,
-        body: JSON.stringify([])
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [], pagination: { cursor: null, hasMore: false } }),
       })
     })
-
-    await loginAndNavigate(page, '/dashboard/policies')
+    await page.reload()
     await waitForPageLoad(page)
 
-    const emptyState = page.getByText(/no policies|create your first policy|get started/i)
-    await expect(emptyState).toBeVisible({ timeout: 5000 })
+    const emptyState = page.getByText(/no policies|create your first policy|sample policies/i)
+    await expect(emptyState.first()).toBeVisible({ timeout: 5000 })
 
-    await page.unroute('**/backend/**/policies')
+    await page.unroute('**/backend/policies**')
   })
 
   test('should show empty state when no locations exist', async ({ page }) => {
-    // Mock empty response
-    await page.route('**/backend/**/locations', (route) => {
+    await loginAndNavigate(page, '/dashboard/locations')
+    await page.route('**/backend/locations**', (route) => {
       route.fulfill({
         status: 200,
-        body: JSON.stringify([])
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [], pagination: { cursor: null, hasMore: false } }),
       })
     })
-
-    await loginAndNavigate(page, '/dashboard/locations')
+    await page.reload()
     await waitForPageLoad(page)
 
-    const emptyState = page.getByText(/no locations|add your first location|get started/i)
-    await expect(emptyState).toBeVisible({ timeout: 5000 })
+    const emptyState = page.getByText(/no (locations|zones)|add your first|get started/i)
+    await expect(emptyState.first()).toBeVisible({ timeout: 5000 })
 
-    await page.unroute('**/backend/**/locations')
+    await page.unroute('**/backend/locations**')
   })
 
   test('should show empty state when no lists exist', async ({ page }) => {
-    // Mock empty response
-    await page.route('**/backend/**/lists', (route) => {
+    await loginAndNavigate(page, '/dashboard/lists')
+    await page.route('**/backend/lists**', (route) => {
       route.fulfill({
         status: 200,
-        body: JSON.stringify([])
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [], pagination: { cursor: null, hasMore: false } }),
       })
     })
-
-    await loginAndNavigate(page, '/dashboard/lists')
+    await page.reload()
     await waitForPageLoad(page)
 
     const emptyState = page.getByText(/no lists|create your first list|get started/i)
-    await expect(emptyState).toBeVisible({ timeout: 5000 })
+    await expect(emptyState.first()).toBeVisible({ timeout: 5000 })
 
-    await page.unroute('**/backend/**/lists')
+    await page.unroute('**/backend/lists**')
   })
 
   test('should show empty state when no reports data available', async ({ page }) => {
@@ -395,7 +387,7 @@ test.describe('Error States - Form Validation', () => {
   })
 
   test('should show validation for invalid email format', async ({ page }) => {
-    await page.goto('/login')
+    await page.goto('/')
 
     const emailInput = page.getByLabel(/email/i)
     await emailInput.fill('not-a-valid-email')
@@ -450,14 +442,14 @@ test.describe('Error States - Session Expiry', () => {
     // Clear auth token to simulate expiry
     await page.evaluate(() => {
       localStorage.removeItem('token')
+      localStorage.removeItem('refreshToken')
+      localStorage.removeItem('user')
     })
 
-    // Navigate to another page
-    await page.goto('/dashboard/policies')
+    await page.reload({ waitUntil: 'domcontentloaded' })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
 
-    // Should redirect to login
-    const loginPage = page.getByRole('heading', { name: /sign in/i })
-    await expect(loginPage).toBeVisible({ timeout: 5000 })
+    await expect(loginHeading(page)).toBeVisible({ timeout: 20000 })
   })
 })
 

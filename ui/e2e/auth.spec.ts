@@ -2,27 +2,31 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import { test, expect } from '@playwright/test'
+import { loginHeading } from './helpers/selectors'
+import { installBackendMocks } from './helpers/mock-backend'
 
 test.describe('Authentication', () => {
   test('should display login page', async ({ page }) => {
-    await page.goto('/login')
-    await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible()
-    await expect(page.getByLabel(/email/i)).toBeVisible()
-    await expect(page.getByLabel(/password/i)).toBeVisible()
+    await page.goto('/')
+    await expect(loginHeading(page)).toBeVisible()
+    await expect(page.getByLabel(/email address/i)).toBeVisible()
+    await expect(page.getByLabel(/^password$/i)).toBeVisible()
   })
 
   test('should show error for invalid credentials', async ({ page }) => {
-    await page.goto('/login')
-    await page.getByLabel(/email/i).fill('invalid@example.com')
-    await page.getByLabel(/password/i).fill('wrongpassword')
+    await installBackendMocks(page)
+    await page.goto('/')
+    await page.getByLabel(/email address/i).fill('invalid@example.com')
+    await page.getByLabel(/^password$/i).fill('wrongpassword')
     await page.getByRole('button', { name: /sign in/i }).click()
 
-    await expect(page.getByText(/invalid credentials|unauthorized/i)).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/invalid credentials|login failed/i)).toBeVisible({ timeout: 10000 })
   })
 
   test('should redirect to login when accessing protected route', async ({ page }) => {
     await page.goto('/dashboard')
-    await expect(page).toHaveURL(/\/login/)
+    await expect(page).toHaveURL('/')
+    await expect(loginHeading(page)).toBeVisible()
   })
 
   test.skip('should navigate to forgot password', async ({ page }) => {
@@ -35,8 +39,7 @@ test.describe('Authentication', () => {
 
 test.describe('Authenticated User', () => {
   test.beforeEach(async ({ page }) => {
-    // Mock authentication by setting localStorage
-    await page.goto('/login')
+    await page.goto('/')
     await page.evaluate(() => {
       localStorage.setItem('token', 'test-token-for-e2e')
     })
@@ -45,6 +48,6 @@ test.describe('Authenticated User', () => {
   test.skip('should access dashboard after login', async ({ page }) => {
     // Skip until we have proper test auth setup
     await page.goto('/dashboard')
-    await expect(page.getByRole('heading', { name: /dashboard|mission control/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
   })
 })

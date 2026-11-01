@@ -4,8 +4,9 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAsEnterprise, loginAsMSP, waitForPageLoad } from '../helpers/auth'
+import { SKIP_STRIPE_BILLING } from '../helpers/launch-features'
 
-test.describe('US-037: Payment Methods Management', () => {
+test.describe.skip(`US-037: Payment Methods Management — ${SKIP_STRIPE_BILLING}`, () => {
   test.beforeEach(async ({ page }) => {
     await loginAsEnterprise(page)
     await page.goto('/dashboard/billing')
@@ -172,7 +173,7 @@ test.describe('US-037: Payment Methods Management', () => {
   })
 })
 
-test.describe('US-037: Payment Methods - MSP Tier', () => {
+test.describe.skip(`US-037: Payment Methods - MSP Tier — ${SKIP_STRIPE_BILLING}`, () => {
   test.beforeEach(async ({ page }) => {
     await loginAsMSP(page)
     await page.goto('/dashboard/billing')

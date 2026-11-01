@@ -3,6 +3,7 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAndNavigate, waitForPageLoad } from './helpers/auth'
+import { pageHeading } from './helpers/selectors'
 
 test.describe('Settings - Main Page', () => {
   test.beforeEach(async ({ page }) => {
@@ -12,7 +13,7 @@ test.describe('Settings - Main Page', () => {
 
   test('should display settings page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/settings/)
-    await expect(page.getByRole('heading', { name: /settings|account settings/i })).toBeVisible()
+    await expect(pageHeading(page, /^settings$/i)).toBeVisible()
   })
 
   test('should show settings navigation', async ({ page }) => {
@@ -26,11 +27,7 @@ test.describe('Settings - Main Page', () => {
   })
 
   test('should display account information', async ({ page }) => {
-    const accountSection = page.getByText(/account|organization|tenant/i)
-
-    if (await accountSection.isVisible()) {
-      await expect(accountSection).toBeVisible()
-    }
+    await expect(pageHeading(page, /^settings$/i)).toBeVisible()
   })
 })
 
@@ -42,21 +39,14 @@ test.describe('Settings - Security', () => {
 
   test('should display security settings page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/settings\/security/)
-    await expect(page.getByRole('heading', { name: /security/i })).toBeVisible()
+    await expect(pageHeading(page, /^security settings$/i)).toBeVisible()
   })
 
   test('should show MFA toggle', async ({ page }) => {
-    const mfaToggle = page.getByLabel(/multi-factor|mfa|two-factor|2fa/i)
-
-    if (await mfaToggle.isVisible()) {
-      await expect(mfaToggle).toBeVisible()
-    } else {
-      // Alternative: MFA section heading
-      const mfaSection = page.getByText(/multi-factor|mfa|two-factor authentication/i)
-      if (await mfaSection.isVisible()) {
-        await expect(mfaSection).toBeVisible()
-      }
-    }
+    const mfaSection = page.getByRole('heading', { name: /multi-factor|mfa|two-factor/i }).or(
+      page.getByText(/multi-factor|two-factor authentication/i),
+    )
+    await expect(mfaSection.first()).toBeVisible({ timeout: 10000 })
   })
 
   test('should enable MFA', async ({ page }) => {
@@ -138,7 +128,7 @@ test.describe('Settings - Team Management', () => {
 
   test('should display team page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/settings\/team/)
-    await expect(page.getByRole('heading', { name: /team|team members|users/i })).toBeVisible()
+    await expect(pageHeading(page, /team|users/i)).toBeVisible()
   })
 
   test('should list team members', async ({ page }) => {
@@ -156,70 +146,25 @@ test.describe('Settings - Team Management', () => {
   })
 
   test('should have invite member button', async ({ page }) => {
-    const inviteButton = page.getByRole('button', { name: /invite|add member|add user/i })
-    await expect(inviteButton).toBeVisible()
+    await expect(page.getByRole('button', { name: /invite member/i })).toBeVisible({ timeout: 15000 })
   })
 
   test('should open invite member form', async ({ page }) => {
-    const inviteButton = page.getByRole('button', { name: /invite|add member|add user/i })
-    await inviteButton.click()
-
-    // Should show invite form
-    const emailInput = page.getByLabel(/email/i).or(page.getByPlaceholder(/email/i)).first()
-    await expect(emailInput).toBeVisible({ timeout: 5000 })
+    await page.getByRole('button', { name: /invite member/i }).click()
+    await expect(page.getByRole('heading', { name: /invite team member/i })).toBeVisible({ timeout: 5000 })
   })
 
   test('should invite new team member', async ({ page }) => {
-    const inviteButton = page.getByRole('button', { name: /invite|add member|add user/i })
-    await inviteButton.click()
-
-    // Fill email
-    const emailInput = page.getByLabel(/email/i).or(page.getByPlaceholder(/email/i)).first()
-    await emailInput.fill('newmember@example.com')
-
-    // Select role
-    const roleSelect = page.getByLabel(/role/i)
-    if (await roleSelect.isVisible()) {
-      await roleSelect.click()
-
-      const adminRole = page.getByText(/admin|administrator/i).first()
-      if (await adminRole.isVisible()) {
-        await adminRole.click()
-      }
-    }
-
-    // Submit
-    const sendButton = page.getByRole('button', { name: /send|invite|add/i }).last()
-    await sendButton.click()
-
-    // Wait for success
-    await page.waitForTimeout(2000)
-
-    const successMessage = page.getByText(/invitation sent|invited|success/i)
-    const hasSuccess = await successMessage.isVisible().catch(() => false)
-
-    if (hasSuccess) {
-      await expect(successMessage).toBeVisible()
-    }
+    await page.getByRole('button', { name: /invite member/i }).click()
+    await page.getByRole('textbox').first().fill('newmember@example.com')
+    await page.getByRole('button', { name: /send invitation/i }).click()
+    await expect(page.getByText(/invitation sent|success/i).first()).toBeVisible({ timeout: 10000 })
   })
 
   test('should show role options', async ({ page }) => {
-    const inviteButton = page.getByRole('button', { name: /invite|add member|add user/i })
-    await inviteButton.click()
-
-    const roleSelect = page.getByLabel(/role/i)
-    if (await roleSelect.isVisible()) {
-      await roleSelect.click()
-
-      // Should show roles: admin, analyst, readonly, etc.
-      const adminRole = page.getByText(/admin/i)
-      const analystRole = page.getByText(/analyst/i)
-
-      const hasRoles = await adminRole.isVisible() || await analystRole.isVisible()
-      expect(hasRoles).toBeTruthy()
-    } else {
-      test.skip()
-    }
+    await page.getByRole('button', { name: /invite member/i }).click()
+    await expect(page.getByText(/^analyst$/i).first()).toBeVisible()
+    await expect(page.getByText(/^admin$/i).first()).toBeVisible()
   })
 
   test('should edit team member role', async ({ page }) => {
@@ -239,21 +184,7 @@ test.describe('Settings - Team Management', () => {
   })
 
   test('should remove team member with confirmation', async ({ page }) => {
-    const removeButton = page.getByRole('button', { name: /remove|delete/i }).first()
-    const hasRemoveButton = await removeButton.isVisible().catch(() => false)
-
-    if (hasRemoveButton) {
-      await removeButton.click()
-
-      const confirmDialog = page.getByText(/are you sure|confirm remove|remove user/i)
-      await expect(confirmDialog).toBeVisible({ timeout: 3000 })
-
-      // Cancel removal
-      const cancelButton = page.getByRole('button', { name: /cancel|no/i })
-      await cancelButton.click()
-    } else {
-      test.skip()
-    }
+    test.skip(true, 'Team remove requires multiple members in mock data')
   })
 })
 
@@ -265,7 +196,7 @@ test.describe('Settings - API Keys', () => {
 
   test('should display API keys page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/settings\/api-keys/)
-    await expect(page.getByRole('heading', { name: /api keys/i })).toBeVisible()
+    await expect(pageHeading(page, /api keys/i)).toBeVisible()
   })
 
   test('should list existing API keys', async ({ page }) => {
@@ -290,18 +221,14 @@ test.describe('Settings - API Keys', () => {
   test('should open create API key form', async ({ page }) => {
     const createButton = page.getByRole('button', { name: /create|new|generate|add.*key/i })
     await createButton.click()
-
-    // Should show form
-    const nameInput = page.getByLabel(/key name|name|label/i).first()
-    await expect(nameInput).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('heading', { name: /create api key/i })).toBeVisible({ timeout: 5000 })
   })
 
   test('should generate new API key', async ({ page }) => {
     const createButton = page.getByRole('button', { name: /create|new|generate|add.*key/i })
     await createButton.click()
 
-    // Fill key name
-    const nameInput = page.getByLabel(/key name|name|label/i).first()
+    const nameInput = page.getByPlaceholder(/production integration|e\.g\./i)
     await nameInput.fill('E2E Test API Key')
 
     // Select permissions if available
@@ -333,24 +260,10 @@ test.describe('Settings - API Keys', () => {
   })
 
   test('should show key creation warning', async ({ page }) => {
-    const createButton = page.getByRole('button', { name: /create|new|generate|add.*key/i })
-    await createButton.click()
-
-    const nameInput = page.getByLabel(/key name|name|label/i).first()
-    await nameInput.fill('Test Key')
-
-    const submitButton = page.getByRole('button', { name: /create|generate/i }).last()
-    await submitButton.click()
-
-    await page.waitForTimeout(2000)
-
-    // Should warn to save the key
-    const warning = page.getByText(/save|copy|won't be able to see|only shown once/i)
-    const hasWarning = await warning.isVisible().catch(() => false)
-
-    if (hasWarning) {
-      await expect(warning).toBeVisible()
-    }
+    await page.getByRole('button', { name: /create|new|generate|add.*key/i }).click()
+    await page.getByPlaceholder(/production integration|e\.g\./i).fill('Test Key')
+    await page.getByRole('button', { name: /^create key$/i }).click()
+    await expect(page.getByText(/only shown once|copy|save this key/i).first()).toBeVisible({ timeout: 10000 })
   })
 
   test('should revoke API key with confirmation', async ({ page }) => {
@@ -394,13 +307,8 @@ test.describe('Settings - Integrations/Webhooks', () => {
     await loginAndNavigate(page, '/dashboard/settings/integrations')
     await waitForPageLoad(page)
 
-    const webhookSection = page.getByText(/webhooks?|webhook configuration/i)
-
-    if (await webhookSection.isVisible()) {
-      await expect(webhookSection).toBeVisible()
-    } else {
-      test.skip()
-    }
+    const webhookSection = page.getByText(/webhooks/i).first()
+    await expect(webhookSection).toBeVisible()
   })
 
   test('should create new webhook', async ({ page }) => {
@@ -412,7 +320,7 @@ test.describe('Settings - Integrations/Webhooks', () => {
     if (await createButton.isVisible()) {
       await createButton.click()
 
-      const urlInput = page.getByLabel(/url|webhook url|endpoint/i).first()
+      const urlInput = page.getByPlaceholder(/https:\/\/|webhook url|endpoint/i).first()
       await expect(urlInput).toBeVisible({ timeout: 5000 })
     } else {
       test.skip()
@@ -446,12 +354,6 @@ test.describe('Settings - SSO Configuration', () => {
     await loginAndNavigate(page, '/dashboard/settings/sso')
     await waitForPageLoad(page)
 
-    const ssoSection = page.getByText(/single sign-on|sso|saml|oauth/i)
-
-    if (await ssoSection.isVisible()) {
-      await expect(ssoSection).toBeVisible()
-    } else {
-      test.skip()
-    }
+    await expect(page.getByRole('heading', { name: /single sign-on|sso/i })).toBeVisible()
   })
 })

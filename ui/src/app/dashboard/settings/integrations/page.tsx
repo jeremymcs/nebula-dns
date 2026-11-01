@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useSiemIntegrations, useWebhooks } from '@/hooks/useApi';
 import { api } from '@/lib/api';
 import { useToast } from '@/components/Toast';
+import { TierFeatureGate } from '@/components/tiers/TierFeatureGate';
 
 interface SiemIntegration {
   id: string;
@@ -321,6 +322,7 @@ export default function IntegrationsPage() {
   };
 
   return (
+    <TierFeatureGate feature="integrations">
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-space-900 dark:text-white">Integrations</h1>
@@ -817,5 +819,6 @@ export default function IntegrationsPage() {
         </div>
       )}
     </div>
+    </TierFeatureGate>
   );
 }

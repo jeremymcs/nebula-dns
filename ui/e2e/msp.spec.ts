@@ -3,7 +3,8 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import { test, expect } from '@playwright/test'
-import { loginAsMSP, loginAsEnterprise, waitForPageLoad } from './helpers/auth'
+import { loginAsMSP, loginAsEnterprise, waitForPageLoad, expectTierRestricted } from './helpers/auth'
+import { pageHeading } from './helpers/selectors'
 
 test.describe('US-037: MSP Client List Page', () => {
   test.beforeEach(async ({ page }) => {
@@ -14,15 +15,13 @@ test.describe('US-037: MSP Client List Page', () => {
 
   test('should display clients list page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/clients/)
-    await expect(page.getByRole('heading', { name: /clients/i })).toBeVisible()
+    await expect(pageHeading(page, /^clients$/i)).toBeVisible()
   })
 
   test('should display client list table with columns', async ({ page }) => {
-    // Check for table headers
-    await expect(page.getByText(/client name|name/i)).toBeVisible()
-    await expect(page.getByText(/locations/i)).toBeVisible()
-    await expect(page.getByText(/status/i)).toBeVisible()
-    await expect(page.getByText(/created/i)).toBeVisible()
+    await expect(page.getByRole('heading', { name: /acme corp/i })).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/^locations$/i).first()).toBeVisible()
+    await expect(page.getByText(/^created$/i).first()).toBeVisible()
   })
 
   test('should show Add Client button', async ({ page }) => {
@@ -129,8 +128,8 @@ test.describe('US-037: MSP Client Creation Flow', () => {
     await waitForPageLoad(page)
 
     // Check for required form fields
-    await expect(page.getByLabel(/client name|organization name/i)).toBeVisible()
-    await expect(page.getByLabel(/contact email|email/i)).toBeVisible()
+    await expect(page.getByLabel(/organization name/i)).toBeVisible()
+    await expect(page.getByLabel(/admin email/i)).toBeVisible()
 
     // Optional fields
     const contactPhone = page.getByLabel(/phone|contact phone/i)
@@ -147,12 +146,10 @@ test.describe('US-037: MSP Client Creation Flow', () => {
     await waitForPageLoad(page)
 
     // Try to submit without filling required fields
-    const submitButton = page.getByRole('button', { name: /create|save|add/i })
+    const submitButton = page.getByRole('button', { name: /^create client$/i })
     await submitButton.click()
 
-    // Should show validation errors
-    const validationError = page.getByText(/required|cannot be empty|please enter/i)
-    await expect(validationError.first()).toBeVisible({ timeout: 3000 })
+    await expect(page.getByLabel(/organization name/i)).toHaveAttribute('required', '')
   })
 
   test('should create client with valid data', async ({ page }) => {
@@ -161,8 +158,8 @@ test.describe('US-037: MSP Client Creation Flow', () => {
     await waitForPageLoad(page)
 
     // Fill out form
-    await page.getByLabel(/client name|organization name/i).fill('Acme Corporation')
-    await page.getByLabel(/contact email|email/i).fill('contact@acme.com')
+    await page.getByLabel(/organization name/i).fill('Acme Corporation')
+    await page.getByLabel(/admin email/i).fill('contact@acme.com')
 
     const phoneField = page.getByLabel(/phone|contact phone/i)
     if (await phoneField.count() > 0) {
@@ -170,17 +167,9 @@ test.describe('US-037: MSP Client Creation Flow', () => {
     }
 
     // Submit form
-    const submitButton = page.getByRole('button', { name: /create|save|add/i })
-    await submitButton.click()
+    await page.getByRole('button', { name: /^create client$/i }).click()
 
-    // Should show success message or redirect to client list
-    const successMessage = page.getByText(/client created|successfully added/i)
-    const clientsList = page.getByRole('heading', { name: /^clients$/i })
-
-    const wasSuccessful = await successMessage.isVisible({ timeout: 5000 }) ||
-                         await clientsList.isVisible({ timeout: 5000 })
-
-    expect(wasSuccessful).toBeTruthy()
+    await expect(page.getByRole('heading', { name: /client created successfully/i })).toBeVisible({ timeout: 10000 })
   })
 
   test('should allow setting location limit for new client', async ({ page }) => {
@@ -376,13 +365,11 @@ test.describe('US-037: MSP Template Management', () => {
 
   test('should display MSP templates page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/msp\/templates/)
-    await expect(page.getByRole('heading', { name: /templates/i })).toBeVisible()
+    await expect(pageHeading(page, /policy templates/i)).toBeVisible()
   })
 
   test('should show list of available templates', async ({ page }) => {
-    // Look for template cards or list
-    const templateCards = page.locator('[class*="card"]').or(page.locator('table'))
-    expect(await templateCards.count()).toBeGreaterThan(0)
+    await expect(page.getByText(/baseline security/i)).toBeVisible({ timeout: 10000 })
   })
 
   test('should have Create Template button', async ({ page }) => {
@@ -421,26 +408,13 @@ test.describe('US-037: MSP Template Management', () => {
   })
 
   test('should allow searching templates', async ({ page }) => {
-    const searchInput = page.getByPlaceholder(/search templates|filter/i)
-
-    if (await searchInput.count() > 0) {
-      await expect(searchInput).toBeVisible()
-      await searchInput.fill('security')
-      await waitForPageLoad(page)
-
-      // Results should update
-      const templates = page.locator('[class*="card"]').or(page.locator('table tr'))
-      expect(await templates.count()).toBeGreaterThan(0)
-    }
+    await page.getByPlaceholder(/search templates/i).fill('Baseline')
+    await expect(page.getByText(/baseline security/i)).toBeVisible()
   })
 
   test('should allow creating new template', async ({ page }) => {
-    const createButton = page.getByRole('button', { name: /create template|new template/i })
-    await createButton.click()
-
-    // Should show template creation form
-    const templateForm = page.getByLabel(/template name|name/i)
-    await expect(templateForm).toBeVisible({ timeout: 5000 })
+    await page.getByRole('button', { name: /create template|new template/i }).click()
+    await expect(page.getByRole('heading', { name: /create template|new template/i })).toBeVisible({ timeout: 5000 })
   })
 
   test('should allow duplicating existing template', async ({ page }) => {
@@ -577,10 +551,6 @@ test.describe('US-037: Non-MSP Tier Restrictions', () => {
     await page.goto('/dashboard/msp/templates')
     await waitForPageLoad(page)
 
-    const upgradePrompt = page.getByText(/upgrade.*msp/i)
-    const accessDenied = page.getByText(/access denied|not available/i)
-
-    const hasRestriction = await upgradePrompt.isVisible() || await accessDenied.isVisible()
-    expect(hasRestriction).toBeTruthy()
+    await expect(page.getByRole('heading', { name: /msp feature only|upgrade required|access denied/i })).toBeVisible()
   })
 })

@@ -3,69 +3,24 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAsMSP, waitForPageLoad } from '../helpers/auth'
+import { pageHeading } from '../helpers/selectors'
 
 test.describe('MSP Policy Templates', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsMSP(page)
-    await page.goto('/dashboard/templates')
+    await page.goto('/dashboard/msp/templates')
     await waitForPageLoad(page)
   })
 
   test('should view template library', async ({ page }) => {
-    await expect(page).toHaveURL(/\/dashboard\/templates/)
-    await expect(page.getByRole('heading', { name: /templates?|template (library|list)/i })).toBeVisible()
-    
-    // Verify templates are displayed
-    const templateList = page.locator('[class*="template"], table')
-    if (await templateList.isVisible()) {
-      await expect(templateList).toBeVisible()
-      
-      // Check for template columns/headers
-      await expect(page.getByText(/name|description|category|type/i)).toBeVisible()
-    }
+    await expect(page).toHaveURL(/\/dashboard\/msp\/templates/)
+    await expect(pageHeading(page, /policy templates/i)).toBeVisible()
+    await expect(page.getByText(/baseline security/i)).toBeVisible({ timeout: 15000 })
   })
 
   test('should create new template', async ({ page }) => {
-    // Click create template button
-    const createButton = page.getByRole('button', { name: /create (new )?template|add template|new template/i })
-    
-    if (await createButton.isVisible()) {
-      await createButton.click()
-      await page.waitForTimeout(300)
-      
-      // Verify template form appears
-      await expect(page.getByText(/create template|new template/i)).toBeVisible()
-      
-      // Fill template details
-      const nameInput = page.getByLabel(/template name|name/i)
-      if (await nameInput.isVisible()) {
-        await nameInput.fill(`Test Template ${Date.now()}`)
-        
-        const descInput = page.getByLabel(/description/i)
-        if (await descInput.isVisible()) {
-          await descInput.fill('Test template description for E2E testing')
-          
-          // Select category
-          const categorySelect = page.getByLabel(/category|type/i)
-          if (await categorySelect.isVisible()) {
-            await categorySelect.click()
-            await page.getByRole('option', { name: /security|filter/i }).first().click()
-            
-            // Save template
-            const saveButton = page.getByRole('button', { name: /create|save|save template/i })
-            if (await saveButton.isVisible()) {
-              await saveButton.click()
-              await page.waitForTimeout(500)
-              
-              // Verify success
-              const successMessage = page.getByText(/success|created|template/i)
-              const hasSuccess = await successMessage.count() > 0
-              expect(hasSuccess).toBeTruthy()
-            }
-          }
-        }
-      }
-    }
+    await page.getByRole('button', { name: /create template|new template/i }).click()
+    await expect(page.getByRole('heading', { name: /create template|new template/i })).toBeVisible({ timeout: 5000 })
   })
 
   test('should edit existing template', async ({ page }) => {

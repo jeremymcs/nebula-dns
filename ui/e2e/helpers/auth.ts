@@ -1,7 +1,7 @@
 // Nebula DNS - E2E Test Authentication Helpers
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-import { Page } from '@playwright/test'
+import { Page, expect } from '@playwright/test'
 import { installBackendMocks } from './mock-backend'
 
 type TenantTier = 'home' | 'enterprise' | 'msp'
@@ -37,14 +37,15 @@ export async function login(page: Page, tier: TenantTier = 'enterprise') {
 
     const config = tierConfig[tier]
 
-    localStorage.setItem('token', 'test-token-for-e2e')
+    localStorage.setItem('token', `test-token-for-e2e-${tier}`)
     localStorage.setItem('refreshToken', 'test-refresh-for-e2e')
     localStorage.setItem('user', JSON.stringify({
       id: `user-${tier}-1`,
       email: config.email,
       name: config.name,
       role: 'admin',
-      tenantId: config.id
+      tenantId: config.id,
+      tenantTier: tier,
     }))
     localStorage.setItem('tenant', JSON.stringify({
       id: config.id,
@@ -54,9 +55,21 @@ export async function login(page: Page, tier: TenantTier = 'enterprise') {
       locationLimit: tier === 'home' ? 5 : tier === 'enterprise' ? 50 : null,
       clientLimit: tier === 'msp' ? null : undefined
     }))
+    if (tier === 'msp') {
+      localStorage.setItem(
+        'mspInfo',
+        JSON.stringify({
+          isMsp: true,
+          partnerId: 'msp-partner-1',
+          currentOrg: { id: 'client-1', name: 'Acme Corp', slug: 'acme-corp', status: 'active' },
+          organizations: [{ id: 'client-1', name: 'Acme Corp', slug: 'acme-corp', status: 'active' }],
+        }),
+      )
+    }
   }, { tier })
 
-  await page.goto('/', { waitUntil: 'domcontentloaded' })
+  await page.goto('/dashboard', { waitUntil: 'domcontentloaded' })
+  await expectDashboardShell(page)
 }
 
 /**
@@ -90,9 +103,11 @@ export async function loginAndNavigate(page: Page, path: string, tier: TenantTie
 }
 
 export async function expectDashboardShell(page: Page) {
-  const shell = page.locator(
-    'h1, h2, [role="heading"], [role="banner"], nav a[href="/dashboard"]',
-  )
+  const shell = page
+    .locator('[data-flux-app-shell]')
+    .or(page.getByRole('heading', { level: 1, name: /good (morning|afternoon|evening)/i }))
+    .or(page.getByText(/total queries/i).first())
+    .or(page.getByRole('link', { name: /^dashboard$/i }).first())
   await shell.first().waitFor({ state: 'visible', timeout: 20_000 })
 }
 
@@ -103,7 +118,7 @@ export async function logout(page: Page) {
   await page.evaluate(() => {
     localStorage.clear()
   })
-  await page.goto('/login')
+  await page.goto('/')
 }
 
 /**
@@ -112,4 +127,24 @@ export async function logout(page: Page) {
 export async function waitForPageLoad(page: Page) {
   await page.waitForLoadState('domcontentloaded')
   await expectDashboardShell(page)
+}
+
+/** Home tier dashboard title (Family Protection). */
+export function homeDashboardHeading(page: Page) {
+  return page.getByRole('heading', { level: 1, name: /family protection|dashboard/i })
+}
+
+/** Assert tier-gated page shows upgrade / access messaging. */
+export async function expectTierRestricted(page: Page) {
+  const restriction = page
+    .getByRole('heading', { name: /upgrade required|access denied|msp feature only/i })
+    .or(
+      page.getByText(
+        /upgrade.*enterprise|upgrade.*msp|enterprise.*required|msp.*required|msp feature only|access denied|forbidden|not available|upgrade required|contact support to upgrade/i,
+      ),
+    )
+    .or(page.getByRole('button', { name: /upgrade to (enterprise|msp)/i }))
+    .or(page.getByRole('link', { name: /upgrade to (enterprise|msp)/i }))
+
+  await expect(restriction.first()).toBeVisible({ timeout: 15_000 })
 }

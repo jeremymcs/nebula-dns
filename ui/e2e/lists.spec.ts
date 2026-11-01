@@ -3,6 +3,12 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAndNavigate, waitForPageLoad } from './helpers/auth'
+import {
+  listNameInput,
+  listsFilterTab,
+  newListButton,
+  pageHeading,
+} from './helpers/selectors'
 
 test.describe('Lists - Overview', () => {
   test.beforeEach(async ({ page }) => {
@@ -12,50 +18,25 @@ test.describe('Lists - Overview', () => {
 
   test('should display lists page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/lists/)
-    await expect(page.getByRole('heading', { name: /lists|blocklists|allowlists/i })).toBeVisible()
+    await expect(pageHeading(page, /domain lists/i)).toBeVisible()
   })
 
   test('should show tabs for blocklists and allowlists', async ({ page }) => {
-    // Look for tab navigation
-    const blocklistTab = page.getByRole('tab', { name: /blocklist|block list|blocked/i })
-    const allowlistTab = page.getByRole('tab', { name: /allowlist|allow list|allowed/i })
-
-    const hasBlocklist = await blocklistTab.isVisible().catch(() => false)
-    const hasAllowlist = await allowlistTab.isVisible().catch(() => false)
-
-    if (hasBlocklist && hasAllowlist) {
-      await expect(blocklistTab).toBeVisible()
-      await expect(allowlistTab).toBeVisible()
-    } else {
-      // Alternative: separate buttons or sections
-      const blockSection = page.getByText(/blocklist|block list/i)
-      const allowSection = page.getByText(/allowlist|allow list/i)
-
-      if (await blockSection.isVisible()) {
-        await expect(blockSection).toBeVisible()
-      }
-    }
+    await expect(listsFilterTab(page, /blocklists/i)).toBeVisible()
+    await expect(listsFilterTab(page, /allowlists/i)).toBeVisible()
   })
 
   test('should display existing lists', async ({ page }) => {
-    // Check for list of lists
-    const listTable = page.getByRole('table').or(page.locator('[data-testid="lists-table"]'))
-    const hasLists = await listTable.isVisible().catch(() => false)
-
-    if (hasLists) {
-      await expect(listTable).toBeVisible()
-    } else {
-      // Check for empty state
-      const emptyState = page.getByText(/no lists|create your first list/i)
-      if (await emptyState.isVisible()) {
-        await expect(emptyState).toBeVisible()
-      }
-    }
+    const listCards = page.locator('[class*="grid"]').filter({ has: page.getByText(/blocklist|allowlist/i) })
+    const emptyState = page.getByText(/no lists|create your first|get started/i)
+    const hasCards = (await listCards.count()) > 0
+    const hasEmpty = await emptyState.first().isVisible().catch(() => false)
+    expect(hasCards || hasEmpty).toBeTruthy()
   })
 
   test('should have create list button', async ({ page }) => {
-    const createButton = page.getByRole('button', { name: /create list|new list|add list/i })
-    await expect(createButton).toBeVisible()
+    await expect(newListButton(page, 'blocklist')).toBeVisible()
+    await expect(newListButton(page, 'allowlist')).toBeVisible()
   })
 })
 
@@ -66,21 +47,14 @@ test.describe('Lists - Create New List', () => {
   })
 
   test('should open create list form', async ({ page }) => {
-    const createButton = page.getByRole('button', { name: /create list|new list|add list/i })
-    await createButton.click()
-
-    // Should show form
-    const nameInput = page.getByLabel(/list name|name/i).or(page.getByPlaceholder(/list name/i)).first()
-    await expect(nameInput).toBeVisible({ timeout: 5000 })
+    await newListButton(page, 'blocklist').click()
+    await expect(page.getByText(/create blocklist/i)).toBeVisible({ timeout: 5000 })
+    await expect(listNameInput(page)).toBeVisible({ timeout: 5000 })
   })
 
   test('should create new blocklist', async ({ page }) => {
-    const createButton = page.getByRole('button', { name: /create list|new list|add list/i })
-    await createButton.click()
-
-    // Fill list name
-    const nameInput = page.getByLabel(/list name|name/i).or(page.getByPlaceholder(/list name/i)).first()
-    await nameInput.fill('E2E Test Blocklist')
+    await newListButton(page, 'blocklist').click()
+    await listNameInput(page).fill('E2E Test Blocklist')
 
     // Select list type if needed
     const typeSelector = page.getByLabel(/list type|type/i)
@@ -110,12 +84,8 @@ test.describe('Lists - Create New List', () => {
   })
 
   test('should create new allowlist', async ({ page }) => {
-    const createButton = page.getByRole('button', { name: /create list|new list|add list/i })
-    await createButton.click()
-
-    // Fill list name
-    const nameInput = page.getByLabel(/list name|name/i).or(page.getByPlaceholder(/list name/i)).first()
-    await nameInput.fill('E2E Test Allowlist')
+    await newListButton(page, 'allowlist').click()
+    await listNameInput(page).fill('E2E Test Allowlist')
 
     // Select allowlist type
     const typeSelector = page.getByLabel(/list type|type/i)
@@ -131,8 +101,7 @@ test.describe('Lists - Create New List', () => {
   })
 
   test('should validate required fields', async ({ page }) => {
-    const createButton = page.getByRole('button', { name: /create list|new list|add list/i })
-    await createButton.click()
+    await newListButton(page, 'blocklist').click()
 
     // Try to submit without required fields
     const submitButton = page.getByRole('button', { name: /create|add|save/i }).last()

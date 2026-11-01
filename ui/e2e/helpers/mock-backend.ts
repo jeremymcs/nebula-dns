@@ -50,22 +50,33 @@ export async function installBackendMocks(
 ): Promise<void> {
   const user = tierUsers[tier]
 
+  const tierFromToken = (authHeader: string): 'home' | 'enterprise' | 'msp' => {
+    if (/home/i.test(authHeader)) return 'home'
+    if (/msp/i.test(authHeader)) return 'msp'
+    return 'enterprise'
+  }
+
   await page.route('**/backend/auth/me', async (route) => {
+    const authHeader = route.request().headers()['authorization'] ?? ''
+    const resolvedTier = tierFromToken(authHeader) || tier
+    const profile = tierUsers[resolvedTier]
     await route.fulfill(
       jsonResponse({
-        ...user,
-        tenantTier: tier,
+        ...profile,
+        tenantTier: resolvedTier,
         mfaEnabled: false,
       }),
     )
   })
 
   await page.route('**/backend/auth/refresh', async (route) => {
+    const authHeader = route.request().headers()['authorization'] ?? ''
+    const resolvedTier = tierFromToken(authHeader) || tier
     await route.fulfill(
       jsonResponse({
-        accessToken: 'test-token-for-e2e',
+        accessToken: `test-token-for-e2e-${resolvedTier}`,
         refreshToken: 'test-refresh-for-e2e',
-        user: { ...user, tenantTier: tier },
+        user: { ...tierUsers[resolvedTier], tenantTier: resolvedTier },
       }),
     )
   })
@@ -93,9 +104,7 @@ export async function installBackendMocks(
       )
       return
     }
-    await route.fulfill(
-      jsonResponse({ status: 'active', canResolve: true }),
-    )
+    await route.fulfill(jsonResponse({ status: 'active', canResolve: true }))
   })
 
   await page.route('**/backend/auth/organizations', async (route) => {
@@ -103,8 +112,14 @@ export async function installBackendMocks(
       jsonResponse({
         isMsp: tier === 'msp',
         partnerId: tier === 'msp' ? 'msp-partner-1' : null,
-        currentOrg: null,
-        organizations: [],
+        currentOrg:
+          tier === 'msp'
+            ? { id: 'client-1', name: 'Acme Corp', slug: 'acme-corp', status: 'active' }
+            : null,
+        organizations:
+          tier === 'msp'
+            ? [{ id: 'client-1', name: 'Acme Corp', slug: 'acme-corp', status: 'active' }]
+            : [],
       }),
     )
   })
@@ -315,5 +330,35 @@ export async function installBackendMocks(
 
   await page.route('**/backend/audit-logs**', async (route) => {
     await route.fulfill(jsonResponse({ data: [], pagination: { cursor: null, hasMore: false } }))
+  })
+
+  await page.route('**/backend/**', async (route) => {
+    const requestUrl = route.request().url()
+    const url = new URL(requestUrl)
+    const pathname = url.pathname.replace(/^\/backend/, '') || '/'
+    const authHeader = route.request().headers()['authorization'] ?? ''
+    const { getMockResponse } = await import('../fixtures/mock-api-data.mjs')
+    const mock = getMockResponse(pathname, route.request().method(), authHeader)
+    await route.fulfill(mock)
+  })
+
+  await page.route(/https?:\/\/127\.0\.0\.1:4010\/.*/, async (route) => {
+    const requestUrl = route.request().url()
+    const url = new URL(requestUrl)
+    const pathname = url.pathname || '/'
+    const authHeader = route.request().headers()['authorization'] ?? ''
+    const { getMockResponse } = await import('../fixtures/mock-api-data.mjs')
+    const mock = getMockResponse(pathname, route.request().method(), authHeader)
+    await route.fulfill(mock)
+  })
+
+  await page.route(/https?:\/\/localhost:4010\/.*/, async (route) => {
+    const requestUrl = route.request().url()
+    const url = new URL(requestUrl)
+    const pathname = url.pathname || '/'
+    const authHeader = route.request().headers()['authorization'] ?? ''
+    const { getMockResponse } = await import('../fixtures/mock-api-data.mjs')
+    const mock = getMockResponse(pathname, route.request().method(), authHeader)
+    await route.fulfill(mock)
   })
 }

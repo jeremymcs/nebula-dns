@@ -3,8 +3,9 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAndNavigate, waitForPageLoad } from '../helpers/auth'
+import { SKIP_ADMIN_CONSOLE_IN_TENANT_UI } from '../helpers/launch-features'
 
-test.describe('Admin Tenant Management', () => {
+test.describe.skip(`Admin Tenant Management — ${SKIP_ADMIN_CONSOLE_IN_TENANT_UI}`, () => {
   test.beforeEach(async ({ page }) => {
     await loginAndNavigate(page, '/admin/tenants', 'enterprise')
     await waitForPageLoad(page)

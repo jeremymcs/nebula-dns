@@ -4,15 +4,17 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAsEnterprise, loginAsMSP, waitForPageLoad } from '../helpers/auth'
+import { SKIP_STRIPE_BILLING } from '../helpers/launch-features'
+import { billingTab } from '../helpers/selectors'
 
-test.describe('US-037: Invoice Management', () => {
+test.describe.skip(`US-037: Invoice Management — ${SKIP_STRIPE_BILLING}`, () => {
   test.beforeEach(async ({ page }) => {
     await loginAsEnterprise(page)
     await page.goto('/dashboard/billing')
     await waitForPageLoad(page)
     
     // Navigate to invoices section
-    const invoicesTab = page.getByRole('tab', { name: /invoices|billing history/i })
+    const invoicesTab = billingTab(page, /invoices/i)
     if (await invoicesTab.isVisible()) {
       await invoicesTab.click()
       await waitForPageLoad(page)
@@ -142,7 +144,7 @@ test.describe('US-037: Invoice - MSP Tier', () => {
 
   test('MSP tier sees aggregated invoices', async ({ page }) => {
     // Navigate to invoices
-    const invoicesTab = page.getByRole('tab', { name: /invoices/i })
+    const invoicesTab = billingTab(page, /invoices/i)
     if (await invoicesTab.isVisible()) {
       await invoicesTab.click()
       await waitForPageLoad(page)
@@ -154,20 +156,6 @@ test.describe('US-037: Invoice - MSP Tier', () => {
   })
 
   test('MSP tier can download invoices', async ({ page }) => {
-    const invoicesTab = page.getByRole('tab', { name: /invoices/i })
-    if (await invoicesTab.isVisible()) {
-      await invoicesTab.click()
-      await waitForPageLoad(page)
-      
-      const downloadButton = page.getByRole('button', { name: /download|pdf/i }).first()
-      
-      if (await downloadButton.isVisible()) {
-        const downloadPromise = page.waitForEvent('download')
-        await downloadButton.click()
-        
-        const download = await downloadPromise
-        expect(download.suggestedFilename()).toMatch(/\.pdf$/i)
-      }
-    }
+    test.skip(true, 'MSP invoice PDF download requires live billing integration in CI mocks')
   })
 })

@@ -3,8 +3,10 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAndNavigate, waitForPageLoad } from './helpers/auth'
+import { SKIP_LEGACY_TIER_BILLING } from './helpers/launch-features'
+import { billingTab, pageHeading } from './helpers/selectors'
 
-test.describe('US-013: Usage Dashboard Widget', () => {
+test.describe.skip(`US-013: Usage Dashboard Widget — ${SKIP_LEGACY_TIER_BILLING}`, () => {
   test.beforeEach(async ({ page }) => {
     await loginAndNavigate(page, '/mission-control')
     await waitForPageLoad(page)
@@ -96,16 +98,16 @@ test.describe('US-014: Billing Page Usage Breakdown', () => {
   })
 
   test('should display billing page with tabs', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /billing.*usage/i })).toBeVisible()
+    await expect(pageHeading(page, /billing.*usage/i)).toBeVisible()
 
     // Should have multiple tabs
-    await expect(page.getByText('Usage Overview')).toBeVisible()
+    await expect(billingTab(page, /usage overview/i)).toBeVisible()
     await expect(page.getByText(/bundles|purchases|invoices/i).first()).toBeVisible()
   })
 
   test('should display usage breakdown table', async ({ page }) => {
     // Click on Usage Overview tab if not default
-    const overviewTab = page.getByText('Usage Overview')
+    const overviewTab = billingTab(page, /usage overview/i)
     if (await overviewTab.isVisible()) {
       await overviewTab.click()
     }
@@ -115,7 +117,7 @@ test.describe('US-014: Billing Page Usage Breakdown', () => {
   })
 
   test('should show current billing period in usage breakdown', async ({ page }) => {
-    const overviewTab = page.getByText('Usage Overview')
+    const overviewTab = billingTab(page, /usage overview/i)
     if (await overviewTab.isVisible()) {
       await overviewTab.click()
     }
@@ -126,7 +128,7 @@ test.describe('US-014: Billing Page Usage Breakdown', () => {
   })
 
   test('should display locations list for Enterprise/Home tier', async ({ page }) => {
-    const overviewTab = page.getByText('Usage Overview')
+    const overviewTab = billingTab(page, /usage overview/i)
     if (await overviewTab.isVisible()) {
       await overviewTab.click()
     }
@@ -140,14 +142,14 @@ test.describe('US-014: Billing Page Usage Breakdown', () => {
 
       // Table should have columns: Name, Policy, Created, Status
       await expect(page.getByText(/location name|name/i)).toBeVisible()
-      await expect(page.getByText(/policy/i)).toBeVisible()
+      await expect(page.getByRole('columnheader', { name: /policy/i })).toBeVisible()
       await expect(page.getByText(/created/i)).toBeVisible()
       await expect(page.getByText(/status/i)).toBeVisible()
     }
   })
 
   test('should display clients list for MSP tier', async ({ page }) => {
-    const overviewTab = page.getByText('Usage Overview')
+    const overviewTab = billingTab(page, /usage overview/i)
     if (await overviewTab.isVisible()) {
       await overviewTab.click()
     }
@@ -167,7 +169,7 @@ test.describe('US-014: Billing Page Usage Breakdown', () => {
   })
 
   test('should display projected monthly cost', async ({ page }) => {
-    const overviewTab = page.getByText('Usage Overview')
+    const overviewTab = billingTab(page, /usage overview/i)
     if (await overviewTab.isVisible()) {
       await overviewTab.click()
     }
@@ -181,7 +183,7 @@ test.describe('US-014: Billing Page Usage Breakdown', () => {
   })
 
   test('should display current period cost', async ({ page }) => {
-    const overviewTab = page.getByText('Usage Overview')
+    const overviewTab = billingTab(page, /usage overview/i)
     if (await overviewTab.isVisible()) {
       await overviewTab.click()
     }
@@ -191,7 +193,7 @@ test.describe('US-014: Billing Page Usage Breakdown', () => {
   })
 
   test('should display usage history chart for last 6 months', async ({ page }) => {
-    const overviewTab = page.getByText('Usage Overview')
+    const overviewTab = billingTab(page, /usage overview/i)
     if (await overviewTab.isVisible()) {
       await overviewTab.click()
     }
@@ -231,7 +233,7 @@ test.describe('US-014: Billing Page Usage Breakdown', () => {
   })
 
   test('should show location creation dates in breakdown', async ({ page }) => {
-    const overviewTab = page.getByText('Usage Overview')
+    const overviewTab = billingTab(page, /usage overview/i)
     if (await overviewTab.isVisible()) {
       await overviewTab.click()
     }
@@ -246,7 +248,7 @@ test.describe('US-014: Billing Page Usage Breakdown', () => {
   })
 
   test('should show status badges in breakdown table', async ({ page }) => {
-    const overviewTab = page.getByText('Usage Overview')
+    const overviewTab = billingTab(page, /usage overview/i)
     if (await overviewTab.isVisible()) {
       await overviewTab.click()
     }
@@ -261,7 +263,7 @@ test.describe('US-014: Billing Page Usage Breakdown', () => {
 
   test('should update chart data when tab is switched', async ({ page }) => {
     // Start on overview
-    const overviewTab = page.getByText('Usage Overview')
+    const overviewTab = billingTab(page, /usage overview/i)
     await overviewTab.click()
 
     // Wait for chart to load
@@ -294,7 +296,7 @@ test.describe('US-014: Billing Page Usage Breakdown', () => {
     await page.reload()
 
     // Page should still load
-    await expect(page.getByRole('heading', { name: /billing.*usage/i })).toBeVisible()
+    await expect(pageHeading(page, /billing.*usage/i)).toBeVisible()
 
     // Tables should be scrollable on mobile
     const table = page.locator('table').first()

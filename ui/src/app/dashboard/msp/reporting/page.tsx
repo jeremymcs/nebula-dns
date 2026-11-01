@@ -7,22 +7,26 @@
 import { CrossClientReporting } from '@/components/msp/CrossClientReporting'
 import { ChartBarIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '@/contexts/AuthContext'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
 
 export default function CrossClientReportingPage() {
-  const { user, isMsp } = useAuth()
-  const router = useRouter()
+  const { isMspTier, loading } = useAuth()
 
-  // Redirect non-MSP users
-  useEffect(() => {
-    if (user && !isMsp) {
-      router.push('/dashboard')
-    }
-  }, [user, isMsp, router])
+  if (loading) {
+    return (
+      <div className="animate-pulse rounded-2xl bg-space-100 dark:bg-space-800/50 h-64" />
+    )
+  }
 
-  if (!isMsp) {
-    return null
+  if (!isMspTier) {
+    return (
+      <div className="text-center py-20">
+        <ChartBarIcon className="mx-auto h-16 w-16 text-space-300 dark:text-space-600" />
+        <h2 className="mt-6 text-xl font-bold text-space-900 dark:text-white">Access Denied</h2>
+        <p className="mt-2 text-space-500 dark:text-space-400 max-w-sm mx-auto">
+          Cross-client reporting is only available for MSP tier accounts. Please contact support to upgrade your organization.
+        </p>
+      </div>
+    )
   }
 
   return (
