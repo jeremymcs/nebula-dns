@@ -10,6 +10,7 @@ import { Location } from '../locations/entities/location.entity';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { RedisService } from '../redis/redis.service';
 import { AgentBrandingConfig } from './agent-branding.config';
+import { ShieldCaService } from '../shield-ca/shield-ca.service';
 
 describe('AgentsService site IP updates', () => {
   let service: AgentsService;
@@ -74,6 +75,10 @@ describe('AgentsService site IP updates', () => {
             apiEndpoint: 'https://api.shield.fluxlabs.net',
             dohEndpoint: 'https://dns.shield.fluxlabs.net/dns-query',
           },
+        },
+        {
+          provide: ShieldCaService,
+          useValue: { getCertificatePem: jest.fn() },
         },
       ],
     }).compile();
