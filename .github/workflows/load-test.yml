@@ -5,13 +5,13 @@
 
 name: Load Test
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 on:
   schedule:
     - cron: '0 2 * * 1'  # Every Monday at 2 AM UTC
-  push:
-    paths:
-      - 'scripts/load-testing/**'
-      - '.github/workflows/load-test.yml'
   workflow_dispatch:
     inputs:
       scenario:

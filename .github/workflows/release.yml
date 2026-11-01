@@ -51,17 +51,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build and push UI image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./ui
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-ui:${{ steps.version.outputs.VERSION }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-ui:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
       - name: Build and push Policy Service image
         uses: docker/build-push-action@v5
         with:
@@ -82,9 +71,10 @@ jobs:
             
             ```bash
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api:${{ steps.version.outputs.VERSION }}
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-ui:${{ steps.version.outputs.VERSION }}
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-policy-svc:${{ steps.version.outputs.VERSION }}
             ```
+
+            The customer app UI deploys via Vercel (not container images).
 
       - name: Update deployment manifest
         run: |

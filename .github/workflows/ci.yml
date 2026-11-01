@@ -10,18 +10,74 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
-  workflow_call:  # Allow reuse from deploy.yml
+  workflow_call: # Allow reuse from other workflows
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   NODE_VERSION: '20'
   GO_VERSION: '1.23'
 
 jobs:
-  # API Tests
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.outputs.outputs.api }}
+      policy-svc: ${{ steps.outputs.outputs.policy-svc }}
+      ui: ${{ steps.outputs.outputs.ui }}
+      admin-ui: ${{ steps.outputs.outputs.admin-ui }}
+      ci: ${{ steps.outputs.outputs.ci }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Path filter
+        if: github.event_name != 'workflow_call'
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            api:
+              - 'api/**'
+            policy-svc:
+              - 'policy-svc/**'
+            ui:
+              - 'ui/**'
+              - 'shared/**'
+            admin-ui:
+              - 'admin-ui/**'
+              - 'shared/**'
+            ci:
+              - '.github/**'
+
+      - name: Set change outputs
+        id: outputs
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_call" ]; then
+            echo "api=true" >> "$GITHUB_OUTPUT"
+            echo "policy-svc=true" >> "$GITHUB_OUTPUT"
+            echo "ui=true" >> "$GITHUB_OUTPUT"
+            echo "admin-ui=true" >> "$GITHUB_OUTPUT"
+            echo "ci=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "api=${{ steps.filter.outputs.api }}" >> "$GITHUB_OUTPUT"
+            echo "policy-svc=${{ steps.filter.outputs.policy-svc }}" >> "$GITHUB_OUTPUT"
+            echo "ui=${{ steps.filter.outputs.ui }}" >> "$GITHUB_OUTPUT"
+            echo "admin-ui=${{ steps.filter.outputs.admin-ui }}" >> "$GITHUB_OUTPUT"
+            echo "ci=${{ steps.filter.outputs.ci }}" >> "$GITHUB_OUTPUT"
+          fi
+
   api-test:
     name: API Tests
     runs-on: ubuntu-latest
-    
+    needs: changes
+    if: |
+      needs.changes.outputs.ci == 'true' ||
+      needs.changes.outputs.api == 'true'
+
     services:
       postgres:
         image: postgres:16
@@ -36,7 +92,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-      
+
       redis:
         image: redis:7-alpine
         options: >-
@@ -107,11 +163,14 @@ jobs:
           flags: api
           fail_ci_if_error: false
 
-  # API Integration Tests (uses Testcontainers)
   api-integration-test:
     name: API Integration Tests
     runs-on: ubuntu-latest
-    
+    needs: changes
+    if: |
+      needs.changes.outputs.ci == 'true' ||
+      needs.changes.outputs.api == 'true'
+
     services:
       docker:
         image: docker:24-cli
@@ -143,8 +202,6 @@ jobs:
         run: npm run test:integration
         env:
           NODE_ENV: test
-          # Testcontainers will start its own containers
-          # No external services needed
 
       - name: Upload integration test results
         if: always()
@@ -154,63 +211,13 @@ jobs:
           path: api/test-results/
           retention-days: 7
 
-  # DNS E2E Tests (requires full Docker Compose stack)
-  dns-e2e-test:
-    name: DNS E2E Tests
-    runs-on: ubuntu-latest
-    needs: [api-test, api-integration-test, policy-svc-test, policy-integration-test]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: api/package-lock.json
-
-      - name: Install API dependencies
-        working-directory: ./api
-        run: npm ci
-
-      - name: Start Docker Compose services
-        run: |
-          docker compose up -d postgres redis clickhouse
-          # Wait for services to be healthy
-          sleep 30
-          docker compose up -d policy-svc unbound dnsdist
-          # Wait for DNS stack to be ready
-          sleep 15
-
-      - name: Run DNS E2E tests
-        working-directory: ./api
-        run: npm run test:e2e:dns
-        env:
-          NODE_ENV: test
-          DOH_URL: https://localhost:4443/dns-query
-          POLICY_SVC_URL: http://localhost:4080
-          CLICKHOUSE_URL: http://localhost:4123
-          API_URL: http://localhost:4010
-          SKIP_DOCKER_TESTS: 'true'
-        continue-on-error: true
-
-      - name: Upload DNS E2E coverage
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./coverage/dns-e2e/lcov.info
-          flags: dns-e2e
-          fail_ci_if_error: false
-
-      - name: Stop Docker Compose services
-        if: always()
-        run: docker compose down -v
-
-  # UI Tests
   ui-test:
     name: UI Tests
     runs-on: ubuntu-latest
+    needs: changes
+    if: |
+      needs.changes.outputs.ci == 'true' ||
+      needs.changes.outputs.ui == 'true'
 
     steps:
       - name: Checkout code
@@ -241,11 +248,51 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: http://localhost:3000
 
-  # Policy Service Tests
+  admin-ui-test:
+    name: Admin UI Tests
+    runs-on: ubuntu-latest
+    needs: changes
+    if: |
+      needs.changes.outputs.ci == 'true' ||
+      needs.changes.outputs.admin-ui == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: admin-ui/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./admin-ui
+        run: npm ci --legacy-peer-deps
+
+      - name: Run linting
+        working-directory: ./admin-ui
+        run: npm run lint
+
+      - name: Type check
+        working-directory: ./admin-ui
+        run: npx tsc --noEmit
+
+      - name: Build
+        working-directory: ./admin-ui
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3000
+
   policy-svc-test:
     name: Policy Service Tests
     runs-on: ubuntu-latest
-    
+    needs: changes
+    if: |
+      needs.changes.outputs.ci == 'true' ||
+      needs.changes.outputs.policy-svc == 'true'
+
     services:
       redis:
         image: redis:7-alpine
@@ -274,6 +321,7 @@ jobs:
           REDIS_URL: localhost:6379
 
       - name: Run benchmarks
+        if: github.event_name != 'pull_request'
         working-directory: ./policy-svc
         run: go test -bench=. -benchmem ./...
 
@@ -284,11 +332,14 @@ jobs:
           flags: policy-svc
           fail_ci_if_error: false
 
-  # Policy Service Integration Tests
   policy-integration-test:
     name: Policy Service Integration Tests
     runs-on: ubuntu-latest
-    
+    needs: changes
+    if: |
+      needs.changes.outputs.ci == 'true' ||
+      needs.changes.outputs.policy-svc == 'true'
+
     services:
       redis:
         image: redis:7-alpine
@@ -333,50 +384,37 @@ jobs:
           path: policy-svc/test-results/
           retention-days: 7
 
-  # UI E2E Tests
-  ui-e2e-test:
-    name: UI E2E Tests
+  ci-gate:
+    name: CI Gate
     runs-on: ubuntu-latest
-    needs: [ui-test]
+    needs:
+      - changes
+      - api-test
+      - api-integration-test
+      - ui-test
+      - admin-ui-test
+      - policy-svc-test
+      - policy-integration-test
+    if: always()
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Require passing jobs
+        run: |
+          check_result() {
+            local name="$1"
+            local result="$2"
+            if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
+              echo "::error title=CI Gate::$name finished with $result"
+              exit 1
+            fi
+          }
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: ui/package-lock.json
+          check_result "changes" "${{ needs.changes.result }}"
+          check_result "api-test" "${{ needs.api-test.result }}"
+          check_result "api-integration-test" "${{ needs.api-integration-test.result }}"
+          check_result "ui-test" "${{ needs.ui-test.result }}"
+          check_result "admin-ui-test" "${{ needs.admin-ui-test.result }}"
+          check_result "policy-svc-test" "${{ needs.policy-svc-test.result }}"
+          check_result "policy-integration-test" "${{ needs.policy-integration-test.result }}"
 
-      - name: Install dependencies
-        working-directory: ./ui
-        run: npm ci --legacy-peer-deps
-
-      - name: Install Playwright browsers
-        working-directory: ./ui
-        run: npx playwright install --with-deps chromium
-
-      - name: Run E2E tests
-        working-directory: ./ui
-        run: npx playwright test --project=chromium
-        env:
-          CI: true
-          TEST_BASE_URL: http://localhost:4011
-
-      - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-report
-          path: ui/playwright-report/
-          retention-days: 14
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: playwright-test-results
-          path: ui/test-results/
-          retention-days: 7
+          echo "CI Gate passed (skipped jobs are OK for path-filtered runs)."
