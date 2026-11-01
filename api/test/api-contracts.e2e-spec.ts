@@ -7,6 +7,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { e2eRequest } from './e2e-request';
 
 describe('API Contract Tests', () => {
   let app: INestApplication;
@@ -29,7 +30,7 @@ describe('API Contract Tests', () => {
 
   describe('Health Endpoint Contracts', () => {
     it('GET /health should return correct schema', async () => {
-      const response = await request(app.getHttpServer()).get('/health');
+      const response = await e2eRequest(app.getHttpServer()).get('/health');
 
       expect(response.status).toBe(200);
       expect(response.body).toMatchObject({
@@ -39,10 +40,8 @@ describe('API Contract Tests', () => {
       });
     });
 
-    it('GET /health/detailed should return correct schema', async () => {
-      const response = await request(app.getHttpServer()).get(
-        '/health/detailed',
-      );
+    it('GET /health includes dependency breakdown', async () => {
+      const response = await e2eRequest(app.getHttpServer()).get('/health');
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('status');
@@ -53,7 +52,7 @@ describe('API Contract Tests', () => {
 
   describe('Auth Endpoint Contracts', () => {
     it('POST /auth/login error should return correct error schema', async () => {
-      const response = await request(app.getHttpServer())
+      const response = await e2eRequest(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'invalid', password: 'short' });
 

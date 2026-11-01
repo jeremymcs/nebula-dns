@@ -14,9 +14,7 @@ import { LimitsModule } from '../limits/limits.module';
 import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 import { Tenant } from '../tenants/entities/tenant.entity';
 import { RedisModule } from '../redis/redis.module';
-import { AdminActivityLog } from '../admin/entities/admin-activity-log.entity';
-import { Admin } from '../admin/entities/admin.entity';
-import { AdminActivityService } from '../admin/admin-activity.service';
+import { AdminActivityModule } from '../admin/admin-activity.module';
 
 @Module({
   imports: [
@@ -24,17 +22,15 @@ import { AdminActivityService } from '../admin/admin-activity.service';
       DnsPlatformConnection,
       DnsZoneAssignment,
       Tenant,
-      AdminActivityLog,
-      Admin,
     ]),
     LimitsModule,
     AuditLogsModule,
     RedisModule,
+    AdminActivityModule,
   ],
   controllers: [DnsManagementController],
   providers: [
     DnsManagementService,
-    AdminActivityService,
     CfFairQueueService,
     CloudflareDnsProvider,
     {

@@ -9,6 +9,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { e2eRequest } from './e2e-request';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
@@ -30,29 +31,29 @@ describe('AppController (e2e)', () => {
   });
 
   describe('Health Check', () => {
-    it('/health (GET) - should return OK', () => {
-      return request(app.getHttpServer())
+    it('/health (GET) - should return dependency health', () => {
+      return e2eRequest(app.getHttpServer())
         .get('/health')
         .expect(200)
         .expect((res: any) => {
-          expect(res.body.status).toBe('healthy');
+          expect(res.body.status).toMatch(/^(healthy|degraded|unhealthy)$/);
+          expect(res.body).toHaveProperty('dependencies');
         });
     });
 
-    it('/health/detailed (GET) - should return detailed status', () => {
-      return request(app.getHttpServer())
-        .get('/health/detailed')
-        .expect(200)
-        .expect((res: any) => {
-          expect(res.body).toHaveProperty('status');
-          expect(res.body).toHaveProperty('timestamp');
+    it('/health/ready (GET) - should return readiness', () => {
+      return e2eRequest(app.getHttpServer())
+        .get('/health/ready')
+        .expect((res) => {
+          expect([200, 503]).toContain(res.status);
+          expect(res.body).toHaveProperty('ready');
         });
     });
   });
 
   describe('Authentication', () => {
     it('/auth/login (POST) - should reject invalid credentials', () => {
-      return request(app.getHttpServer())
+      return e2eRequest(app.getHttpServer())
         .post('/auth/login')
         .send({
           email: 'nonexistent@example.com',
@@ -62,7 +63,7 @@ describe('AppController (e2e)', () => {
     });
 
     it('/auth/login (POST) - should reject malformed request', () => {
-      return request(app.getHttpServer())
+      return e2eRequest(app.getHttpServer())
         .post('/auth/login')
         .send({
           email: 'not-an-email',

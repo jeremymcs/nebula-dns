@@ -2,7 +2,7 @@
 // Separate authentication system for internal administrators
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -25,7 +25,7 @@ import { AdminSessionService } from './admin-session.service';
 import { AdminHealthService } from './admin-health.service';
 import { AdminBillingService } from './admin-billing.service';
 import { AdminDashboardService } from './admin-dashboard.service';
-import { AdminActivityService } from './admin-activity.service';
+import { AdminActivityModule } from './admin-activity.module';
 import { AdminUsersService } from './admin-users.service';
 import { AdminInvitationsService } from './admin-invitations.service';
 import { AdminController } from './admin.controller';
@@ -110,7 +110,8 @@ import { AdminDnsManagementController } from '../dns-management/admin-dns-manage
     TrialsModule,
     SubscriptionLapseModule,
     AlertingModule,
-    DnsManagementModule,
+    forwardRef(() => DnsManagementModule),
+    AdminActivityModule,
   ],
 
   // Admin API endpoints
@@ -126,8 +127,11 @@ import { AdminDnsManagementController } from '../dns-management/admin-dns-manage
     AdminSessionService,
     AdminHealthService,
     AdminBillingService,
+<<<<<<< HEAD
     AdminDashboardService,
     AdminActivityService,
+=======
+>>>>>>> fa74acb (fix(ci): align API e2e with health routes, SSO legacy type, rate limits)
     AdminUsersService,
     AdminInvitationsService,
     AdminJwtStrategy,
@@ -140,7 +144,7 @@ import { AdminDnsManagementController } from '../dns-management/admin-dns-manage
     AdminService,
     AdminHealthService,
     AdminBillingService,
-    AdminActivityService,
+    AdminActivityModule,
     AdminUsersService,
     AdminInvitationsService,
     AdminAuthGuard,
