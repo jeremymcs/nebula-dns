@@ -246,9 +246,12 @@ func TestCategoryBlocking_TimezoneHandling(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Get current day
-	now := time.Now()
-	nowEST := now.In(time.FixedZone("EST", -5*3600))
+	// Get current day in the same timezone as the schedule
+	loc, err := time.LoadLocation("America/New_York")
+	if err != nil {
+		t.Fatalf("LoadLocation: %v", err)
+	}
+	nowEST := time.Now().In(loc)
 	dayShort := strings.ToLower(nowEST.Weekday().String()[:3])
 
 	// Create policy with EST timezone
