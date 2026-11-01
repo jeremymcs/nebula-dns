@@ -127,11 +127,7 @@ import { AdminDnsManagementController } from '../dns-management/admin-dns-manage
     AdminSessionService,
     AdminHealthService,
     AdminBillingService,
-<<<<<<< HEAD
     AdminDashboardService,
-    AdminActivityService,
-=======
->>>>>>> fa74acb (fix(ci): align API e2e with health routes, SSO legacy type, rate limits)
     AdminUsersService,
     AdminInvitationsService,
     AdminJwtStrategy,
@@ -144,6 +140,7 @@ import { AdminDnsManagementController } from '../dns-management/admin-dns-manage
     AdminService,
     AdminHealthService,
     AdminBillingService,
+    AdminDashboardService,
     AdminActivityModule,
     AdminUsersService,
     AdminInvitationsService,
