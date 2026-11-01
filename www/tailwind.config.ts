@@ -6,7 +6,7 @@ import type { Config } from 'tailwindcss'
 import { createRequire } from 'module'
 
 const require = createRequire(import.meta.url)
-const { fluxLabsThemeExtend } = require('../shared/flux-labs-tailwind-theme.js') as {
+const { fluxLabsThemeExtend } = require('./lib/flux-labs-tailwind-theme.js') as {
   fluxLabsThemeExtend: NonNullable<Config['theme']>['extend']
 }
 

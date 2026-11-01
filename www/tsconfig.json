@@ -24,9 +24,6 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ],
-      "@nebula/brand": [
-        "../shared/product-brand.ts"
       ]
     },
     "target": "ES2018"

@@ -7,9 +7,6 @@ const withMDX = require('@next/mdx')({
   options: {},
 })
 
-const path = require('path')
-const brandModule = path.join(__dirname, '../shared/product-brand.ts')
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
@@ -19,13 +16,6 @@ const nextConfig = {
   },
   turbopack: {
     root: __dirname,
-    resolveAlias: {
-      '@nebula/brand': brandModule,
-    },
-  },
-  webpack: (config) => {
-    config.resolve.alias['@nebula/brand'] = brandModule
-    return config
   },
 };
 
