@@ -7,6 +7,7 @@ import { Location } from '../locations/entities/location.entity';
 import { CustomList } from '../lists/entities/custom-list.entity';
 import { CustomListEntry } from '../lists/entities/custom-list-entry.entity';
 import { RedisService } from '../redis/redis.service';
+import { Tenant } from '../tenants/entities/tenant.entity';
 
 describe('PolicyCompilerService', () => {
   let service: PolicyCompilerService;
@@ -54,6 +55,10 @@ describe('PolicyCompilerService', () => {
         {
           provide: getRepositoryToken(CustomListEntry),
           useValue: {},
+        },
+        {
+          provide: getRepositoryToken(Tenant),
+          useValue: { findOne: jest.fn() },
         },
         { provide: RedisService, useValue: redisMock },
       ],

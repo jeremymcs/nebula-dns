@@ -35,7 +35,8 @@ import {
 } from './block-page-html.util';
 import {
   resolveTenantUploadKey,
-  assertLogoUploadBytes,
+  resolveTenantUploadFile,
+  writeValidatedLogoFile,
 } from './block-page-upload.util';
 import { renderSafeMarkdown } from './block-page-markdown.util';
 import { TenantsService } from '../tenants/tenants.service';
@@ -580,7 +581,6 @@ export class BlockPagesService {
     if (file.size > 512 * 1024) {
       throw new BadRequestException('Logo must be 512KB or smaller');
     }
-    assertLogoUploadBytes(file.buffer, file.mimetype);
 
     const page = await this.findOne(tenantId, blockPageId);
     const ext = path.extname(file.originalname) || '.png';
@@ -591,7 +591,12 @@ export class BlockPagesService {
       ext,
     );
     await fs.mkdir(path.dirname(absolutePath), { recursive: true });
-    await fs.writeFile(absolutePath, file.buffer);
+    await writeValidatedLogoFile(
+      absolutePath,
+      this.uploadRoot,
+      file.buffer,
+      file.mimetype,
+    );
 
     page.logoStorageKey = storageKey;
     page.logoUrl = `/block-pages/public/logos/${tenantId}/${publicFilename}`;

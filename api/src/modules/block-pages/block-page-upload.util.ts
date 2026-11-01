@@ -1,4 +1,5 @@
 import * as path from 'path';
+import * as fs from 'fs/promises';
 import { BadRequestException } from '@nestjs/common';
 
 const TENANT_ID_RE =
@@ -83,7 +84,7 @@ const JPEG_SIG = Buffer.from([0xff, 0xd8, 0xff]);
 const WEBP_RIFF = Buffer.from('RIFF');
 const WEBP_MAGIC = Buffer.from('WEBP');
 
-export function assertLogoUploadBytes(buffer: Buffer, mimetype: string): void {
+export function assertLogoUploadBytes(buffer: Buffer, mimetype: string): Buffer {
   if (!buffer || buffer.length < 4) {
     throw new BadRequestException('Invalid logo file');
   }
@@ -117,4 +118,23 @@ export function assertLogoUploadBytes(buffer: Buffer, mimetype: string): void {
     default:
       throw new BadRequestException('Unsupported logo type');
   }
+  return buffer;
+}
+
+export async function writeValidatedLogoFile(
+  absolutePath: string,
+  uploadRoot: string,
+  buffer: Buffer,
+  mimetype: string,
+): Promise<void> {
+  const rootResolved = path.resolve(uploadRoot);
+  const resolved = path.resolve(absolutePath);
+  if (
+    resolved !== rootResolved &&
+    !resolved.startsWith(`${rootResolved}${path.sep}`)
+  ) {
+    throw new BadRequestException('Invalid upload path');
+  }
+  const validated = assertLogoUploadBytes(buffer, mimetype);
+  await fs.writeFile(resolved, validated);
 }

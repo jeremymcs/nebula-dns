@@ -20,8 +20,8 @@ import { ConfigService } from '@nestjs/config';
 import { BlockPagesService } from './block-pages.service';
 import { CreateAccessRequestDto } from './dto/block-page.dto';
 import {
-  assertTenantUploadId,
   assertSafeUploadFilename,
+  resolveTenantUploadFile,
 } from './block-page-upload.util';
 
 function resolveClientIp(req: Request): string {
@@ -30,6 +30,15 @@ function resolveClientIp(req: Request): string {
     return forwarded.split(',')[0].trim();
   }
   return req.ip || req.socket.remoteAddress || 'unknown';
+}
+
+function contentTypeForLogoFilename(filename: string): string {
+  const lower = filename.toLowerCase();
+  if (lower.endsWith('.png')) return 'image/png';
+  if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+  if (lower.endsWith('.webp')) return 'image/webp';
+  if (lower.endsWith('.svg')) return 'image/svg+xml';
+  return 'application/octet-stream';
 }
 
 @ApiTags('block-pages')
@@ -53,13 +62,16 @@ export class BlockPagesPublicController {
     @Param('filename') filename: string,
     @Res() res: Response,
   ) {
-    assertTenantUploadId(tenantId);
-    const safeName = assertSafeUploadFilename(filename);
-    const tenantRoot = path.join(this.uploadRoot, tenantId);
-    const filePath = path.join(tenantRoot, safeName);
+    const filePath = resolveTenantUploadFile(
+      this.uploadRoot,
+      tenantId,
+      filename,
+    );
     try {
-      await fs.access(filePath);
-      return res.sendFile(safeName, { root: tenantRoot });
+      const body = await fs.readFile(filePath);
+      const safeName = assertSafeUploadFilename(filename);
+      res.type(contentTypeForLogoFilename(safeName));
+      return res.send(body);
     } catch {
       throw new NotFoundException('Logo not found');
     }
