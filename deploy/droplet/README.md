@@ -157,7 +157,7 @@ Create **DNS only** A records pointing at the droplet public IPv4:
 | dns1 | A | `<droplet-ip>` | DNS only |
 | dns2 | A | `<droplet-ip>` | DNS only |
 
-Configure both `shield.fluxlabs.net` and `nebuladns.io` zones as needed. Vercel handles `app` and `admin` CNAME/A records for the UI projects.
+Configure both `shield.fluxlabs.net` (marketing www) and `app.shield.fluxlabs.net` (tenant app) on Vercel; point `app.shield.fluxlabs.net` at the **nebula-dns-app** project and `shield.fluxlabs.net` at **nebula-dns-www**. Legacy **`*.nebuladns.io`** hostnames remain in the Caddyfile and certificate sync so existing clients keep working.
 
 ## 6. Start the stack
 
@@ -189,7 +189,8 @@ docker compose ps
 | Integration | URL / setting |
 |-------------|----------------|
 | Vercel UI `API_URL` | `https://api.shield.fluxlabs.net` (or legacy `https://api.nebuladns.io`) |
-| API `FRONTEND_URL` | Your Vercel app URL |
+| API `FRONTEND_URL` | `https://app.shield.fluxlabs.net` |
+| API `CORS_ORIGINS` | `https://app.shield.fluxlabs.net,https://shield.fluxlabs.net,https://admin.shield.fluxlabs.net` |
 | API `ADMIN_URL` | Your Vercel admin URL |
 | API `CORS_ORIGINS` | Comma-separated app/admin origins |
 | Stripe **live** keys | `STRIPE_SECRET_KEY=sk_live_…`, `STRIPE_WEBHOOK_SECRET=whsec_…` (live mode in Dashboard) |

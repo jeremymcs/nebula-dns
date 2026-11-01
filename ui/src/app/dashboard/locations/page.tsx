@@ -10,6 +10,7 @@
 import { useState, useMemo } from 'react'
 import { useLocations, usePolicies } from '@/hooks/useApi'
 import { api, API_URL } from '@/lib/api'
+import { DNS1_HOST } from '@/lib/public-urls'
 import { useToast } from '@/components/Toast'
 import { Button, Card, Badge, Modal } from '@/components/ui'
 import { ZoneEditorModal, ZoneFormData } from '@/components/zones'
@@ -722,7 +723,7 @@ export default function LocationsPage() {
               </span>
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(`https://doh.nebuladns.io/dns-query?token=${generatedToken?.token}`)
+                  navigator.clipboard.writeText(`https://${DNS1_HOST}/dns-query?token=${generatedToken?.token}`)
                   showToast('success', 'Endpoint URL copied')
                 }}
                 className="text-xs text-nebula-500 hover:text-nebula-400 font-medium flex items-center gap-1"
@@ -732,7 +733,7 @@ export default function LocationsPage() {
               </button>
             </div>
             <code className="text-sm font-mono text-space-800 dark:text-space-200 break-all block">
-              https://doh.nebuladns.io/dns-query?token=<span className="text-nebula-500">{generatedToken?.token.substring(0, 16)}...</span>
+              https://${DNS1_HOST}/dns-query?token=<span className="text-nebula-500">{generatedToken?.token.substring(0, 16)}...</span>
             </code>
           </div>
 
@@ -754,7 +755,7 @@ export default function LocationsPage() {
             variant="ghost"
             size="sm"
             onClick={() => {
-              const text = `DoH Token: ${generatedToken?.token}\nEndpoint: https://doh.nebuladns.io/dns-query?token=${generatedToken?.token}`
+              const text = `DoH Token: ${generatedToken?.token}\nEndpoint: https://${DNS1_HOST}/dns-query?token=${generatedToken?.token}`
               navigator.clipboard.writeText(text)
               showToast('success', 'All details copied')
             }}

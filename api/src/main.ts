@@ -17,6 +17,7 @@ import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { getExpressTrustProxySetting } from './common/http/client-ip';
 import { validateEncryptionConfig } from './config/encryption.config';
+import { defaultCorsOrigins } from './common/public-urls';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -60,13 +61,10 @@ async function bootstrap() {
   app.useGlobalFilters(new GlobalExceptionFilter());
 
   // CORS configuration - Using non-standard ports
-  const corsOrigins = process.env.CORS_ORIGINS?.split(',') || [
-    'http://localhost:4010', // API (for self-reference)
-    'http://localhost:4011', // UI (Docker)
-    'http://localhost:4012', // UI (Local dev)
-    'http://localhost:3000', // Fallback for local dev
-    'http://localhost:3001', // Fallback for local dev
-  ];
+  const corsOrigins =
+    process.env.CORS_ORIGINS?.split(',')
+      .map((o) => o.trim())
+      .filter(Boolean) || defaultCorsOrigins();
 
   app.enableCors({
     origin: corsOrigins,

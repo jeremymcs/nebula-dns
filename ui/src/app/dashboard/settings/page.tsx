@@ -24,6 +24,7 @@ import { Card, Button, Badge, Input } from '@/components/ui'
 import { useTenant } from '@/hooks/useApi'
 import { api } from '@/lib/api'
 import { useToast } from '@/components/Toast'
+import { DNS1_HOST, DNS2_HOST } from '@/lib/public-urls'
 
 interface TenantSettings {
   timezone?: string
@@ -352,22 +353,22 @@ export default function SettingsPage() {
                   <div>
                     <h3 className="text-sm font-medium text-space-900 dark:text-white mb-2">DNS Resolver Addresses</h3>
                     <div className="bg-space-50 dark:bg-space-800 rounded-xl p-4 font-mono text-sm border border-space-200 dark:border-space-700">
-                      <p className="text-space-700 dark:text-space-300">Primary: <span className="text-primary-600 dark:text-primary-400">dns1.nebuladns.io</span></p>
-                      <p className="text-space-700 dark:text-space-300">Secondary: <span className="text-primary-600 dark:text-primary-400">dns2.nebuladns.io</span></p>
+                      <p className="text-space-700 dark:text-space-300">Primary: <span className="text-primary-600 dark:text-primary-400">{DNS1_HOST}</span></p>
+                      <p className="text-space-700 dark:text-space-300">Secondary: <span className="text-primary-600 dark:text-primary-400">{DNS2_HOST}</span></p>
                     </div>
                   </div>
 
                   <div>
                     <h3 className="text-sm font-medium text-space-900 dark:text-white mb-2">DoH Endpoint</h3>
                     <div className="bg-space-50 dark:bg-space-800 rounded-xl p-4 font-mono text-sm border border-space-200 dark:border-space-700">
-                      <p className="text-space-700 dark:text-space-300 break-all">https://doh.nebuladns.io/dns-query?token=YOUR_TOKEN</p>
+                      <p className="text-space-700 dark:text-space-300 break-all">https://{DNS1_HOST}/dns-query?token=YOUR_TOKEN</p>
                     </div>
                   </div>
 
                   <div>
                     <h3 className="text-sm font-medium text-space-900 dark:text-white mb-2">DoT Endpoint</h3>
                     <div className="bg-space-50 dark:bg-space-800 rounded-xl p-4 font-mono text-sm border border-space-200 dark:border-space-700">
-                      <p className="text-space-700 dark:text-space-300">dot.nebuladns.io:853</p>
+                      <p className="text-space-700 dark:text-space-300">{DNS1_HOST}:853</p>
                     </div>
                   </div>
                 </div>

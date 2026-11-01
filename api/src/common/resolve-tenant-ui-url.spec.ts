@@ -15,7 +15,7 @@ describe('resolveTenantUiOrigin', () => {
       resolveTenantUiOrigin({
         nodeEnv: 'production',
       }),
-    ).toBe('https://shield.fluxlabs.net');
+    ).toBe('https://app.shield.fluxlabs.net');
   });
 
   it('falls back to Flux Shield app URL on Vercel production when unset', () => {
@@ -24,7 +24,7 @@ describe('resolveTenantUiOrigin', () => {
         nodeEnv: 'development',
         vercelEnv: 'production',
       }),
-    ).toBe('https://shield.fluxlabs.net');
+    ).toBe('https://app.shield.fluxlabs.net');
   });
 
   it('uses localhost only in non-production dev', () => {
