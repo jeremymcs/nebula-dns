@@ -63,6 +63,10 @@ import { OnboardingModule } from './modules/onboarding/onboarding.module';
 // Distributed Rate Limiting
 import { RateLimitModule } from './modules/rate-limit/rate-limit.module';
 
+// Threat intelligence & category blacklists (Redis → policy-svc)
+import { ThreatFeedsModule } from './modules/threat-feeds/threat-feeds.module';
+import { CategoryFeedsModule } from './modules/category-feeds/category-feeds.module';
+
 // Secrets Management
 import { SecretsModule } from './modules/secrets/secrets.module';
 
@@ -201,6 +205,9 @@ import { getPostgresSslConfig } from './database/pg-ssl';
 
     // Distributed Rate Limiting (Redis-backed)
     RateLimitModule,
+
+    ThreatFeedsModule,
+    CategoryFeedsModule,
 
     // Secrets Management (AWS/Vault/env)
     SecretsModule,

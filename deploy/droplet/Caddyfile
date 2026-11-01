@@ -2,7 +2,7 @@
   email {$ACME_EMAIL}
 }
 
-api.nebuladns.io {
+api.nebuladns.io, api.shield.fluxlabs.net {
   encode gzip
   reverse_proxy api:3000
 }
@@ -16,8 +16,10 @@ api.nebuladns.io {
   }
 }
 
-dns1.nebuladns.io, dns2.nebuladns.io {
-  # Single ACME certificate with SANs for both names (used by Caddy DoH and synced to dnsdist DoT).
+dns1.nebuladns.io, dns2.nebuladns.io, dns1.shield.fluxlabs.net, dns2.shield.fluxlabs.net {
+  # Caddy issues one ACME certificate per hostname (not a single multi-SAN cert).
+  # sync-caddy-certs.sh copies the primary cert to server.crt/key and additional hostnames
+  # to sni-*.crt/key so dnsdist DoT on :853 can present the correct cert per SNI.
   # Public DoH on :443 (TLS terminated here). Backend DoH listens on dnsdist:8443.
   reverse_proxy https://dnsdist:8443 {
     header_up Host {host}

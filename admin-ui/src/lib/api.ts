@@ -6,13 +6,14 @@
  */
 
 import { AdminRole } from './admin-permissions'
+import { resolveTenantUiOrigin } from '../../../shared/resolve-tenant-ui-url'
 
 // Runtime configuration - prefers runtime env vars over build-time NEXT_PUBLIC_ vars
 export const API_URL =
   typeof window === 'undefined'
     ? process.env.API_URL || 'http://localhost:4010'
     : '/backend'
-export const TENANT_UI_URL = process.env.TENANT_UI_URL || process.env.NEXT_PUBLIC_TENANT_UI_URL || 'http://localhost:4011'
+export const TENANT_UI_URL = resolveTenantUiOrigin()
 
 /**
  * Admin user object returned from authentication and profile endpoints
