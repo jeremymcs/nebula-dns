@@ -103,8 +103,52 @@ export async function installBackendMocks(
   })
 
   await page.route('**/backend/api-keys**', async (route) => {
+    if (route.request().method() === 'POST') {
+      await route.fulfill(
+        jsonResponse({
+          key: 'nneb_e2e_test_key_shown_once',
+          keyId: 'key-e2e-1',
+          name: 'Test API Key',
+        }),
+      )
+      return
+    }
     await route.fulfill(
       jsonResponse({ data: [], pagination: { cursor: null, hasMore: false } }),
     )
+  })
+
+  await page.route('**/backend/mfa/**', async (route) => {
+    const url = route.request().url()
+    if (url.includes('/status')) {
+      await route.fulfill(
+        jsonResponse({
+          enabled: false,
+          backupCodes: { total: 10, remaining: 10 },
+        }),
+      )
+      return
+    }
+    if (url.includes('/setup')) {
+      await route.fulfill(
+        jsonResponse({
+          data: {
+            secret: 'TESTMFASECRET',
+            qrCodeUrl: 'otpauth://totp/FluxShield:test?secret=TESTMFASECRET',
+            backupCodes: ['code-1', 'code-2'],
+          },
+        }),
+      )
+      return
+    }
+    await route.fulfill(jsonResponse({ ok: true }))
+  })
+
+  await page.route('**/backend/sessions**', async (route) => {
+    await route.fulfill(jsonResponse({ data: [] }))
+  })
+
+  await page.route('**/backend/audit-logs**', async (route) => {
+    await route.fulfill(jsonResponse({ data: [], pagination: { cursor: null, hasMore: false } }))
   })
 }

@@ -15,7 +15,7 @@ test.describe('API Keys - Management', () => {
     await expect(page).toHaveURL(/\/dashboard\/settings\/api-keys/)
     
     // Verify page heading is visible
-    const heading = page.getByRole('heading', { name: /api keys|api key|api-key/i })
+    const heading = page.getByRole('heading', { name: /^API Keys$/i })
     expect(await heading.isVisible()).toBeTruthy()
     
     // Verify description or subtitle
@@ -90,16 +90,14 @@ test.describe('API Keys - Management', () => {
     const createButton = page.getByRole('button', { name: /create.*api.*key|new.*api.*key|generate/i })
     await createButton.click()
     
-    // Should show modal or form
-    const modal = page.getByRole('dialog')
-    const form = page.getByRole('form')
+    // Should show modal or form (custom modal, not always role=dialog)
+    const modalHeading = page.getByRole('heading', { name: /create api key/i })
     const nameInput = page.getByLabel(/key name|name|label|description/i)
-    
-    const modalVisible = await modal.isVisible().catch(() => false)
-    const formVisible = await form.isVisible().catch(() => false)
+
+    const headingVisible = await modalHeading.isVisible().catch(() => false)
     const inputVisible = await nameInput.isVisible().catch(() => false)
-    
-    expect(modalVisible || formVisible || inputVisible).toBeTruthy()
+
+    expect(headingVisible || inputVisible).toBeTruthy()
   })
 
   test('should require key name when creating API key', async ({ page }) => {
@@ -124,51 +122,35 @@ test.describe('API Keys - Management', () => {
   })
 
   test('should create API key with name', async ({ page }) => {
-    // Open create modal
-    const createButton = page.getByRole('button', { name: /create.*api.*key|new.*api.*key|generate/i })
+    const createButton = page.getByRole('button', { name: /create api key/i })
     await createButton.click()
-    
-    // Fill in key name
-    const nameInput = page.getByLabel(/key name|name|label|description/i)
+
+    const nameInput = page.getByRole('textbox').first()
     await nameInput.fill('Test API Key')
-    
-    // Optional: select permissions/scopes
-    const permissionsSelect = page.getByLabel(/permissions|scopes|access/i)
-    if (await permissionsSelect.isVisible().catch(() => false)) {
-      await permissionsSelect.click()
-      const readOption = page.getByText(/read|read-only/i)
-      if (await readOption.isVisible().catch(() => false)) {
-        await readOption.click()
-      }
-    }
-    
-    // Submit form
-    const submitButton = page.getByRole('button', { name: /create|generate|save/i })
+
+    const submitButton = page.getByRole('button', { name: /create key/i })
     await submitButton.click()
     
     // Should show success message or the created key
     await page.waitForTimeout(1500)
     
-    const successMessage = page.getByText(/success|created|generated|api key/i)
-    const keyDisplay = page.getByText(/nneb_[:a-zA-Z0-9]+|your.*key|save.*key/i)
-    
-    const successVisible = await successMessage.isVisible().catch(() => false)
-    const keyVisible = await keyDisplay.isVisible().catch(() => false)
-    
+    const successMessage = page.getByRole('heading', { name: /api key created/i })
+    const keyDisplay = page.getByText(/nneb_|your api key|copy/i)
+
+    const successVisible = await successMessage.isVisible({ timeout: 5000 }).catch(() => false)
+    const keyVisible = await keyDisplay.first().isVisible().catch(() => false)
+
     expect(successVisible || keyVisible).toBeTruthy()
   })
 
   test('should show warning about API key shown once', async ({ page }) => {
-    // Create a new API key
-    const createButton = page.getByRole('button', { name: /create.*api.*key|new.*api.*key|generate/i })
+    const createButton = page.getByRole('button', { name: /create api key/i })
     await createButton.click()
-    
-    // Fill name
-    const nameInput = page.getByLabel(/key name|name|label/i)
+
+    const nameInput = page.getByRole('textbox').first()
     await nameInput.fill('Test Key Warning')
-    
-    // Submit
-    const submitButton = page.getByRole('button', { name: /create|generate/i })
+
+    const submitButton = page.getByRole('button', { name: /create key/i })
     await submitButton.click()
     
     // Wait for response

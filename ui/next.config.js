@@ -31,6 +31,11 @@ const nextConfig = {
   // MSP users now access client management through /dashboard/clients
   async redirects() {
     return [
+      {
+        source: '/login',
+        destination: '/',
+        permanent: false,
+      },
       // Partner login redirects to main login
       {
         source: '/partner/login',

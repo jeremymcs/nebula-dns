@@ -67,7 +67,58 @@ const server = http.createServer((req, res) => {
     return
   }
 
+  if (url.startsWith('/api-keys') && req.method === 'POST') {
+    res.writeHead(200)
+    res.end(
+      JSON.stringify({
+        key: 'nneb_e2e_test_key_shown_once',
+        keyId: 'key-e2e-1',
+        name: 'Test API Key',
+      }),
+    )
+    return
+  }
+
   if (url.startsWith('/api-keys')) {
+    res.writeHead(200)
+    res.end(JSON.stringify({ data: [], pagination: { cursor: null, hasMore: false } }))
+    return
+  }
+
+  if (url.startsWith('/mfa/')) {
+    res.writeHead(200)
+    if (url.includes('status')) {
+      res.end(
+        JSON.stringify({
+          enabled: false,
+          backupCodes: { total: 10, remaining: 10 },
+        }),
+      )
+      return
+    }
+    if (url.includes('setup')) {
+      res.end(
+        JSON.stringify({
+          data: {
+            secret: 'TESTMFASECRET',
+            qrCodeUrl: 'otpauth://totp/FluxShield:test?secret=TESTMFASECRET',
+            backupCodes: ['code-1', 'code-2'],
+          },
+        }),
+      )
+      return
+    }
+    res.end(JSON.stringify({ ok: true }))
+    return
+  }
+
+  if (url.startsWith('/sessions')) {
+    res.writeHead(200)
+    res.end(JSON.stringify({ data: [] }))
+    return
+  }
+
+  if (url.startsWith('/audit-logs')) {
     res.writeHead(200)
     res.end(JSON.stringify({ data: [], pagination: { cursor: null, hasMore: false } }))
     return
