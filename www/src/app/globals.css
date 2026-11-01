@@ -5,11 +5,11 @@
  * Global Styles - Flux Shield Design C (light)
  */
 
-@import '../../../shared/flux-shield-design-tokens.css';
+@import '../styles/flux-shield-design-tokens.css';
 
 @tailwind base;
 @tailwind components;
-@import '../../../shared/flux-shield-components.css';
+@import '../styles/flux-shield-components.css';
 @tailwind utilities;
 
 @layer base {
