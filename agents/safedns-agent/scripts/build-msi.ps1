@@ -59,10 +59,23 @@ $msi = Join-Path $dist $msiName
 
 $parts = $Version.Split(".")
 while ($parts.Count -lt 4) { $parts += "0" }
-$wixVersion = ($parts[0..3] -join ".")
+$productVersionQuad = ($parts[0..3] -join ".")
 
-Write-Host "Compiling WiX (product version $wixVersion)..."
-& candle.exe -nologo -dProductVersion=$wixVersion $wxs -out $obj
+$wxiPath = Join-Path $dist "_ProductVersion.wxi"
+@"
+<?xml version="1.0" encoding="UTF-8"?>
+<Include>
+  <?define ProductVersion = "$productVersionQuad" ?>
+</Include>
+"@ | Set-Content -Path $wxiPath -Encoding UTF8
+
+Write-Host "Compiling WiX (product version $productVersionQuad)..."
+$candleArgs = @(
+  "-nologo",
+  $wxs,
+  "-out", $obj
+)
+& candle.exe @candleArgs
 if ($LASTEXITCODE -ne 0) { throw "candle failed" }
 
 Write-Host "Linking MSI..."

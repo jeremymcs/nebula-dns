@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <?include $(sys.SOURCEFILEDIR)..\dist\_ProductVersion.wxi ?>
   <Product Id="*"
            Name="Flux Shield Agent"
            Language="1033"
