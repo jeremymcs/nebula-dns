@@ -1,6 +1,6 @@
 /**
  * Supertest helper for API E2E tests.
- * Uses a unique client IP per HTTP verb so strict login rate limits do not flake.
+ * Uses a unique client IP per HTTP verb so strict login rate limits do not flake across suites.
  */
 
 import * as supertestModule from 'supertest';
