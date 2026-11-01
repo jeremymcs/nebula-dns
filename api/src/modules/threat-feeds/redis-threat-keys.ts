@@ -34,6 +34,19 @@ export function categorySetKey(category: string): string {
   return `${REDIS_CATEGORY_SET_PREFIX}${category}`;
 }
 
+/** @deprecated Legacy unsharded key — removed after sharded load */
+export function legacyCategorySetKey(category: string): string {
+  return categorySetKey(category);
+}
+
+export function categoryShardKey(category: string, shard: number): string {
+  return `${REDIS_CATEGORY_SET_PREFIX}${category}:${shard}`;
+}
+
+export function categoryShardStagingKey(category: string, shard: number): string {
+  return `${categoryShardKey(category, shard)}${REDIS_STAGING_SUFFIX}`;
+}
+
 export function categoryStagingKey(category: string): string {
   return `${categorySetKey(category)}${REDIS_STAGING_SUFFIX}`;
 }

@@ -56,7 +56,7 @@ func TestCategoryRedisSetSchema(t *testing.T) {
 	}
 
 	testCache.SetPolicy(ctx, policy)
-	testRedisClient.SAdd(ctx, "nebula:categories:gambling", "bet.example.org")
+	addShardedCategoryDomain(ctx, "gambling", "bet.example.org")
 
 	result := testPolicyService.Evaluate(ctx, &models.EvaluateRequest{
 		TenantID:   "tenant-1",

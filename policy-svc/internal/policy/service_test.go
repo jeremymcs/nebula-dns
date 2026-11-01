@@ -47,19 +47,33 @@ func (m *MockCache) CheckThreatDomain(ctx context.Context, domain string) (strin
 }
 
 func (m *MockCache) GetDomainCategory(ctx context.Context, domain string) string {
-	category, ok := m.categories[domain]
-	if ok {
-		return category
+	return m.lookupCategory(domain, contentCategoryOrderForMock(domain))
+}
+
+func (m *MockCache) FindDomainCategory(ctx context.Context, domain string, candidateCategories []string) string {
+	return m.lookupCategory(domain, candidateCategories)
+}
+
+func (m *MockCache) lookupCategory(domain string, candidates []string) string {
+	candidateSet := make(map[string]struct{}, len(candidates))
+	for _, c := range candidates {
+		candidateSet[c] = struct{}{}
 	}
-	// Try parent domain
 	parts := strings.Split(domain, ".")
-	for i := 1; i < len(parts); i++ {
-		parent := strings.Join(parts[i:], ".")
-		if category, ok := m.categories[parent]; ok {
-			return category
+	for i := 0; i < len(parts)-1; i++ {
+		suffix := strings.Join(parts[i:], ".")
+		if cat, ok := m.categories[suffix]; ok {
+			if _, allowed := candidateSet[cat]; allowed || len(candidates) == 0 {
+				return cat
+			}
 		}
 	}
 	return ""
+}
+
+func contentCategoryOrderForMock(domain string) []string {
+	_ = domain
+	return []string{"gambling", "social_media", "gaming", "news", "malware", "phishing", "adult"}
 }
 
 func (m *MockCache) IsTenantSuspended(ctx context.Context, tenantID string) bool {
