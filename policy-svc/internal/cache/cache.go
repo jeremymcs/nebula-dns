@@ -39,8 +39,10 @@ type PolicyCache struct {
 	threatDomains map[string]string // domain -> threat type
 	threatMu      sync.RWMutex
 
-	categories   map[string]string // domain -> category
+	categories   map[string]categoryMemEntry
 	categoriesMu sync.RWMutex
+
+	categoryShardCount int
 
 	// US-029: Subscription status cache for billing enforcement
 	subscriptionStatus   map[string]models.SubscriptionStatus // key: tenantId
@@ -73,8 +75,9 @@ func NewPolicyCache(redisClient *redis.Client, logger *zap.Logger, m *metrics.Me
 		tokens:             make(map[string]*TokenInfo),
 		ipRanges:           make([]IPRangeEntry, 0),
 		threatDomains:      make(map[string]string),
-		categories:         make(map[string]string),
+		categories:         make(map[string]categoryMemEntry),
 		subscriptionStatus: make(map[string]models.SubscriptionStatus),
+		categoryShardCount: CategoryShardCountFromEnv(),
 	}
 }
 
@@ -234,59 +237,37 @@ func (c *PolicyCache) CheckThreatDomain(ctx context.Context, domain string) (str
 	c.threatMu.RUnlock()
 
 	suffixes := domainLabelSuffixes(domain)
+	pipe := c.redis.Pipeline()
+	type lookup struct {
+		threatCat string
+		cmd       *redis.BoolCmd
+	}
+	lookups := make([]lookup, 0, len(suffixes)*len(threatCategoryOrder))
+
 	for _, threatCat := range threatCategoryOrder {
 		setKey := threatSetKey(threatCat)
 		for _, suffix := range suffixes {
-			isMember, err := c.redis.SIsMember(ctx, setKey, suffix).Result()
-			if err != nil {
-				c.logger.Debug("Threat set lookup failed", zap.String("key", setKey), zap.Error(err))
-				continue
-			}
-			if isMember {
-				c.threatMu.Lock()
-				c.threatDomains[domain] = threatCat
-				c.threatMu.Unlock()
-				return threatCat, true
-			}
+			lookups = append(lookups, lookup{
+				threatCat: threatCat,
+				cmd:       pipe.SIsMember(ctx, setKey, suffix),
+			})
+		}
+	}
+
+	if _, err := pipe.Exec(ctx); err != nil && err != redis.Nil {
+		c.logger.Debug("Threat pipeline failed", zap.Error(err))
+	}
+
+	for _, l := range lookups {
+		if l.cmd.Val() {
+			c.threatMu.Lock()
+			c.threatDomains[domain] = l.threatCat
+			c.threatMu.Unlock()
+			return l.threatCat, true
 		}
 	}
 
 	return "", false
-}
-
-// GetDomainCategory returns the category for a domain (Redis sets + parent suffix walk).
-func (c *PolicyCache) GetDomainCategory(ctx context.Context, domain string) string {
-	domain = strings.ToLower(strings.TrimSpace(domain))
-	if domain == "" {
-		return ""
-	}
-
-	c.categoriesMu.RLock()
-	if category, exists := c.categories[domain]; exists {
-		c.categoriesMu.RUnlock()
-		return category
-	}
-	c.categoriesMu.RUnlock()
-
-	suffixes := domainLabelSuffixes(domain)
-	for _, cat := range contentCategoryOrder {
-		setKey := categorySetKey(cat)
-		for _, suffix := range suffixes {
-			isMember, err := c.redis.SIsMember(ctx, setKey, suffix).Result()
-			if err != nil {
-				c.logger.Debug("Category set lookup failed", zap.String("key", setKey), zap.Error(err))
-				continue
-			}
-			if isMember {
-				c.categoriesMu.Lock()
-				c.categories[domain] = cat
-				c.categoriesMu.Unlock()
-				return cat
-			}
-		}
-	}
-
-	return ""
 }
 
 // StartSubscriber listens for cache invalidation messages
@@ -339,7 +320,7 @@ func (c *PolicyCache) handleInvalidation(payload string) {
 
 	case "categories":
 		c.categoriesMu.Lock()
-		c.categories = make(map[string]string)
+		c.categories = make(map[string]categoryMemEntry)
 		c.categoriesMu.Unlock()
 		c.logger.Debug("Invalidated category cache")
 

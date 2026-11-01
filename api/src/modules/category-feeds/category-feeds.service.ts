@@ -1,21 +1,26 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
-import * as https from 'https';
-import * as http from 'http';
 import { RedisService } from '../redis/redis.service';
 import {
   DEFAULT_UT1_SOURCE_CATEGORIES,
   UT1_CATEGORY_MAP,
-  UT1_TAR_URL,
-  olbatDomainsUrl,
 } from './ut1-category-map';
-import { extractUt1DomainsFromTarGz, parseDomainLines } from './ut1-tar-extract';
 import {
-  rebuildCategoryContentSet,
-  storeFeedMeta,
-} from '../threat-feeds/redis-set-swap';
-import { categorySetKey } from '../threat-feeds/redis-threat-keys';
+  categoryDomainShard,
+  resolveCategoryShardCount,
+} from './category-domain-shard';
+import {
+  deleteLegacyCategoryKey,
+  ShardedCategoryStreamWriter,
+  sumCategoryShardCounts,
+} from './category-shard-redis';
+import { categoryShardKey } from '../threat-feeds/redis-threat-keys';
+import { storeFeedMeta } from '../threat-feeds/redis-set-swap';
+import {
+  streamOlbatUt1CategoryMapped,
+  streamUt1TarGzCategories,
+} from './ut1-stream-loader';
 
 export interface CategoryLoadStats {
   lastRun: Date | null;
@@ -23,7 +28,10 @@ export interface CategoryLoadStats {
   byCategory: Record<string, number>;
   ut1CategoriesLoaded: number;
   enabledUt1Sources: string[];
+  shardCount: number;
 }
+
+const MIN_LIVE_FRACTION = 0.5;
 
 @Injectable()
 export class CategoryFeedsService implements OnModuleInit {
@@ -34,6 +42,7 @@ export class CategoryFeedsService implements OnModuleInit {
     byCategory: {},
     ut1CategoriesLoaded: 0,
     enabledUt1Sources: [],
+    shardCount: 16,
   };
 
   constructor(
@@ -57,15 +66,36 @@ export class CategoryFeedsService implements OnModuleInit {
     };
   }
 
+  getShardCount(): number {
+    return resolveCategoryShardCount(
+      this.configService.get<string>('CATEGORY_SHARD_COUNT'),
+    );
+  }
+
   getEnabledUt1SourceCategories(): string[] {
     const raw = this.configService.get<string>('CATEGORY_FEEDS_ENABLED');
     if (raw?.trim()) {
-      return raw
+      const list = raw
         .split(',')
         .map((s) => s.trim())
         .filter(Boolean);
+      if (list.includes('adult')) {
+        this.logger.log(
+          'Loading full UT1 adult list (explicit CATEGORY_FEEDS_ENABLED)',
+        );
+      }
+      return list;
     }
     return [...DEFAULT_UT1_SOURCE_CATEGORIES];
+  }
+
+  mappedFluxCategories(sources: string[]): string[] {
+    const out = new Set<string>();
+    for (const src of sources) {
+      const mapped = UT1_CATEGORY_MAP[src];
+      if (mapped) out.add(mapped);
+    }
+    return [...out];
   }
 
   @Cron('0 3 * * *', { timeZone: 'America/Chicago' })
@@ -74,75 +104,123 @@ export class CategoryFeedsService implements OnModuleInit {
   }
 
   async ensureCategoryDataLoaded(): Promise<void> {
+    const sources = this.getEnabledUt1SourceCategories();
+    const shardCount = this.getShardCount();
+    const fluxCats = this.mappedFluxCategories(sources);
     const redis = this.redisService.getClient();
-    const probeKey = categorySetKey('gambling');
-    const exists = await redis.exists(probeKey);
-    if (exists) {
-      this.logger.debug('Category Redis sets present; skipping startup full reload');
-      return;
+
+    for (const cat of fluxCats) {
+      if (await this.fluxCategoryShardsMissing(redis, cat, shardCount)) {
+        this.logger.log(
+          `Category ${cat} shards incomplete; running UT1 load`,
+        );
+        await this.loadUt1Categories();
+        return;
+      }
     }
-    await this.loadUt1Categories();
+    this.logger.debug('All enabled category shards present');
+  }
+
+  private async fluxCategoryShardsMissing(
+    redis: ReturnType<RedisService['getClient']>,
+    fluxCategory: string,
+    shardCount: number,
+  ): Promise<boolean> {
+    for (let s = 0; s < shardCount; s++) {
+      const exists = await redis.exists(categoryShardKey(fluxCategory, s));
+      if (!exists) return true;
+    }
+    return false;
   }
 
   async loadUt1Categories(): Promise<CategoryLoadStats> {
     const sources = this.getEnabledUt1SourceCategories();
+    const shardCount = this.getShardCount();
+    const redis = this.redisService.getClient();
+    const fluxCategories = this.mappedFluxCategories(sources);
+
     this.logger.log(
-      `Starting UT1 category load (${sources.length} source categories)`,
+      `UT1 load: ${sources.length} sources → ${fluxCategories.length} Flux categories, ${shardCount} shards each`,
     );
 
-    const redis = this.redisService.getClient();
-    const merged: Record<string, Set<string>> = {};
+    const writers = new Map<string, ShardedCategoryStreamWriter>();
+    for (const cat of fluxCategories) {
+      writers.set(
+        cat,
+        new ShardedCategoryStreamWriter(redis, cat, shardCount),
+      );
+    }
+
+    const ingest = async (ut1Category: string, domain: string) => {
+      const mapped = UT1_CATEGORY_MAP[ut1Category];
+      if (!mapped) return;
+      if (!this.isValidDomain(domain)) return;
+      const writer = writers.get(mapped);
+      if (writer) await writer.ingestDomain(domain);
+    };
+
     let ut1Loaded = 0;
     let lastError: string | null = null;
+    const tarLoaded = new Set<string>();
 
-    const fromTar = await this.tryLoadFromUt1Tar(sources);
-    for (const [ut1Cat, domains] of fromTar.entries()) {
-      const mapped = UT1_CATEGORY_MAP[ut1Cat];
-      if (!mapped || domains.length === 0) continue;
-      ut1Loaded++;
-      if (!merged[mapped]) merged[mapped] = new Set();
-      for (const d of domains) {
-        if (this.isValidDomain(d)) merged[mapped].add(d);
-      }
+    try {
+      const fromTar = await streamUt1TarGzCategories(
+        new Set(sources),
+        ingest,
+      );
+      fromTar.forEach((c) => tarLoaded.add(c));
+      ut1Loaded += fromTar.size;
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`UT1 tar stream failed: ${lastError}`);
     }
 
     for (const ut1Cat of sources) {
-      if (fromTar.has(ut1Cat)) continue;
-      const mapped = UT1_CATEGORY_MAP[ut1Cat];
-      if (!mapped) {
-        this.logger.warn(`Unknown UT1 category in CATEGORY_FEEDS_ENABLED: ${ut1Cat}`);
-        continue;
-      }
+      if (tarLoaded.has(ut1Cat)) continue;
       try {
-        const content = await this.fetchUrl(olbatDomainsUrl(ut1Cat));
-        const domains = parseDomainLines(content).filter((d) =>
-          this.isValidDomain(d),
-        );
-        if (domains.length === 0) {
-          this.logger.warn(`UT1 mirror ${ut1Cat} returned no domains`);
-          continue;
-        }
+        await streamOlbatUt1CategoryMapped(ut1Cat, ingest);
         ut1Loaded++;
-        if (!merged[mapped]) merged[mapped] = new Set();
-        for (const d of domains) merged[mapped].add(d);
       } catch (err) {
         lastError = err instanceof Error ? err.message : String(err);
         this.logger.warn(`UT1 mirror ${ut1Cat} failed: ${lastError}`);
       }
-      await this.delay(300);
     }
 
     const byCategory: Record<string, number> = {};
-    for (const [cat, set] of Object.entries(merged)) {
-      const domains = [...set];
-      await rebuildCategoryContentSet(redis, cat, domains);
-      byCategory[cat] = domains.length;
-      this.logger.log(
-        `Loaded ${domains.length} domains into ${categorySetKey(cat)}`,
+
+    for (const [fluxCat, writer] of writers.entries()) {
+      const previousLive = await sumCategoryShardCounts(
+        redis,
+        fluxCat,
+        shardCount,
       );
+
+      try {
+        const newCount = await writer.finalizeAll();
+        if (
+          previousLive > 0 &&
+          newCount < previousLive * MIN_LIVE_FRACTION
+        ) {
+          await writer.abortStaging();
+          lastError = `Refusing swap for ${fluxCat}: new count ${newCount} < 50% of live ${previousLive}`;
+          this.logger.warn(lastError);
+          byCategory[fluxCat] = previousLive;
+          continue;
+        }
+        await deleteLegacyCategoryKey(redis, fluxCat);
+        byCategory[fluxCat] = newCount;
+        this.logger.log(
+          `Category ${fluxCat}: ${newCount} domains across ${shardCount} shards (~${Math.ceil(newCount / shardCount)} per shard)`,
+        );
+      } catch (err) {
+        await writer.abortStaging();
+        lastError = err instanceof Error ? err.message : String(err);
+        this.logger.error(`Failed to finalize ${fluxCat}: ${lastError}`);
+        byCategory[fluxCat] = previousLive;
+      }
     }
 
-    if (Object.keys(byCategory).length > 0) {
+    if (Object.values(byCategory).some((n) => n > 0)) {
       await redis.publish(
         'nebula:invalidate',
         JSON.stringify({ type: 'categories' }),
@@ -151,7 +229,7 @@ export class CategoryFeedsService implements OnModuleInit {
 
     await storeFeedMeta(redis, {
       id: 'ut1-blacklists',
-      name: 'UT1 Blacklists (Université Toulouse Capitole)',
+      name: 'UT1 Blacklists (sharded)',
       entryCount: Object.values(byCategory).reduce((a, b) => a + b, 0),
       lastUpdated: new Date().toISOString(),
       lastError,
@@ -164,26 +242,14 @@ export class CategoryFeedsService implements OnModuleInit {
       byCategory,
       ut1CategoriesLoaded: ut1Loaded,
       enabledUt1Sources: sources,
+      shardCount,
     };
 
     return this.getStats();
   }
 
-  private async tryLoadFromUt1Tar(
-    categories: string[],
-  ): Promise<Map<string, string[]>> {
-    try {
-      const buffer = await this.fetchBuffer(UT1_TAR_URL);
-      return await extractUt1DomainsFromTarGz(buffer, categories);
-    } catch (err) {
-      this.logger.warn(
-        `UT1 tar.gz load failed, will use mirror fallback: ${err instanceof Error ? err.message : err}`,
-      );
-      return new Map();
-    }
-  }
-
-  private isValidDomain(domain: string): boolean {
+  /** Exported for tests */
+  isValidDomain(domain: string): boolean {
     if (!domain || domain.length < 3 || domain.length > 253) return false;
     if (!domain.includes('.')) return false;
     return /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/.test(
@@ -191,49 +257,8 @@ export class CategoryFeedsService implements OnModuleInit {
     );
   }
 
-  private async fetchBuffer(url: string): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-      const protocol = url.startsWith('https') ? https : http;
-      const request = protocol.get(
-        url,
-        {
-          headers: { 'User-Agent': 'FluxShield-CategoryLoader/1.0' },
-          timeout: 300_000,
-        },
-        (res) => {
-          if (res.statusCode === 301 || res.statusCode === 302) {
-            const loc = res.headers.location;
-            if (loc) {
-              this.fetchBuffer(loc).then(resolve).catch(reject);
-              return;
-            }
-          }
-          if (res.statusCode !== 200) {
-            reject(
-              new Error(`HTTP ${res.statusCode}: ${res.statusMessage ?? ''}`),
-            );
-            return;
-          }
-          const chunks: Buffer[] = [];
-          res.on('data', (chunk: Buffer) => chunks.push(chunk));
-          res.on('end', () => resolve(Buffer.concat(chunks)));
-          res.on('error', reject);
-        },
-      );
-      request.on('error', reject);
-      request.on('timeout', () => {
-        request.destroy();
-        reject(new Error('Request timeout'));
-      });
-    });
-  }
-
-  private async fetchUrl(url: string): Promise<string> {
-    const buffer = await this.fetchBuffer(url);
-    return buffer.toString('utf8');
-  }
-
-  private delay(ms: number): Promise<void> {
-    return new Promise((r) => setTimeout(r, ms));
+  /** @internal test helper */
+  shardForDomain(domain: string): number {
+    return categoryDomainShard(domain, this.getShardCount());
   }
 }

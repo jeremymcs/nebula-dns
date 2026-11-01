@@ -1,0 +1,11 @@
+{
+  "shardCount": 16,
+  "vectors": [
+    { "domain": "example.com", "shard": 6 },
+    { "domain": "evil.com", "shard": 8 },
+    { "domain": "sub.evil.com", "shard": 4 },
+    { "domain": "www.google.com", "shard": 10 },
+    { "domain": "a.co", "shard": 0 },
+    { "domain": "test-domain.example.org", "shard": 0 }
+  ]
+}
