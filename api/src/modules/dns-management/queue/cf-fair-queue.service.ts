@@ -58,7 +58,10 @@ export class CfFairQueueService {
         (await this.redisService.get(QUEUE_DEPTH_KEY)) || '0',
         10,
       );
-      await this.redisService.set(QUEUE_DEPTH_KEY, String(Math.max(0, current - 1)));
+      await this.redisService.set(
+        QUEUE_DEPTH_KEY,
+        String(Math.max(0, current - 1)),
+      );
     } catch {
       // Redis optional in tests
     }

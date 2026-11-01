@@ -3,9 +3,9 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import {
-  AdminDnsManagementController,
   DnsManagementController,
 } from './dns-management.controller';
+import { AdminDnsManagementController } from './admin-dns-management.controller';
 import { DnsManagementService } from './dns-management.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
@@ -36,7 +36,9 @@ describe('DnsManagementController', () => {
 
   it('lists zones for tenant', async () => {
     service.listTenantZones.mockResolvedValue([{ id: 'z1' }]);
-    await expect(controller.listZones('tenant-a')).resolves.toEqual([{ id: 'z1' }]);
+    await expect(controller.listZones('tenant-a')).resolves.toEqual([
+      { id: 'z1' },
+    ]);
     expect(service.listTenantZones).toHaveBeenCalledWith('tenant-a');
   });
 

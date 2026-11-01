@@ -51,13 +51,17 @@ export class UpdateScheduledReportsSchema1738000000000 implements MigrationInter
 
     // Migrate recipients text[] → jsonb
     // Must drop the old default first; PostgreSQL can't auto-cast text[] default to jsonb.
-    await queryRunner.query(`ALTER TABLE "scheduled_reports" ALTER COLUMN "recipients" DROP DEFAULT`);
+    await queryRunner.query(
+      `ALTER TABLE "scheduled_reports" ALTER COLUMN "recipients" DROP DEFAULT`,
+    );
     await queryRunner.query(`
       ALTER TABLE "scheduled_reports"
         ALTER COLUMN "recipients" TYPE jsonb
         USING to_jsonb("recipients")
     `);
-    await queryRunner.query(`ALTER TABLE "scheduled_reports" ALTER COLUMN "recipients" SET DEFAULT '[]'`);
+    await queryRunner.query(
+      `ALTER TABLE "scheduled_reports" ALTER COLUMN "recipients" SET DEFAULT '[]'`,
+    );
 
     // Drop old columns no longer in the entity
     await queryRunner.query(`
@@ -128,7 +132,9 @@ export class UpdateScheduledReportsSchema1738000000000 implements MigrationInter
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // report_history: restore old columns
-    await queryRunner.query(`ALTER TABLE "report_history" DROP CONSTRAINT IF EXISTS "FK_report_history_tenant"`);
+    await queryRunner.query(
+      `ALTER TABLE "report_history" DROP CONSTRAINT IF EXISTS "FK_report_history_tenant"`,
+    );
     await queryRunner.query(`
       ALTER TABLE "report_history"
         ADD COLUMN IF NOT EXISTS "sent_to" text[] DEFAULT '{}',
@@ -151,7 +157,9 @@ export class UpdateScheduledReportsSchema1738000000000 implements MigrationInter
     `);
 
     // scheduled_reports: restore old columns
-    await queryRunner.query(`ALTER TABLE "scheduled_reports" DROP CONSTRAINT IF EXISTS "FK_scheduled_reports_created_by"`);
+    await queryRunner.query(
+      `ALTER TABLE "scheduled_reports" DROP CONSTRAINT IF EXISTS "FK_scheduled_reports_created_by"`,
+    );
     await queryRunner.query(`
       ALTER TABLE "scheduled_reports"
         ADD COLUMN IF NOT EXISTS "schedule" varchar(100),

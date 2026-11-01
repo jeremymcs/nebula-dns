@@ -31,7 +31,11 @@ import {
   DnsProviderZone,
 } from './providers/dns-provider.interface';
 import { getEncryptionKey } from '../../config/encryption.config';
-import { encrypt, decrypt, deriveKey } from '../../common/utils/encryption.util';
+import {
+  encrypt,
+  decrypt,
+  deriveKey,
+} from '../../common/utils/encryption.util';
 import { LimitsService } from '../limits/limits.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { AdminActivityService } from '../admin/admin-activity.service';
@@ -129,7 +133,9 @@ export class DnsManagementService {
     return this.toConnectionDto(saved);
   }
 
-  async verifyPlatformConnection(adminId: string): Promise<PlatformConnectionResponseDto> {
+  async verifyPlatformConnection(
+    adminId: string,
+  ): Promise<PlatformConnectionResponseDto> {
     const connection = await this.requireActiveConnection();
     const token = this.decryptToken(connection.tokenCiphertext);
     const verify = await this.dnsProvider.verifyToken(token);
@@ -176,7 +182,9 @@ export class DnsManagementService {
     adminId: string;
   }): Promise<void> {
     if (!params.confirm) {
-      throw new BadRequestException('confirm must be true to revoke connection');
+      throw new BadRequestException(
+        'confirm must be true to revoke connection',
+      );
     }
 
     const connection = await this.getActivePlatformConnection();
@@ -607,7 +615,9 @@ export class DnsManagementService {
     };
   }
 
-  private toTenantZoneDto(assignment: DnsZoneAssignment): TenantZoneResponseDto {
+  private toTenantZoneDto(
+    assignment: DnsZoneAssignment,
+  ): TenantZoneResponseDto {
     return {
       id: assignment.id,
       zoneName: assignment.zoneName,

@@ -28,8 +28,7 @@ export function getPostgresSslConfig(): PostgresSslConfig {
     return { rejectUnauthorized: false };
   }
 
-  const caPath =
-    process.env.PGSSLROOTCERT || process.env.DATABASE_SSL_CA_PATH;
+  const caPath = process.env.PGSSLROOTCERT || process.env.DATABASE_SSL_CA_PATH;
   if (caPath && fs.existsSync(caPath)) {
     return {
       rejectUnauthorized: true,

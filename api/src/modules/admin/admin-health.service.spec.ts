@@ -121,10 +121,7 @@ describe('AdminHealthService', () => {
         'DNSDIST_URL',
         'http://dnsdist:8083',
       );
-      expect(mockConfigService.get).toHaveBeenCalledWith(
-        'DNSDIST_API_KEY',
-        '',
-      );
+      expect(mockConfigService.get).toHaveBeenCalledWith('DNSDIST_API_KEY', '');
       expect(mockConfigService.get).toHaveBeenCalledWith(
         'UNBOUND_HOST',
         'unbound',

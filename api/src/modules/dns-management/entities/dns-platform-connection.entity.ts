@@ -27,7 +27,12 @@ export class DnsPlatformConnection extends BaseEntity {
   @Column({ name: 'token_ciphertext', type: 'text' })
   tokenCiphertext: string;
 
-  @Column({ name: 'token_key_id', type: 'varchar', length: 50, default: 'primary' })
+  @Column({
+    name: 'token_key_id',
+    type: 'varchar',
+    length: 50,
+    default: 'primary',
+  })
   tokenKeyId: string;
 
   @Column({ name: 'token_fingerprint', type: 'varchar', length: 64 })

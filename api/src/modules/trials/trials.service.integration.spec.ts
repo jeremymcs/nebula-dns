@@ -53,7 +53,12 @@ describe('TrialsService Integration', () => {
           dropSchema: true,
           ssl: false,
         }),
-        TypeOrmModule.forFeature([TrialHistory, Tenant, Subscription, SubscriptionPlan]),
+        TypeOrmModule.forFeature([
+          TrialHistory,
+          Tenant,
+          Subscription,
+          SubscriptionPlan,
+        ]),
       ],
       providers: [
         TrialsService,
@@ -89,15 +94,45 @@ describe('TrialsService Integration', () => {
     trialHistoryRepository = module.get(getRepositoryToken(TrialHistory));
     tenantRepository = module.get(getRepositoryToken(Tenant));
     subscriptionRepository = module.get(getRepositoryToken(Subscription));
-    subscriptionPlanRepository = module.get(getRepositoryToken(SubscriptionPlan));
+    subscriptionPlanRepository = module.get(
+      getRepositoryToken(SubscriptionPlan),
+    );
     emailService = module.get<EmailService>(EmailService);
 
     // Seed plans required by subscription FK
-    const planBase = { currency: 'USD', features: { dns_filtering: true }, limits: { locations: 1, queries_per_month: 10000, users: 1, policies: 1, custom_lists: 0 } };
+    const planBase = {
+      currency: 'USD',
+      features: { dns_filtering: true },
+      limits: {
+        locations: 1,
+        queries_per_month: 10000,
+        users: 1,
+        policies: 1,
+        custom_lists: 0,
+      },
+    };
     await subscriptionPlanRepository.save([
-      subscriptionPlanRepository.create({ id: 'free', name: 'Free', priceMonthly: 0, priceYearly: 0, ...planBase }),
-      subscriptionPlanRepository.create({ id: 'pro', name: 'Pro', priceMonthly: 9.99, priceYearly: 99.99, ...planBase }),
-      subscriptionPlanRepository.create({ id: 'enterprise', name: 'Enterprise', priceMonthly: 29.99, priceYearly: 299.99, ...planBase }),
+      subscriptionPlanRepository.create({
+        id: 'free',
+        name: 'Free',
+        priceMonthly: 0,
+        priceYearly: 0,
+        ...planBase,
+      }),
+      subscriptionPlanRepository.create({
+        id: 'pro',
+        name: 'Pro',
+        priceMonthly: 9.99,
+        priceYearly: 99.99,
+        ...planBase,
+      }),
+      subscriptionPlanRepository.create({
+        id: 'enterprise',
+        name: 'Enterprise',
+        priceMonthly: 29.99,
+        priceYearly: 299.99,
+        ...planBase,
+      }),
     ]);
     paymentsService = module.get<PaymentsService>(PaymentsService);
   });
@@ -110,8 +145,16 @@ describe('TrialsService Integration', () => {
 
   beforeEach(async () => {
     // Clear database (delete children before parents to respect FK constraints)
-    await trialHistoryRepository.createQueryBuilder().delete().where('1=1').execute();
-    await subscriptionRepository.createQueryBuilder().delete().where('1=1').execute();
+    await trialHistoryRepository
+      .createQueryBuilder()
+      .delete()
+      .where('1=1')
+      .execute();
+    await subscriptionRepository
+      .createQueryBuilder()
+      .delete()
+      .where('1=1')
+      .execute();
     await tenantRepository.createQueryBuilder().delete().where('1=1').execute();
     jest.clearAllMocks();
   });

@@ -180,14 +180,18 @@ describe('DnsManagement cross-tenant isolation', () => {
   });
 
   it('tenant B cannot read tenant A records by assignment UUID (404)', async () => {
-    const tenantB = (await tenantRepo.findOne({ where: { slug: 'tenant-b' } }))!;
+    const tenantB = (await tenantRepo.findOne({
+      where: { slug: 'tenant-b' },
+    }))!;
     await expect(
       service.listTenantRecords(tenantB.id, zoneAId),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('tenant B cannot access tenant A zone by raw Cloudflare zone id', async () => {
-    const tenantB = (await tenantRepo.findOne({ where: { slug: 'tenant-b' } }))!;
+    const tenantB = (await tenantRepo.findOne({
+      where: { slug: 'tenant-b' },
+    }))!;
     const assignment = await service.resolveByProviderZoneIdForTenant(
       tenantB.id,
       providerZoneA,
@@ -196,14 +200,21 @@ describe('DnsManagement cross-tenant isolation', () => {
   });
 
   it('random assignment UUID returns 404 for tenant A', async () => {
-    const tenantA = (await tenantRepo.findOne({ where: { slug: 'tenant-a' } }))!;
+    const tenantA = (await tenantRepo.findOne({
+      where: { slug: 'tenant-a' },
+    }))!;
     await expect(
-      service.listTenantRecords(tenantA.id, '00000000-0000-4000-8000-000000000099'),
+      service.listTenantRecords(
+        tenantA.id,
+        '00000000-0000-4000-8000-000000000099',
+      ),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('tenant A can list only its own zone', async () => {
-    const tenantA = (await tenantRepo.findOne({ where: { slug: 'tenant-a' } }))!;
+    const tenantA = (await tenantRepo.findOne({
+      where: { slug: 'tenant-a' },
+    }))!;
     const zones = await service.listTenantZones(tenantA.id);
     expect(zones).toHaveLength(1);
     expect(zones[0].id).toBe(zoneAId);

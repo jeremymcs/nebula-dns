@@ -39,6 +39,8 @@ import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 import { TrialsModule } from '../trials/trials.module';
 import { SubscriptionLapseModule } from '../subscription-lapse/subscription-lapse.module';
 import { AlertingModule } from '../alerting/alerting.module';
+import { DnsManagementModule } from '../dns-management/dns-management.module';
+import { AdminDnsManagementController } from '../dns-management/admin-dns-management.controller';
 
 /**
  * Admin Module
@@ -108,10 +110,15 @@ import { AlertingModule } from '../alerting/alerting.module';
     TrialsModule,
     SubscriptionLapseModule,
     AlertingModule,
+    DnsManagementModule,
   ],
 
   // Admin API endpoints
-  controllers: [AdminController, AdminUsersController],
+  controllers: [
+    AdminController,
+    AdminUsersController,
+    AdminDnsManagementController,
+  ],
 
   // Services and strategy
   providers: [

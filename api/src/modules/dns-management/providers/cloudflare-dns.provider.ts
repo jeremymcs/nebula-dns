@@ -111,7 +111,12 @@ export class CloudflareDnsProvider implements DnsProvider {
       name: string;
       status: string;
       name_servers?: string[];
-    }>(apiToken, '/zones', { method: 'POST', body: JSON.stringify(body) }, 'admin');
+    }>(
+      apiToken,
+      '/zones',
+      { method: 'POST', body: JSON.stringify(body) },
+      'admin',
+    );
 
     return {
       providerZoneId: zone.id,
