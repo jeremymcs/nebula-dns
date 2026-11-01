@@ -95,13 +95,20 @@ describe('AdminDnsManagementController', () => {
     );
   });
 
+  it('returns JSON envelope when no connection is configured', async () => {
+    service.getPlatformConnectionStatus.mockResolvedValue(null);
+    await expect(controller.getConnection()).resolves.toEqual({
+      connection: null,
+    });
+  });
+
   it('does not expose token in get connection', async () => {
     service.getPlatformConnectionStatus.mockResolvedValue({
       id: 'conn-1',
       tokenFingerprint: 'abc123',
     });
     const result = await controller.getConnection();
-    expect(result).not.toHaveProperty('apiToken');
-    expect(result).not.toHaveProperty('tokenCiphertext');
+    expect(result.connection).not.toHaveProperty('apiToken');
+    expect(result.connection).not.toHaveProperty('tokenCiphertext');
   });
 });
