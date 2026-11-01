@@ -35,16 +35,12 @@ export class ExpoPushService {
       return [];
     }
 
-    if (!this.accessToken && !this.clientOverride) {
+    if (!this.accessToken) {
       this.logger.debug('EXPO_ACCESS_TOKEN not set; skipping push delivery');
       return messages.map(() => ({
         status: 'error' as const,
         message: 'Expo not configured',
       }));
-    }
-
-    if (this.clientOverride) {
-      return this.clientOverride.sendPushNotifications(messages);
     }
 
     const response = await fetch('https://exp.host/--/api/v2/push/send', {
