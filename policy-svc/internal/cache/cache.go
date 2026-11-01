@@ -101,9 +101,17 @@ func (c *PolicyCache) GetPolicy(ctx context.Context, locationID string) (*models
 	data, err := c.redis.Get(ctx, key).Bytes()
 	if err != nil {
 		if err == redis.Nil {
-			return nil, nil
+			c.requestPolicyCompile(ctx, locationID)
+			data, err = c.redis.Get(ctx, key).Bytes()
+			if err != nil {
+				if err == redis.Nil {
+					return nil, nil
+				}
+				return nil, err
+			}
+		} else {
+			return nil, err
 		}
-		return nil, err
 	}
 
 	var cached models.CompiledPolicy

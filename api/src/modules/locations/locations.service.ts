@@ -352,7 +352,10 @@ export class LocationsService {
       expiresAt: expiresAt?.toISOString() || null,
       createdAt: new Date().toISOString(),
     };
-    await this.redisService.storeToken(tokenHash, tokenInfo);
+    const ttlSeconds = expiresAt
+      ? Math.max(60, Math.ceil((expiresAt.getTime() - Date.now()) / 1000))
+      : undefined;
+    await this.redisService.storeToken(tokenHash, tokenInfo, ttlSeconds);
 
     // Compile policy for this location if it has one
     if (location.policyId) {

@@ -61,9 +61,14 @@ export class AdminLoginResponseDto {
   })
   accessToken: string;
 
+  @ApiPropertyOptional({
+    description: 'Opaque rotating refresh token (admin mobile / Phase 0)',
+  })
+  refreshToken?: string;
+
   @ApiProperty({
     description: 'Token expiry time in seconds',
-    example: 28800,
+    example: 900,
   })
   expiresIn: number;
 
@@ -72,6 +77,20 @@ export class AdminLoginResponseDto {
     type: AdminInfoDto,
   })
   admin: AdminInfoDto;
+
+  @ApiProperty({
+    description:
+      'True when the client must complete MFA verification or enrollment before accessing protected admin APIs',
+    example: true,
+  })
+  mfaRequired: boolean;
+
+  @ApiProperty({
+    description:
+      'True when the admin must scan a QR code and verify TOTP (first-time MFA setup)',
+    example: false,
+  })
+  mfaEnrollmentRequired: boolean;
 }
 
 /**

@@ -47,6 +47,11 @@ Upstash: prefer batched `SADD` (5k per batch) and single-key `RENAME` per catego
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `PHISHTANK_APP_KEY` | No | Enables PhishTank CSV feed with your registered app key |
+| `CATEGORY_FEEDS_ENABLED` | No | Comma-separated UT1 folder names. Default modest set (~60MB Redis est.). |
+| `INTERNAL_API_SECRET` | No | Enables `/internal/v1/policy/locations/:id/compile` for policy-svc compile-on-miss |
+| `POLICY_COMPILE_API_URL` | No | API base URL from policy-svc (e.g. `http://api:3000`) |
 | `REDIS_URL` | Yes in production | Same Upstash/`rediss://` URL as the rest of the API (already required) |
+
+Compiled policies (`policy:{locationId}`) are stored **without TTL** and refreshed every 10 minutes plus on API startup.
 
 No new required env vars for boot.

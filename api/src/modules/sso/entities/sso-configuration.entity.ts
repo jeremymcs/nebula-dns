@@ -1,7 +1,14 @@
 // Nebula DNS - SSO Configuration Entity
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-import { Entity, Column, OneToOne, JoinColumn, BeforeInsert, BeforeUpdate } from 'typeorm';
+import {
+  Entity,
+  Column,
+  OneToOne,
+  JoinColumn,
+  BeforeInsert,
+  BeforeUpdate,
+} from 'typeorm';
 import { BaseEntity } from '@/common/entities/base.entity';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 
@@ -21,10 +28,22 @@ export class SsoConfiguration extends BaseEntity {
   providerType: SsoProviderType;
 
   /** Legacy NOT NULL column (unique with tenant_id); synced from providerType */
-  @Column({ name: 'type', type: 'varchar', length: 20, nullable: true })
+  @Column({
+    name: 'type',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+    select: false,
+  })
   legacyType?: SsoProviderType;
 
-  @Column({ name: 'config', type: 'jsonb', nullable: true, default: () => "'{}'" })
+  @Column({
+    name: 'config',
+    type: 'jsonb',
+    nullable: true,
+    default: () => "'{}'",
+    select: false,
+  })
   legacyConfig?: Record<string, unknown>;
 
   @BeforeInsert()
@@ -33,7 +52,7 @@ export class SsoConfiguration extends BaseEntity {
     if (this.providerType) {
       this.legacyType = this.providerType;
     }
-    if (this.legacyConfig == null) {
+    if (this.legacyConfig === undefined || this.legacyConfig === null) {
       this.legacyConfig = {};
     }
   }

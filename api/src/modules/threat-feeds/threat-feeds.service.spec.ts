@@ -57,7 +57,9 @@ describe('ThreatFeedsService', () => {
       expect(ids).toContain('urlhaus-malware-filter');
       expect(ids).toContain('openphish');
       expect(ids).not.toContain('abuse-ssl-blacklist');
-      expect(ids).not.toContain('feodotracker');
+      expect(ids).not.toContain('disconnect-malware');
+      expect(ids).not.toContain('botvrij-botnet');
+      expect(ids).toContain('ut1-ddos-botnet');
     });
 
     it('should include core threat categories', async () => {

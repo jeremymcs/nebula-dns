@@ -210,7 +210,7 @@ export class PolicyCompilerService {
     };
 
     // Store in Redis
-    await this.storeCompiledPolicy(locationId, compiled);
+    await this.redisService.storeCompiledPolicy(locationId, compiled);
 
     this.logger.log(
       `Compiled policy for location ${locationId} (version ${policy.currentVersion})`,
@@ -219,14 +219,53 @@ export class PolicyCompilerService {
   }
 
   /**
-   * Store compiled policy in Redis
+   * Store compiled policy in Redis (no TTL — refreshed on edit and by PolicyRedisSyncService).
    */
   private async storeCompiledPolicy(
     locationId: string,
     policy: CompiledPolicy,
   ): Promise<void> {
-    const key = `policy:${locationId}`;
-    await this.redisService.set(key, JSON.stringify(policy), 3600); // 1 hour TTL
+    await this.redisService.storeCompiledPolicy(locationId, policy);
+  }
+
+  /**
+   * Recompile Redis policies for every active location that has a policy assigned.
+   */
+  async compileAllActiveLocations(): Promise<{
+    compiled: number;
+    skipped: number;
+    failed: number;
+  }> {
+    const locations = await this.locationRepository.find({
+      where: { status: 'active' },
+    });
+
+    let compiled = 0;
+    let skipped = 0;
+    let failed = 0;
+
+    for (const location of locations) {
+      if (!location.policyId) {
+        skipped++;
+        continue;
+      }
+      try {
+        const result = await this.compile(
+          location.tenantId,
+          location.policyId,
+          location.id,
+        );
+        if (result) compiled++;
+        else failed++;
+      } catch (err) {
+        failed++;
+        this.logger.warn(
+          `Failed to compile policy for location ${location.id}: ${err instanceof Error ? err.message : err}`,
+        );
+      }
+    }
+
+    return { compiled, skipped, failed };
   }
 
   /**

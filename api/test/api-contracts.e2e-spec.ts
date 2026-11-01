@@ -17,9 +17,14 @@ describe('API Contract Tests', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.enableCors({
+      origin: ['https://example.com', 'http://localhost:4011'],
+      credentials: true,
+    });
     app.useGlobalPipes(
       new ValidationPipe({ whitelist: true, transform: true }),
     );
+    app.enableCors({ origin: true, credentials: true });
     await app.init();
   });
 

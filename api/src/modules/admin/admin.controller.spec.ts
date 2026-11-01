@@ -14,6 +14,7 @@ import { AdminService } from './admin.service';
 import { AdminHealthService } from './admin-health.service';
 import { AdminBillingService } from './admin-billing.service';
 import { AdminDashboardService } from './admin-dashboard.service';
+import { AdminMfaService } from './admin-mfa.service';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { AdminRolesGuard } from './guards/admin-roles.guard';
 import { ConfigService } from '@nestjs/config';
@@ -128,6 +129,14 @@ describe('AdminController', () => {
         {
           provide: AdminDashboardService,
           useValue: mockAdminDashboardService,
+        },
+        {
+          provide: AdminMfaService,
+          useValue: {
+            startEnrollment: jest.fn(),
+            completeEnrollment: jest.fn(),
+            verifyChallenge: jest.fn(),
+          },
         },
         {
           provide: ConfigService,
