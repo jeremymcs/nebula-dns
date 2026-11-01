@@ -133,7 +133,8 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "moduleNameMapper": {
-      "^@/(.*)$": "<rootDir>/$1"
+      "^@/(.*)$": "<rootDir>/$1",
+      "^sanitize-html$": "<rootDir>/modules/block-pages/__mocks__/sanitize-html.ts"
     }
   }
 }

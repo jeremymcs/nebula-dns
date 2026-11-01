@@ -1,11 +1,5 @@
 import type { IOptions } from 'sanitize-html';
-
-// Load via CJS bridge so Jest/API E2E do not transform sanitize-html ESM.
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const sanitizeHtml = require('./sanitize-html.cjs') as (
-  dirty: string,
-  options?: IOptions,
-) => string;
+import sanitizeHtml from 'sanitize-html';
 
 const HTML_ENTITIES: Record<string, string> = {
   '&': '&amp;',

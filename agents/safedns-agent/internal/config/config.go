@@ -57,7 +57,6 @@ type Config struct {
 
 	// Shield CA (HTTPS block pages)
 	InstallShieldCa bool `json:"install_shield_ca"`
-	DeviceID        string `json:"device_id"`
 
 	// Cached policy data
 	PolicyVersion string `json:"policy_version"`
@@ -147,12 +146,6 @@ func (c *Config) GetDNSServers() []string {
 	servers := make([]string, len(c.DNSServers))
 	copy(servers, c.DNSServers)
 	return servers
-}
-
-func (c *Config) GetDeviceID() string {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	return c.DeviceID
 }
 
 func (c *Config) GetDeviceSecret() string {
