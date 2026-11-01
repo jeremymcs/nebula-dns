@@ -52,10 +52,51 @@ export const metadata: Metadata = {
 
 const navLinks = [
   { href: '/features', label: 'Features' },
-  { href: '/pricing', label: 'Pricing' },
+  { href: '/msp', label: 'For MSPs' },
   { href: '/enterprise', label: 'Enterprise' },
+  { href: '/pricing', label: 'Pricing' },
   { href: '/docs', label: 'Docs' },
   { href: '/blog', label: 'Blog' },
+] as const
+
+const footerColumns = [
+  {
+    title: 'Product',
+    links: [
+      { href: '/features', label: 'Features' },
+      { href: '/msp', label: 'For MSPs' },
+      { href: '/enterprise', label: 'Enterprise' },
+      { href: '/pricing', label: 'Pricing' },
+      { href: '/status', label: 'Status' },
+    ],
+  },
+  {
+    title: 'Resources',
+    links: [
+      { href: '/docs', label: 'Docs' },
+      { href: '/docs/guides', label: 'Guides' },
+      { href: '/docs/api', label: 'API' },
+      { href: '/blog', label: 'Blog' },
+    ],
+  },
+  {
+    title: 'Company',
+    links: [
+      { href: '/about', label: 'About' },
+      { href: '/contact', label: 'Contact' },
+      { href: '/careers', label: 'Careers' },
+      { href: '/security', label: 'Security' },
+    ],
+  },
+  {
+    title: 'Legal',
+    links: [
+      { href: '/privacy', label: 'Privacy' },
+      { href: '/terms', label: 'Terms' },
+      { href: '/gdpr', label: 'GDPR' },
+      { href: '/sla', label: 'SLA' },
+    ],
+  },
 ] as const
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -74,7 +115,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav className="mx-auto flex h-[72px] max-w-[1200px] items-center px-4 sm:px-6">
               <Link
                 href="/"
-                className="flex items-center gap-2.5 font-semibold tracking-tight text-ink"
+                className="flex shrink-0 items-center gap-2.5 whitespace-nowrap font-semibold tracking-tight text-ink"
                 aria-label={PRODUCT_NAME}
               >
                 <ShieldMark className="h-[26px] w-[26px] rounded-[7px]" iconClassName="h-3.5 w-3.5" />
@@ -94,10 +135,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
               <div className="ml-auto flex items-center gap-[18px] text-sm text-[var(--fs-txt)]">
                 <ThemeToggle />
-                <a href={APP_URL} className="transition-colors hover:text-ink">
+                <a href={APP_URL} className="whitespace-nowrap transition-colors hover:text-ink">
                   Sign in
                 </a>
-                <Link href="/signup" className="fs-btn fs-btn-primary no-underline">
+                <Link href="/signup" className="fs-btn fs-btn-primary whitespace-nowrap no-underline">
                   Start free trial
                 </Link>
               </div>
@@ -106,22 +147,50 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
           <main className="flex-1">{children}</main>
 
-          <footer className="border-t border-[var(--fs-line)]">
-            <div className="mx-auto flex max-w-[1200px] flex-col gap-2 px-4 py-14 text-sm text-[var(--fs-mut)] sm:flex-row sm:px-6">
-              <span>
-                © {currentCopyrightYear()} {PRODUCT_NAME}
-              </span>
-              <span className="sm:ml-auto">
-                Powered by{' '}
-                <a
-                  href={FLUX_LABS_URL}
-                  className="font-medium text-[var(--fs-coral)] transition-opacity hover:opacity-80"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {FLUX_LABS_NAME}
-                </a>
-              </span>
+          <footer className="border-t border-line">
+            <div className="mx-auto max-w-[1200px] px-4 pb-10 pt-14 sm:px-6">
+              <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
+                <div>
+                  <Link href="/" className="flex items-center gap-2.5 font-semibold text-ink no-underline">
+                    <ShieldMark className="h-[24px] w-[24px] rounded-[7px]" iconClassName="h-3 w-3" />
+                    <ProductWordmark className="text-[15px] font-semibold text-ink" accentClassName="text-ink" />
+                  </Link>
+                  <p className="mt-3 max-w-[260px] text-sm leading-relaxed text-mut">
+                    DNS security and visibility for businesses, MSPs and families.
+                  </p>
+                </div>
+                {footerColumns.map((column) => (
+                  <div key={column.title}>
+                    <div className="text-sm font-medium text-ink">{column.title}</div>
+                    <ul className="mt-3 space-y-2 text-sm">
+                      {column.links.map(({ href, label }) => (
+                        <li key={href}>
+                          <Link href={href} className="text-mut no-underline transition-colors hover:text-ink">
+                            {label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-12 flex flex-col gap-2 border-t border-line pt-6 text-sm text-mut sm:flex-row">
+                <span>
+                  © {currentCopyrightYear()} {PRODUCT_NAME}
+                </span>
+                <span className="sm:ml-auto">
+                  Built by{' '}
+                  <a
+                    href={FLUX_LABS_URL}
+                    className="font-medium text-[var(--fs-coral)] transition-opacity hover:opacity-80"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {FLUX_LABS_NAME}
+                  </a>
+                  , a managed service provider in Panama City, Florida
+                </span>
+              </div>
             </div>
           </footer>
         </div>
