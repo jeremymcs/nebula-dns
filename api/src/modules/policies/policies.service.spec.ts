@@ -158,9 +158,11 @@ describe('PoliciesService', () => {
       mockVersionRepository.createQueryBuilder.mockReturnValue({
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue(
-          policies.map((p) => ({ ...mockPolicyVersion, policyId: p.id })),
-        ),
+        getMany: jest
+          .fn()
+          .mockResolvedValue(
+            policies.map((p) => ({ ...mockPolicyVersion, policyId: p.id })),
+          ),
       });
 
       const result = await service.findAll(mockTenantId, { limit: 1 });

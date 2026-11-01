@@ -18,7 +18,9 @@ async function runMigrations(): Promise<void> {
     console.log('[migrate] No pending migrations — nothing to do');
   } else {
     console.log('[migrate] Running pending migrations...');
-    const migrations = await AppDataSource.runMigrations({ transaction: 'all' });
+    const migrations = await AppDataSource.runMigrations({
+      transaction: 'all',
+    });
     console.log(`[migrate] Applied ${migrations.length} migration(s):`);
     for (const m of migrations) {
       console.log(`  ✓ ${m.name}`);

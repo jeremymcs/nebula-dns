@@ -28,6 +28,7 @@ export const ENCRYPTION_KEYS = [
   'SSO_ENCRYPTION_KEY',
   'SIEM_ENCRYPTION_KEY',
   'ALERTING_ENCRYPTION_KEY',
+  'DNS_MANAGEMENT_ENCRYPTION_KEY',
 ] as const;
 
 export type EncryptionKeyName = (typeof ENCRYPTION_KEYS)[number];

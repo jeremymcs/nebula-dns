@@ -124,7 +124,11 @@ describe('MspClientsService Integration', () => {
 
   beforeEach(async () => {
     // Clear database (children before parents to respect FK constraints)
-    await mspClientRepository.createQueryBuilder().delete().where('1=1').execute();
+    await mspClientRepository
+      .createQueryBuilder()
+      .delete()
+      .where('1=1')
+      .execute();
     await userRepository.createQueryBuilder().delete().where('1=1').execute();
     await tenantRepository.createQueryBuilder().delete().where('1=1').execute();
 

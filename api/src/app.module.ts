@@ -85,6 +85,7 @@ import { SubscriptionLapseModule } from './modules/subscription-lapse/subscripti
 // Configuration
 import configuration from './config/configuration';
 import { getPostgresSslConfig } from './database/pg-ssl';
+import { SsoConfigurationSubscriber } from './modules/sso/subscribers/sso-configuration.subscriber';
 import { MobileModule } from './modules/mobile/mobile.module';
 
 @Module({
@@ -128,6 +129,7 @@ import { MobileModule } from './modules/mobile/mobile.module';
             ? true
             : ['error'],
         ssl: getPostgresSslConfig(),
+        subscribers: [SsoConfigurationSubscriber],
         // Connection pooling
         extra: {
           max: configService.get<number>('DB_POOL_SIZE', 20),

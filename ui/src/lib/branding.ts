@@ -5,6 +5,7 @@ import {
   PRODUCT_META_DESCRIPTION,
   PRODUCT_MODULE_DMARC,
   PRODUCT_MODULE_DNS_FILTER,
+  PRODUCT_MODULE_DNS_MANAGEMENT,
   PRODUCT_NAME,
   PRODUCT_TAGLINE,
   PRODUCT_WORDMARK,
@@ -15,6 +16,7 @@ export {
   PRODUCT_META_DESCRIPTION,
   PRODUCT_MODULE_DMARC,
   PRODUCT_MODULE_DNS_FILTER,
+  PRODUCT_MODULE_DNS_MANAGEMENT,
   PRODUCT_NAME,
   PRODUCT_TAGLINE,
   PRODUCT_WORDMARK,
@@ -34,5 +36,10 @@ export function productPageTitle(pageTitle?: string): string {
 
 export function dnsFilterPageTitle(pageTitle?: string): string {
   const base = `${PRODUCT_MODULE_DNS_FILTER} · ${PRODUCT_NAME}`
+  return pageTitle ? `${pageTitle} · ${base}` : base
+}
+
+export function dnsManagementPageTitle(pageTitle?: string): string {
+  const base = `${PRODUCT_MODULE_DNS_MANAGEMENT} · ${PRODUCT_NAME}`
   return pageTitle ? `${pageTitle} · ${base}` : base
 }

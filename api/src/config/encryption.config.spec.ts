@@ -42,6 +42,8 @@ describe('Encryption Configuration', () => {
       process.env.SSO_ENCRYPTION_KEY = 'another-valid-32-byte-test-key!!';
       process.env.SIEM_ENCRYPTION_KEY = 'yet-another-valid-32-byte-key!!!';
       process.env.ALERTING_ENCRYPTION_KEY = 'alerting-valid-32-byte-test-key!';
+      process.env.DNS_MANAGEMENT_ENCRYPTION_KEY =
+        'dns-management-valid-32-byte-key!!';
 
       const status = getEncryptionConfigStatus();
 
@@ -59,6 +61,8 @@ describe('Encryption Configuration', () => {
       process.env.SIEM_ENCRYPTION_KEY =
         'K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=';
       process.env.ALERTING_ENCRYPTION_KEY =
+        'K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=';
+      process.env.DNS_MANAGEMENT_ENCRYPTION_KEY =
         'K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=';
 
       const status = getEncryptionConfigStatus();
@@ -116,6 +120,8 @@ describe('Encryption Configuration', () => {
       process.env.SSO_ENCRYPTION_KEY = 'another-valid-32-byte-test-key!!';
       process.env.SIEM_ENCRYPTION_KEY = 'yet-another-valid-32-byte-key!!!';
       process.env.ALERTING_ENCRYPTION_KEY = 'alerting-valid-32-byte-test-key!';
+      process.env.DNS_MANAGEMENT_ENCRYPTION_KEY =
+        'dns-management-valid-32-byte-key!!';
 
       expect(() => validateEncryptionConfig()).not.toThrow();
     });
@@ -158,6 +164,7 @@ describe('Encryption Configuration', () => {
       expect(ENCRYPTION_KEYS).toContain('MFA_ENCRYPTION_KEY');
       expect(ENCRYPTION_KEYS).toContain('SSO_ENCRYPTION_KEY');
       expect(ENCRYPTION_KEYS).toContain('SIEM_ENCRYPTION_KEY');
+      expect(ENCRYPTION_KEYS).toContain('DNS_MANAGEMENT_ENCRYPTION_KEY');
     });
   });
 });

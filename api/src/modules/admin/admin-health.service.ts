@@ -29,7 +29,10 @@ import {
 
 const dnsLookup = dns.promises.lookup;
 
-function parsePort(value: string | number | undefined, fallback: number): number {
+function parsePort(
+  value: string | number | undefined,
+  fallback: number,
+): number {
   if (value === undefined || value === null || value === '') {
     return fallback;
   }

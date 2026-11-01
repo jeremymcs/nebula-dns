@@ -63,15 +63,12 @@ export class PoliciesService {
     if (policies.length > 0) {
       const versions = await this.versionRepository
         .createQueryBuilder('v')
-        .where(
-          'v.policy_id IN (:...policyIds)',
-          { policyIds: policies.map((p) => p.id) },
-        )
+        .where('v.policy_id IN (:...policyIds)', {
+          policyIds: policies.map((p) => p.id),
+        })
         .andWhere(
           '(v.policy_id, v.version) IN (' +
-            policies
-              .map((_, i) => `(:pid${i}, :pver${i})`)
-              .join(', ') +
+            policies.map((_, i) => `(:pid${i}, :pver${i})`).join(', ') +
             ')',
           policies.reduce(
             (params, p, i) => ({
@@ -90,9 +87,7 @@ export class PoliciesService {
 
       policiesWithConfig = policies.map((policy) => ({
         ...policy,
-        currentConfig: versionMap.get(
-          `${policy.id}:${policy.currentVersion}`,
-        ),
+        currentConfig: versionMap.get(`${policy.id}:${policy.currentVersion}`),
       }));
     } else {
       policiesWithConfig = [];

@@ -25,7 +25,7 @@ import { AdminSessionService } from './admin-session.service';
 import { AdminHealthService } from './admin-health.service';
 import { AdminBillingService } from './admin-billing.service';
 import { AdminDashboardService } from './admin-dashboard.service';
-import { AdminActivityService } from './admin-activity.service';
+import { AdminActivityModule } from './admin-activity.module';
 import { AdminUsersService } from './admin-users.service';
 import { AdminInvitationsService } from './admin-invitations.service';
 import { AdminMfaService } from './admin-mfa.service';
@@ -47,6 +47,8 @@ import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 import { TrialsModule } from '../trials/trials.module';
 import { SubscriptionLapseModule } from '../subscription-lapse/subscription-lapse.module';
 import { AlertingModule } from '../alerting/alerting.module';
+import { DnsManagementModule } from '../dns-management/dns-management.module';
+import { AdminDnsManagementController } from '../dns-management/admin-dns-management.controller';
 import { LimitsModule } from '../limits/limits.module';
 import { AdminRefreshToken } from '../mobile/entities/admin-refresh-token.entity';
 import { AdminRefreshTokenService } from '../mobile/admin-refresh-token.service';
@@ -125,6 +127,8 @@ import { MobileModule } from '../mobile/mobile.module';
     TrialsModule,
     SubscriptionLapseModule,
     AlertingModule,
+    forwardRef(() => DnsManagementModule),
+    AdminActivityModule,
     forwardRef(() => MobileModule),
   ],
 
@@ -134,6 +138,7 @@ import { MobileModule } from '../mobile/mobile.module';
     AdminPlatformAuditController,
     AdminController,
     AdminUsersController,
+    AdminDnsManagementController,
   ],
 
   // Services and strategy
@@ -144,7 +149,6 @@ import { MobileModule } from '../mobile/mobile.module';
     AdminHealthService,
     AdminBillingService,
     AdminDashboardService,
-    AdminActivityService,
     AdminUsersService,
     AdminInvitationsService,
     AdminMfaService,
@@ -163,7 +167,8 @@ import { MobileModule } from '../mobile/mobile.module';
     AdminRefreshTokenService,
     AdminHealthService,
     AdminBillingService,
-    AdminActivityService,
+    AdminDashboardService,
+    AdminActivityModule,
     AdminUsersService,
     AdminInvitationsService,
     AdminTenantsService,

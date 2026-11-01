@@ -11,7 +11,8 @@ export interface LimitExceededDetails {
     | 'family_member'
     | 'user'
     | 'policy'
-    | 'custom_list';
+    | 'custom_list'
+    | 'dns_zone';
   /** Current count */
   current: number;
   /** Maximum allowed */
@@ -49,6 +50,7 @@ export class LimitExceededException extends HttpException {
       user: 'users',
       policy: 'policies',
       custom_list: 'custom lists',
+      dns_zone: 'DNS zones',
     };
 
     const resourceName =

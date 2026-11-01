@@ -98,8 +98,16 @@ describe('LimitsService Integration', () => {
 
   beforeEach(async () => {
     // Clear database (children before parents to respect FK constraints)
-    await locationRepository.createQueryBuilder().delete().where('1=1').execute();
-    await subscriptionRepository.createQueryBuilder().delete().where('1=1').execute();
+    await locationRepository
+      .createQueryBuilder()
+      .delete()
+      .where('1=1')
+      .execute();
+    await subscriptionRepository
+      .createQueryBuilder()
+      .delete()
+      .where('1=1')
+      .execute();
     await tenantRepository.createQueryBuilder().delete().where('1=1').execute();
     await planRepository.createQueryBuilder().delete().where('1=1').execute();
 

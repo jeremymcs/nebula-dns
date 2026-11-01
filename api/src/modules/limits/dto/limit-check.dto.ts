@@ -33,6 +33,8 @@ export interface TenantLimits {
   policyLimit: number | null;
   /** Maximum custom lists allowed (null = unlimited) */
   customListLimit: number | null;
+  /** Maximum assigned DNS zones (null = unlimited) */
+  dnsZoneLimit: number | null;
   /** Maximum queries per month (null = unlimited) */
   queriesPerMonth: number | null;
 }
@@ -48,4 +50,5 @@ export interface PlanLimitsRaw {
   custom_lists: number;
   clients?: number;
   family_members?: number;
+  dns_zones?: number;
 }

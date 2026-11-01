@@ -6,6 +6,29 @@ import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import { RedisService, CacheInvalidationMessage } from './redis.service';
 
+async function subscribeChannel(client: Redis, channel: string): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    client.subscribe(channel, (err) => {
+      if (err) reject(err);
+      else resolve();
+    });
+  });
+}
+
+async function waitUntil(
+  predicate: () => boolean,
+  timeoutMs = 5000,
+  intervalMs = 50,
+): Promise<void> {
+  const start = Date.now();
+  while (!predicate()) {
+    if (Date.now() - start > timeoutMs) {
+      throw new Error('Timed out waiting for condition');
+    }
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  }
+}
+
 /**
  * Redis Integration Tests
  *
@@ -291,23 +314,22 @@ describe('Redis Integration Tests', () => {
       const messages2: string[] = [];
       const messages3: string[] = [];
 
-      await subscriber1.subscribe(testChannel);
-      await subscriber2.subscribe(testChannel);
-      await subscriber3.subscribe(testChannel);
+      await subscribeChannel(subscriber1, testChannel);
+      await subscribeChannel(subscriber2, testChannel);
+      await subscribeChannel(subscriber3, testChannel);
 
       subscriber1.on('message', (_, msg) => messages1.push(msg));
       subscriber2.on('message', (_, msg) => messages2.push(msg));
       subscriber3.on('message', (_, msg) => messages3.push(msg));
 
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
       await redisService.publish(testChannel, testMessage);
 
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      expect(messages1).toContain(testMessage);
-      expect(messages2).toContain(testMessage);
-      expect(messages3).toContain(testMessage);
+      await waitUntil(
+        () =>
+          messages1.includes(testMessage) &&
+          messages2.includes(testMessage) &&
+          messages3.includes(testMessage),
+      );
 
       await subscriber1.quit();
       await subscriber2.quit();

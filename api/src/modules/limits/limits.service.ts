@@ -29,6 +29,7 @@ const CACHE_KEYS = {
   LOCATION_COUNT: 'limits:locations:',
   CLIENT_COUNT: 'limits:clients:',
   FAMILY_MEMBER_COUNT: 'limits:family:',
+  DNS_ZONE_COUNT: 'limits:dns-zones:',
 };
 
 @Injectable()
@@ -119,6 +120,34 @@ export class LimitsService {
     }
 
     return result;
+  }
+
+  /**
+   * Check if a tenant can be assigned another DNS management zone
+   * @throws LimitExceededException if limit would be exceeded
+   */
+  async canAssignDnsZone(tenantId: string): Promise<LimitCheckResult> {
+    const limits = await this.getTenantLimits(tenantId);
+    const currentCount = await this.getDnsZoneCount(tenantId);
+
+    const result = this.checkLimit(currentCount, limits.dnsZoneLimit);
+
+    if (!result.allowed) {
+      throw new LimitExceededException({
+        resourceType: 'dns_zone',
+        current: currentCount,
+        limit: limits.dnsZoneLimit!,
+        tier: limits.tier,
+        upgradeMessage: this.getUpgradeMessage(limits.tier, 'dns_zone'),
+        upgradeUrl: '/dashboard/settings/billing',
+      });
+    }
+
+    return result;
+  }
+
+  async invalidateDnsZoneCountCache(tenantId: string): Promise<void> {
+    await this.redisService.del(`${CACHE_KEYS.DNS_ZONE_COUNT}${tenantId}`);
   }
 
   /**
@@ -225,6 +254,7 @@ export class LimitsService {
       `${CACHE_KEYS.LOCATION_COUNT}${tenantId}`,
       `${CACHE_KEYS.CLIENT_COUNT}${tenantId}`,
       `${CACHE_KEYS.FAMILY_MEMBER_COUNT}${tenantId}`,
+      `${CACHE_KEYS.DNS_ZONE_COUNT}${tenantId}`,
     ];
 
     for (const key of keys) {
@@ -304,6 +334,25 @@ export class LimitsService {
     return count;
   }
 
+  private async getDnsZoneCount(tenantId: string): Promise<number> {
+    const cacheKey = `${CACHE_KEYS.DNS_ZONE_COUNT}${tenantId}`;
+    const cached = await this.redisService.get(cacheKey);
+
+    if (cached) {
+      return parseInt(cached, 10);
+    }
+
+    const result = await this.tenantRepository.manager.query(
+      `SELECT COUNT(*)::int AS count FROM dns_zone_assignments
+       WHERE tenant_id = $1 AND unassigned_at IS NULL AND status = 'active'`,
+      [tenantId],
+    );
+    const count = result[0]?.count ?? 0;
+
+    await this.redisService.set(cacheKey, String(count), CACHE_TTL_SECONDS);
+    return count;
+  }
+
   /**
    * Check if an action is allowed given current count and limit
    */
@@ -363,6 +412,16 @@ export class LimitsService {
         limitOverrides.policies ?? normalizeLimit(planLimits.policies),
       customListLimit:
         limitOverrides.customLists ?? normalizeLimit(planLimits.custom_lists),
+      dnsZoneLimit: (() => {
+        if (limitOverrides.dnsZones !== undefined) {
+          return limitOverrides.dnsZones;
+        }
+        const planDnsZones = (planLimits as PlanLimitsRaw).dns_zones;
+        if (planDnsZones === undefined) {
+          return 1000;
+        }
+        return normalizeLimit(planDnsZones);
+      })(),
       queriesPerMonth:
         limitOverrides.queriesPerMonth ??
         normalizeLimit(planLimits.queries_per_month),
@@ -393,7 +452,8 @@ export class LimitsService {
       | 'family_member'
       | 'user'
       | 'policy'
-      | 'custom_list',
+      | 'custom_list'
+      | 'dns_zone',
   ): string {
     const upgradePaths: Record<string, string> = {
       free: 'Upgrade to Starter or Pro plan for more capacity.',
