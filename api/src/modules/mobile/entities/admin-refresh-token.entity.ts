@@ -17,7 +17,7 @@ export class AdminRefreshToken {
   @Column({ name: 'admin_id', type: 'uuid' })
   adminId: string;
 
-  @Column({ name: 'token_hash', length: 128 })
+  @Column({ name: 'token_hash', type: 'varchar', length: 128 })
   tokenHash: string;
 
   @Column({ name: 'family_id', type: 'uuid' })
@@ -26,7 +26,7 @@ export class AdminRefreshToken {
   @Column({ name: 'device_id', type: 'uuid', nullable: true })
   deviceId: string | null;
 
-  @Column({ name: 'session_jti', length: 64 })
+  @Column({ name: 'session_jti', type: 'varchar', length: 64 })
   sessionJti: string;
 
   @Column({ name: 'mfa_verified', default: false })

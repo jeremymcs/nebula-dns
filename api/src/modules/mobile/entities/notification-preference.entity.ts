@@ -29,7 +29,7 @@ export class NotificationPreference {
   @Column({ name: 'tenant_id', type: 'uuid', nullable: true })
   tenantId: string | null;
 
-  @Column({ length: 64 })
+  @Column({ type: 'varchar', length: 64 })
   channel: string;
 
   @Column({ default: true })

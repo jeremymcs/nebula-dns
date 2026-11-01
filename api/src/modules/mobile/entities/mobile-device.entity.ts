@@ -20,19 +20,24 @@ export class MobileDevice {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'external_device_id', length: 128 })
+  @Column({ name: 'external_device_id', type: 'varchar', length: 128 })
   externalDeviceId: string;
 
-  @Column({ length: 32 })
+  @Column({ type: 'varchar', length: 32 })
   platform: string;
 
-  @Column({ name: 'app_version', length: 64, nullable: true })
+  @Column({ name: 'app_version', type: 'varchar', length: 64, nullable: true })
   appVersion: string | null;
 
-  @Column({ name: 'device_name', length: 255, nullable: true })
+  @Column({ name: 'device_name', type: 'varchar', length: 255, nullable: true })
   deviceName: string | null;
 
-  @Column({ name: 'expo_push_token', length: 512, nullable: true })
+  @Column({
+    name: 'expo_push_token',
+    type: 'varchar',
+    length: 512,
+    nullable: true,
+  })
   expoPushToken: string | null;
 
   @Column({ name: 'is_jailbroken', default: false })
@@ -47,7 +52,7 @@ export class MobileDevice {
   @Column({ name: 'tenant_id', type: 'uuid', nullable: true })
   tenantId: string | null;
 
-  @Column({ name: 'last_refresh_jti', length: 64, nullable: true })
+  @Column({ name: 'last_refresh_jti', type: 'varchar', length: 64, nullable: true })
   lastRefreshJti: string | null;
 
   @Column({ name: 'revoked_at', type: 'timestamptz', nullable: true })

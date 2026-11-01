@@ -21,19 +21,24 @@ export class NotificationDelivery {
   @Column({ name: 'device_id', type: 'uuid', nullable: true })
   deviceId: string | null;
 
-  @Column({ name: 'event_type', length: 64 })
+  @Column({ name: 'event_type', type: 'varchar', length: 64 })
   eventType: string;
 
-  @Column({ length: 255 })
+  @Column({ type: 'varchar', length: 255 })
   title: string;
 
   @Column({ type: 'text' })
   body: string;
 
-  @Column({ length: 32, default: 'pending' })
+  @Column({ type: 'varchar', length: 32, default: 'pending' })
   status: string;
 
-  @Column({ name: 'expo_ticket_id', length: 128, nullable: true })
+  @Column({
+    name: 'expo_ticket_id',
+    type: 'varchar',
+    length: 128,
+    nullable: true,
+  })
   expoTicketId: string | null;
 
   @Column({ name: 'error_message', type: 'text', nullable: true })
