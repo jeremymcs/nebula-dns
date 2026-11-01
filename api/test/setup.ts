@@ -7,7 +7,7 @@
 
 // Set test environment
 process.env.NODE_ENV = 'test';
-process.env.RATE_LIMIT_DISABLED = 'true';
+process.env.DISABLE_RATE_LIMIT = 'true';
 process.env.ADMIN_JWT_SECRET =
   process.env.ADMIN_JWT_SECRET || 'test-admin-jwt-secret-for-e2e';
 

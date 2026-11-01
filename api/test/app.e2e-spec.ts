@@ -39,7 +39,7 @@ describe('AppController (e2e)', () => {
         });
     });
 
-    it('/health (GET) - should return dependency details', () => {
+    it('/health (GET) - should include dependency details', () => {
       return request(app.getHttpServer())
         .get('/health')
         .expect(200)

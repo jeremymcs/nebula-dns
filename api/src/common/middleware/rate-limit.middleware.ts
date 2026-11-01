@@ -118,7 +118,7 @@ export class RateLimitMiddleware implements NestMiddleware {
   }
 
   use(req: Request, res: Response, next: NextFunction) {
-    if (process.env.RATE_LIMIT_DISABLED === 'true') {
+    if (process.env.DISABLE_RATE_LIMIT === 'true') {
       return next();
     }
 
