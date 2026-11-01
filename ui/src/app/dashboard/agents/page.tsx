@@ -35,6 +35,9 @@ interface AgentInstallation {
   status: 'active' | 'inactive' | 'disconnected' | 'error'
   lastSeenAt: string
   ipAddress: string
+  dnsEnforced?: boolean
+  roles?: string[]
+  tamperCount?: number
   location?: { name: string }
 }
 
@@ -217,6 +220,8 @@ export default function AgentsPage() {
                   <th className="table-header-cell">Platform</th>
                   <th className="table-header-cell">Version</th>
                   <th className="table-header-cell">Location</th>
+                  <th className="table-header-cell">DNS</th>
+                  <th className="table-header-cell">Roles</th>
                   <th className="table-header-cell">Status</th>
                   <th className="table-header-cell">Last Seen</th>
                   <th className="table-header-cell">Actions</th>
@@ -242,6 +247,14 @@ export default function AgentsPage() {
                     </td>
                     <td className="table-cell">v{agent.agentVersion}</td>
                     <td className="table-cell">{agent.location?.name || 'Unassigned'}</td>
+                    <td className="table-cell">
+                      <Badge variant={agent.dnsEnforced ? 'success' : 'warning'} size="sm">
+                        {agent.dnsEnforced ? 'Enforced' : 'Not enforced'}
+                      </Badge>
+                    </td>
+                    <td className="table-cell text-sm text-space-600 dark:text-space-300">
+                      {(agent.roles || []).join(', ') || '—'}
+                    </td>
                     <td className="table-cell">
                       <Badge
                         variant={

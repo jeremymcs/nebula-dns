@@ -5,6 +5,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { AgentsController } from './agents.controller';
 import { AgentsService, AgentVersion } from './agents.service';
+import { AgentAuthGuard } from './agent-auth.guard';
+import { RedisRateLimitGuard } from '../rate-limit/guards/redis-rate-limit.guard';
 import {
   CreateDownloadLinkDto,
   RegisterAgentDto,
@@ -53,6 +55,7 @@ describe('AgentsController', () => {
     createDownloadLink: jest.fn(),
     updateAgent: jest.fn(),
     deleteAgent: jest.fn(),
+    updateSitePublicIp: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -64,7 +67,12 @@ describe('AgentsController', () => {
           useValue: mockAgentsService,
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(AgentAuthGuard)
+      .useValue({ canActivate: jest.fn(() => true) })
+      .overrideGuard(RedisRateLimitGuard)
+      .useValue({ canActivate: jest.fn(() => true) })
+      .compile();
 
     controller = module.get<AgentsController>(AgentsController);
     service = module.get<AgentsService>(AgentsService);
@@ -127,7 +135,24 @@ describe('AgentsController', () => {
         agentVersion: '1.2.0',
       };
 
-      mockAgentsService.registerAgent.mockResolvedValue(mockAgent);
+      mockAgentsService.registerAgent.mockResolvedValue({
+        agent: {
+          id: mockAgentId,
+          deviceName: 'Office-PC-01',
+          locationId: mockLocationId,
+          roles: ['dns-enforce'],
+        },
+        deviceSecret: 'secret',
+        dohToken: 'doh',
+        config: {
+          apiEndpoint: 'https://api.shield.fluxlabs.net',
+          dohEndpoint: 'https://dns.shield.fluxlabs.net/dns-query',
+          dnsServers: ['dns1.shield.fluxlabs.net'],
+          roles: ['dns-enforce'],
+          tenantId: mockTenantId,
+          locationId: mockLocationId,
+        },
+      });
 
       const result = await controller.registerAgent(registerDto);
 
@@ -477,7 +502,24 @@ describe('AgentsController', () => {
         agentVersion: '1.2.0',
       };
 
-      mockAgentsService.registerAgent.mockResolvedValue(mockAgent);
+      mockAgentsService.registerAgent.mockResolvedValue({
+        agent: {
+          id: mockAgentId,
+          deviceName: 'Office-PC-01',
+          locationId: mockLocationId,
+          roles: ['dns-enforce'],
+        },
+        deviceSecret: 'secret',
+        dohToken: 'doh',
+        config: {
+          apiEndpoint: 'https://api.shield.fluxlabs.net',
+          dohEndpoint: 'https://dns.shield.fluxlabs.net/dns-query',
+          dnsServers: ['dns1.shield.fluxlabs.net'],
+          roles: ['dns-enforce'],
+          tenantId: mockTenantId,
+          locationId: mockLocationId,
+        },
+      });
 
       const result = await controller.registerAgent(registerDto);
 

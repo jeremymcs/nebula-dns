@@ -16,13 +16,17 @@ import (
 
 // HeartbeatRequest is sent to the server
 type HeartbeatRequest struct {
-	LocationID    string `json:"location_id"`
-	AgentVersion  string `json:"agent_version"`
-	OS            string `json:"os"`
-	Arch          string `json:"arch"`
-	Hostname      string `json:"hostname"`
-	PolicyVersion string `json:"policy_version"`
-	Timestamp     string `json:"timestamp"`
+	DeviceID        string `json:"deviceId"`
+	LocationID      string `json:"location_id,omitempty"`
+	AgentVersion    string `json:"agentVersion"`
+	OS              string `json:"os"`
+	Arch            string `json:"arch"`
+	Hostname        string `json:"hostname"`
+	PolicyVersion   string `json:"policy_version"`
+	Timestamp       string `json:"timestamp"`
+	DnsEnforced     *bool  `json:"dnsEnforced,omitempty"`
+	TamperDetected   *bool  `json:"tamperDetected,omitempty"`
+	TamperDetail    string `json:"tamperDetail,omitempty"`
 }
 
 // HeartbeatResponse is received from the server
@@ -34,11 +38,25 @@ type HeartbeatResponse struct {
 	DownloadURL     string   `json:"downloadUrl,omitempty"`
 	PolicyVersion   string   `json:"policy_version,omitempty"`
 	DNSServers      []string `json:"dns_servers,omitempty"`
+	InternalDnsZones []string `json:"internalDnsZones,omitempty"`
+	Config          *RuntimeConfig `json:"config,omitempty"`
 	Message         string   `json:"message,omitempty"`
+}
+
+// RuntimeConfig is pushed from the API on heartbeat/register.
+type RuntimeConfig struct {
+	APIEndpoint      string   `json:"apiEndpoint"`
+	DoHEndpoint      string   `json:"dohEndpoint"`
+	DNSServers       []string `json:"dnsServers"`
+	Roles            []string `json:"roles"`
+	TenantID         string   `json:"tenantId"`
+	LocationID       string   `json:"locationId"`
+	InternalDnsZones []string `json:"internalDnsZones"`
 }
 
 // ConfigUpdateCallback is called when configuration is updated
 type ConfigUpdateCallback func(dnsServers []string, policyVersion string)
+type RuntimeConfigCallback func(cfg *RuntimeConfig)
 
 // Service handles periodic heartbeats
 type Service struct {
@@ -49,7 +67,9 @@ type Service struct {
 	hostname          string
 	stopCh            chan struct{}
 	onConfigUpdate    ConfigUpdateCallback
+	onRuntimeConfig   RuntimeConfigCallback
 	onUpdateAvailable func(version, downloadURL string)
+	statusProvider  func() (dnsEnforced bool, tamperDetected bool, tamperDetail string)
 }
 
 // NewService creates a new heartbeat service
@@ -96,8 +116,13 @@ func (s *Service) Stop() {
 	close(s.stopCh)
 }
 
+func (s *Service) SetStatusProvider(fn func() (bool, bool, string)) {
+	s.statusProvider = fn
+}
+
 func (s *Service) sendHeartbeat() {
 	req := HeartbeatRequest{
+		DeviceID:      s.config.GetDeviceID(),
 		LocationID:    s.config.GetLocationID(),
 		AgentVersion:  s.version,
 		OS:            runtime.GOOS,
@@ -105,6 +130,12 @@ func (s *Service) sendHeartbeat() {
 		Hostname:      s.hostname,
 		PolicyVersion: s.config.PolicyVersion,
 		Timestamp:     time.Now().UTC().Format(time.RFC3339),
+	}
+	if s.statusProvider != nil {
+		enforced, tamper, detail := s.statusProvider()
+		req.DnsEnforced = &enforced
+		req.TamperDetected = &tamper
+		req.TamperDetail = detail
 	}
 
 	body, err := json.Marshal(req)
@@ -121,7 +152,12 @@ func (s *Service) sendHeartbeat() {
 	}
 
 	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.Header.Set("X-API-Key", s.config.APIKey)
+	if s.config.GetDeviceID() != "" && s.config.GetDeviceSecret() != "" {
+		httpReq.Header.Set("X-Device-Id", s.config.GetDeviceID())
+		httpReq.Header.Set("Authorization", "Bearer "+s.config.GetDeviceSecret())
+	} else if s.config.APIKey != "" {
+		httpReq.Header.Set("X-API-Key", s.config.APIKey)
+	}
 
 	resp, err := s.httpClient.Do(httpReq)
 	if err != nil {
@@ -147,7 +183,9 @@ func (s *Service) sendHeartbeat() {
 		zap.Bool("update_available", heartbeatResp.UpdateAvailable))
 
 	// Handle configuration updates from server
-	if heartbeatResp.ConfigUpdated && s.onConfigUpdate != nil {
+	if heartbeatResp.Config != nil && s.onRuntimeConfig != nil {
+		s.onRuntimeConfig(heartbeatResp.Config)
+	} else if heartbeatResp.ConfigUpdated && s.onConfigUpdate != nil {
 		s.logger.Info("Configuration update received",
 			zap.Strings("dns_servers", heartbeatResp.DNSServers),
 			zap.String("policy_version", heartbeatResp.PolicyVersion))
@@ -161,6 +199,10 @@ func (s *Service) sendHeartbeat() {
 			zap.String("download_url", heartbeatResp.DownloadURL))
 		s.onUpdateAvailable(heartbeatResp.LatestVersion, heartbeatResp.DownloadURL)
 	}
+}
+
+func (s *Service) SetRuntimeConfigCallback(cb RuntimeConfigCallback) {
+	s.onRuntimeConfig = cb
 }
 
 // SetConfigUpdateCallback sets the callback for configuration updates

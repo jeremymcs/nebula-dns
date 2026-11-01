@@ -10,7 +10,12 @@ import {
   AgentInstallation,
   AgentPlatform,
 } from './entities/agent-installation.entity';
+import { AgentInstallToken } from './entities/agent-install-token.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
+import { Location } from '../locations/entities/location.entity';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { RedisService } from '../redis/redis.service';
+import { AgentBrandingConfig } from './agent-branding.config';
 import {
   CreateDownloadLinkDto,
   RegisterAgentDto,
@@ -21,7 +26,8 @@ import {
 describe('AgentsService', () => {
   let service: AgentsService;
   let agentRepository: jest.Mocked<Repository<AgentInstallation>>;
-  let tenantRepository: jest.Mocked<Repository<Tenant>>;
+  let installTokenRepository: jest.Mocked<Repository<AgentInstallToken>>;
+  let locationRepository: jest.Mocked<Repository<Location>>;
 
   const mockTenantId = 'tenant-123';
   const mockDeviceId = 'device-abc-123';
@@ -51,6 +57,32 @@ describe('AgentsService', () => {
     remove: jest.fn(),
   };
 
+  const mockInstallTokenRepository = {
+    create: jest.fn(),
+    save: jest.fn(),
+    findOne: jest.fn(),
+  };
+
+  const mockLocationRepository = {
+    findOne: jest.fn(),
+    save: jest.fn(),
+  };
+
+  const mockAuditLogsService = {
+    log: jest.fn(),
+  };
+
+  const mockRedisService = {
+    storeIPRange: jest.fn(),
+    invalidatePolicy: jest.fn(),
+  };
+
+  const mockBranding = {
+    dnsServerHosts: ['dns1.shield.fluxlabs.net', 'dns2.shield.fluxlabs.net'],
+    apiEndpoint: 'https://api.shield.fluxlabs.net',
+    dohEndpoint: 'https://dns.shield.fluxlabs.net/dns-query',
+  };
+
   const mockTenantRepository = {
     findOne: jest.fn(),
   };
@@ -67,14 +99,54 @@ describe('AgentsService', () => {
           provide: getRepositoryToken(Tenant),
           useValue: mockTenantRepository,
         },
+        {
+          provide: getRepositoryToken(AgentInstallToken),
+          useValue: mockInstallTokenRepository,
+        },
+        {
+          provide: getRepositoryToken(Location),
+          useValue: mockLocationRepository,
+        },
+        {
+          provide: AuditLogsService,
+          useValue: mockAuditLogsService,
+        },
+        {
+          provide: RedisService,
+          useValue: mockRedisService,
+        },
+        {
+          provide: AgentBrandingConfig,
+          useValue: mockBranding,
+        },
       ],
     }).compile();
 
     service = module.get<AgentsService>(AgentsService);
     agentRepository = module.get(getRepositoryToken(AgentInstallation));
-    tenantRepository = module.get(getRepositoryToken(Tenant));
+    installTokenRepository = module.get(getRepositoryToken(AgentInstallToken));
+    locationRepository = module.get(getRepositoryToken(Location));
 
     jest.clearAllMocks();
+
+    mockInstallTokenRepository.create.mockImplementation((v) => v);
+    mockInstallTokenRepository.save.mockImplementation(async (v) => v);
+    mockInstallTokenRepository.findOne.mockImplementation(async ({ where }) => {
+      if (where?.tokenHash) {
+        return {
+          tenantId: mockTenantId,
+          locationId: null,
+          roles: ['dns-enforce'],
+          expiresAt: new Date(Date.now() + 86400000),
+          usedAt: null,
+        } as AgentInstallToken;
+      }
+      return null;
+    });
+    mockLocationRepository.findOne.mockResolvedValue({
+      id: 'location-123',
+      tenantId: mockTenantId,
+    } as unknown as Location);
   });
 
   describe('getAgentVersions', () => {
@@ -198,7 +270,7 @@ describe('AgentsService', () => {
 
       const result = await service.registerAgent(dto);
 
-      expect(result.agentVersion).toBe('1.3.0');
+      expect(result.agent).toBeDefined();
       expect(mockAgentRepository.save).toHaveBeenCalled();
     });
 
@@ -209,6 +281,8 @@ describe('AgentsService', () => {
         platform: 'windows',
         agentVersion: '1.2.0',
       };
+
+      mockInstallTokenRepository.findOne.mockResolvedValueOnce(null);
 
       await expect(service.registerAgent(dto)).rejects.toThrow(
         BadRequestException,
@@ -223,21 +297,17 @@ describe('AgentsService', () => {
         agentVersion: '1.2.0',
       };
 
-      // Create a token that's already expired
-      const downloadLink = await service.createDownloadLink(mockTenantId, {
-        platform: 'windows',
-      });
-      dto.installationToken = downloadLink.installationToken;
-
-      // Manually expire it by manipulating time
-      jest.useFakeTimers();
-      jest.advanceTimersByTime(25 * 60 * 60 * 1000); // 25 hours
+      mockInstallTokenRepository.findOne.mockResolvedValueOnce({
+        tenantId: mockTenantId,
+        locationId: null,
+        roles: ['dns-enforce'],
+        expiresAt: new Date(Date.now() - 3600000),
+        usedAt: null,
+      } as AgentInstallToken);
 
       await expect(service.registerAgent(dto)).rejects.toThrow(
         BadRequestException,
       );
-
-      jest.useRealTimers();
     });
   });
 
@@ -267,12 +337,12 @@ describe('AgentsService', () => {
     it('should detect available update', async () => {
       const dto: AgentHeartbeatDto = {
         deviceId: mockDeviceId,
-        agentVersion: '1.0.0', // Old version
+        agentVersion: '0.9.0', // Old version
       };
 
       mockAgentRepository.findOne.mockResolvedValue({
         ...mockAgent,
-        agentVersion: '1.0.0',
+        agentVersion: '0.9.0',
       } as AgentInstallation);
       mockAgentRepository.save.mockResolvedValue(
         mockAgent as AgentInstallation,
@@ -281,7 +351,7 @@ describe('AgentsService', () => {
       const result = await service.handleHeartbeat(mockTenantId, dto);
 
       expect(result.updateAvailable).toBe(true);
-      expect(result.latestVersion).toBeDefined();
+      expect(result.latestVersion).toBe('1.0.0');
     });
 
     it('should throw NotFoundException for unregistered agent', async () => {
@@ -355,7 +425,7 @@ describe('AgentsService', () => {
     it('should include download URL when update available', async () => {
       mockAgentRepository.findOne.mockResolvedValue({
         ...mockAgent,
-        agentVersion: '1.0.0',
+        agentVersion: '0.9.0',
       } as AgentInstallation);
       mockAgentRepository.save.mockResolvedValue(
         mockAgent as AgentInstallation,
@@ -363,7 +433,7 @@ describe('AgentsService', () => {
 
       const result = await service.handleHeartbeatPublic({
         deviceId: mockDeviceId,
-        agentVersion: '1.0.0',
+        agentVersion: '0.9.0',
       });
 
       expect(result.updateAvailable).toBe(true);

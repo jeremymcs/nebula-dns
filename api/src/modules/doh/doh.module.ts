@@ -11,6 +11,7 @@ import { DoHController } from './doh.controller';
 import { DoHService } from './doh.service';
 import { DoHAuthGuard } from './doh-auth.guard';
 import { Location } from '../locations/entities/location.entity';
+import { AgentInstallation } from '../agents/entities/agent-installation.entity';
 import { LocationsModule } from '../locations/locations.module';
 import { PoliciesModule } from '../policies/policies.module';
 import { ThreatDetectionModule } from '../threat-detection/threat-detection.module';
@@ -18,7 +19,7 @@ import { ClickHouseModule } from '../clickhouse/clickhouse.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Location]),
+    TypeOrmModule.forFeature([Location, AgentInstallation]),
     LocationsModule,
     PoliciesModule,
     ThreatDetectionModule,
