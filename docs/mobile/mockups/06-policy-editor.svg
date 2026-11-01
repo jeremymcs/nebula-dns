@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844">
+  <rect width="390" height="844" rx="32" fill="#0c111d"/>
+  <rect x="8" y="8" width="374" height="828" rx="26" fill="#ffffff"/>
+  <rect x="8" y="8" width="374" height="52" rx="26" fill="#1E3B78"/>
+  <text x="24" y="42" fill="#fff" font-family="system-ui,sans-serif" font-size="14" font-weight="600">Policy editor</text>
+  <text x="330" y="42" fill="#fff" font-family="system-ui,sans-serif" font-size="11" opacity="0.85">9:41</text>
+  <text x="20" y="72" fill="#1E3B78" font-family="system-ui,sans-serif" font-size="15" font-weight="600">Default policy</text>
+  <rect x="20" y="100" width="350" height="120" rx="12" fill="#F4F6FB" stroke="#D0D5DD"/>
+  <text x="32" y="124" fill="#1E3B78" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Categories</text>
+  <text x="32" y="144" fill="#667085" font-family="system-ui,sans-serif" font-size="12" font-weight="normal">Malware ✓  Adult ✓  Gambling —</text>
+  <text x="32" y="164" fill="#667085" font-family="system-ui,sans-serif" font-size="12" font-weight="normal">Safe search: enforced</text>
+  <rect x="20" y="232" width="350" height="56" rx="8" fill="#fff" stroke="#D0D5DD"/>
+  <text x="32" y="254" fill="#1E3B78" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Allow list</text>
+  <text x="32" y="274" fill="#667085" font-family="system-ui,sans-serif" font-size="11">12 domains</text>
+  <rect x="20" y="296" width="350" height="56" rx="8" fill="#fff" stroke="#D0D5DD"/>
+  <text x="32" y="318" fill="#1E3B78" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Block list</text>
+  <text x="32" y="338" fill="#667085" font-family="system-ui,sans-serif" font-size="11">Custom 4</text>
+  <rect x="20" y="360" width="350" height="44" rx="10" fill="#1E3B78"/>
+  <text x="195" y="388" fill="#fff" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" font-weight="600">Save & compile</text>
+  <text x="195" y="768" fill="#667085" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10">Powered by Flux Labs</text>
+</svg>

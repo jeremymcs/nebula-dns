@@ -37,7 +37,10 @@ export class RedisRateLimitGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    if (process.env.DISABLE_RATE_LIMIT === 'true') {
+    if (
+      process.env.DISABLE_RATE_LIMIT === 'true' ||
+      process.env.RATE_LIMIT_DISABLED === 'true'
+    ) {
       return true;
     }
 
