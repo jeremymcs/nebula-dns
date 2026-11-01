@@ -5,13 +5,6 @@ import Link from 'next/link'
 import { QueryTraceHero } from '@/components/marketing/QueryTraceHero'
 import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
 
-const facts = [
-  { value: 'Every query', label: 'Logged, searchable and live' },
-  { value: '3 ways', label: 'Network, DoH/DoT or agent' },
-  { value: '4 SIEMs', label: 'Splunk, Elastic, Sentinel, syslog' },
-  { value: 'Multi-tenant', label: 'Built for MSPs from day one' },
-] as const
-
 const features = [
   {
     title: 'Threat protection',
@@ -142,76 +135,52 @@ const features = [
   },
 ] as const
 
-const deployOptions = [
+const problems = [
   {
-    label: 'Network',
-    title: 'Point your firewall at us',
-    body: 'Set Flux Shield as the DNS server on the router or firewall at each location. Every device on that network is covered, with nothing to install.',
+    pain: 'A console per client',
+    answer: 'One login, every client. Each one is a separate workspace with its own policies, users and logs, and you switch between them in a click.',
   },
   {
-    label: 'Encrypted DNS',
-    title: 'DNS over HTTPS or TLS',
-    body: 'Each location gets its own DoH and DoT address, so routers and devices that support encrypted DNS stay private and still get the right policy.',
+    pain: 'Every client set up by hand',
+    answer: 'Build your baseline policy once as a template and apply it to each new client. Adjust one client without touching the rest.',
   },
   {
-    label: 'Agent',
-    title: 'Windows roaming agent',
-    body: 'For laptops that leave the building. Install from your RMM with a token, recover DNS with one command if you ever need to.',
+    pain: 'Work the client never sees',
+    answer: 'Scheduled, white-labeled reports and a security score show each client what was blocked and why it mattered.',
   },
 ] as const
 
-const audiences = [
-  {
-    title: 'MSPs',
-    body: 'A workspace per client, policy templates, cross-client reporting and white label. Built by an MSP.',
-    href: '/msp',
-    cta: 'Flux Shield for MSPs',
-  },
-  {
-    title: 'Businesses',
-    body: 'Protect every office and remote laptop with SSO, role-based access, audit logs and SIEM streaming.',
-    href: '/features',
-    cta: 'See all features',
-  },
-  {
-    title: 'Families',
-    body: 'Family mode with per-device rules, bedtime and homework schedules, and SafeSearch everywhere.',
-    href: '/pricing',
-    cta: 'See plans',
-  },
-] as const
-
-const integrations = [
-  'Splunk',
-  'Elastic',
-  'Microsoft Sentinel',
-  'Syslog',
-  'Slack',
-  'PagerDuty',
-  'Webhooks',
-  'REST API',
-  'SAML and OIDC SSO',
-] as const
-
-const steps = [
+const lifecycle = [
   {
     n: '01',
-    meta: 'identified',
-    title: 'Query arrives',
-    body: 'From a network, an encrypted connection or the agent. Flux Shield knows which client, location and policy it belongs to.',
+    meta: 'minutes',
+    title: 'Add the client',
+    body: 'Create the workspace, invite their contacts as owner, admin, analyst or read-only.',
   },
   {
     n: '02',
-    meta: 'single lookup',
-    title: 'Policy checked',
-    body: 'Your allow and block lists, categories and threat feeds are evaluated together in one cached lookup.',
+    meta: 'one click',
+    title: 'Apply your template',
+    body: 'Threat protection, categories, SafeSearch and allow lists are in place before the first query.',
   },
   {
     n: '03',
-    meta: 'logged',
-    title: 'Answered and logged',
-    body: 'Allowed domains resolve normally. Blocked ones get your block page. Every decision shows up in Query Logs and the Live Stream.',
+    meta: 'your RMM',
+    title: 'Deploy',
+    body: 'Point the firewall at Flux Shield, use the per-site DoH or DoT address, or push the Windows agent with one install token.',
   },
+  {
+    n: '04',
+    meta: 'monthly',
+    title: 'Show the value',
+    body: 'A branded PDF report lands in the client inbox each month, ready for your next business review.',
+  },
+] as const
+
+const billing = [
+  { value: 'Shared', label: 'Query bundles across all clients' },
+  { value: 'Per client', label: 'Usage breakdown to bill back' },
+  { value: 'Live', label: "Today's usage, as it happens" },
 ] as const
 
 export default function LandingPage() {
@@ -220,23 +189,20 @@ export default function LandingPage() {
       <section className="relative overflow-hidden border-b border-line fs-hero-backdrop fs-hero-grid">
         <div className="section-container relative z-[2] pb-0 pt-0 text-center">
           <div className="pt-[92px]">
-            <Link
-              href="/msp"
-              className="inline-flex h-[30px] items-center gap-2.5 rounded-full bg-panel/70 px-3 pl-1.5 text-[13px] text-txt no-underline shadow-[0_0_0_1px_var(--fs-line)] backdrop-blur-md transition-colors hover:text-ink"
-            >
+            <div className="inline-flex h-[30px] items-center gap-2.5 rounded-full bg-panel/70 px-3 pl-1.5 text-[13px] text-txt shadow-[0_0_0_1px_var(--fs-line)] backdrop-blur-md">
               <span className="inline-flex h-[21px] items-center rounded-full bg-[var(--fs-danger-soft)] px-2 text-xs font-medium text-[#D9483C]">
-                New
+                MSP
               </span>
-              Query Logs, Live Stream and DNS Management are here →
-            </Link>
+              Built by Flux Labs, a managed service provider
+            </div>
 
             <h1 className="fs-hero-title text-balance">
-              DNS security for <span className="fs-hero-title-accent">every network</span> you manage.
+              DNS security built for <span className="fs-hero-title-accent">MSPs,</span> not bolted on.
             </h1>
 
             <p className="mx-auto mt-[26px] max-w-[640px] text-[19px] leading-[1.55] text-txt">
-              Flux Shield blocks malware, phishing and unwanted content at the DNS layer, then shows you every query as it
-              happens. One console for your office, your clients or your home.
+              Protect every client from one console. Roll out your standard policy in minutes, deploy from your RMM, and
+              send each client a branded report that shows the work you&apos;re doing.
             </p>
 
             <div className="mt-[34px] flex flex-wrap items-center justify-center gap-3">
@@ -248,9 +214,7 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            <p className="mt-4 text-[13px] text-mut">
-              14-day free trial · No credit card required · Live in minutes
-            </p>
+            <p className="mt-4 text-[13px] text-mut">14-day free trial · No credit card required · Add clients as you go</p>
           </div>
 
           <QueryTraceHero />
@@ -258,28 +222,49 @@ export default function LandingPage() {
       </section>
 
       <div className="section-container">
-        <div className="grid grid-cols-2 border-b border-line md:grid-cols-4">
-          {facts.map((fact, i) => (
-            <div
-              key={fact.label}
-              className={`py-[34px] ${i > 0 ? 'border-l border-line pl-10 max-md:border-l-0 max-md:pl-0 max-md:pt-8' : ''}`}
-            >
-              <b className="block text-[clamp(1.5rem,2.6vw,2.125rem)] font-medium tracking-[-0.04em] text-ink">
-                {fact.value}
-              </b>
-              <span className="text-sm text-mut">{fact.label}</span>
-            </div>
-          ))}
-        </div>
-
         <section className="py-[120px]">
-          <div className="fs-eyebrow">Platform</div>
+          <div className="fs-eyebrow">Why MSPs switch</div>
           <h2 className="fs-section-title text-balance">
-            Stop threats, <span className="font-serif-accent">see everything.</span>
+            Less clicking, <span className="font-serif-accent">more clients.</span>
           </h2>
-          <p className="mt-[18px] max-w-[560px] text-[17px] leading-relaxed text-txt">
-            Protection that works before a connection is made, and visibility into every lookup your networks make.
-          </p>
+
+          <div className="mt-14 grid gap-6 md:grid-cols-3">
+            {problems.map((item) => (
+              <div key={item.pain} className="fs-card rounded-[14px] p-7">
+                <div className="font-mono text-xs uppercase tracking-[0.08em] text-mut line-through decoration-[var(--fs-coral)]">
+                  {item.pain}
+                </div>
+                <p className="mt-4 text-[15.5px] leading-relaxed text-ink">{item.answer}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="pb-[120px]">
+          <div className="fs-eyebrow">Client lifecycle</div>
+          <h2 className="fs-section-title text-balance">
+            From signed to protected <span className="font-serif-accent">the same day.</span>
+          </h2>
+
+          <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {lifecycle.map((step) => (
+              <div key={step.n} className="border-t border-ink pt-[22px]">
+                <div className="flex justify-between font-mono text-xs text-mut">
+                  <span>{step.n}</span>
+                  <span>{step.meta}</span>
+                </div>
+                <h3 className="mb-2 mt-[18px] text-xl font-semibold tracking-[-0.025em] text-ink">{step.title}</h3>
+                <p className="text-[15px] leading-relaxed text-txt">{step.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="pb-[120px]">
+          <div className="fs-eyebrow">What every client gets</div>
+          <h2 className="fs-section-title text-balance">
+            Protection you can <span className="font-serif-accent">see working.</span>
+          </h2>
 
           <div className="mt-[60px] grid grid-cols-1 border-l border-t border-line sm:grid-cols-2 lg:grid-cols-3">
             {features.map((feature) => (
@@ -303,90 +288,73 @@ export default function LandingPage() {
         </section>
 
         <section className="pb-[120px]">
-          <div className="fs-eyebrow">Deploy your way</div>
-          <h2 className="fs-section-title text-balance">
-            On the network, <span className="font-serif-accent">and off it.</span>
-          </h2>
-
-          <div className="mt-14 grid gap-6 md:grid-cols-3">
-            {deployOptions.map((option) => (
-              <div key={option.label} className="fs-card rounded-[14px] p-7">
-                <div className="font-mono text-xs uppercase tracking-[0.08em] text-mut">{option.label}</div>
-                <h3 className="mt-4 text-xl font-semibold tracking-[-0.025em] text-ink">{option.title}</h3>
-                <p className="mt-2 text-[15px] leading-relaxed text-txt">{option.body}</p>
-              </div>
-            ))}
+          <div className="fs-card grid gap-10 rounded-[14px] p-8 sm:p-10 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+            <div>
+              <div className="fs-eyebrow">Billing</div>
+              <h2 className="mt-3 text-[clamp(1.6rem,3vw,2.25rem)] font-semibold tracking-[-0.03em] text-ink">
+                Usage you can <span className="font-serif-accent">bill back.</span>
+              </h2>
+              <p className="mt-3 text-[15px] leading-relaxed text-txt">
+                Buy query bundles once and share them across every client. Flux Shield breaks usage down by client, so
+                your invoices match what each one actually used.
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              {billing.map((item) => (
+                <div key={item.value} className="border-t border-line pt-4">
+                  <b className="block text-lg font-semibold tracking-[-0.02em] text-ink">{item.value}</b>
+                  <span className="text-[13px] leading-snug text-mut">{item.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
         <section className="pb-[120px]">
-          <div className="fs-eyebrow">Who it&apos;s for</div>
+          <div className="fs-eyebrow">Fits your stack</div>
           <h2 className="fs-section-title text-balance">
-            One platform, <span className="font-serif-accent">three kinds of network.</span>
+            Plugs into the tools <span className="font-serif-accent">you already run.</span>
           </h2>
-
-          <div className="mt-14 grid gap-6 md:grid-cols-3">
-            {audiences.map((audience) => (
-              <Link
-                key={audience.title}
-                href={audience.href}
-                className="group border-t border-ink pt-[22px] no-underline"
-              >
-                <h3 className="text-xl font-semibold tracking-[-0.025em] text-ink">{audience.title}</h3>
-                <p className="mt-2 text-[15px] leading-relaxed text-txt">{audience.body}</p>
-                <span className="mt-4 inline-block text-sm font-medium text-brand group-hover:underline">
-                  {audience.cta} →
-                </span>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        <section className="pb-[120px]">
-          <div className="fs-eyebrow">Integrations</div>
-          <h2 className="fs-section-title text-balance">
-            Fits the tools <span className="font-serif-accent">you already run.</span>
-          </h2>
-          <p className="mt-[18px] max-w-[560px] text-[17px] leading-relaxed text-txt">
-            Stream query logs to your SIEM, send alerts where your team works, and automate everything else through the
-            API and webhooks.
-          </p>
           <div className="mt-10 flex flex-wrap gap-2.5">
-            {integrations.map((name) => (
+            {[
+              'Your RMM',
+              'Splunk',
+              'Elastic',
+              'Microsoft Sentinel',
+              'Syslog',
+              'Slack',
+              'PagerDuty',
+              'Webhooks',
+              'REST API',
+              'SAML and OIDC SSO',
+            ].map((name) => (
               <span key={name} className="rounded-full border border-line bg-panel px-4 py-2 text-sm text-ink">
                 {name}
               </span>
             ))}
           </div>
-        </section>
-
-        <section className="pb-[120px]">
-          <div className="fs-eyebrow">How it works</div>
-          <h2 className="fs-section-title">
-            Every query, <span className="font-serif-accent">one decision.</span>
-          </h2>
-
-          <div className="mt-14 grid gap-6 md:grid-cols-3 md:gap-8">
-            {steps.map((step) => (
-              <div key={step.n} className="border-t border-ink pt-[22px]">
-                <div className="flex justify-between font-mono text-xs text-mut">
-                  <span>{step.n}</span>
-                  <span>{step.meta}</span>
-                </div>
-                <h3 className="mb-2 mt-[18px] text-xl font-semibold tracking-[-0.025em] text-ink">{step.title}</h3>
-                <p className="text-[15px] leading-relaxed text-txt">{step.body}</p>
-              </div>
-            ))}
-          </div>
+          <p className="mt-10 text-sm text-txt">
+            Not an MSP?{' '}
+            <Link href="/enterprise" className="font-medium text-brand no-underline hover:underline">
+              Flux Shield for your own organization
+            </Link>{' '}
+            ·{' '}
+            <Link href="/pricing" className="font-medium text-brand no-underline hover:underline">
+              Plans for home and family
+            </Link>
+          </p>
         </section>
 
         <MarketingCtaBand
           className="mb-[120px]"
           title={
             <>
-              Ready to secure <span className="font-serif-accent">your network?</span>
+              Bring every client <span className="font-serif-accent">under one roof.</span>
             </>
           }
+          description="Start with your own office, then add clients as you go."
+          secondaryHref="/contact"
+          secondaryLabel="Book a demo"
         />
       </div>
     </>
