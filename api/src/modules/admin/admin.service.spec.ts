@@ -15,6 +15,7 @@ import { AdminSessionService } from './admin-session.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { ClickHouseService } from '../clickhouse/clickhouse.service';
 import { EmailService } from '../email/email.service';
+import { AdminActivityService } from './admin-activity.service';
 import { Admin } from './entities/admin.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
 import { Location } from '../locations/entities/location.entity';
@@ -210,6 +211,12 @@ describe('AdminService', () => {
           provide: EmailService,
           useValue: {
             sendMspWelcomeEmail: jest.fn().mockResolvedValue(true),
+          },
+        },
+        {
+          provide: AdminActivityService,
+          useValue: {
+            log: jest.fn().mockResolvedValue({ id: 'activity-id' }),
           },
         },
       ],

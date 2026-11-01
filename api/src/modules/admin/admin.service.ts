@@ -62,6 +62,7 @@ import {
 import { AdminUser } from './dto/admin-jwt-payload.dto';
 import { EmailService } from '../email/email.service';
 import { AlertDispatcherService } from '../alerting/alert-dispatcher.service';
+import { AdminActivityService } from './admin-activity.service';
 
 /**
  * Request context for admin login operations
@@ -103,6 +104,7 @@ export class AdminService {
     private readonly auditLogsService: AuditLogsService,
     private readonly clickhouseService: ClickHouseService,
     private readonly emailService: EmailService,
+    private readonly activityService: AdminActivityService,
     @Optional()
     private readonly alertDispatcher?: AlertDispatcherService,
   ) {
@@ -156,7 +158,7 @@ export class AdminService {
     const isPasswordValid = await bcrypt.compare(password, admin.passwordHash);
 
     if (!isPasswordValid) {
-      await this.handleFailedLogin(admin);
+      await this.handleFailedLogin(admin, context.ipAddress);
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -180,8 +182,13 @@ export class AdminService {
   /**
    * Logout an admin by blacklisting their token
    */
-  async logout(adminId: string, jti: string): Promise<void> {
+  async logout(adminId: string, jti: string, ipAddress?: string): Promise<void> {
     await this.adminSessionService.blacklistToken(jti);
+    await this.logActivitySafe({
+      adminId,
+      action: 'admin_logout',
+      ipAddress,
+    });
     this.logger.log(`Admin ${adminId} logged out`);
   }
 
@@ -343,7 +350,10 @@ export class AdminService {
    * Handle failed login attempt
    * Increment counter and lock account if threshold exceeded
    */
-  private async handleFailedLogin(admin: Admin): Promise<void> {
+  private async handleFailedLogin(
+    admin: Admin,
+    ipAddress?: string,
+  ): Promise<void> {
     const attempts = (admin.failedLoginAttempts || 0) + 1;
 
     const updateData: Partial<Admin> = {
@@ -362,6 +372,31 @@ export class AdminService {
     }
 
     await this.adminRepository.update(admin.id, updateData);
+
+    await this.logActivitySafe({
+      adminId: admin.id,
+      action: 'admin_login_failed',
+      ipAddress,
+      metadata: { attempts },
+    });
+  }
+
+  private async logActivitySafe(params: {
+    adminId: string;
+    action:
+      | 'admin_login'
+      | 'admin_logout'
+      | 'admin_login_failed';
+    ipAddress?: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<void> {
+    try {
+      await this.activityService.log(params);
+    } catch (error) {
+      this.logger.warn(
+        `Failed to write admin activity log (${params.action}): ${(error as Error).message}`,
+      );
+    }
   }
 
   /**
@@ -404,6 +439,12 @@ export class AdminService {
         `Failed to create session for admin ${admin.id}: ${(error as Error).message}`,
       );
     }
+
+    await this.logActivitySafe({
+      adminId: admin.id,
+      action: 'admin_login',
+      ipAddress: context.ipAddress,
+    });
 
     // Get token expiry time from JWT config (8 hours default)
     const expiresIn = 8 * 60 * 60; // 28800 seconds = 8 hours

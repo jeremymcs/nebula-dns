@@ -350,7 +350,7 @@ export class AdminUsersController {
    */
   @Get('activity')
   @UseGuards(AdminAuthGuard, AdminRolesGuard)
-  @AdminRoles(AdminRole.SUPER_ADMIN)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
   @ApiBearerAuth('admin-jwt')
   @ApiOperation({
     summary: 'View activity logs',

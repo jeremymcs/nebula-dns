@@ -16,6 +16,7 @@ import { Tenant } from '../tenants/entities/tenant.entity';
 import { Location } from '../locations/entities/location.entity';
 import { User } from '../users/entities/user.entity';
 import { Subscription } from '../subscriptions/entities/subscription.entity';
+import { MspInvoice } from '../msp-billing/entities/msp-invoice.entity';
 import { AdminJwtStrategy } from './strategies/admin-jwt.strategy';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { AdminRolesGuard } from './guards/admin-roles.guard';
@@ -23,6 +24,7 @@ import { AdminService } from './admin.service';
 import { AdminSessionService } from './admin-session.service';
 import { AdminHealthService } from './admin-health.service';
 import { AdminBillingService } from './admin-billing.service';
+import { AdminDashboardService } from './admin-dashboard.service';
 import { AdminActivityService } from './admin-activity.service';
 import { AdminUsersService } from './admin-users.service';
 import { AdminInvitationsService } from './admin-invitations.service';
@@ -85,6 +87,7 @@ import { AlertingModule } from '../alerting/alerting.module';
       Location,
       User,
       Subscription,
+      MspInvoice,
     ]),
 
     // Redis for session management (blacklist, session tracking)
@@ -116,6 +119,7 @@ import { AlertingModule } from '../alerting/alerting.module';
     AdminSessionService,
     AdminHealthService,
     AdminBillingService,
+    AdminDashboardService,
     AdminActivityService,
     AdminUsersService,
     AdminInvitationsService,
