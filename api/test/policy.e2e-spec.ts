@@ -111,16 +111,14 @@ describe('Policy Evaluation E2E Tests', () => {
 
   describe('Query Logging', () => {
     it('should require authentication for query logs', async () => {
-      const response = await request(app.getHttpServer()).get(
-        '/reports/queries',
-      );
+      const response = await request(app.getHttpServer()).get('/reports/logs');
 
       expect(response.status).toBe(401);
     });
 
     it('should require authentication for blocked queries', async () => {
       const response = await request(app.getHttpServer()).get(
-        '/reports/blocked',
+        '/reports/top-blocked',
       );
 
       expect(response.status).toBe(401);
