@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   applicationName: PRODUCT_NAME,
   icons: {
     icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
-    apple: '/favicon.svg',
+    apple: '/apple-touch-icon.png',
   },
   openGraph: {
     siteName: PRODUCT_NAME,

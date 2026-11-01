@@ -145,7 +145,7 @@ export function PolicyTestSimulator({
               'px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors',
               isSimulating
                 ? 'bg-space-200 dark:bg-space-700 text-space-500 cursor-not-allowed'
-                : 'bg-nebula-500 text-white hover:bg-nebula-600'
+                : 'bg-primary-500 text-white hover:bg-primary-600'
             )}
           >
             {isSimulating ? (

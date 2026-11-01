@@ -92,13 +92,13 @@ export default function FamilySettingsPage() {
         <div>
           <h1 className="text-2xl font-bold text-space-900 dark:text-white">Family Members</h1>
           <p className="text-space-600 dark:text-space-400">
-            Manage who has access to your family&apos;s Nebula DNS protection
+            Manage who has access to your family&apos;s Flux Shield protection
           </p>
         </div>
         <button
           onClick={() => setShowInviteModal(true)}
           disabled={remainingSlots === 0}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <UserPlusIcon className="w-5 h-5" />
           Invite Family Member
@@ -109,8 +109,8 @@ export default function FamilySettingsPage() {
       <div className="bg-white dark:bg-space-800 rounded-xl border border-space-200 dark:border-space-700 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
-              <UsersIcon className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+            <div className="p-3 bg-primary-100 dark:bg-primary-900/30 rounded-xl">
+              <UsersIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />
             </div>
             <div>
               <h3 className="font-semibold text-space-900 dark:text-white">Family Capacity</h3>
@@ -136,7 +136,7 @@ export default function FamilySettingsPage() {
                   ? 'bg-danger-500'
                   : remainingSlots <= 1
                   ? 'bg-warning-500'
-                  : 'bg-indigo-500'
+                  : 'bg-primary-500'
               }`}
               style={{ width: `${(totalMembers / maxMembers) * 100}%` }}
             />
@@ -159,7 +159,7 @@ export default function FamilySettingsPage() {
             onClick={() => setActiveTab('members')}
             className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'members'
-                ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                 : 'border-transparent text-space-500 hover:text-space-700 dark:text-space-400 dark:hover:text-space-300'
             }`}
           >
@@ -172,7 +172,7 @@ export default function FamilySettingsPage() {
             onClick={() => setActiveTab('invitations')}
             className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'invitations'
-                ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                 : 'border-transparent text-space-500 hover:text-space-700 dark:text-space-400 dark:hover:text-space-300'
             }`}
           >

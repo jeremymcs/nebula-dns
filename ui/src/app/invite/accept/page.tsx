@@ -103,7 +103,7 @@ function AcceptInviteContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-canvas dark:bg-space-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
       </div>
     );
   }
@@ -145,7 +145,7 @@ function AcceptInviteContent() {
           <p className="text-space-600 dark:text-space-400 mb-6">{error}</p>
           <Link
             href="/"
-            className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium"
+            className="text-primary-600 dark:text-primary-400 hover:text-primary-800 font-medium"
           >
             Return to Home
           </Link>
@@ -169,7 +169,7 @@ function AcceptInviteContent() {
           </p>
           <Link
             href="/"
-            className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium"
+            className="text-primary-600 dark:text-primary-400 hover:text-primary-800 font-medium"
           >
             Return to Home
           </Link>
@@ -182,8 +182,8 @@ function AcceptInviteContent() {
     <div className="min-h-screen bg-canvas dark:bg-space-950 flex items-center justify-center p-4">
       <div className="fs-card p-8 max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
             </svg>
           </div>
@@ -266,7 +266,7 @@ function AcceptInviteContent() {
 
         <p className="text-center text-sm text-space-500 dark:text-space-400 mt-6">
           Already have an account?{' '}
-          <Link href="/login" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium">
+          <Link href="/login" className="text-primary-600 dark:text-primary-400 hover:text-primary-800 font-medium">
             Sign in
           </Link>
         </p>
@@ -279,7 +279,7 @@ export default function AcceptInvitePage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-canvas dark:bg-space-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
       </div>
     }>
       <AcceptInviteContent />

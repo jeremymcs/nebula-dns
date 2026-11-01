@@ -57,17 +57,17 @@ export function VerificationStep({ onVerified }: VerificationStepProps) {
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-              className="absolute inset-0 rounded-full border-4 border-nebula-500/30 border-t-nebula-500"
+              className="absolute inset-0 rounded-full border-4 border-primary-500/30 border-t-primary-500"
             />
             <div className="absolute inset-0 flex items-center justify-center">
-              <ArrowPathIcon className="h-8 w-8 text-nebula-500 animate-pulse" />
+              <ArrowPathIcon className="h-8 w-8 text-primary-500 animate-pulse" />
             </div>
           </div>
           <h3 className="text-xl font-semibold text-space-900 dark:text-white">
             Verifying DNS Configuration...
           </h3>
           <p className="text-space-500">
-            Checking if your device is using Nebula DNS
+            Checking if your device is using Flux Shield
           </p>
         </motion.div>
       )}
@@ -85,7 +85,7 @@ export function VerificationStep({ onVerified }: VerificationStepProps) {
             Protection Active! 🎉
           </h3>
           <p className="text-space-500">
-            Your device is now protected by Nebula DNS
+            Your device is now protected by Flux Shield
           </p>
           <button
             onClick={onVerified}
@@ -109,12 +109,12 @@ export function VerificationStep({ onVerified }: VerificationStepProps) {
             Not Detected Yet
           </h3>
           <p className="text-space-500 max-w-sm mx-auto">
-            We couldn't detect Nebula DNS on your device. Make sure you've completed the setup steps.
+            We couldn't detect Flux Shield on your device. Make sure you've completed the setup steps.
           </p>
           <div className="flex items-center justify-center gap-3 mt-4">
             <button
               onClick={runVerification}
-              className="px-4 py-2 bg-nebula-500 text-white rounded-lg hover:bg-nebula-600 transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors flex items-center gap-2"
             >
               <ArrowPathIcon className="h-4 w-4" />
               Try Again

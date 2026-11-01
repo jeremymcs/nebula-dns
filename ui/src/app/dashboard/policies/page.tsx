@@ -654,8 +654,8 @@ export default function PoliciesPage() {
               <div className={clsx(
                 'p-6 relative overflow-hidden',
                 policy.isDefault
-                  ? 'bg-gradient-to-br from-primary-600 to-accent-600'
-                  : 'bg-gradient-to-br from-space-100 to-space-50 dark:from-space-800 dark:to-space-900'
+                  ? 'bg-primary-600'
+                  : 'bg-space-100 dark:from-space-800 dark:to-space-900'
               )}>
                 {/* Background decoration */}
                 <div className="absolute -right-4 -top-4 w-32 h-32 bg-white/10 rounded-full blur-2xl" />

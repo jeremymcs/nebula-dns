@@ -46,7 +46,7 @@ export function SignupForm({
   const handleFormSubmit = async (data: SignupFormData) => {
     try {
       await onSubmit(data)
-      showToast('success', 'Account Created', 'Welcome to Nebula DNS!')
+      showToast('success', 'Account Created', 'Welcome to Flux Shield!')
     } catch (error) {
       showToast('error', 'Signup Failed', error instanceof Error ? error.message : 'Please try again')
     }
@@ -171,11 +171,11 @@ export function SignupForm({
           label={
             <>
               I agree to the{' '}
-              <Link href={`${MARKETING_SITE_URL}/terms`} className="text-indigo-600 dark:text-indigo-400 hover:underline">
+              <Link href={`${MARKETING_SITE_URL}/terms`} className="text-primary-600 dark:text-primary-400 hover:underline">
                 Terms of Service
               </Link>{' '}
               and{' '}
-              <Link href={`${MARKETING_SITE_URL}/privacy`} className="text-indigo-600 dark:text-indigo-400 hover:underline">
+              <Link href={`${MARKETING_SITE_URL}/privacy`} className="text-primary-600 dark:text-primary-400 hover:underline">
                 Privacy Policy
               </Link>
             </>
@@ -188,7 +188,7 @@ export function SignupForm({
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full px-8 py-3 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        className="w-full px-8 py-3 rounded-lg bg-primary-600 text-white font-medium hover:from-primary-700 hover:to-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
       >
         {isLoading ? (
           <span className="flex items-center justify-center gap-2">

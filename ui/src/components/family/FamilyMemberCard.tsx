@@ -42,7 +42,7 @@ export const FamilyMemberCard = memo(function FamilyMemberCard({ member, isSelec
       case 'parent':
         return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
       case 'teen':
-        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+        return 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
       case 'child':
         return 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400'
     }
@@ -57,7 +57,7 @@ export const FamilyMemberCard = memo(function FamilyMemberCard({ member, isSelec
       className={clsx(
         'bg-white dark:bg-space-800 rounded-2xl border-2 p-4 cursor-pointer transition-all',
         isSelected
-          ? 'border-nebula-500 shadow-lg shadow-nebula-500/20'
+          ? 'border-primary-500 shadow-lg shadow-primary-500/20'
           : 'border-transparent shadow-md hover:shadow-lg'
       )}
     >

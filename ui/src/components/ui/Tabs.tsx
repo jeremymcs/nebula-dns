@@ -47,7 +47,7 @@ export function Tabs({
               ${sizeClasses[size]}
               ${
                 activeTab === tab.id
-                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-glow-sm'
+                  ? 'bg-primary-600 text-white shadow-glow-sm'
                   : 'bg-space-100 dark:bg-space-700/50 text-space-600 dark:text-space-400 hover:bg-space-200 dark:hover:bg-space-700'
               }
             `}

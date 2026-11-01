@@ -266,7 +266,7 @@ export default function SsoSettingsPage() {
               className={`px-4 py-2 rounded-lg font-medium ${
                 config.isEnabled
                   ? 'bg-space-100 dark:bg-space-700 text-space-700 dark:text-space-300 hover:bg-space-200 dark:hover:bg-space-600'
-                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                  : 'bg-primary-600 text-white hover:bg-primary-700'
               }`}
             >
               {config.isEnabled ? 'Disable SSO' : 'Enable SSO'}
@@ -297,7 +297,7 @@ export default function SsoSettingsPage() {
               onClick={() => setActiveTab('saml')}
               className={`flex-1 px-6 py-4 text-center font-medium ${
                 activeTab === 'saml'
-                  ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400'
+                  ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-600 dark:border-primary-400'
                   : 'text-space-500 dark:text-space-400 hover:text-space-700 dark:hover:text-space-300'
               }`}
             >
@@ -308,7 +308,7 @@ export default function SsoSettingsPage() {
               onClick={() => setActiveTab('oidc')}
               className={`flex-1 px-6 py-4 text-center font-medium ${
                 activeTab === 'oidc'
-                  ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400'
+                  ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-600 dark:border-primary-400'
                   : 'text-space-500 dark:text-space-400 hover:text-space-700 dark:hover:text-space-300'
               }`}
             >
@@ -343,7 +343,7 @@ export default function SsoSettingsPage() {
                   name="samlEntityId"
                   value={formData.samlEntityId}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="https://idp.example.com/..."
                 />
               </div>
@@ -357,7 +357,7 @@ export default function SsoSettingsPage() {
                   name="samlSsoUrl"
                   value={formData.samlSsoUrl}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="https://idp.example.com/sso/saml"
                 />
               </div>
@@ -371,7 +371,7 @@ export default function SsoSettingsPage() {
                   name="samlSloUrl"
                   value={formData.samlSloUrl}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="https://idp.example.com/slo/saml"
                 />
               </div>
@@ -385,7 +385,7 @@ export default function SsoSettingsPage() {
                   value={formData.samlCertificate}
                   onChange={handleChange}
                   rows={6}
-                  className="w-full px-4 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm"
+                  className="w-full px-4 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-mono text-sm"
                   placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
                 />
               </div>
@@ -394,7 +394,7 @@ export default function SsoSettingsPage() {
               <div className="mt-8 pt-6 border-t border-space-200 dark:border-space-700">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
-                    <ShieldCheckIcon className="h-5 w-5 text-indigo-600 dark:text-indigo-400 mr-2" />
+                    <ShieldCheckIcon className="h-5 w-5 text-primary-600 dark:text-primary-400 mr-2" />
                     <h3 className="font-medium text-space-900 dark:text-white">SAML Request Signing</h3>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -405,12 +405,12 @@ export default function SsoSettingsPage() {
                       onChange={handleChange}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-space-200 dark:bg-space-600 rounded-full peer peer-checked:bg-indigo-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                    <div className="w-11 h-6 bg-space-200 dark:bg-space-600 rounded-full peer peer-checked:bg-primary-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                   </label>
                 </div>
                 <p className="text-sm text-space-600 dark:text-space-400 mb-4">
-                  When enabled, Nebula DNS will sign SAML AuthnRequest and LogoutRequest messages using XML-DSIG (RSA-SHA256).
-                  This provides additional security by verifying the requests originated from Nebula DNS.
+                  When enabled, Flux Shield will sign SAML AuthnRequest and LogoutRequest messages using XML-DSIG (RSA-SHA256).
+                  This provides additional security by verifying the requests originated from Flux Shield.
                 </p>
 
                 {/* Signing Certificate Info */}
@@ -421,7 +421,7 @@ export default function SsoSettingsPage() {
                         <h4 className="font-medium text-green-900 dark:text-green-200 mb-2">SP Signing Certificate</h4>
                         <p className="text-sm text-green-800 dark:text-green-300 mb-3">
                           A signing certificate has been generated for this tenant. Configure this certificate in your Identity Provider
-                          to verify signed requests from Nebula DNS.
+                          to verify signed requests from Flux Shield.
                         </p>
                         <div className="flex items-center space-x-3">
                           <button
@@ -477,7 +477,7 @@ export default function SsoSettingsPage() {
                   name="oidcIssuer"
                   value={formData.oidcIssuer}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="https://login.example.com"
                 />
                 <p className="text-sm text-space-500 dark:text-space-400 mt-1">The OIDC provider's issuer URL</p>
@@ -492,7 +492,7 @@ export default function SsoSettingsPage() {
                   name="oidcClientId"
                   value={formData.oidcClientId}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="your-client-id"
                 />
               </div>
@@ -506,7 +506,7 @@ export default function SsoSettingsPage() {
                   name="oidcClientSecret"
                   value={formData.oidcClientSecret}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="••••••••••••"
                 />
               </div>
@@ -541,7 +541,7 @@ export default function SsoSettingsPage() {
                     onChange={handleChange}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-space-200 dark:bg-space-600 rounded-full peer peer-checked:bg-indigo-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                  <div className="w-11 h-6 bg-space-200 dark:bg-space-600 rounded-full peer peer-checked:bg-primary-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                 </label>
               </div>
 
@@ -553,7 +553,7 @@ export default function SsoSettingsPage() {
                   name="defaultRole"
                   value={formData.defaultRole}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
                   <option value="readonly">Read Only</option>
                   <option value="analyst">Analyst</option>
@@ -570,7 +570,7 @@ export default function SsoSettingsPage() {
                   name="domainRestriction"
                   value={formData.domainRestriction}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="@company.com"
                 />
                 <p className="text-sm text-space-500 dark:text-space-400 mt-1">Only allow users with emails from this domain</p>
@@ -590,7 +590,7 @@ export default function SsoSettingsPage() {
             <button
               onClick={activeTab === 'saml' ? saveSamlConfig : saveOidcConfig}
               disabled={saving || testing}
-              className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50"
+              className="px-6 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50"
             >
               {saving ? 'Saving...' : 'Save Configuration'}
             </button>

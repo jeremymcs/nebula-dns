@@ -152,7 +152,7 @@ export function AccountMenu({
           open && 'bg-space-100 dark:bg-space-800',
         )}
       >
-        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center">
+        <div className="h-8 w-8 rounded-lg bg-primary-600 flex items-center justify-center">
           <span className="text-xs font-bold text-white">
             {userName ? getInitials(userName) : 'U'}
           </span>

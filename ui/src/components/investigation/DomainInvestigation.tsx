@@ -114,7 +114,7 @@ export function DomainInvestigation({ domain, isOpen, onClose, onAction }: Domai
             <div className="flex-1 overflow-y-auto">
               {isLoading ? (
                 <div className="flex items-center justify-center h-64">
-                  <ArrowPathIcon className="h-8 w-8 text-nebula-500 animate-spin" />
+                  <ArrowPathIcon className="h-8 w-8 text-primary-500 animate-spin" />
                 </div>
               ) : (
                 <div className="p-6 space-y-6">

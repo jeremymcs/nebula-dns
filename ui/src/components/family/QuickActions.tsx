@@ -47,8 +47,8 @@ const QUICK_ACTIONS: QuickAction[] = [
     name: 'Bedtime Now',
     description: 'Start bedtime',
     icon: MoonIcon,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-100 dark:bg-purple-900/30',
+    color: 'text-primary-600',
+    bgColor: 'bg-primary-100 dark:bg-primary-900/30',
   },
   {
     id: 'pause-all',

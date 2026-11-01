@@ -53,7 +53,7 @@ export function Achievements({ achievements, className }: AchievementsProps) {
               className={clsx(
                 'relative p-3 rounded-xl border-2 transition-all',
                 isUnlocked
-                  ? 'bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-300 dark:border-amber-700 hover:scale-105'
+                  ? 'bg-amber-50 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-300 dark:border-amber-700 hover:scale-105'
                   : 'bg-space-50 dark:bg-space-900 border-space-200 dark:border-space-700 opacity-60 hover:opacity-80'
               )}
             >
@@ -66,7 +66,7 @@ export function Achievements({ achievements, className }: AchievementsProps) {
               {hasProgress && !isUnlocked && (
                 <div className="h-1 rounded-full bg-space-200 dark:bg-space-700 overflow-hidden mt-2">
                   <div
-                    className="h-full bg-nebula-500 rounded-full"
+                    className="h-full bg-primary-500 rounded-full"
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
@@ -121,7 +121,7 @@ export function Achievements({ achievements, className }: AchievementsProps) {
                   <div>
                     <div className="h-2 rounded-full bg-space-200 dark:bg-space-700 overflow-hidden mb-2">
                       <div
-                        className="h-full bg-nebula-500 rounded-full"
+                        className="h-full bg-primary-500 rounded-full"
                         style={{ width: `${(selectedAchievement.progress / selectedAchievement.maxProgress!) * 100}%` }}
                       />
                     </div>

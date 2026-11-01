@@ -39,7 +39,7 @@ interface BrandingOptions {
 }
 
 const defaultBranding: BrandingOptions = {
-  companyName: 'Nebula DNS',
+  companyName: 'Flux Shield',
   logoUrl: '',
   primaryColor: '#667eea',
   includeHeader: true,
@@ -322,8 +322,8 @@ export function PdfExportModal({ isOpen, onClose, investigation }: PdfExportModa
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-space-200 dark:border-space-700">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-nebula-100 dark:bg-nebula-900/30">
-              <DocumentArrowDownIcon className="h-5 w-5 text-nebula-600 dark:text-nebula-400" />
+            <div className="p-2 rounded-lg bg-primary-100 dark:bg-primary-900/30">
+              <DocumentArrowDownIcon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
             </div>
             <div>
               <h3 className="font-semibold text-space-900 dark:text-white">Export PDF Report</h3>
@@ -347,7 +347,7 @@ export function PdfExportModal({ isOpen, onClose, investigation }: PdfExportModa
               className={clsx(
                 'flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors',
                 activeTab === tab.id
-                  ? 'text-nebula-600 dark:text-nebula-400 border-b-2 border-nebula-500'
+                  ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-500'
                   : 'text-space-500 hover:text-space-700 dark:hover:text-space-300'
               )}
             >
@@ -407,7 +407,7 @@ export function PdfExportModal({ isOpen, onClose, investigation }: PdfExportModa
                       className={clsx(
                         'flex items-center gap-2 px-3 py-2 rounded-lg border transition-all',
                         branding.primaryColor === preset.color
-                          ? 'border-nebula-500 ring-2 ring-nebula-500/30'
+                          ? 'border-primary-500 ring-2 ring-primary-500/30'
                           : 'border-space-200 dark:border-space-700 hover:border-space-300'
                       )}
                     >
@@ -448,7 +448,7 @@ export function PdfExportModal({ isOpen, onClose, investigation }: PdfExportModa
                     type="checkbox"
                     checked={branding[option.key as keyof BrandingOptions] as boolean}
                     onChange={(e) => setBranding({ ...branding, [option.key]: e.target.checked })}
-                    className="w-4 h-4 rounded border-space-300 text-nebula-600 focus:ring-nebula-500"
+                    className="w-4 h-4 rounded border-space-300 text-primary-600 focus:ring-primary-500"
                   />
                   <span className="text-sm text-space-700 dark:text-space-300">{option.label}</span>
                 </label>
@@ -468,7 +468,7 @@ export function PdfExportModal({ isOpen, onClose, investigation }: PdfExportModa
           <button
             onClick={generatePdf}
             disabled={isGenerating}
-            className="flex items-center gap-2 px-6 py-2 bg-nebula-500 text-white rounded-lg hover:bg-nebula-600 disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50"
           >
             {isGenerating ? (
               <>

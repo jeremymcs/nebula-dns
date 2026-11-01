@@ -182,7 +182,7 @@ export default function SettingsPage() {
               className="hover:border-primary-400 dark:hover:border-primary-500 hover:shadow-lg transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-primary-500/10 to-primary-600/10 rounded-xl group-hover:from-primary-500/20 group-hover:to-primary-600/20 transition-colors">
+                <div className="p-2 bg-primary-600 rounded-xl group-hover:from-primary-500/20 group-hover:to-primary-600/20 transition-colors">
                   <section.icon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
                 </div>
                 <div>
@@ -206,7 +206,7 @@ export default function SettingsPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all ${
                     activeTab === tab.id
-                      ? 'bg-gradient-to-r from-primary-500/10 to-primary-600/10 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800'
+                      ? 'bg-primary-600 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800'
                       : 'text-space-600 dark:text-space-400 hover:bg-space-100 dark:hover:bg-space-700/50'
                   }`}
                 >
@@ -419,7 +419,7 @@ export default function SettingsPage() {
               <Card variant="solid" padding="lg">
                 <h2 className="text-lg font-semibold text-space-900 dark:text-white mb-6">Current Plan</h2>
 
-                <div className="flex items-center justify-between p-6 bg-gradient-to-r from-primary-500/10 to-primary-600/10 rounded-2xl border border-primary-200 dark:border-primary-800">
+                <div className="flex items-center justify-between p-6 bg-primary-600 rounded-2xl border border-primary-200 dark:border-primary-800">
                   <div>
                     <h3 className="text-lg font-semibold text-primary-900 dark:text-primary-200">Pro Plan</h3>
                     <p className="text-sm text-primary-700 dark:text-primary-300">Up to 10 locations, 1M queries/month</p>

@@ -255,7 +255,7 @@ export default function ReportsPage() {
       const exportOptions: ExportOptions = {
         dateRange: dateRange === '24h' ? 'Last 24 Hours' : dateRange === '7d' ? 'Last 7 Days' : dateRange === '30d' ? 'Last 30 Days' : 'Last 90 Days',
         reportType: activeReportType,
-        title: `Nebula DNS ${activeReportType.charAt(0).toUpperCase() + activeReportType.slice(1)} Report`,
+        title: `Flux Shield ${activeReportType.charAt(0).toUpperCase() + activeReportType.slice(1)} Report`,
         includeSections: exportSections,
       }
 
@@ -272,21 +272,18 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Enhanced Header with Gradient */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-nebula-600 via-cosmic-600 to-nebula-700 p-6 lg:p-8">
-        {/* Background decorations */}
-        <div className="absolute -right-20 -top-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute -left-10 -bottom-10 w-48 h-48 bg-cosmic-400/20 rounded-full blur-2xl" />
+      {/* Header */}
+      <div className="fs-card p-6">
 
         <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-xl bg-white/20 backdrop-blur-sm">
-                <DocumentChartBarIcon className="h-6 w-6 text-white" />
+              <div className="p-2 rounded-xl bg-primary-50 dark:bg-primary-900/40">
+                <DocumentChartBarIcon className="h-6 w-6 text-primary-700 dark:text-primary-300" />
               </div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-white">Reports & Analytics</h1>
+              <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight text-ink dark:text-white">Reports & Analytics</h1>
             </div>
-            <p className="text-white/80 max-w-xl">
+            <p className="text-txt dark:text-space-400 max-w-xl">
               Comprehensive insights into your DNS security posture, traffic patterns, and threat landscape.
             </p>
           </div>
@@ -302,7 +299,7 @@ export default function ReportsPage() {
                     'px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
                     dateRange === option.value
                       ? 'bg-white dark:bg-white text-space-900 shadow-md'
-                      : 'text-space-600 dark:text-white/70 hover:text-space-900 dark:hover:text-white hover:bg-space-200 dark:hover:bg-white/10'
+                      : 'text-space-600 dark:text-mut hover:text-space-900 dark:hover:text-white hover:bg-space-200 dark:hover:bg-white/10'
                   )}
                 >
                   {option.value === '24h' ? '24h' : option.value === '7d' ? '7d' : option.value === '30d' ? '30d' : '90d'}
@@ -316,8 +313,8 @@ export default function ReportsPage() {
               className={clsx(
                 'flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ring-1',
                 compareEnabled
-                  ? 'bg-white text-space-900 ring-white'
-                  : 'bg-white/10 text-white ring-white/20 hover:bg-white/20'
+                  ? 'bg-primary-700 text-white ring-primary-700'
+                  : 'bg-white text-txt ring-space-200 hover:bg-space-50 dark:bg-space-800 dark:text-space-200 dark:ring-space-700'
               )}
             >
               <ArrowPathIcon className="h-4 w-4" />
@@ -330,14 +327,14 @@ export default function ReportsPage() {
               className={clsx(
                 'flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ring-1',
                 showFilters
-                  ? 'bg-white text-space-900 ring-white'
-                  : 'bg-white/10 text-white ring-white/20 hover:bg-white/20'
+                  ? 'bg-primary-700 text-white ring-primary-700'
+                  : 'bg-white text-txt ring-space-200 hover:bg-space-50 dark:bg-space-800 dark:text-space-200 dark:ring-space-700'
               )}
             >
               <AdjustmentsHorizontalIcon className="h-4 w-4" />
               Filters
               {(selectedLocation !== 'All Locations' || selectedPolicy !== 'All Policies' || selectedUserGroup !== 'All Users') && (
-                <span className="w-2 h-2 rounded-full bg-cosmic-400" />
+                <span className="w-2 h-2 rounded-full bg-primary-400" />
               )}
             </button>
 
@@ -347,8 +344,8 @@ export default function ReportsPage() {
               className={clsx(
                 'flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all relative ring-1',
                 showAnomalies
-                  ? 'bg-white text-space-900 ring-white'
-                  : 'bg-white/10 text-white ring-white/20 hover:bg-white/20'
+                  ? 'bg-primary-700 text-white ring-primary-700'
+                  : 'bg-white text-txt ring-space-200 hover:bg-space-50 dark:bg-space-800 dark:text-space-200 dark:ring-space-700'
               )}
             >
               <CpuChipIcon className="h-4 w-4" />
@@ -359,7 +356,7 @@ export default function ReportsPage() {
             </button>
 
             <Link href="/dashboard/reports/scheduled">
-              <Button variant="secondary" size="sm" leftIcon={<CalendarDaysIcon className="h-4 w-4" />} className="!bg-white/10 !border-white/20 !text-white hover:!bg-white/20">
+              <Button variant="secondary" size="sm" leftIcon={<CalendarDaysIcon className="h-4 w-4" />}>
                 Scheduled
               </Button>
             </Link>
@@ -378,11 +375,11 @@ export default function ReportsPage() {
 
         {/* Data Freshness Indicator */}
         <div className="relative mt-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-white/70">
+          <div className="flex items-center gap-2 text-sm text-mut">
             <SignalIcon className={clsx('h-4 w-4', dataStatus?.usingMockData ? 'text-warning-400' : 'text-success-400')} />
-            <span>Data updated <strong className="text-white">2 minutes ago</strong></span>
+            <span>Data updated <strong className="text-ink dark:text-white">2 minutes ago</strong></span>
             {dataStatus?.usingMockData && (
-              <span className="ml-2 px-2 py-0.5 rounded-full bg-warning-500/20 text-warning-300 text-xs font-medium ring-1 ring-warning-500/30" title="Analytics database not connected - showing demo data">
+              <span className="ml-2 px-2 py-0.5 rounded-full bg-warning-50 text-warning-700 text-xs font-medium ring-1 ring-warning-500/30" title="Analytics database not connected - showing demo data">
                 Demo Data
               </span>
             )}
@@ -391,8 +388,8 @@ export default function ReportsPage() {
             </button>
           </div>
           {compareEnabled && (
-            <div className="flex items-center gap-2 text-sm text-white/70">
-              <span>Comparing to: <strong className="text-white">Previous {dateRange === '24h' ? '24 hours' : dateRange === '7d' ? '7 days' : dateRange === '30d' ? '30 days' : '90 days'}</strong></span>
+            <div className="flex items-center gap-2 text-sm text-mut">
+              <span>Comparing to: <strong className="text-ink dark:text-white">Previous {dateRange === '24h' ? '24 hours' : dateRange === '7d' ? '7 days' : dateRange === '30d' ? '30 days' : '90 days'}</strong></span>
             </div>
           )}
         </div>
@@ -408,8 +405,8 @@ export default function ReportsPage() {
                 className={clsx(
                   'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ring-1',
                   activeReportType === type.id
-                    ? 'bg-white text-space-900 shadow-lg ring-white'
-                    : 'bg-white/10 text-white/70 ring-white/20 hover:bg-white/20 hover:text-white'
+                    ? 'bg-primary-700 text-white ring-primary-700'
+                    : 'bg-white text-txt ring-space-200 hover:bg-space-50 dark:bg-space-800 dark:text-space-200 dark:ring-space-700'
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -422,10 +419,10 @@ export default function ReportsPage() {
 
       {/* Advanced Filters Panel */}
       {showFilters && (
-        <Card variant="solid" padding="lg" className="ring-2 ring-nebula-500/50">
+        <Card variant="solid" padding="lg" className="ring-2 ring-primary-500/50">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <AdjustmentsHorizontalIcon className="h-5 w-5 text-nebula-500" />
+              <AdjustmentsHorizontalIcon className="h-5 w-5 text-primary-500" />
               <h3 className="font-semibold text-space-900 dark:text-white">Advanced Filters</h3>
             </div>
             <div className="flex items-center gap-2">
@@ -481,10 +478,10 @@ export default function ReportsPage() {
 
       {/* AI-Detected Anomalies Panel */}
       {showAnomalies && (
-        <Card variant="solid" padding="lg" className="ring-2 ring-cosmic-500/50">
+        <Card variant="solid" padding="lg" className="ring-2 ring-primary-500/50">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <CpuChipIcon className="h-5 w-5 text-cosmic-500" />
+              <CpuChipIcon className="h-5 w-5 text-primary-500" />
               <h3 className="font-semibold text-space-900 dark:text-white">AI-Detected Anomalies</h3>
               <Badge variant="danger" size="sm">{detectedAnomalies.length} Active</Badge>
             </div>
@@ -592,7 +589,7 @@ export default function ReportsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-6">
         {/* Security Score - Large Card */}
         <Card variant="solid" padding="lg" className="lg:col-span-2 relative overflow-hidden">
-          <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-nebula-500/20 to-transparent rounded-full blur-2xl" />
+          <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary-500/20 to-transparent rounded-full blur-2xl" />
           <div className="relative">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -885,25 +882,25 @@ export default function ReportsPage() {
               <button
                 key={template.name}
                 onClick={() => setShowExportModal(true)}
-                className="flex items-start gap-3 p-4 rounded-xl bg-space-50 dark:bg-space-800/50 ring-1 ring-space-200 dark:ring-space-700 hover:ring-nebula-500 dark:hover:ring-nebula-500 transition-all text-left group"
+                className="flex items-start gap-3 p-4 rounded-xl bg-space-50 dark:bg-space-800/50 ring-1 ring-space-200 dark:ring-space-700 hover:ring-primary-500 dark:hover:ring-primary-500 transition-all text-left group"
               >
                 <div className={clsx(
                   'flex-shrink-0 p-2 rounded-lg',
-                  template.color === 'nebula' && 'bg-nebula-100 dark:bg-nebula-900/50',
+                  template.color === 'nebula' && 'bg-primary-100 dark:bg-primary-900/50',
                   template.color === 'danger' && 'bg-danger-100 dark:bg-danger-900/50',
                   template.color === 'success' && 'bg-success-100 dark:bg-success-900/50',
                   template.color === 'warning' && 'bg-warning-100 dark:bg-warning-900/50'
                 )}>
                   <Icon className={clsx(
                     'h-5 w-5',
-                    template.color === 'nebula' && 'text-nebula-600 dark:text-nebula-400',
+                    template.color === 'nebula' && 'text-primary-600 dark:text-primary-400',
                     template.color === 'danger' && 'text-danger-600 dark:text-danger-400',
                     template.color === 'success' && 'text-success-600 dark:text-success-400',
                     template.color === 'warning' && 'text-warning-600 dark:text-warning-400'
                   )} />
                 </div>
                 <div>
-                  <p className="font-medium text-space-900 dark:text-white group-hover:text-nebula-600 dark:group-hover:text-nebula-400 transition-colors">
+                  <p className="font-medium text-space-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                     {template.name}
                   </p>
                   <p className="text-xs text-space-500 dark:text-space-400 mt-0.5">
@@ -922,7 +919,7 @@ export default function ReportsPage() {
         <Card variant="solid" padding="lg">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <CloudArrowDownIcon className="h-5 w-5 text-nebula-500" />
+              <CloudArrowDownIcon className="h-5 w-5 text-primary-500" />
               <h3 className="text-lg font-semibold text-space-900 dark:text-white">Recent Exports</h3>
             </div>
             <Button variant="ghost" size="sm">View All</Button>
@@ -962,7 +959,7 @@ export default function ReportsPage() {
         <Card variant="solid" padding="lg">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <CalendarDaysIcon className="h-5 w-5 text-cosmic-500" />
+              <CalendarDaysIcon className="h-5 w-5 text-primary-500" />
               <h3 className="text-lg font-semibold text-space-900 dark:text-white">Scheduled Reports</h3>
             </div>
             <Link href="/dashboard/reports/scheduled">
@@ -1008,8 +1005,8 @@ export default function ReportsPage() {
         size="md"
       >
         <div className="flex items-center gap-4 mb-6">
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-nebula-500/20 to-cosmic-500/20 ring-1 ring-nebula-500/30">
-            <DocumentArrowDownIcon className="h-8 w-8 text-nebula-500" />
+          <div className="p-3 rounded-2xl bg-primary-600 ring-1 ring-primary-500/30">
+            <DocumentArrowDownIcon className="h-8 w-8 text-primary-500" />
           </div>
           <div>
             <h2 className="text-xl font-bold text-space-900 dark:text-white">Export Report</h2>
@@ -1046,7 +1043,7 @@ export default function ReportsPage() {
                   className={clsx(
                     'flex flex-col items-center gap-2 p-4 rounded-xl ring-1 transition-all',
                     exportFormat === format.id
-                      ? 'bg-nebula-50 dark:bg-nebula-900/30 ring-nebula-500 text-nebula-700 dark:text-nebula-300'
+                      ? 'bg-primary-50 dark:bg-primary-900/30 ring-primary-500 text-primary-700 dark:text-primary-300'
                       : 'bg-space-50 dark:bg-space-800/50 ring-space-200 dark:ring-space-700 text-space-600 dark:text-space-400 hover:ring-space-300 dark:hover:ring-space-600'
                   )}
                 >
@@ -1075,7 +1072,7 @@ export default function ReportsPage() {
                   type="checkbox"
                   checked={exportSections[option.key]}
                   onChange={(e) => setExportSections(prev => ({ ...prev, [option.key]: e.target.checked }))}
-                  className="h-4 w-4 rounded border-space-300 text-nebula-600 focus:ring-nebula-500"
+                  className="h-4 w-4 rounded border-space-300 text-primary-600 focus:ring-primary-500"
                 />
                 <span className="text-sm text-space-700 dark:text-space-300">{option.label}</span>
               </label>

@@ -287,7 +287,7 @@ export default function MspTemplatesPage() {
         </div>
         <button
           onClick={() => { resetForm(); setCreateModal(true) }}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-600 hover:to-teal-600 transition-all shadow-lg shadow-emerald-500/25"
+          className="flex items-center gap-2 px-4 py-2 bg-success-600 text-white rounded-xl font-medium hover:from-success-600 hover:to-primary-600 transition-all shadow-lg shadow-success-500/25"
         >
           <PlusIcon className="h-5 w-5" />
           Create Template
@@ -302,14 +302,14 @@ export default function MspTemplatesPage() {
           placeholder="Search templates..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-space-800 rounded-xl ring-1 ring-space-200 dark:ring-space-700 focus:ring-2 focus:ring-emerald-500 outline-none"
+          className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-space-800 rounded-xl ring-1 ring-space-200 dark:ring-space-700 focus:ring-2 focus:ring-success-500 outline-none"
         />
       </div>
 
       {/* Loading State */}
       {isLoading && (
         <div className="flex items-center justify-center py-12">
-          <div className="h-8 w-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          <div className="h-8 w-8 border-2 border-success-500 border-t-transparent rounded-full animate-spin" />
         </div>
       )}
 
@@ -323,7 +323,7 @@ export default function MspTemplatesPage() {
               <p className="text-space-500 dark:text-space-400 mb-4">Create your first policy template to deploy to clients</p>
               <button
                 onClick={() => { resetForm(); setCreateModal(true) }}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-success-600 text-white rounded-xl font-medium hover:bg-success-700 transition-colors"
               >
                 <PlusIcon className="h-5 w-5" />
                 Create Template
@@ -336,10 +336,10 @@ export default function MspTemplatesPage() {
                 className="bg-white dark:bg-space-800 rounded-2xl p-5 ring-1 ring-space-200 dark:ring-space-700 hover:shadow-lg transition-all"
               >
                 <div className="flex items-start justify-between mb-3">
-                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-xl bg-success-600 flex items-center justify-center">
                     <ShieldCheckIcon className="h-5 w-5 text-white" />
                   </div>
-                  <span className="text-xs font-medium px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full">
+                  <span className="text-xs font-medium px-2 py-1 bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-300 rounded-full">
                     {template.deployedTo} clients
                   </span>
                 </div>
@@ -379,7 +379,7 @@ export default function MspTemplatesPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setDeployModal({ template })}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-xl text-sm font-medium hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-success-50 dark:bg-success-900/30 text-success-700 dark:text-success-300 rounded-xl text-sm font-medium hover:bg-success-100 dark:hover:bg-success-900/50 transition-colors"
                   >
                     <ArrowUpTrayIcon className="h-4 w-4" />
                     Deploy
@@ -433,7 +433,7 @@ export default function MspTemplatesPage() {
             <div className="flex items-center justify-between mb-3 pb-3 border-b border-space-200 dark:border-space-700">
               <button
                 onClick={selectAllClients}
-                className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300"
+                className="text-sm font-medium text-success-600 dark:text-success-400 hover:text-success-700 dark:hover:text-success-300"
               >
                 {selectedClients.length === clients.length ? 'Deselect All' : 'Select All'}
               </button>
@@ -455,13 +455,13 @@ export default function MspTemplatesPage() {
                     key={client.id}
                     className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${
                       selectedClients.includes(client.id)
-                        ? 'bg-emerald-50 dark:bg-emerald-900/30 ring-1 ring-emerald-500'
+                        ? 'bg-success-50 dark:bg-success-900/30 ring-1 ring-success-500'
                         : 'bg-space-50 dark:bg-space-700/50 hover:bg-space-100 dark:hover:bg-space-700'
                     }`}
                   >
                     <div className={`h-5 w-5 rounded-md flex items-center justify-center transition-all ${
                       selectedClients.includes(client.id)
-                        ? 'bg-emerald-600 text-white'
+                        ? 'bg-success-600 text-white'
                         : 'bg-white dark:bg-space-600 ring-1 ring-space-300 dark:ring-space-500'
                     }`}>
                       {selectedClients.includes(client.id) && (
@@ -474,7 +474,7 @@ export default function MspTemplatesPage() {
                       onChange={() => toggleClientSelection(client.id)}
                       className="sr-only"
                     />
-                    <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                    <div className="h-8 w-8 rounded-lg bg-success-600 flex items-center justify-center">
                       <BuildingOffice2Icon className="h-4 w-4 text-white" />
                     </div>
                     <div className="flex-1">
@@ -497,7 +497,7 @@ export default function MspTemplatesPage() {
               <button
                 onClick={handleDeploy}
                 disabled={selectedClients.length === 0 || deploying}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-600 hover:to-teal-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-success-600 text-white rounded-xl font-medium hover:from-success-600 hover:to-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {deploying ? (
                   <>
@@ -543,7 +543,7 @@ export default function MspTemplatesPage() {
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="e.g., K-12 Education"
-                  className="w-full px-4 py-2.5 bg-white dark:bg-space-900 rounded-xl ring-1 ring-space-200 dark:ring-space-700 focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-space-900 rounded-xl ring-1 ring-space-200 dark:ring-space-700 focus:ring-2 focus:ring-success-500 outline-none"
                 />
               </div>
 
@@ -557,7 +557,7 @@ export default function MspTemplatesPage() {
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="Describe what this template is for..."
-                  className="w-full px-4 py-2.5 bg-white dark:bg-space-900 rounded-xl ring-1 ring-space-200 dark:ring-space-700 focus:ring-2 focus:ring-emerald-500 outline-none resize-none"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-space-900 rounded-xl ring-1 ring-space-200 dark:ring-space-700 focus:ring-2 focus:ring-success-500 outline-none resize-none"
                 />
               </div>
 
@@ -569,7 +569,7 @@ export default function MspTemplatesPage() {
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                  className="w-full px-4 py-2.5 bg-white dark:bg-space-900 rounded-xl ring-1 ring-space-200 dark:ring-space-700 focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-space-900 rounded-xl ring-1 ring-space-200 dark:ring-space-700 focus:ring-2 focus:ring-success-500 outline-none"
                 >
                   <option value="">Select category...</option>
                   {categoryOptions.map(cat => (
@@ -614,7 +614,7 @@ export default function MspTemplatesPage() {
                       threatBlocking: { ...prev.config.threatBlocking, enabled: e.target.checked },
                     },
                   }))}
-                  className="h-4 w-4 rounded border-space-300 text-emerald-600 focus:ring-emerald-500"
+                  className="h-4 w-4 rounded border-space-300 text-success-600 focus:ring-success-500"
                 />
                 <label htmlFor="threatBlocking" className="text-sm font-medium text-space-700 dark:text-space-300">
                   Enable Threat Blocking (malware, phishing)
@@ -634,7 +634,7 @@ export default function MspTemplatesPage() {
                       safesearch: { ...prev.config.safesearch, enabled: e.target.checked },
                     },
                   }))}
-                  className="h-4 w-4 rounded border-space-300 text-emerald-600 focus:ring-emerald-500"
+                  className="h-4 w-4 rounded border-space-300 text-success-600 focus:ring-success-500"
                 />
                 <label htmlFor="safesearch" className="text-sm font-medium text-space-700 dark:text-space-300">
                   Enable SafeSearch Enforcement
@@ -652,7 +652,7 @@ export default function MspTemplatesPage() {
               <button
                 onClick={editModal ? handleUpdate : handleCreate}
                 disabled={saving || !formData.name.trim()}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-600 hover:to-teal-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-success-600 text-white rounded-xl font-medium hover:from-success-600 hover:to-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? (
                   <>

@@ -66,8 +66,8 @@ export function Recommendations({ factors, onAction, className }: Recommendation
               className="px-6 py-4 hover:bg-space-50 dark:hover:bg-space-700/50 transition-colors"
             >
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-nebula-500/10 flex items-center justify-center">
-                  <span className="text-lg font-bold text-nebula-500">+{pointsToGain}</span>
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary-500/10 flex items-center justify-center">
+                  <span className="text-lg font-bold text-primary-500">+{pointsToGain}</span>
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -81,7 +81,7 @@ export function Recommendations({ factors, onAction, className }: Recommendation
 
                   <button
                     onClick={() => onAction?.(factor.id)}
-                    className="inline-flex items-center gap-1 text-sm font-medium text-nebula-500 hover:text-nebula-600 transition-colors"
+                    className="inline-flex items-center gap-1 text-sm font-medium text-primary-500 hover:text-primary-600 transition-colors"
                   >
                     <PlusCircleIcon className="h-4 w-4" />
                     Fix Now
@@ -98,7 +98,7 @@ export function Recommendations({ factors, onAction, className }: Recommendation
       <div className="px-6 py-4 bg-space-50 dark:bg-space-900 border-t border-space-200 dark:border-space-700">
         <p className="text-sm text-space-500">
           Complete all recommendations to gain{' '}
-          <span className="font-bold text-nebula-500">
+          <span className="font-bold text-primary-500">
             +{sortedRecommendations.reduce((sum, f) => sum + (f.maxScore - f.score), 0)} points
           </span>
         </p>

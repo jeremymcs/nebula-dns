@@ -130,7 +130,7 @@ export function CommandBar({ isOpen, onClose }: CommandBarProps) {
                       <CommandLineIcon className="mx-auto h-6 w-6 text-space-400" />
                       <p className="mt-4 text-sm text-space-600 dark:text-space-400">
                         No commands found. Try a different search or{' '}
-                        <button className="text-nebula-500 hover:text-nebula-400">block this domain</button>
+                        <button className="text-primary-500 hover:text-primary-400">block this domain</button>
                       </p>
                     </div>
                   )}
@@ -168,19 +168,19 @@ function CommandOption({ action }: { action: CommandAction }) {
       className={({ active }) =>
         clsx(
           'flex cursor-pointer select-none items-center rounded-lg px-3 py-2',
-          active ? 'bg-nebula-500/10 text-nebula-600 dark:text-nebula-400' : 'text-space-700 dark:text-space-300'
+          active ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400' : 'text-space-700 dark:text-space-300'
         )
       }
     >
       {({ active }) => (
         <>
           {action.icon && (
-            <action.icon className={clsx('h-5 w-5 flex-shrink-0', active ? 'text-nebula-500' : 'text-space-400')} />
+            <action.icon className={clsx('h-5 w-5 flex-shrink-0', active ? 'text-primary-500' : 'text-space-400')} />
           )}
           <div className="ml-3 flex-auto">
             <p className="text-sm font-medium">{action.name}</p>
             {action.description && (
-              <p className={clsx('text-xs', active ? 'text-nebula-500/70' : 'text-space-500')}>
+              <p className={clsx('text-xs', active ? 'text-primary-500/70' : 'text-space-500')}>
                 {action.description}
               </p>
             )}

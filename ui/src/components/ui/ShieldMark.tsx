@@ -1,37 +1,24 @@
 import clsx from 'clsx'
 
-type ShieldMarkProps = {
+interface ShieldMarkProps {
   className?: string
+  /** Kept for older call sites; the mark now fills `className`'s box. */
   iconClassName?: string
 }
 
-/** Flux Shield mark — navy/blue shield with coral accent (matches favicon). */
-export function ShieldMark({ className, iconClassName = 'h-6 w-6' }: ShieldMarkProps) {
+/**
+ * Flux Shield mark — faceted navy/blue shield with a protected core and the
+ * coral Flux dot. Same artwork as /favicon.svg.
+ */
+export function ShieldMark({ className }: ShieldMarkProps) {
   return (
-    <div
-      className={clsx(
-        'relative flex items-center justify-center rounded-xl bg-gradient-to-br from-primary-700 to-primary-500 shadow-lg shadow-primary-700/25',
-        className
-      )}
-    >
-      <svg
-        className={clsx(iconClassName, 'text-white')}
-        viewBox="0 0 24 24"
-        fill="none"
-        aria-hidden
-      >
-        <path
-          d="M12 2.5L4 6v7.2c0 4.6 3.1 8.8 8 10 4.9-1.2 8-5.4 8-10V6l-8-3.5z"
-          fill="currentColor"
-          fillOpacity={0.95}
-        />
-        <path
-          d="M12 5.5l-3.5 1.6v4.8c0 2.7 1.6 5.2 3.5 6 1.9-.8 3.5-3.3 3.5-6V7.1L12 5.5z"
-          fill="#4B7CBB"
-          fillOpacity={0.45}
-        />
-        <circle cx="17.5" cy="6.5" r="1.35" fill="#FF6E62" />
+    <span className={clsx('relative inline-flex shrink-0 text-white dark:text-space-950', className)}>
+      <svg viewBox="0 0 64 64" className="h-full w-full" aria-hidden>
+        <path d="M32 4L54 12V30C54 44 44.5 54.5 32 60C19.5 54.5 10 44 10 30V12Z" fill="#1E3B78" />
+        <path d="M32 4L54 12V30C54 44 44.5 54.5 32 60Z" fill="#4B7CBB" />
+        <path d="M32 18L42 22V31C42 38 37.5 43 32 45.5C26.5 43 22 38 22 31V22Z" fill="#FFFFFF" />
+        <circle cx="50" cy="12" r="6.5" fill="#FF6E62" stroke="currentColor" strokeWidth="3" />
       </svg>
-    </div>
+    </span>
   )
 }

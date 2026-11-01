@@ -122,7 +122,7 @@ export default function BillingPage() {
                 {(Array.isArray(bundles) ? bundles : []).map((bundle) => (
                   <Card key={bundle.id} className="p-6">
                     <div className="flex items-center gap-2 mb-4">
-                      <BoltIcon className="h-5 w-5 text-cyan-400" />
+                      <BoltIcon className="h-5 w-5 text-primary-400" />
                       <h3 className="text-lg font-semibold text-white">{bundle.name}</h3>
                     </div>
                     <p className="text-space-400 text-sm mb-4">{bundle.description}</p>
@@ -156,8 +156,8 @@ export default function BillingPage() {
                   {purchasesData?.purchases?.map((purchase: any) => (
                     <div key={purchase.id} className="flex items-center justify-between border-b border-space-700 pb-4 last:border-0">
                       <div className="flex items-center gap-4">
-                        <div className="p-2 bg-cyan-500/10 rounded-lg">
-                          <CubeIcon className="h-5 w-5 text-cyan-400" />
+                        <div className="p-2 bg-primary-500/10 rounded-lg">
+                          <CubeIcon className="h-5 w-5 text-primary-400" />
                         </div>
                         <div>
                           <p className="font-medium text-white">{purchase.bundleName}</p>
@@ -228,7 +228,7 @@ export default function BillingPage() {
                       <div className="flex items-center gap-4">
                         <div className="w-32 h-2 bg-space-700 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-cyan-500 rounded-full"
+                            className="h-full bg-primary-500 rounded-full"
                             style={{ width: `${(tenant.queries / (realTimeUsage.todayQueries || 1)) * 100}%` }}
                           />
                         </div>
@@ -270,7 +270,7 @@ export default function BillingPage() {
           </div>
           <div className="flex justify-between border-t border-space-700 pt-2 mt-2">
             <span className="font-medium text-white">Total</span>
-            <span className="font-bold text-lg text-cyan-400">${selectedBundle?.price}</span>
+            <span className="font-bold text-lg text-primary-400">${selectedBundle?.price}</span>
           </div>
         </div>
         <div className="flex gap-3 justify-end">

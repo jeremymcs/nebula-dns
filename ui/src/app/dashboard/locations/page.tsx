@@ -636,8 +636,8 @@ export default function LocationsPage() {
       >
         {/* Header with icon */}
         <div className="flex items-center gap-4 mb-6">
-          <div className="flex-shrink-0 p-3 rounded-2xl bg-gradient-to-br from-nebula-500/20 to-cosmic-500/20 ring-1 ring-nebula-500/30">
-            <KeyIcon className="h-8 w-8 text-nebula-500" />
+          <div className="flex-shrink-0 p-3 rounded-2xl bg-primary-600 ring-1 ring-primary-500/30">
+            <KeyIcon className="h-8 w-8 text-primary-500" />
           </div>
           <div>
             <h2 className="text-xl font-bold text-space-900 dark:text-white">
@@ -650,7 +650,7 @@ export default function LocationsPage() {
         </div>
 
         {/* Warning Banner */}
-        <div className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-r from-warning-500/10 to-orange-500/10 ring-1 ring-warning-500/30 mb-6">
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-warning-600 ring-1 ring-warning-500/30 mb-6">
           <div className="flex-shrink-0 p-1.5 rounded-lg bg-warning-500/20">
             <svg className="h-5 w-5 text-warning-600 dark:text-warning-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
@@ -680,7 +680,7 @@ export default function LocationsPage() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <code className="flex-1 font-mono text-sm text-nebula-600 dark:text-nebula-400 break-all select-all leading-relaxed">
+            <code className="flex-1 font-mono text-sm text-primary-600 dark:text-primary-400 break-all select-all leading-relaxed">
               {generatedToken?.token}
             </code>
             <button
@@ -726,14 +726,14 @@ export default function LocationsPage() {
                   navigator.clipboard.writeText(`https://${DNS1_HOST}/dns-query?token=${generatedToken?.token}`)
                   showToast('success', 'Endpoint URL copied')
                 }}
-                className="text-xs text-nebula-500 hover:text-nebula-400 font-medium flex items-center gap-1"
+                className="text-xs text-primary-500 hover:text-primary-400 font-medium flex items-center gap-1"
               >
                 <ClipboardDocumentIcon className="h-3.5 w-3.5" />
                 Copy URL
               </button>
             </div>
             <code className="text-sm font-mono text-space-800 dark:text-space-200 break-all block">
-              https://${DNS1_HOST}/dns-query?token=<span className="text-nebula-500">{generatedToken?.token.substring(0, 16)}...</span>
+              https://${DNS1_HOST}/dns-query?token=<span className="text-primary-500">{generatedToken?.token.substring(0, 16)}...</span>
             </code>
           </div>
 
@@ -780,7 +780,7 @@ export default function LocationsPage() {
         size="lg"
       >
         <div className="flex items-center gap-4 mb-6">
-          <div className="flex-shrink-0 p-3 rounded-2xl bg-gradient-to-br from-primary-500/20 to-accent-500/20 ring-1 ring-primary-500/30">
+          <div className="flex-shrink-0 p-3 rounded-2xl bg-primary-600 ring-1 ring-primary-500/30">
             <DocumentTextIcon className="h-8 w-8 text-primary-500" />
           </div>
           <div>

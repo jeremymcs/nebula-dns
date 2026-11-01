@@ -53,10 +53,10 @@ export function OrionFAB({ onAction, alerts = [], className }: OrionFABProps) {
         onClick={handleToggle}
         className={clsx(
           'fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg z-50',
-          'bg-gradient-to-br from-nebula-500 to-nebula-600',
+          'bg-primary-600',
           'flex items-center justify-center',
           'hover:shadow-xl hover:scale-105 transition-all',
-          'focus:outline-none focus:ring-2 focus:ring-nebula-500 focus:ring-offset-2',
+          'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
           className
         )}
         whileHover={{ scale: 1.05 }}
@@ -65,7 +65,7 @@ export function OrionFAB({ onAction, alerts = [], className }: OrionFABProps) {
         {/* Pulse animation */}
         {showPulse && !isOpen && (
           <motion.span
-            className="absolute inset-0 rounded-full bg-nebula-500"
+            className="absolute inset-0 rounded-full bg-primary-500"
             initial={{ scale: 1, opacity: 0.5 }}
             animate={{ scale: 1.5, opacity: 0 }}
             transition={{ duration: 1.5, repeat: Infinity }}

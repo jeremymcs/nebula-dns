@@ -155,7 +155,7 @@ export default function ApiKeysPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-space-900 dark:text-white">API Keys</h1>
-          <p className="text-space-600 dark:text-space-400">Manage API keys for programmatic access to Nebula DNS</p>
+          <p className="text-space-600 dark:text-space-400">Manage API keys for programmatic access to Flux Shield</p>
         </div>
         <button
           onClick={() => {

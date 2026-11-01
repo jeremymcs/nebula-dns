@@ -64,7 +64,7 @@ export default function ClientsPage() {
           <Card 
             variant="glass" 
             padding="lg"
-            className="relative overflow-hidden bg-gradient-to-br from-primary-50 to-accent-50 dark:from-primary-900/10 dark:to-accent-900/10 border-primary-100 dark:border-primary-900/30"
+            className="relative overflow-hidden bg-primary-50 dark:from-primary-900/10 dark:to-accent-900/10 border-primary-100 dark:border-primary-900/30"
           >
             {/* Decoration */}
             <div className="absolute -right-8 -top-8 w-32 h-32 bg-primary-500/5 rounded-full blur-2xl" />

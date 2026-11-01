@@ -181,7 +181,7 @@ export function BlockPageEditorModal({
                 className={clsx(
                   'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all',
                   activeTab === tab.id
-                    ? 'bg-nebula-500 text-white shadow-lg shadow-nebula-500/25'
+                    ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/25'
                     : 'text-space-600 dark:text-space-400 hover:bg-space-100 dark:hover:bg-space-700'
                 )}
               >
@@ -221,7 +221,7 @@ export function BlockPageEditorModal({
                         className={clsx(
                           'group relative p-3 rounded-xl border-2 transition-all hover:scale-[1.02]',
                           form.backgroundColor === preset.bg && form.primaryColor === preset.primary
-                            ? 'border-nebula-500 ring-2 ring-nebula-500/20 shadow-md'
+                            ? 'border-primary-500 ring-2 ring-primary-500/20 shadow-md'
                             : 'border-space-200 dark:border-space-700 hover:border-space-300 dark:hover:border-space-600'
                         )}
                         style={{ backgroundColor: preset.bg }}
@@ -448,7 +448,7 @@ export function BlockPageEditorModal({
                   <h3 className="text-sm font-medium text-space-700 dark:text-space-300 mb-4">
                     User Actions
                   </h3>
-                  <label className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-space-200 dark:border-space-700 hover:border-nebula-400 dark:hover:border-nebula-500 cursor-pointer transition-colors">
+                  <label className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-space-200 dark:border-space-700 hover:border-primary-400 dark:hover:border-primary-500 cursor-pointer transition-colors">
                     <input
                       type="checkbox"
                       checked={form.showRequestAccess}
@@ -457,7 +457,7 @@ export function BlockPageEditorModal({
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <EnvelopeIcon className="h-5 w-5 text-nebula-500" />
+                        <EnvelopeIcon className="h-5 w-5 text-primary-500" />
                         <span className="font-medium text-space-800 dark:text-white">Allow Access Requests</span>
                       </div>
                       <p className="text-sm text-space-500 dark:text-space-400 mt-1">
@@ -505,7 +505,7 @@ export function BlockPageEditorModal({
                       <div className="mb-2 flex flex-wrap gap-1.5">
                         <span className="text-xs text-space-500">Available placeholders:</span>
                         {['{{domain}}', '{{category}}', '{{timestamp}}', '{{title}}', '{{message}}', '{{client_ip}}'].map(p => (
-                          <code key={p} className="px-1.5 py-0.5 text-xs rounded bg-space-100 dark:bg-space-800 text-nebula-600 dark:text-nebula-400">
+                          <code key={p} className="px-1.5 py-0.5 text-xs rounded bg-space-100 dark:bg-space-800 text-primary-600 dark:text-primary-400">
                             {p}
                           </code>
                         ))}

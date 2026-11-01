@@ -110,7 +110,7 @@ export function ClientsList({ clients, onCreateClick, loading }: ClientsListProp
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-primary-600 to-accent-600 flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:scale-110 transition-transform duration-300">
+                    <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:scale-110 transition-transform duration-300">
                       <BuildingOffice2Icon className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">

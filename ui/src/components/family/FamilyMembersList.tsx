@@ -24,7 +24,7 @@ interface FamilyMembersListProps {
 const roleConfig: Record<string, { label: string; color: string; description: string }> = {
   owner: {
     label: 'Owner',
-    color: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-200',
+    color: 'bg-primary-100 dark:bg-primary-900/50 text-primary-800 dark:text-primary-200',
     description: 'Full access to all settings',
   },
   member: {
@@ -76,14 +76,14 @@ export function FamilyMembersList({ members, onRemove }: FamilyMembersListProps)
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-medium">
+                      <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center text-white font-medium">
                         {member.name ? member.name.charAt(0).toUpperCase() : member.email.charAt(0).toUpperCase()}
                       </div>
                       <div>
                         <div className="font-medium text-space-900 dark:text-white flex items-center gap-2">
                           {member.name || 'Unnamed'}
                           {isOwner && (
-                            <ShieldCheckIcon className="w-4 h-4 text-purple-500" title="Family Owner" />
+                            <ShieldCheckIcon className="w-4 h-4 text-primary-500" title="Family Owner" />
                           )}
                         </div>
                         <div className="text-sm text-space-500 dark:text-space-400">

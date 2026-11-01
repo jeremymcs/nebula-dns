@@ -109,7 +109,7 @@ export function LoginForm({ onSubmit, loading = false, onDemoLogin, onMspDemoLog
               type="button"
               onClick={onMspDemoLogin}
               disabled={isLoading}
-              className="py-3 px-4 rounded-xl ring-1 ring-emerald-200 dark:ring-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="py-3 px-4 rounded-xl ring-1 ring-success-200 dark:ring-success-800 bg-success-50 dark:bg-success-900/20 hover:bg-success-100 dark:hover:bg-success-900/30 text-success-700 dark:text-success-300 font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />

@@ -36,7 +36,7 @@ interface OnboardingStep {
 const initialSteps: OnboardingStep[] = [
   {
     id: 'welcome',
-    title: 'Welcome to Nebula DNS',
+    title: 'Welcome to Flux Shield',
     description: 'Get familiar with your dashboard',
     icon: <RocketLaunchIcon className="h-6 w-6" />,
     completed: false,
@@ -58,7 +58,7 @@ const initialSteps: OnboardingStep[] = [
   {
     id: 'configure',
     title: 'Configure Your Devices',
-    description: 'Point your DNS to Nebula DNS',
+    description: 'Point your DNS to Flux Shield',
     icon: <Cog6ToothIcon className="h-6 w-6" />,
     completed: false,
   },
@@ -249,8 +249,8 @@ export default function OnboardingPage() {
       case 'welcome':
         return (
           <div className="space-y-6">
-            <div className="bg-gradient-to-r from-primary-500 to-nebula-500 rounded-2xl p-8 text-white">
-              <h2 className="text-2xl font-bold mb-4">Welcome to Nebula DNS! 🎉</h2>
+            <div className="bg-primary-600 rounded-2xl p-8 text-white">
+              <h2 className="text-2xl font-bold mb-4">Welcome to Flux Shield! 🎉</h2>
               <p className="text-primary-100 mb-6">
                 You're just a few steps away from protecting your network with enterprise-grade
                 DNS security. Let's get you set up in about 5 minutes.
@@ -300,7 +300,7 @@ export default function OnboardingPage() {
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-space-900 dark:text-white">Set Up Your Location</h2>
             <p className="text-space-600 dark:text-space-400">
-              A location represents a network site that will use Nebula DNS. {primaryLocation
+              A location represents a network site that will use Flux Shield. {primaryLocation
                 ? "We've set up your primary location with your security policy."
                 : "We'll create a primary location for you with your security policy."}
             </p>
@@ -401,7 +401,7 @@ export default function OnboardingPage() {
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-space-900 dark:text-white">Configure Your Devices</h2>
             <p className="text-space-600 dark:text-space-400">
-              Point your devices or network router to Nebula DNS servers to start filtering.
+              Point your devices or network router to Flux Shield servers to start filtering.
             </p>
 
             <div className="bg-space-900 rounded-2xl p-6 text-white">
@@ -553,7 +553,7 @@ export default function OnboardingPage() {
                   You're All Set! 🎉
                 </h3>
                 <p className="text-success-700 dark:text-success-300">
-                  Your network is now protected by Nebula DNS. You can access your dashboard
+                  Your network is now protected by Flux Shield. You can access your dashboard
                   to view analytics, adjust policies, and manage your settings.
                 </p>
               </Card>
@@ -597,7 +597,7 @@ export default function OnboardingPage() {
                 variant="primary"
                 onClick={handleComplete}
                 disabled={isVerifying}
-                className={`${hasError ? 'flex-1' : 'w-full'} bg-gradient-to-r from-primary-600 to-nebula-600 hover:from-primary-700 hover:to-nebula-700`}
+                className={`${hasError ? 'flex-1' : 'w-full'} bg-primary-600 hover:from-primary-700 hover:to-primary-700`}
               >
                 Go to Dashboard
               </Button>
@@ -616,10 +616,10 @@ export default function OnboardingPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-2">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary-500 to-nebula-600 flex items-center justify-center">
+            <div className="h-9 w-9 rounded-xl bg-primary-600 flex items-center justify-center">
               <ShieldCheckIcon className="h-6 w-6 text-white" />
             </div>
-            <span className="text-xl font-bold text-space-900 dark:text-white">Nebula DNS Setup</span>
+            <span className="text-xl font-bold text-space-900 dark:text-white">Flux Shield Setup</span>
           </div>
           <button
             onClick={handleSkip}

@@ -77,7 +77,7 @@ export function OnboardingWizard({ isOpen, onClose, onComplete }: OnboardingWiza
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-gradient-to-br from-space-900 via-nebula-900 to-space-900 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-space-900 z-50 flex items-center justify-center p-4"
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
@@ -103,7 +103,7 @@ export function OnboardingWizard({ isOpen, onClose, onComplete }: OnboardingWiza
                 <div className={clsx(
                   'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors',
                   index < state.step ? 'bg-success-500 text-white' :
-                  index === state.step ? 'bg-nebula-500 text-white' :
+                  index === state.step ? 'bg-primary-500 text-white' :
                   'bg-space-200 dark:bg-space-700 text-space-500'
                 )}>
                   {index < state.step ? '✓' : index + 1}
@@ -146,7 +146,7 @@ export function OnboardingWizard({ isOpen, onClose, onComplete }: OnboardingWiza
           </button>
           <button
             onClick={goNext}
-            className="flex items-center gap-2 px-6 py-2 bg-nebula-500 text-white rounded-lg hover:bg-nebula-600 transition-colors"
+            className="flex items-center gap-2 px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
           >
             {state.step === ONBOARDING_STEPS.length - 1 ? 'Complete' : 'Skip'}
             <ArrowRightIcon className="h-4 w-4" />

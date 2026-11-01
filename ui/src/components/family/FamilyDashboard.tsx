@@ -163,12 +163,12 @@ export function FamilyDashboard({ className }: FamilyDashboardProps) {
   const selectedMemberData = members.find(m => m.id === selectedMember) || null
 
   return (
-    <div className={clsx('min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-space-900 dark:to-space-800', className)}>
+    <div className={clsx('min-h-screen bg-blue-50 dark:from-space-900 dark:to-space-800', className)}>
       {/* Header */}
       <header className="bg-white/80 dark:bg-space-800/80 backdrop-blur-lg border-b border-space-200 dark:border-space-700 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-nebula-500 to-purple-500">
+            <div className="p-2 rounded-xl bg-primary-600">
               <ShieldCheckIcon className="h-6 w-6 text-white" />
             </div>
             <div>
@@ -198,7 +198,7 @@ export function FamilyDashboard({ className }: FamilyDashboardProps) {
             <h2 className="text-lg font-semibold text-space-900 dark:text-white">Family Members</h2>
             <button
               onClick={() => setIsAddMemberModalOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm text-nebula-500 hover:bg-nebula-50 dark:hover:bg-nebula-900/20 rounded-lg"
+              className="flex items-center gap-2 px-3 py-1.5 text-sm text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg"
             >
               <PlusIcon className="h-4 w-4" />
               Add Member
@@ -221,7 +221,7 @@ export function FamilyDashboard({ className }: FamilyDashboardProps) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: members.length * 0.1 }}
               onClick={() => setIsAddMemberModalOpen(true)}
-              className="min-h-[200px] border-2 border-dashed border-space-300 dark:border-space-600 rounded-2xl flex flex-col items-center justify-center gap-2 text-space-400 hover:border-nebula-500 hover:text-nebula-500 transition-colors"
+              className="min-h-[200px] border-2 border-dashed border-space-300 dark:border-space-600 rounded-2xl flex flex-col items-center justify-center gap-2 text-space-400 hover:border-primary-500 hover:text-primary-500 transition-colors"
             >
               <PlusIcon className="h-8 w-8" />
               <span className="font-medium">Add Family Member</span>

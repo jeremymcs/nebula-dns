@@ -130,7 +130,7 @@ export default function AgentsPage() {
       <div>
         <h1 className="text-3xl font-bold text-space-900 dark:text-white">Client Agents</h1>
         <p className="text-space-500 dark:text-space-400 mt-1">
-          Download and manage Nebula DNS client agents for your devices
+          Download and manage Flux Shield client agents for your devices
         </p>
       </div>
 
@@ -329,7 +329,7 @@ export default function AgentsPage() {
             <div className="flex gap-3 pt-2">
               <a
                 href={downloadLink.url}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-medium hover:from-primary-600 hover:to-primary-700 text-center transition-all shadow-lg shadow-primary-500/25"
+                className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-xl font-medium hover:from-primary-600 hover:to-primary-700 text-center transition-all shadow-lg shadow-primary-500/25"
               >
                 <ArrowDownTrayIcon className="h-5 w-5 inline mr-2" />
                 Download Agent

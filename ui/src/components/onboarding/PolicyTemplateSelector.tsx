@@ -30,8 +30,8 @@ export function PolicyTemplateSelector({ selected, onSelect }: PolicyTemplateSel
           className={clsx(
             'w-full p-4 rounded-xl border-2 text-left transition-all flex items-start gap-4',
             selected === template.id
-              ? 'border-nebula-500 bg-nebula-500/10'
-              : 'border-space-200 dark:border-space-700 hover:border-nebula-300 dark:hover:border-nebula-700'
+              ? 'border-primary-500 bg-primary-500/10'
+              : 'border-space-200 dark:border-space-700 hover:border-primary-300 dark:hover:border-primary-700'
           )}
         >
           <div className="text-3xl">{template.icon}</div>
@@ -51,7 +51,7 @@ export function PolicyTemplateSelector({ selected, onSelect }: PolicyTemplateSel
             </div>
           </div>
           {selected === template.id && (
-            <div className="w-6 h-6 rounded-full bg-nebula-500 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center">
               <CheckIcon className="h-4 w-4 text-white" />
             </div>
           )}

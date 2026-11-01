@@ -116,13 +116,13 @@ export function OrionChat({ isOpen, onClose, onAction, className }: OrionChatPro
           )}
         >
           {/* Header */}
-          <div className="px-4 py-3 bg-gradient-to-r from-nebula-600 to-nebula-500 flex items-center gap-3">
+          <div className="px-4 py-3 bg-primary-600 flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
               <SparklesIcon className="h-6 w-6 text-white" />
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-white">Orion</h3>
-              <p className="text-xs text-nebula-100">AI Security Co-Pilot</p>
+              <p className="text-xs text-primary-100">AI Security Co-Pilot</p>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
               <XMarkIcon className="h-5 w-5 text-white" />
@@ -141,9 +141,9 @@ export function OrionChat({ isOpen, onClose, onAction, className }: OrionChatPro
             {isTyping && (
               <div className="flex items-center gap-2 text-space-500">
                 <div className="flex gap-1">
-                  <span className="w-2 h-2 rounded-full bg-nebula-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-2 h-2 rounded-full bg-nebula-500 animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-2 h-2 rounded-full bg-nebula-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <span className="w-2 h-2 rounded-full bg-primary-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-2 h-2 rounded-full bg-primary-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-2 h-2 rounded-full bg-primary-500 animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
                 <span className="text-sm">Orion is thinking...</span>
               </div>
@@ -164,7 +164,7 @@ export function OrionChat({ isOpen, onClose, onAction, className }: OrionChatPro
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask Orion anything..."
-                className="flex-1 rounded-xl border-space-300 dark:border-space-700 dark:bg-space-800 text-sm focus:ring-nebula-500 focus:border-nebula-500"
+                className="flex-1 rounded-xl border-space-300 dark:border-space-700 dark:bg-space-800 text-sm focus:ring-primary-500 focus:border-primary-500"
               />
               <button
                 onClick={handleSend}
@@ -172,7 +172,7 @@ export function OrionChat({ isOpen, onClose, onAction, className }: OrionChatPro
                 className={clsx(
                   'p-3 rounded-xl transition-colors',
                   input.trim()
-                    ? 'bg-nebula-500 text-white hover:bg-nebula-600'
+                    ? 'bg-primary-500 text-white hover:bg-primary-600'
                     : 'bg-space-100 dark:bg-space-800 text-space-400'
                 )}
               >

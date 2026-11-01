@@ -29,8 +29,8 @@ export function DeviceTypeSelector({ selected, onSelect }: DeviceTypeSelectorPro
           className={clsx(
             'p-6 rounded-xl border-2 text-left transition-all hover:scale-105',
             selected === device.id
-              ? 'border-nebula-500 bg-nebula-500/10'
-              : 'border-space-200 dark:border-space-700 hover:border-nebula-300 dark:hover:border-nebula-700'
+              ? 'border-primary-500 bg-primary-500/10'
+              : 'border-space-200 dark:border-space-700 hover:border-primary-300 dark:hover:border-primary-700'
           )}
         >
           <div className="text-4xl mb-3">{device.icon}</div>

@@ -326,7 +326,7 @@ export default function IntegrationsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-space-900 dark:text-white">Integrations</h1>
-        <p className="text-space-600 dark:text-space-400">Connect Nebula DNS with your security tools and workflows</p>
+        <p className="text-space-600 dark:text-space-400">Connect Flux Shield with your security tools and workflows</p>
       </div>
 
       {/* SIEM Integrations Section */}
@@ -338,7 +338,7 @@ export default function IntegrationsPage() {
           </div>
           <button
             onClick={() => setShowSiemModal(true)}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
           >
             Add SIEM
           </button>
@@ -379,7 +379,7 @@ export default function IntegrationsPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleTestSiem(integration.id)}
-                      className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                      className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300"
                     >
                       Test
                     </button>
@@ -416,7 +416,7 @@ export default function IntegrationsPage() {
           </div>
           <button
             onClick={() => setShowWebhookModal(true)}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
           >
             Add Webhook
           </button>
@@ -447,7 +447,7 @@ export default function IntegrationsPage() {
                     <td className="py-3">
                       <div className="flex flex-wrap gap-1">
                         {webhook.events.slice(0, 2).map((event) => (
-                          <span key={event} className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-200 text-xs rounded-full">
+                          <span key={event} className="px-2 py-0.5 bg-primary-100 dark:bg-primary-900/50 text-primary-800 dark:text-primary-200 text-xs rounded-full">
                             {event}
                           </span>
                         ))}
@@ -477,7 +477,7 @@ export default function IntegrationsPage() {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleTestWebhook(webhook.id)}
-                          className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                          className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300"
                         >
                           Test
                         </button>
@@ -528,7 +528,7 @@ export default function IntegrationsPage() {
                     <button
                       key={type}
                       onClick={() => setSelectedSiemType(type)}
-                      className="p-4 border dark:border-space-600 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition text-left"
+                      className="p-4 border dark:border-space-600 rounded-lg hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition text-left"
                     >
                       <div className="text-3xl mb-2">{info.icon}</div>
                       <div className="font-medium text-space-900 dark:text-white">{info.name}</div>
@@ -708,7 +708,7 @@ export default function IntegrationsPage() {
                   <button
                     onClick={editingSiemId ? handleUpdateSiem : handleCreateSiem}
                     disabled={saving}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
                   >
                     {saving
                       ? (editingSiemId ? 'Updating...' : 'Adding...')
@@ -766,7 +766,7 @@ export default function IntegrationsPage() {
                   placeholder="Used for HMAC signature verification"
                 />
                 <p className="text-xs text-space-500 dark:text-space-400 mt-1">
-                  We'll sign payloads with this secret so you can verify they came from Nebula DNS
+                  We'll sign payloads with this secret so you can verify they came from Flux Shield
                 </p>
               </div>
 
@@ -808,7 +808,7 @@ export default function IntegrationsPage() {
               <button
                 onClick={editingWebhookId ? handleUpdateWebhook : handleCreateWebhook}
                 disabled={saving}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
               >
                 {saving
                   ? (editingWebhookId ? 'Updating...' : 'Adding...')
