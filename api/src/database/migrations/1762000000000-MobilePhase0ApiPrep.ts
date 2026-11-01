@@ -203,6 +203,34 @@ export class MobilePhase0ApiPrep1762000000000 implements MigrationInterface {
       CREATE INDEX IF NOT EXISTS "IDX_notification_deliveries_status"
       ON "notification_deliveries"("status")
     `);
+
+    // Legacy InitialSchema columns (type, config) remain NOT NULL; sync from provider_type on insert
+    await queryRunner.query(`
+      CREATE OR REPLACE FUNCTION sync_sso_config_legacy_columns()
+      RETURNS TRIGGER AS $$
+      BEGIN
+        IF NEW.type IS NULL AND NEW.provider_type IS NOT NULL THEN
+          NEW.type := NEW.provider_type;
+        ELSIF NEW.type IS NULL THEN
+          NEW.type := 'saml';
+        END IF;
+        IF NEW.config IS NULL THEN
+          NEW.config := '{}'::jsonb;
+        END IF;
+        RETURN NEW;
+      END;
+      $$ LANGUAGE plpgsql
+    `);
+
+    await queryRunner.query(`
+      DROP TRIGGER IF EXISTS trg_sso_config_legacy_sync ON "sso_configurations"
+    `);
+
+    await queryRunner.query(`
+      CREATE TRIGGER trg_sso_config_legacy_sync
+      BEFORE INSERT OR UPDATE ON "sso_configurations"
+      FOR EACH ROW EXECUTE FUNCTION sync_sso_config_legacy_columns()
+    `);
   }
 
   public async down(_queryRunner: QueryRunner): Promise<void> {

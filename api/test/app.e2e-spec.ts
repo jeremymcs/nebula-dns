@@ -39,13 +39,14 @@ describe('AppController (e2e)', () => {
         });
     });
 
-    it('/health/detailed (GET) - should return detailed status', () => {
+    it('/health (GET) - should return dependency details', () => {
       return request(app.getHttpServer())
-        .get('/health/detailed')
+        .get('/health')
         .expect(200)
         .expect((res: any) => {
           expect(res.body).toHaveProperty('status');
           expect(res.body).toHaveProperty('timestamp');
+          expect(res.body).toHaveProperty('dependencies');
         });
     });
   });

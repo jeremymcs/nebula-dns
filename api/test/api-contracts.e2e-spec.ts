@@ -20,6 +20,7 @@ describe('API Contract Tests', () => {
     app.useGlobalPipes(
       new ValidationPipe({ whitelist: true, transform: true }),
     );
+    app.enableCors({ origin: true, credentials: true });
     await app.init();
   });
 
@@ -39,10 +40,8 @@ describe('API Contract Tests', () => {
       });
     });
 
-    it('GET /health/detailed should return correct schema', async () => {
-      const response = await request(app.getHttpServer()).get(
-        '/health/detailed',
-      );
+    it('GET /health should return detailed dependency schema', async () => {
+      const response = await request(app.getHttpServer()).get('/health');
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('status');
