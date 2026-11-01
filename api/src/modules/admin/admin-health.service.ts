@@ -5,7 +5,7 @@
 import { Injectable, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as dns from 'dns';
-import { promisify } from 'util';
+import * as net from 'net';
 
 import { ClickHouseService } from '../clickhouse/clickhouse.service';
 import { RedisService } from '../redis/redis.service';
@@ -22,8 +22,17 @@ import {
   RecentErrorDto,
 } from './dto/system-health.dto';
 
-// Promisify DNS resolve for unbound health check
-const dnsResolve4 = promisify(dns.resolve4);
+const dnsLookup = dns.promises.lookup;
+
+function parsePort(value: string | number | undefined, fallback: number): number {
+  if (value === undefined || value === null || value === '') {
+    return fallback;
+  }
+  const parsed = Number.parseInt(String(value), 10);
+  return Number.isFinite(parsed) && parsed > 0 && parsed <= 65535
+    ? parsed
+    : fallback;
+}
 
 /**
  * AdminHealthService
@@ -43,6 +52,7 @@ export class AdminHealthService {
   // Service URLs with defaults for docker-compose environment
   private readonly policySvcUrl: string;
   private readonly dnsdistUrl: string;
+  private readonly dnsdistApiKey: string;
   private readonly unboundHost: string;
   private readonly unboundPort: number;
 
@@ -68,11 +78,16 @@ export class AdminHealthService {
       'DNSDIST_URL',
       'http://dnsdist:8083',
     );
+    this.dnsdistApiKey =
+      this.configService.get<string>('DNSDIST_API_KEY', '') ?? '';
     this.unboundHost = this.configService.get<string>(
       'UNBOUND_HOST',
       'unbound',
     );
-    this.unboundPort = this.configService.get<number>('UNBOUND_PORT', 5354);
+    this.unboundPort = parsePort(
+      this.configService.get<string>('UNBOUND_PORT'),
+      53,
+    );
   }
 
   /**
@@ -204,11 +219,21 @@ export class AdminHealthService {
   /**
    * Check dnsdist web server
    *
-   * dnsdist exposes a web server for stats; any 200 response = healthy
+   * Uses the authenticated API (X-API-Key) — the root path requires auth and
+   * may reject clients outside the webserver ACL.
    */
   async checkDnsdist(): Promise<ServiceStatusDto> {
     const name = 'dnsdist';
     const lastChecked = new Date().toISOString();
+
+    if (!this.dnsdistApiKey) {
+      return {
+        name,
+        status: 'unhealthy',
+        error: 'DNSDIST_API_KEY is not configured',
+        lastChecked,
+      };
+    }
 
     try {
       const start = Date.now();
@@ -218,9 +243,15 @@ export class AdminHealthService {
         this.requestTimeoutMs,
       );
 
-      const response = await fetch(`${this.dnsdistUrl}/`, {
-        signal: controller.signal,
-      });
+      const response = await fetch(
+        `${this.dnsdistUrl}/api/v1/servers/localhost`,
+        {
+          signal: controller.signal,
+          headers: {
+            'X-API-Key': this.dnsdistApiKey,
+          },
+        },
+      );
       clearTimeout(timeout);
 
       const latencyMs = Date.now() - start;
@@ -262,9 +293,11 @@ export class AdminHealthService {
     try {
       const start = Date.now();
 
+      const resolverAddress = await this.resolveUnboundServerAddress();
+
       // Create a custom DNS resolver pointing to unbound
       const resolver = new dns.Resolver();
-      resolver.setServers([`${this.unboundHost}:${this.unboundPort}`]);
+      resolver.setServers([resolverAddress]);
 
       // Attempt to resolve a reliable domain with timeout
       const resolveWithTimeout = Promise.race([
@@ -297,6 +330,20 @@ export class AdminHealthService {
         lastChecked,
       };
     }
+  }
+
+  /**
+   * Resolve UNBOUND_HOST to an IP for dns.Resolver.setServers (IP only).
+   */
+  private async resolveUnboundServerAddress(): Promise<string> {
+    let address = this.unboundHost;
+    if (net.isIP(this.unboundHost) === 0) {
+      const { address: resolved } = await dnsLookup(this.unboundHost, {
+        family: 4,
+      });
+      address = resolved;
+    }
+    return `${address}:${this.unboundPort}`;
   }
 
   /**

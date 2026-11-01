@@ -9,12 +9,22 @@ import { ClickHouseService } from '../clickhouse/clickhouse.service';
 import { RedisService } from '../redis/redis.service';
 
 // Mock the dns module
+const mockSetServers = jest.fn();
+const mockResolve4 = jest.fn((domain, callback) => {
+  callback(null, ['172.217.164.110']);
+});
+const mockDnsLookup = jest.fn().mockResolvedValue({
+  address: '10.0.0.5',
+  family: 4,
+});
+
 jest.mock('dns', () => ({
+  promises: {
+    lookup: (...args: unknown[]) => mockDnsLookup(...args),
+  },
   Resolver: jest.fn().mockImplementation(() => ({
-    setServers: jest.fn(),
-    resolve4: jest.fn((domain, callback) => {
-      callback(null, ['172.217.164.110']);
-    }),
+    setServers: mockSetServers,
+    resolve4: mockResolve4,
   })),
   resolve4: jest.fn(),
 }));
@@ -34,8 +44,9 @@ describe('AdminHealthService', () => {
       const config: Record<string, string | number> = {
         POLICY_SVC_URL: 'http://policy-svc:8080',
         DNSDIST_URL: 'http://dnsdist:8083',
+        DNSDIST_API_KEY: 'test-dnsdist-key',
         UNBOUND_HOST: 'unbound',
-        UNBOUND_PORT: 5354,
+        UNBOUND_PORT: '53',
       };
       return config[key] || defaultValue;
     }),
@@ -59,6 +70,19 @@ describe('AdminHealthService', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    mockDnsLookup.mockResolvedValue({ address: '10.0.0.5', family: 4 });
+    mockConfigService.get.mockImplementation(
+      (key: string, defaultValue: string | number) => {
+        const config: Record<string, string | number> = {
+          POLICY_SVC_URL: 'http://policy-svc:8080',
+          DNSDIST_URL: 'http://dnsdist:8083',
+          DNSDIST_API_KEY: 'test-dnsdist-key',
+          UNBOUND_HOST: 'unbound',
+          UNBOUND_PORT: '53',
+        };
+        return config[key] ?? defaultValue;
+      },
+    );
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -94,10 +118,14 @@ describe('AdminHealthService', () => {
         'http://dnsdist:8083',
       );
       expect(mockConfigService.get).toHaveBeenCalledWith(
+        'DNSDIST_API_KEY',
+        '',
+      );
+      expect(mockConfigService.get).toHaveBeenCalledWith(
         'UNBOUND_HOST',
         'unbound',
       );
-      expect(mockConfigService.get).toHaveBeenCalledWith('UNBOUND_PORT', 5354);
+      expect(mockConfigService.get).toHaveBeenCalledWith('UNBOUND_PORT');
     });
   });
 
@@ -235,6 +263,45 @@ describe('AdminHealthService', () => {
 
       expect(result.name).toBe('dnsdist');
       expect(result.status).toBe('healthy');
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://dnsdist:8083/api/v1/servers/localhost',
+        expect.objectContaining({
+          headers: { 'X-API-Key': 'test-dnsdist-key' },
+        }),
+      );
+    });
+
+    it('should return unhealthy when DNSDIST_API_KEY is missing', async () => {
+      mockConfigService.get.mockImplementation(
+        (key: string, defaultValue: string | number) => {
+          if (key === 'DNSDIST_API_KEY') {
+            return '';
+          }
+          const config: Record<string, string | number> = {
+            POLICY_SVC_URL: 'http://policy-svc:8080',
+            DNSDIST_URL: 'http://dnsdist:8083',
+            UNBOUND_HOST: 'unbound',
+            UNBOUND_PORT: '53',
+          };
+          return config[key] ?? defaultValue;
+        },
+      );
+
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          AdminHealthService,
+          { provide: ConfigService, useValue: mockConfigService },
+          { provide: ClickHouseService, useValue: mockClickhouseService },
+          { provide: RedisService, useValue: mockRedisService },
+        ],
+      }).compile();
+
+      const svc = module.get<AdminHealthService>(AdminHealthService);
+      const result = await svc.checkDnsdist();
+
+      expect(result.status).toBe('unhealthy');
+      expect(result.error).toContain('DNSDIST_API_KEY');
+      expect(mockFetch).not.toHaveBeenCalled();
     });
 
     it('should return unhealthy on connection error', async () => {
@@ -255,6 +322,7 @@ describe('AdminHealthService', () => {
       expect(result.name).toBe('unbound');
       expect(result.status).toBe('healthy');
       expect(result.latencyMs).toBeDefined();
+      expect(mockSetServers).toHaveBeenCalledWith(['10.0.0.5:53']);
     });
   });
 
