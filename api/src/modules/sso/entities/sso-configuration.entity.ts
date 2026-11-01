@@ -27,6 +27,36 @@ export class SsoConfiguration extends BaseEntity {
   @Column({ name: 'provider_type', type: 'varchar', length: 20 })
   providerType: SsoProviderType;
 
+  /** Legacy NOT NULL column (unique with tenant_id); synced from providerType */
+  @Column({
+    name: 'type',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+    select: false,
+  })
+  legacyType?: SsoProviderType;
+
+  @Column({
+    name: 'config',
+    type: 'jsonb',
+    nullable: true,
+    default: () => "'{}'",
+    select: false,
+  })
+  legacyConfig?: Record<string, unknown>;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  syncLegacySsoColumns(): void {
+    if (this.providerType) {
+      this.legacyType = this.providerType;
+    }
+    if (this.legacyConfig === undefined || this.legacyConfig === null) {
+      this.legacyConfig = {};
+    }
+  }
+
   @Column({ name: 'is_enabled', type: 'boolean', default: false })
   isEnabled: boolean;
 
@@ -159,22 +189,4 @@ export class SsoConfiguration extends BaseEntity {
 
   @Column({ name: 'attribute_mapping', type: 'jsonb', default: '{}' })
   attributeMapping: Record<string, string>;
-
-  /** Legacy InitialSchema columns kept NOT NULL in older migrations */
-  @Column({ name: 'type', type: 'varchar', length: 20, nullable: true, select: false })
-  legacyType?: string;
-
-  @Column({ name: 'config', type: 'jsonb', nullable: true, select: false })
-  legacyConfig?: Record<string, unknown>;
-
-  @BeforeInsert()
-  @BeforeUpdate()
-  syncLegacySsoColumns(): void {
-    if (this.providerType) {
-      this.legacyType = this.providerType;
-    }
-    if (this.legacyConfig === undefined || this.legacyConfig === null) {
-      this.legacyConfig = {};
-    }
-  }
 }

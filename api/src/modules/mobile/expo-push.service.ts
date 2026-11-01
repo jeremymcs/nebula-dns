@@ -16,9 +16,7 @@ export interface ExpoPushTicket {
 }
 
 export interface ExpoPushClient {
-  sendPushNotifications(
-    messages: ExpoPushMessage[],
-  ): Promise<ExpoPushTicket[]>;
+  sendPushNotifications(messages: ExpoPushMessage[]): Promise<ExpoPushTicket[]>;
 }
 
 @Injectable()

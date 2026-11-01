@@ -16,7 +16,7 @@ export class AccessRequest extends BaseEntity {
   tenant: Tenant;
 
   @Column({ name: 'location_id', type: 'uuid', nullable: true })
-  locationId: string;
+  locationId: string | null;
 
   @ManyToOne(() => Location, { nullable: true })
   @JoinColumn({ name: 'location_id' })
@@ -41,6 +41,25 @@ export class AccessRequest extends BaseEntity {
     nullable: true,
   })
   requesterEmail: string;
+
+  @Column({
+    name: 'requester_name',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  requesterName: string | null;
+
+  @Column({
+    name: 'block_reason',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
+  blockReason: string | null;
+
+  @Column({ name: 'allow_list_id', type: 'uuid', nullable: true })
+  allowListId: string | null;
 
   @Column({ type: 'varchar', length: 20, default: 'pending' })
   status: AccessRequestStatus;

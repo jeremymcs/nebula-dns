@@ -52,7 +52,12 @@ export class MobileDevice {
   @Column({ name: 'tenant_id', type: 'uuid', nullable: true })
   tenantId: string | null;
 
-  @Column({ name: 'last_refresh_jti', type: 'varchar', length: 64, nullable: true })
+  @Column({
+    name: 'last_refresh_jti',
+    type: 'varchar',
+    length: 64,
+    nullable: true,
+  })
   lastRefreshJti: string | null;
 
   @Column({ name: 'revoked_at', type: 'timestamptz', nullable: true })

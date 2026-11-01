@@ -11,6 +11,7 @@ import (
 	"github.com/fluxlabs/dns-filter/agents/safedns-agent/internal/dns"
 	"github.com/fluxlabs/dns-filter/agents/safedns-agent/internal/forwarder"
 	"github.com/fluxlabs/dns-filter/agents/safedns-agent/internal/heartbeat"
+	"github.com/fluxlabs/dns-filter/agents/safedns-agent/internal/shieldca"
 	"github.com/kardianos/service"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -50,6 +51,14 @@ func (a *agent) Stop(s service.Service) error {
 	if a.cancel != nil {
 		a.cancel()
 	}
+	if err := shieldca.Remove(a.config); err != nil && a.logger != nil {
+		a.logger.Warn("Failed to remove Shield CA", zap.Error(err))
+	}
+	if a.forwarder != nil && a.forwarder.IsRunning() {
+		if err := a.forwarder.Stop(); err != nil && a.logger != nil {
+			a.logger.Error("Failed to stop forwarder", zap.Error(err))
+		}
+	}
 	a.shutdownDNS()
 	return nil
 }
@@ -87,6 +96,12 @@ func (a *agent) run() {
 	}
 
 	hostname, _ := os.Hostname()
+	if a.config.GetDeviceID() == "" {
+		a.config.DeviceID = hostname
+	}
+	if err := shieldca.SyncFromAPI(a.config, a.config.GetDeviceID()); err != nil {
+		a.logger.Warn("Shield CA synchronization failed", zap.Error(err))
+	}
 	a.heartbeat = heartbeat.NewService(a.config, a.logger, Version, hostname)
 	a.heartbeat.SetStatusProvider(func() (bool, bool, string) {
 		detected, detail := a.tamperSnapshot()

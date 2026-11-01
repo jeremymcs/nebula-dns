@@ -101,9 +101,7 @@ export class NotificationsController {
   @ApiBearerAuth()
   async getUserPreferences(@Req() req: Request) {
     const user = req.user as { id: string };
-    const prefs = await this.notificationService.getPreferencesForUser(
-      user.id,
-    );
+    const prefs = await this.notificationService.getPreferencesForUser(user.id);
     return { data: prefs };
   }
 

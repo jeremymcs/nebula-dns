@@ -22,11 +22,11 @@ describe('AdminDashboardService', () => {
       groupBy: jest.fn().mockReturnThis(),
       getRawMany: jest.fn(),
       getRawOne: jest.fn(),
-    }
-    return qb
-  }
+    };
+    return qb;
+  };
 
-  let tenantQb = createTenantQb()
+  const tenantQb = createTenantQb();
 
   const mspInvoiceQb = {
     select: jest.fn().mockReturnThis(),
@@ -37,24 +37,24 @@ describe('AdminDashboardService', () => {
 
   const mockTenantRepository = {
     createQueryBuilder: jest.fn(() => {
-      const qb = createTenantQb()
-      qb.getRawMany.mockResolvedValue([{ tier: 'msp', count: '1' }])
-      qb.getRawOne.mockResolvedValue({ count: '0' })
+      const qb = createTenantQb();
+      qb.getRawMany.mockResolvedValue([{ tier: 'msp', count: '1' }]);
+      qb.getRawOne.mockResolvedValue({ count: '0' });
       qb.where.mockImplementation((clause: string) => {
-        if (clause.includes("t.tier = :tier")) {
-          qb.getRawMany.mockResolvedValue([{ status: 'active', count: '1' }])
+        if (clause.includes('t.tier = :tier')) {
+          qb.getRawMany.mockResolvedValue([{ status: 'active', count: '1' }]);
         }
         if (clause.includes("t.slug = 'demo'")) {
-          qb.getRawOne.mockResolvedValue({ count: '1' })
+          qb.getRawOne.mockResolvedValue({ count: '1' });
         }
         if (clause.includes('managed_by_msp_id')) {
-          qb.getRawOne.mockResolvedValue({ count: '0' })
+          qb.getRawOne.mockResolvedValue({ count: '0' });
         }
-        return qb
-      })
-      return qb
+        return qb;
+      });
+      return qb;
     }),
-  }
+  };
 
   const mockSubscriptionRepository = {
     count: jest.fn(),
@@ -97,10 +97,10 @@ describe('AdminDashboardService', () => {
   });
 
   it('returns aggregate stats for demo-like environment', async () => {
-    mockClickhouseService.queryScalarNumber.mockResolvedValue(0)
-    mockSubscriptionRepository.count.mockResolvedValue(0)
+    mockClickhouseService.queryScalarNumber.mockResolvedValue(0);
+    mockSubscriptionRepository.count.mockResolvedValue(0);
 
-    const stats = await service.getStats()
+    const stats = await service.getStats();
 
     expect(stats.mspCount).toEqual({ value: 1, available: true });
     expect(stats.mspPendingCount).toEqual({ value: 0, available: true });
@@ -114,13 +114,13 @@ describe('AdminDashboardService', () => {
 
   it('marks ClickHouse-derived metrics unavailable when query fails', async () => {
     mockTenantRepository.createQueryBuilder.mockImplementation(() => {
-      const qb = createTenantQb()
-      qb.getRawMany.mockResolvedValue([])
-      qb.getRawOne.mockResolvedValue({ count: '0' })
-      return qb
-    })
-    mockClickhouseService.queryScalarNumber.mockResolvedValue(null)
-    mockSubscriptionRepository.count.mockResolvedValue(0)
+      const qb = createTenantQb();
+      qb.getRawMany.mockResolvedValue([]);
+      qb.getRawOne.mockResolvedValue({ count: '0' });
+      return qb;
+    });
+    mockClickhouseService.queryScalarNumber.mockResolvedValue(null);
+    mockSubscriptionRepository.count.mockResolvedValue(0);
 
     const stats = await service.getStats();
 

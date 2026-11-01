@@ -9,6 +9,8 @@ import {
   Delete,
   Body,
   Param,
+  Query,
+  Header,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -145,6 +147,17 @@ export class AgentsController {
       success: true,
       ...result,
     };
+  }
+
+  @Get('shield-ca/certificate.pem')
+  @Header('Content-Type', 'application/x-pem-file')
+  @ApiOperation({
+    summary: 'Download Shield CA for registered agent (device_id query param)',
+  })
+  async shieldCaCertificate(@Query('device_id') deviceId: string) {
+    const pem =
+      await this.agentsService.getShieldCaCertificateForDevice(deviceId);
+    return pem;
   }
 
   @Get('update/:platform')

@@ -7,6 +7,7 @@ import { Location } from '../locations/entities/location.entity';
 import { CustomList } from '../lists/entities/custom-list.entity';
 import { CustomListEntry } from '../lists/entities/custom-list-entry.entity';
 import { RedisService } from '../redis/redis.service';
+import { Tenant } from '../tenants/entities/tenant.entity';
 
 describe('PolicyCompilerService', () => {
   let service: PolicyCompilerService;
@@ -19,7 +20,10 @@ describe('PolicyCompilerService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PolicyCompilerService,
-        { provide: getRepositoryToken(Policy), useValue: { findOne: jest.fn() } },
+        {
+          provide: getRepositoryToken(Policy),
+          useValue: { findOne: jest.fn() },
+        },
         {
           provide: getRepositoryToken(PolicyVersion),
           useValue: { findOne: jest.fn() },
@@ -34,15 +38,27 @@ describe('PolicyCompilerService', () => {
                 policyId: 'pol-1',
                 status: 'active',
               },
-              { id: 'loc-2', tenantId: 'tenant-1', policyId: null, status: 'active' },
+              {
+                id: 'loc-2',
+                tenantId: 'tenant-1',
+                policyId: null,
+                status: 'active',
+              },
             ]),
             findOne: jest.fn(),
           },
         },
-        { provide: getRepositoryToken(CustomList), useValue: { find: jest.fn().mockResolvedValue([]) } },
+        {
+          provide: getRepositoryToken(CustomList),
+          useValue: { find: jest.fn().mockResolvedValue([]) },
+        },
         {
           provide: getRepositoryToken(CustomListEntry),
           useValue: {},
+        },
+        {
+          provide: getRepositoryToken(Tenant),
+          useValue: { findOne: jest.fn() },
         },
         { provide: RedisService, useValue: redisMock },
       ],
@@ -62,10 +78,6 @@ describe('PolicyCompilerService', () => {
     const result = await service.compileAllActiveLocations();
     expect(result.compiled).toBe(1);
     expect(result.skipped).toBe(1);
-    expect(service.compile).toHaveBeenCalledWith(
-      'tenant-1',
-      'pol-1',
-      'loc-1',
-    );
+    expect(service.compile).toHaveBeenCalledWith('tenant-1', 'pol-1', 'loc-1');
   });
 });

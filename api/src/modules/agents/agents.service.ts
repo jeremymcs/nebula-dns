@@ -25,6 +25,7 @@ import {
   AgentRegistrationResult,
   AgentRuntimeConfig,
 } from './dto/agent.dto';
+import { ShieldCaService } from '../shield-ca/shield-ca.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { RedisService } from '../redis/redis.service';
 import { AgentBrandingConfig } from './agent-branding.config';
@@ -90,6 +91,7 @@ export class AgentsService {
     private tenantRepository: Repository<Tenant>,
     @InjectRepository(Location)
     private locationRepository: Repository<Location>,
+    private readonly shieldCaService: ShieldCaService,
     private readonly auditLogsService: AuditLogsService,
     private readonly redisService: RedisService,
     private readonly branding: AgentBrandingConfig,
@@ -307,6 +309,22 @@ export class AgentsService {
       downloadUrl: updateAvailable ? latestVersion.downloadUrl : undefined,
       config: runtimeConfig,
     };
+  }
+
+  async getShieldCaCertificateForDevice(deviceId: string): Promise<string> {
+    const agent = await this.agentRepository.findOne({ where: { deviceId } });
+    if (!agent) {
+      throw new NotFoundException('Agent not registered');
+    }
+    const tenant = await this.tenantRepository.findOne({
+      where: { id: agent.tenantId },
+    });
+    if (!tenant?.settings?.installShieldCaOnAgent) {
+      throw new BadRequestException(
+        'Shield CA deployment is disabled for this tenant',
+      );
+    }
+    return this.shieldCaService.getCertificatePem(agent.tenantId);
   }
 
   async updateSitePublicIp(

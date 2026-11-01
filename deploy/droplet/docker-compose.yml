@@ -130,6 +130,22 @@ services:
       dnsdist:
         condition: service_started
 
+  shield-blockpage:
+    build:
+      context: ../..
+      dockerfile: deploy/droplet/shield-blockpage.Dockerfile
+    image: ghcr.io/jeremymcs/nebula-dns-shield-blockpage:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      SHIELD_BLOCKPAGE_API_URL: http://api:3000
+      SHIELD_BLOCKPAGE_HTTPS_ADDR: ":9443"
+    expose:
+      - "9443"
+    depends_on:
+      api:
+        condition: service_healthy
+
 volumes:
   caddy_data:
   caddy_config:

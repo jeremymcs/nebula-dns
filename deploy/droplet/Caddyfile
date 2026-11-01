@@ -7,6 +7,15 @@ api.nebuladns.io, api.shield.fluxlabs.net {
   reverse_proxy api:3000
 }
 
+# HTTP sinkhole for block-page DNS answers (see docs/modules/block-pages/DROPLET-DEPLOY.md)
+:80 {
+  rewrite * /block-pages/public/serve
+  reverse_proxy api:3000 {
+    header_up X-Forwarded-Host {http.request.host}
+    header_up X-Real-IP {http.request.remote.host}
+  }
+}
+
 dns1.nebuladns.io, dns2.nebuladns.io, dns1.shield.fluxlabs.net, dns2.shield.fluxlabs.net {
   # Caddy issues one ACME certificate per hostname (not a single multi-SAN cert).
   # sync-caddy-certs.sh copies the primary cert to server.crt/key and additional hostnames

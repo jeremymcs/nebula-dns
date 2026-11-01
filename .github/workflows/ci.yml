@@ -164,8 +164,8 @@ jobs:
           REDIS_URL: redis://localhost:6379
           JWT_SECRET: test-jwt-secret
           ADMIN_JWT_SECRET: test-admin-jwt-secret
-          NODE_ENV: test
           DISABLE_RATE_LIMIT: 'true'
+          NODE_ENV: test
 
       - name: Upload coverage
         uses: codecov/codecov-action@v3

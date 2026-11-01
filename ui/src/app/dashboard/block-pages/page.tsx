@@ -30,6 +30,9 @@ interface BlockPage {
   logoUrl?: string
   backgroundColor: string
   primaryColor: string
+  secondaryColor?: string
+  accentColor?: string
+  textColor?: string
   title: string
   message: string
   showRequestAccess: boolean
@@ -92,7 +95,17 @@ export default function BlockPagesPage() {
 
   const handleReviewRequest = async (request: AccessRequest, action: 'approve' | 'deny') => {
     try {
-      await api.reviewAccessRequest(request.id, action)
+      const expiresInHours =
+        action === 'approve'
+          ? Number(window.prompt('Allow for how many hours? (default 24)', '24') || '24')
+          : undefined
+      await api.reviewAccessRequest(
+        request.id,
+        action === 'approve' ? 'approved' : 'denied',
+        action === 'approve'
+          ? { expiresInHours: Number.isFinite(expiresInHours) ? expiresInHours : 24, addToAllowList: true }
+          : undefined,
+      )
       showToast('success', `Request ${action === 'approve' ? 'approved' : 'denied'}`)
       mutateRequests()
     } catch (err: any) {
@@ -293,6 +306,9 @@ export default function BlockPagesPage() {
           message: editingPage.message,
           backgroundColor: editingPage.backgroundColor,
           primaryColor: editingPage.primaryColor,
+          secondaryColor: editingPage.secondaryColor,
+          accentColor: editingPage.accentColor,
+          textColor: editingPage.textColor,
           logoUrl: editingPage.logoUrl || '',
           showRequestAccess: editingPage.showRequestAccess,
         } : undefined}

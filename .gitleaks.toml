@@ -70,6 +70,7 @@ paths = [
   '''pnpm-lock\.yaml''',
   '''deploy/droplet/docker-compose\.yml''',
   '''ui/scripts/start-api-for-e2e\.sh''',
+  '''api/src/modules/shield-ca/.*\.spec\.ts''',
 ]
 
 regexes = [
@@ -85,6 +86,7 @@ regexes = [
   '''your-secret-key-here''',
   '''change-me''',
   '''placeholder''',
+  '''mock-intermediate-private-key-pem-for-unit-tests''',
   '''\$\{CLICKHOUSE_PASSWORD:\?''',
 ]
 

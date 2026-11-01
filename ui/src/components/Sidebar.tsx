@@ -39,6 +39,7 @@ const navigation = [
   { name: 'Locations', href: '/dashboard/locations', icon: MapPinIcon },
   { name: 'Custom Lists', href: '/dashboard/lists', icon: ListBulletIcon },
   { name: 'Block Pages', href: '/dashboard/block-pages', icon: NoSymbolIcon },
+  { name: 'Shield Certificate', href: '/dashboard/shield-certificate', icon: ShieldCheckIcon },
   { name: 'Agents', href: '/dashboard/agents', icon: ComputerDesktopIcon },
   { name: 'Query Logs', href: '/dashboard/logs', icon: DocumentTextIcon },
   { name: 'Reports', href: '/dashboard/reports', icon: ChartBarIcon },

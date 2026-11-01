@@ -10,6 +10,7 @@ import { Location } from '../locations/entities/location.entity';
 import { LocationToken } from '../locations/entities/location-token.entity';
 import { CustomList } from '../lists/entities/custom-list.entity';
 import { CustomListEntry } from '../lists/entities/custom-list-entry.entity';
+import { Tenant } from '../tenants/entities/tenant.entity';
 import { RedisModule } from '../redis/redis.module';
 
 @Module({
@@ -22,6 +23,7 @@ import { RedisModule } from '../redis/redis.module';
       LocationToken,
       CustomList,
       CustomListEntry,
+      Tenant,
     ]),
   ],
   controllers: [PoliciesController],

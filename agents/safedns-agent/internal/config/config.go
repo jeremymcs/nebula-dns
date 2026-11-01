@@ -55,6 +55,9 @@ type Config struct {
 	// Forwarder mode settings
 	Forwarder ForwarderConfig `json:"forwarder"`
 
+	// Shield CA (HTTPS block pages)
+	InstallShieldCa bool `json:"install_shield_ca"`
+
 	// Cached policy data
 	PolicyVersion string `json:"policy_version"`
 }
@@ -117,6 +120,18 @@ func (c *Config) GetLocationID() string {
 	return c.LocationID
 }
 
+func (c *Config) GetDeviceID() string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.DeviceID
+}
+
+func (c *Config) GetInstallShieldCa() bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.InstallShieldCa
+}
+
 // SetLocationID sets the location ID thread-safely
 func (c *Config) SetLocationID(id string) {
 	c.mu.Lock()
@@ -131,12 +146,6 @@ func (c *Config) GetDNSServers() []string {
 	servers := make([]string, len(c.DNSServers))
 	copy(servers, c.DNSServers)
 	return servers
-}
-
-func (c *Config) GetDeviceID() string {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	return c.DeviceID
 }
 
 func (c *Config) GetDeviceSecret() string {

@@ -745,7 +745,7 @@ CREATE INDEX IF NOT EXISTS idx_agent_installations_device ON agent_installations
 
 CREATE TABLE IF NOT EXISTS block_pages (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     is_default BOOLEAN DEFAULT FALSE,
     logo_url TEXT,
@@ -758,6 +758,14 @@ CREATE TABLE IF NOT EXISTS block_pages (
     show_domain BOOLEAN DEFAULT TRUE,
     show_timestamp BOOLEAN DEFAULT TRUE,
     show_request_access BOOLEAN DEFAULT TRUE,
+    scope VARCHAR(20) NOT NULL DEFAULT 'tenant',
+    secondary_color VARCHAR(7) DEFAULT '#4B7CBB',
+    accent_color VARCHAR(7) DEFAULT '#FF6E62',
+    show_reason BOOLEAN DEFAULT TRUE,
+    show_powered_by BOOLEAN DEFAULT FALSE,
+    language VARCHAR(10) DEFAULT 'en',
+    message_markdown BOOLEAN DEFAULT FALSE,
+    logo_storage_key TEXT,
     custom_css TEXT,
     custom_html TEXT,
     footer_text VARCHAR(255),
@@ -778,6 +786,9 @@ CREATE TABLE IF NOT EXISTS access_requests (
     reason TEXT,
     requester_ip INET,
     requester_email VARCHAR(255),
+    requester_name VARCHAR(255),
+    block_reason VARCHAR(100),
+    allow_list_id UUID,
     status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'denied', 'expired')),
     reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
     reviewed_at TIMESTAMP WITH TIME ZONE,
@@ -787,6 +798,24 @@ CREATE TABLE IF NOT EXISTS access_requests (
 );
 
 CREATE INDEX IF NOT EXISTS idx_access_requests_tenant ON access_requests(tenant_id);
+
+CREATE TABLE IF NOT EXISTS shield_ca_intermediates (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    owner_tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    scope VARCHAR(10) NOT NULL,
+    certificate_pem TEXT NOT NULL,
+    private_key_encrypted TEXT NOT NULL,
+    serial_number VARCHAR(64) NOT NULL,
+    not_before TIMESTAMPTZ NOT NULL,
+    not_after TIMESTAMPTZ NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'active',
+    subject_cn VARCHAR(255) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_shield_ca_owner
+    ON shield_ca_intermediates (owner_tenant_id, scope, status);
 
 -- ============================================
 -- P2 FEATURES: API KEYS

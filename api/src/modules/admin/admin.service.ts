@@ -201,7 +201,11 @@ export class AdminService {
   /**
    * Logout an admin by blacklisting their token
    */
-  async logout(adminId: string, jti: string, ipAddress?: string): Promise<void> {
+  async logout(
+    adminId: string,
+    jti: string,
+    ipAddress?: string,
+  ): Promise<void> {
     await this.adminSessionService.blacklistToken(jti);
     await this.logActivitySafe({
       adminId,
@@ -264,9 +268,8 @@ export class AdminService {
     refreshToken: string,
     context: AdminLoginContext,
   ): Promise<AdminLoginResponseDto> {
-    const rotated = await this.adminRefreshTokenService.rotateRefreshToken(
-      refreshToken,
-    );
+    const rotated =
+      await this.adminRefreshTokenService.rotateRefreshToken(refreshToken);
 
     const admin = await this.findById(rotated.adminId);
     if (!admin || admin.status === 'suspended') {
@@ -275,10 +278,11 @@ export class AdminService {
 
     let deviceInternalId: string | null = null;
     if (context.externalDeviceId && this.mobileDevicesService) {
-      const device = await this.mobileDevicesService.findActiveByExternalIdForAdmin(
-        admin.id,
-        context.externalDeviceId,
-      );
+      const device =
+        await this.mobileDevicesService.findActiveByExternalIdForAdmin(
+          admin.id,
+          context.externalDeviceId,
+        );
       deviceInternalId = device?.id ?? null;
     }
 
@@ -518,10 +522,7 @@ export class AdminService {
 
   private async logActivitySafe(params: {
     adminId: string;
-    action:
-      | 'admin_login'
-      | 'admin_logout'
-      | 'admin_login_failed';
+    action: 'admin_login' | 'admin_logout' | 'admin_login_failed';
     ipAddress?: string;
     metadata?: Record<string, unknown>;
   }): Promise<void> {
@@ -1216,7 +1217,9 @@ export class AdminService {
     }
 
     if (options?.externalDeviceId && !options.reason?.trim()) {
-      throw new BadRequestException('Impersonation reason is required from mobile clients');
+      throw new BadRequestException(
+        'Impersonation reason is required from mobile clients',
+      );
     }
 
     // 1. Verify tenant exists

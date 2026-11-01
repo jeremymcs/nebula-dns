@@ -37,7 +37,9 @@ export class AdminMobileController {
 
   @Post('register')
   @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
-  @ApiOperation({ summary: 'Register or update a platform admin mobile device' })
+  @ApiOperation({
+    summary: 'Register or update a platform admin mobile device',
+  })
   async register(
     @Req() req: Request,
     @Body() dto: RegisterMobileDeviceDto,
@@ -125,7 +127,10 @@ export class AdminNotificationsController {
   @Post('test')
   @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN)
   @HttpCode(HttpStatus.ACCEPTED)
-  async testPush(@Req() req: Request, @Body() body: { title?: string; body?: string }) {
+  async testPush(
+    @Req() req: Request,
+    @Body() body: { title?: string; body?: string },
+  ) {
     const user = req.user as AdminUser;
     await this.notificationService.enqueue({
       eventType: 'dns_health',

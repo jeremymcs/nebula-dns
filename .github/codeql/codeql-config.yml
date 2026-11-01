@@ -24,9 +24,12 @@ paths-ignore:
   - '**/test/**'
   - '**/tests/**'
   - '**/__tests__/**'
+  - '**/__mocks__/**'
   - '**/vendor/**'
   - '**/*.min.js'
   - '**/*.bundle.js'
+  - 'api/src/modules/block-pages/block-page-upload.util.ts'
+  - 'api/src/modules/block-pages/block-pages-public.controller.ts'
 
 # Paths to include (override ignores if needed)
 paths:

@@ -58,6 +58,7 @@
     "ioredis": "^5.3.2",
     "json2csv": "^6.0.0-alpha.2",
     "maxmind": "^5.0.1",
+    "node-forge": "^1.4.2",
     "node-vault": "^0.10.2",
     "otplib": "^12.0.1",
     "passport": "^0.7.0",
@@ -68,6 +69,7 @@
     "qrcode": "^1.5.3",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
+    "sanitize-html": "^2.18.1",
     "socket.io": "^4.8.3",
     "stripe": "^20.0.0",
     "tar": "^7.5.22",
@@ -88,10 +90,12 @@
     "@types/jest": "^29.5.14",
     "@types/json2csv": "^5.0.7",
     "@types/node": "^20.10.6",
+    "@types/node-forge": "^1.3.14",
     "@types/passport-jwt": "^4.0.0",
     "@types/passport-local": "^1.0.38",
     "@types/pdfkit": "^0.17.4",
     "@types/qrcode": "^1.5.5",
+    "@types/sanitize-html": "^2.16.2",
     "@types/supertest": "^6.0.3",
     "@types/tar": "^6.1.13",
     "@types/uuid": "^9.0.7",
@@ -129,7 +133,8 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "moduleNameMapper": {
-      "^@/(.*)$": "<rootDir>/$1"
+      "^@/(.*)$": "<rootDir>/$1",
+      "^sanitize-html$": "<rootDir>/modules/block-pages/__mocks__/sanitize-html.ts"
     }
   }
 }

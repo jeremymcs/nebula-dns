@@ -58,9 +58,11 @@ describe('AdminHealthService', () => {
       connected: true,
       consecutiveFailures: 0,
     }),
-    queryJsonRows: jest.fn().mockResolvedValue([
-      { total: '0', errors: '0', blocked: '0', allowed: '0' },
-    ]),
+    queryJsonRows: jest
+      .fn()
+      .mockResolvedValue([
+        { total: '0', errors: '0', blocked: '0', allowed: '0' },
+      ]),
     queryScalarNumber: jest.fn().mockResolvedValue(0),
   };
 

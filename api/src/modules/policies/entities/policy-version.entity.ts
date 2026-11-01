@@ -28,6 +28,7 @@ export interface PolicyConfig {
     settings?: SafeSearchSettings;
   };
   schedules: PolicySchedule[];
+  blockResponseType?: 'NXDOMAIN' | 'blockpage' | 'null';
 }
 
 export interface PolicySchedule {

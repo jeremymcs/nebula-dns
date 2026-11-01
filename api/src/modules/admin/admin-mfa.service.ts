@@ -21,7 +21,11 @@ import {
   DEFAULT_ADMIN_PORTAL_NAME,
   DEFAULT_PRODUCT_NAME,
 } from '../../common/product-branding';
-import { encrypt, decrypt, deriveKey } from '../../common/utils/encryption.util';
+import {
+  encrypt,
+  decrypt,
+  deriveKey,
+} from '../../common/utils/encryption.util';
 import { getEncryptionKey } from '../../config/encryption.config';
 
 interface HashedBackupCode {
@@ -128,8 +132,12 @@ export class AdminMfaService {
     return { plain, stored };
   }
 
-  async startEnrollment(adminId: string): Promise<AdminMfaEnrollStartResponseDto> {
-    const admin = await this.adminRepository.findOne({ where: { id: adminId } });
+  async startEnrollment(
+    adminId: string,
+  ): Promise<AdminMfaEnrollStartResponseDto> {
+    const admin = await this.adminRepository.findOne({
+      where: { id: adminId },
+    });
     if (!admin) {
       throw new BadRequestException('Admin not found');
     }
@@ -165,12 +173,16 @@ export class AdminMfaService {
   }
 
   async completeEnrollment(adminId: string, code: string): Promise<void> {
-    const admin = await this.adminRepository.findOne({ where: { id: adminId } });
+    const admin = await this.adminRepository.findOne({
+      where: { id: adminId },
+    });
     if (!admin) {
       throw new BadRequestException('Admin not found');
     }
 
-    const record = await this.adminMfaRepository.findOne({ where: { adminId } });
+    const record = await this.adminMfaRepository.findOne({
+      where: { adminId },
+    });
     if (!record) {
       throw new BadRequestException(
         'MFA setup not started. Call enroll/start first.',
@@ -193,12 +205,16 @@ export class AdminMfaService {
   }
 
   async verifyChallenge(adminId: string, code: string): Promise<boolean> {
-    const admin = await this.adminRepository.findOne({ where: { id: adminId } });
+    const admin = await this.adminRepository.findOne({
+      where: { id: adminId },
+    });
     if (!admin?.mfaSetupComplete) {
       throw new BadRequestException('MFA enrollment required');
     }
 
-    const record = await this.adminMfaRepository.findOne({ where: { adminId } });
+    const record = await this.adminMfaRepository.findOne({
+      where: { adminId },
+    });
     if (!record?.isVerified) {
       throw new BadRequestException('MFA is not configured');
     }
@@ -210,7 +226,8 @@ export class AdminMfaService {
       return true;
     }
 
-    const backupCodes = (record.backupCodes || []) as unknown as HashedBackupCode[];
+    const backupCodes = (record.backupCodes ||
+      []) as unknown as HashedBackupCode[];
     for (let i = 0; i < backupCodes.length; i++) {
       const entry = backupCodes[i];
       if (!entry?.hash) continue;

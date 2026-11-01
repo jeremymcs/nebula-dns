@@ -9,6 +9,7 @@ import { Location } from '../locations/entities/location.entity';
 import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 import { RedisModule } from '../redis/redis.module';
 import { RateLimitModule } from '../rate-limit/rate-limit.module';
+import { ShieldCaModule } from '../shield-ca/shield-ca.module';
 import { AgentAuthGuard } from './agent-auth.guard';
 import { AgentBrandingConfig } from './agent-branding.config';
 
@@ -23,6 +24,7 @@ import { AgentBrandingConfig } from './agent-branding.config';
     AuditLogsModule,
     RedisModule,
     RateLimitModule,
+    ShieldCaModule,
   ],
   controllers: [AgentsController],
   providers: [AgentsService, AgentAuthGuard, AgentBrandingConfig],

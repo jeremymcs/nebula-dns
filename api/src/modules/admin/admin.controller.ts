@@ -171,7 +171,9 @@ export class AdminController {
   @Post('refresh')
   @SkipAdminMfa()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Refresh admin access token using rotating refresh token' })
+  @ApiOperation({
+    summary: 'Refresh admin access token using rotating refresh token',
+  })
   async refreshAdminTokens(
     @Body() dto: AdminRefreshTokenDto,
     @Req() req: Request,
@@ -192,7 +194,8 @@ export class AdminController {
   @ApiOperation({ summary: 'List active admin sessions' })
   async listSessions(
     @Req() req: Request,
-    @Query('adminId', new ParseUUIDPipe({ optional: true })) targetAdminId?: string,
+    @Query('adminId', new ParseUUIDPipe({ optional: true }))
+    targetAdminId?: string,
   ): Promise<{ data: AdminSessionResponse[] }> {
     const user = req.user as AdminUser;
     const adminId =
@@ -201,7 +204,11 @@ export class AdminController {
         ? targetAdminId
         : user.adminId;
 
-    if (targetAdminId && targetAdminId !== user.adminId && user.role === AdminRole.VIEWER) {
+    if (
+      targetAdminId &&
+      targetAdminId !== user.adminId &&
+      user.role === AdminRole.VIEWER
+    ) {
       throw new BadRequestException('Viewers may only list their own sessions');
     }
 
@@ -217,7 +224,8 @@ export class AdminController {
   async revokeSession(
     @Req() req: Request,
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
-    @Query('adminId', new ParseUUIDPipe({ optional: true })) targetAdminId?: string,
+    @Query('adminId', new ParseUUIDPipe({ optional: true }))
+    targetAdminId?: string,
   ): Promise<void> {
     const user = req.user as AdminUser;
     const adminId = targetAdminId ?? user.adminId;

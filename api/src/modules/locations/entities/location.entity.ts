@@ -19,6 +19,9 @@ export class Location extends TenantScopedEntity {
   @Column({ name: 'policy_id', type: 'uuid', nullable: true })
   policyId: string;
 
+  @Column({ name: 'block_page_id', type: 'uuid', nullable: true })
+  blockPageId: string | null;
+
   @Column({ name: 'ip_range', type: 'inet', nullable: true })
   ipRange: string;
 

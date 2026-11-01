@@ -558,8 +558,11 @@ export class AdminHealthService {
 
       return {
         lastHour: lastHour ?? { errorCount: 0, totalQueries: 0, errorRate: 0 },
-        last24Hours:
-          last24Hours ?? { errorCount: 0, totalQueries: 0, errorRate: 0 },
+        last24Hours: last24Hours ?? {
+          errorCount: 0,
+          totalQueries: 0,
+          errorRate: 0,
+        },
         isMockData,
       };
     } catch (error) {
@@ -599,8 +602,7 @@ export class AdminHealthService {
 
     const totalQueries = Number(row[0]?.total ?? 0);
     const errorCount = Number(row[0]?.errors ?? 0);
-    const errorRate =
-      totalQueries > 0 ? errorCount / totalQueries : 0;
+    const errorRate = totalQueries > 0 ? errorCount / totalQueries : 0;
 
     return { errorCount, totalQueries, errorRate };
   }

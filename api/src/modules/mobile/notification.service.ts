@@ -42,11 +42,15 @@ export class NotificationService {
     private readonly redisService: RedisService,
   ) {}
 
-  async getPreferencesForAdmin(adminId: string): Promise<NotificationPreference[]> {
+  async getPreferencesForAdmin(
+    adminId: string,
+  ): Promise<NotificationPreference[]> {
     return this.preferenceRepository.find({ where: { adminId } });
   }
 
-  async getPreferencesForUser(userId: string): Promise<NotificationPreference[]> {
+  async getPreferencesForUser(
+    userId: string,
+  ): Promise<NotificationPreference[]> {
     return this.preferenceRepository.find({ where: { userId } });
   }
 

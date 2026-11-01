@@ -108,9 +108,10 @@ export class AdminBillingService {
       await this.subscriptionsService.getSubscription(tenantId);
 
     // 3. Get trial status (graceful when trial_history table missing)
-    let trialStatus: Awaited<
-      ReturnType<TrialsService['getTrialStatus']>
-    > = { hasActiveTrial: false, availableTrials: [] };
+    let trialStatus: Awaited<ReturnType<TrialsService['getTrialStatus']>> = {
+      hasActiveTrial: false,
+      availableTrials: [],
+    };
     try {
       trialStatus = await this.trialsService.getTrialStatus(tenantId);
     } catch (error) {
@@ -199,7 +200,10 @@ export class AdminBillingService {
       await this.subscriptionsService.getSubscription(tenantId);
 
     // Return empty if no billing setup or Stripe is not configured at launch
-    if (!subscription?.stripeCustomerId || !this.paymentsService.isConfigured()) {
+    if (
+      !subscription?.stripeCustomerId ||
+      !this.paymentsService.isConfigured()
+    ) {
       return {
         data: [],
         pagination: { cursor: null, hasMore: false },
@@ -233,7 +237,9 @@ export class AdminBillingService {
         hasPdf: !!inv.invoice_pdf,
       }));
 
-      this.logger.debug(`Listed ${data.length} invoices for tenant ${tenantId}`);
+      this.logger.debug(
+        `Listed ${data.length} invoices for tenant ${tenantId}`,
+      );
 
       return {
         data,

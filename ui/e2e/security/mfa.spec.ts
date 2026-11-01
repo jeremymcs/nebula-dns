@@ -29,40 +29,38 @@ test.describe('MFA - Multi-Factor Authentication', () => {
   })
 
   test('should show MFA setup dialog when enabling', async ({ page }) => {
-    // Look for MFA toggle or enable button
-    const mfaToggle = page.getByLabel(/multi-factor|mfa|two-factor|2fa/i).first()
-    const enableButton = page.getByRole('button', { name: /enable.*mfa|setup.*mfa|enable.*2fa/i })
-    
-    const toggleVisible = await mfaToggle.isVisible().catch(() => false)
+    const enableButton = page.getByRole('button', { name: /^Enable MFA$/i })
     const buttonVisible = await enableButton.isVisible().catch(() => false)
 
     if (buttonVisible) {
       await enableButton.click()
-      const setupDialog = page.getByRole('heading', { name: /set up two-factor authentication/i })
-      expect(await setupDialog.isVisible({ timeout: 5000 }).catch(() => false)).toBeTruthy()
+      const setupDialog = page.getByRole('heading', {
+        name: /Set Up Two-Factor Authentication/i,
+      })
+      await expect(setupDialog).toBeVisible({ timeout: 15000 })
       return
     }
-    
+
+    const mfaToggle = page.getByLabel(/multi-factor|mfa|two-factor|2fa/i).first()
+    const toggleVisible = await mfaToggle.isVisible().catch(() => false)
+
     if (toggleVisible) {
       const isEnabled = await mfaToggle.isChecked().catch(() => false)
       if (!isEnabled) {
         await mfaToggle.click()
-        
-        // Should show setup dialog with QR code
-        const qrCodeSection = page.getByText(/scan.*qr|qr code|authenticator.*app/i)
-        const setupDialog = page.getByText(/setup|configure/i)
-        
-        const hasSetup = await qrCodeSection.isVisible().catch(() => false) || 
-                        await setupDialog.isVisible().catch(() => false)
+        const setupDialog = page.getByRole('heading', {
+          name: /Set Up Two-Factor Authentication|setup|configure/i,
+        })
+        const qrCodeSection = page.getByText(/Scan QR Code|scan.*qr|qr code/i)
+        const hasSetup =
+          (await setupDialog.isVisible({ timeout: 15000 }).catch(() => false)) ||
+          (await qrCodeSection.isVisible({ timeout: 5000 }).catch(() => false))
         expect(hasSetup).toBeTruthy()
       }
-    } else if (buttonVisible) {
-      await enableButton.click()
-      
-      // Should show setup dialog
-      const setupDialog = page.getByText(/scan.*qr|setup|configure/i)
-      expect(await setupDialog.isVisible({ timeout: 3000 }).catch(() => false)).toBeTruthy()
+      return
     }
+
+    test.skip(true, 'MFA enable control not available')
   })
 
   test('should display QR code for MFA setup', async ({ page }) => {

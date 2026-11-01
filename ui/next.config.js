@@ -4,16 +4,18 @@
 
 const path = require('path')
 
-const brandModule = path.join(__dirname, '../shared/product-brand.ts')
+const workspaceRoot = path.join(__dirname, '..')
+const brandModule = path.join(workspaceRoot, 'shared/product-brand.ts')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  outputFileTracingRoot: workspaceRoot,
   experimental: {
     externalDir: true,
   },
   turbopack: {
-    root: __dirname,
+    root: workspaceRoot,
     resolveAlias: {
       '@nebula/brand': brandModule,
     },

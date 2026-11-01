@@ -5,7 +5,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { Tenant, TenantStatus, TenantTier } from '../tenants/entities/tenant.entity';
+import {
+  Tenant,
+  TenantStatus,
+  TenantTier,
+} from '../tenants/entities/tenant.entity';
 import { Subscription } from '../subscriptions/entities/subscription.entity';
 import { MspInvoice } from '../msp-billing/entities/msp-invoice.entity';
 import { ClickHouseService } from '../clickhouse/clickhouse.service';

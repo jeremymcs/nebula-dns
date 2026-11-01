@@ -98,7 +98,6 @@ describe('Authentication E2E Tests', () => {
     });
   });
 
-
   describe('MFA Flow', () => {
     it('should reject MFA verification without session', async () => {
       const response = await e2eRequest(app.getHttpServer())
