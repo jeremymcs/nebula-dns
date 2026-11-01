@@ -7,6 +7,9 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan, In } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
+import { DEFAULT_PRODUCT_NAME } from '../../common/product-branding';
+import { resolveAppUrl } from '../../common/public-urls';
+import { renderShieldCaRotationEmail } from '../email/email-content.builder';
 import { randomUUID } from 'crypto';
 import { ShieldCaIntermediate } from './entities/shield-ca-intermediate.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
@@ -212,9 +215,7 @@ export class ShieldCaService {
   /** Email owner/admin users once per intermediate expiry window (deduped in Redis) */
   async sendRotationAlertEmails(): Promise<number> {
     const expiring = await this.listIntermediatesExpiringWithinDays(30);
-    const frontend =
-      this.configService.get<string>('FRONTEND_URL') ||
-      'https://app.nebuladns.io';
+    const frontend = resolveAppUrl(this.configService);
     let sent = 0;
 
     for (const ca of expiring) {
@@ -244,13 +245,22 @@ export class ShieldCaService {
         0,
         Math.floor((ca.notAfter.getTime() - Date.now()) / 86400000),
       );
-      const subject = `[Flux Shield] Certificate rotation required (${daysLeft} days)`;
-      const html = `<p>The Flux Shield intermediate CA for <strong>${owner?.name || ca.ownerTenantId}</strong> expires on <strong>${ca.notAfter.toUTCString()}</strong>.</p>
-<p>Redeploy the updated CA to Intune, GPO, RMM, Apple profiles, and Windows agents before expiry so HTTPS block pages keep working.</p>
-<p><a href="${frontend}/dashboard/shield-certificate">Open Shield Certificate</a></p>`;
+      const productName =
+        this.configService.get<string>('PRODUCT_NAME', DEFAULT_PRODUCT_NAME) ??
+        DEFAULT_PRODUCT_NAME;
+      const subject = `[${productName}] Certificate rotation required (${daysLeft} days)`;
+      const rendered = renderShieldCaRotationEmail({
+        tenantLabel: owner?.name || ca.ownerTenantId,
+        expiryUtc: ca.notAfter.toUTCString(),
+        dashboardUrl: `${frontend}/dashboard/shield-certificate`,
+        productName,
+      });
 
       for (const email of recipients) {
-        await this.emailService.sendTransactionalHtml(email, subject, html);
+        await this.emailService.sendRendered(email, {
+          ...rendered,
+          subject,
+        });
       }
       await this.redisService.set(
         dedupeKey,

@@ -759,7 +759,7 @@ export class ReportsService {
       recommendations.push({
         id: 'dns-config',
         title: 'Verify DNS configuration',
-        description: 'Ensure your devices are using Nebula DNS servers',
+        description: 'Ensure your devices are using Flux Shield DNS resolvers',
         priority: 'high',
         impact: '+10 points',
         action: { label: 'Setup Guide', href: '/dashboard/onboarding' },

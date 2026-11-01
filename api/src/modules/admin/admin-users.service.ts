@@ -18,6 +18,7 @@ import { AdminRole } from './enums/admin-role.enum';
 import { AdminSessionService } from './admin-session.service';
 import { AdminActivityService } from './admin-activity.service';
 import { EmailService } from '../email/email.service';
+import { resolveAdminUrl } from '../../common/public-urls';
 import {
   ListAdminsQueryDto,
   ListAdminsResponseDto,
@@ -342,10 +343,7 @@ export class AdminUsersService {
     const requester = await this.adminRepository.findOne({
       where: { id: requesterId },
     });
-    const adminUrl = this.configService.get<string>(
-      'ADMIN_URL',
-      'https://admin.nebuladns.com',
-    );
+    const adminUrl = resolveAdminUrl(this.configService);
 
     try {
       await this.emailService.sendMfaResetNotification({

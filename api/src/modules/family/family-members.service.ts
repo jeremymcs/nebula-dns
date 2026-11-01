@@ -26,6 +26,7 @@ import {
   FamilyOverviewDto,
 } from './dto/family-invitation.dto';
 import { EmailService } from '../email/email.service';
+import { resolveAppUrl } from '../../common/public-urls';
 import { LimitsService } from '../limits/limits.service';
 
 /** Maximum family members allowed for Home tier */
@@ -222,7 +223,7 @@ export class FamilyMembersService {
     });
 
     // Send invitation email
-    const inviteUrl = `${process.env.APP_URL || 'http://localhost:4011'}/invite/family/accept?token=${token}`;
+    const inviteUrl = `${resolveAppUrl(process.env)}/invite/family/accept?token=${token}`;
     const sent = await this.emailService.sendFamilyInviteEmail({
       to: dto.email,
       familyName: tenant.name,
@@ -307,7 +308,7 @@ export class FamilyMembersService {
     });
 
     // Resend email
-    const inviteUrl = `${process.env.APP_URL || 'http://localhost:4011'}/invite/family/accept?token=${token}`;
+    const inviteUrl = `${resolveAppUrl(process.env)}/invite/family/accept?token=${token}`;
     const sent = await this.emailService.sendFamilyInviteEmail({
       to: invitation.email,
       familyName: tenant.name,

@@ -17,6 +17,10 @@ import { User } from '../users/entities/user.entity';
 import { Policy } from '../policies/entities/policy.entity';
 import { Location } from '../locations/entities/location.entity';
 import { EmailService } from '../email/email.service';
+import {
+  billingDashboardUrl,
+  resolveAppUrl,
+} from '../../common/public-urls';
 
 @Injectable()
 export class SubscriptionsService {
@@ -168,7 +172,7 @@ export class SubscriptionsService {
       name: signupRequest.metadata.fullName,
       companyName: signupRequest.companyName,
       planName: plan.name,
-      loginUrl: `${this.configService.get('FRONTEND_URL')}/login`,
+      loginUrl: `${resolveAppUrl(this.configService)}/`,
     });
 
     return { tenant, user, subscription };
@@ -353,7 +357,9 @@ export class SubscriptionsService {
         await this.emailService.sendPaymentFailedEmail({
           to: (tenant as any).billingEmail || '',
           companyName: tenant.name,
-          updatePaymentUrl: `${this.configService.get('FRONTEND_URL')}/dashboard/settings/billing`,
+          updatePaymentUrl: billingDashboardUrl(
+            resolveAppUrl(this.configService),
+          ),
         });
       }
     }
