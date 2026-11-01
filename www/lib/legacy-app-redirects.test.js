@@ -7,7 +7,7 @@ const {
   buildLegacyMarketingHostRedirects,
   resolveAppOrigin,
   LEGACY_APP_PATH_RULES,
-} = require('./www-legacy-app-redirects.js')
+} = require('./legacy-app-redirects.js')
 
 describe('www legacy app redirects', () => {
   it('defaults app origin to app subdomain', () => {

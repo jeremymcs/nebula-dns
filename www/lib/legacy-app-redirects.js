@@ -1,6 +1,8 @@
 'use strict'
 
-const { DEFAULT_APP_ORIGIN, DEFAULT_WWW_ORIGIN } = require('./public-url-defaults.js')
+/** JS defaults for Next.js config (Vercel root = www; cannot import ../shared). */
+const DEFAULT_APP_ORIGIN = 'https://app.shield.fluxlabs.net'
+const DEFAULT_WWW_ORIGIN = 'https://shield.fluxlabs.net'
 
 /**
  * App-only paths that previously lived on the marketing host (shield.fluxlabs.net).
@@ -48,6 +50,8 @@ function buildLegacyMarketingHostRedirects(wwwOrigin = DEFAULT_WWW_ORIGIN) {
 }
 
 module.exports = {
+  DEFAULT_APP_ORIGIN,
+  DEFAULT_WWW_ORIGIN,
   LEGACY_APP_PATH_RULES,
   buildWwwLegacyAppRedirects,
   buildLegacyMarketingHostRedirects,

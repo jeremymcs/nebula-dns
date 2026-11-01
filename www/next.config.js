@@ -14,7 +14,7 @@ const {
   buildWwwLegacyAppRedirects,
   buildLegacyMarketingHostRedirects,
   resolveAppOrigin,
-} = require('../shared/www-legacy-app-redirects.js')
+} = require('./lib/legacy-app-redirects.js')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
