@@ -72,6 +72,7 @@ $wxiPath = Join-Path $dist "_ProductVersion.wxi"
 Write-Host "Compiling WiX (product version $productVersionQuad)..."
 $candleArgs = @(
   "-nologo",
+  "-ext", "WixUtilExtension",
   $wxs,
   "-out", $obj
 )
@@ -79,7 +80,8 @@ $candleArgs = @(
 if ($LASTEXITCODE -ne 0) { throw "candle failed" }
 
 Write-Host "Linking MSI..."
-& light.exe -nologo $obj -out $msi
+$lightArgs = @("-nologo", $obj, "-out", $msi)
+& light.exe @lightArgs
 if ($LASTEXITCODE -ne 0) { throw "light failed" }
 
 Invoke-FluxSign -Files @($msi)
