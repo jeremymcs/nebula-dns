@@ -24,6 +24,7 @@ paths-ignore:
   - '**/test/**'
   - '**/tests/**'
   - '**/__tests__/**'
+  - '**/__mocks__/**'
   - '**/vendor/**'
   - '**/*.min.js'
   - '**/*.bundle.js'
