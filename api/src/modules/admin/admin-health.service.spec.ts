@@ -58,9 +58,11 @@ describe('AdminHealthService', () => {
       connected: true,
       consecutiveFailures: 0,
     }),
-    queryJsonRows: jest.fn().mockResolvedValue([
-      { total: '0', errors: '0', blocked: '0', allowed: '0' },
-    ]),
+    queryJsonRows: jest
+      .fn()
+      .mockResolvedValue([
+        { total: '0', errors: '0', blocked: '0', allowed: '0' },
+      ]),
     queryScalarNumber: jest.fn().mockResolvedValue(0),
   };
 
@@ -121,10 +123,7 @@ describe('AdminHealthService', () => {
         'DNSDIST_URL',
         'http://dnsdist:8083',
       );
-      expect(mockConfigService.get).toHaveBeenCalledWith(
-        'DNSDIST_API_KEY',
-        '',
-      );
+      expect(mockConfigService.get).toHaveBeenCalledWith('DNSDIST_API_KEY', '');
       expect(mockConfigService.get).toHaveBeenCalledWith(
         'UNBOUND_HOST',
         'unbound',

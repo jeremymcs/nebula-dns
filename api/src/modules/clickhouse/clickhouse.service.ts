@@ -68,7 +68,10 @@ export class ClickHouseService implements OnModuleInit {
     if (clickhouseUrl) {
       host = clickhouseUrl;
     } else {
-      const rawHost = this.configService.get<string>('CLICKHOUSE_HOST', 'localhost');
+      const rawHost = this.configService.get<string>(
+        'CLICKHOUSE_HOST',
+        'localhost',
+      );
       const port = this.configService.get<number>('CLICKHOUSE_PORT', 8123);
       host = `http://${rawHost}:${port}`;
     }
@@ -427,7 +430,9 @@ export class ClickHouseService implements OnModuleInit {
       params.locationId = filter.locationId;
     }
     if (filter.action) {
-      conditions.push("action = {action:Enum8('allow' = 1, 'block' = 2, 'rewrite' = 3)}");
+      conditions.push(
+        "action = {action:Enum8('allow' = 1, 'block' = 2, 'rewrite' = 3)}",
+      );
       params.action = filter.action;
     }
     if (filter.domain) {

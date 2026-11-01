@@ -10,7 +10,10 @@ import {
   UT1_TAR_URL,
   olbatDomainsUrl,
 } from './ut1-category-map';
-import { extractUt1DomainsFromTarGz, parseDomainLines } from './ut1-tar-extract';
+import {
+  extractUt1DomainsFromTarGz,
+  parseDomainLines,
+} from './ut1-tar-extract';
 import {
   rebuildCategoryContentSet,
   storeFeedMeta,
@@ -78,7 +81,9 @@ export class CategoryFeedsService implements OnModuleInit {
     const probeKey = categorySetKey('gambling');
     const exists = await redis.exists(probeKey);
     if (exists) {
-      this.logger.debug('Category Redis sets present; skipping startup full reload');
+      this.logger.debug(
+        'Category Redis sets present; skipping startup full reload',
+      );
       return;
     }
     await this.loadUt1Categories();
@@ -110,7 +115,9 @@ export class CategoryFeedsService implements OnModuleInit {
       if (fromTar.has(ut1Cat)) continue;
       const mapped = UT1_CATEGORY_MAP[ut1Cat];
       if (!mapped) {
-        this.logger.warn(`Unknown UT1 category in CATEGORY_FEEDS_ENABLED: ${ut1Cat}`);
+        this.logger.warn(
+          `Unknown UT1 category in CATEGORY_FEEDS_ENABLED: ${ut1Cat}`,
+        );
         continue;
       }
       try {

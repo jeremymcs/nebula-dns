@@ -262,7 +262,9 @@ export class AgentsService {
       where: { id: agent.tenantId },
     });
     if (!tenant?.settings?.installShieldCaOnAgent) {
-      throw new BadRequestException('Shield CA deployment is disabled for this tenant');
+      throw new BadRequestException(
+        'Shield CA deployment is disabled for this tenant',
+      );
     }
     return this.shieldCaService.getCertificatePem(agent.tenantId);
   }

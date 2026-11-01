@@ -55,7 +55,12 @@ export function generateIntermediateCa(options: {
   cert.setIssuer(rootCert.subject.attributes);
   cert.setExtensions([
     { name: 'basicConstraints', cA: true, pathLenConstraint: 0 },
-    { name: 'keyUsage', keyCertSign: true, cRLSign: true, digitalSignature: true },
+    {
+      name: 'keyUsage',
+      keyCertSign: true,
+      cRLSign: true,
+      digitalSignature: true,
+    },
   ]);
   cert.sign(rootKey as forge.pki.rsa.PrivateKey, forge.md.sha256.create());
 
@@ -76,7 +81,11 @@ export function issueLeafCertificate(options: {
   validityHours: number;
 }): GeneratedLeaf {
   const domain = options.domain.toLowerCase().replace(/\.$/, '');
-  if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i.test(domain)) {
+  if (
+    !/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i.test(
+      domain,
+    )
+  ) {
     throw new Error('Invalid domain for leaf issuance');
   }
 
@@ -120,7 +129,13 @@ export function buildAppleMobileconfig(options: {
   profileUuid: string;
 }): string {
   const certDer = forge.util.encode64(
-    forge.asn1.toDer(forge.pki.certificateToAsn1(parsePemCertificate(options.certificatePem))).getBytes(),
+    forge.asn1
+      .toDer(
+        forge.pki.certificateToAsn1(
+          parsePemCertificate(options.certificatePem),
+        ),
+      )
+      .getBytes(),
   );
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

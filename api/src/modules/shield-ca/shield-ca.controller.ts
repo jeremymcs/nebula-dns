@@ -48,7 +48,10 @@ export class ShieldCaController {
   @Get('certificate.cer')
   @Header('Content-Type', 'application/pkix-cert')
   @ApiOperation({ summary: 'Download Shield CA as DER (.cer)' })
-  async certificateCer(@CurrentTenant() tenantId: string, @Res() res: Response) {
+  async certificateCer(
+    @CurrentTenant() tenantId: string,
+    @Res() res: Response,
+  ) {
     const pem = await this.shieldCaService.getCertificatePem(tenantId);
     const body = pem
       .replace(/-----BEGIN CERTIFICATE-----/g, '')
@@ -81,7 +84,8 @@ export class ShieldCaController {
       ios: 'AirDrop or MDM-install the `.mobileconfig` profile.',
       android:
         'Settings → Security → Install from storage (CA certificate). Requires device admin / work profile on managed devices.',
-      chromeos: 'Admin console → Devices → Networks → Certificates → Trusted roots.',
+      chromeos:
+        'Admin console → Devices → Networks → Certificates → Trusted roots.',
       firefox:
         'Import into Windows/macOS trust store AND enable `security.enterprise_roots.enabled` on Windows, or use policies/certificates on Firefox ESR.',
     };

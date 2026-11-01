@@ -23,7 +23,11 @@ const CHECKS: EndpointCheck[] = [
   { method: 'get', path: '/block-pages', label: 'block pages' },
   { method: 'get', path: '/webhooks', label: 'webhooks' },
   { method: 'get', path: '/agents', label: 'agents' },
-  { method: 'get', path: '/groups', label: 'user groups (404 if route unregistered)' },
+  {
+    method: 'get',
+    path: '/groups',
+    label: 'user groups (404 if route unregistered)',
+  },
   { method: 'get', path: '/invitations', label: 'team invitations' },
   { method: 'get', path: '/onboarding/progress', label: 'onboarding progress' },
   { method: 'get', path: '/playbooks', label: 'playbooks' },
@@ -31,7 +35,9 @@ const CHECKS: EndpointCheck[] = [
 ];
 
 async function main(): Promise<void> {
-  const app = await NestFactory.create(AppModule, { logger: ['error', 'warn'] });
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn'],
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -68,7 +74,9 @@ async function main(): Promise<void> {
     if (res.status >= 500) {
       failures.push(`${check.label} (${check.path}): HTTP ${res.status}`);
     } else {
-      console.log(`OK ${check.method.toUpperCase()} ${check.path} -> ${res.status}`);
+      console.log(
+        `OK ${check.method.toUpperCase()} ${check.path} -> ${res.status}`,
+      );
     }
   }
 

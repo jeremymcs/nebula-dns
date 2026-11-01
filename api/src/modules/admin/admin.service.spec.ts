@@ -525,9 +525,9 @@ describe('AdminService', () => {
 
   describe('login MFA session', () => {
     it('returns mfaRequired with password-only JWT after successful login', async () => {
-      jest.spyOn(bcrypt, 'compare').mockResolvedValue(true as never)
-      adminRepository.findOne.mockResolvedValue(mockAdmin as Admin)
-      adminRepository.update.mockResolvedValue(undefined as any)
+      jest.spyOn(bcrypt, 'compare').mockResolvedValue(true as never);
+      adminRepository.findOne.mockResolvedValue(mockAdmin as Admin);
+      adminRepository.update.mockResolvedValue(undefined as any);
 
       const result = await service.login(
         { email: 'admin@nebula.local', password: 'ValidPassword123!' },

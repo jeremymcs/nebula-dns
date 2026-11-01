@@ -22,7 +22,8 @@ import {
   ReviewAccessRequestDto,
   UpdatePlatformBlockPageDto,
 } from './dto/block-page.dto';
-import { ACCESS_REQUEST_RATE_LIMIT,
+import {
+  ACCESS_REQUEST_RATE_LIMIT,
   BLOCK_CONTEXT_REDIS_PREFIX,
   FLUX_SHIELD_PLATFORM_DEFAULTS,
 } from './block-pages.constants';
@@ -32,7 +33,10 @@ import {
   sanitizeCss,
   sanitizeCustomHtml,
 } from './block-page-html.util';
-import { resolveTenantUploadKey } from './block-page-upload.util';
+import {
+  resolveTenantUploadKey,
+  assertLogoUploadBytes,
+} from './block-page-upload.util';
 import { renderSafeMarkdown } from './block-page-markdown.util';
 import { TenantsService } from '../tenants/tenants.service';
 import { Tenant } from '../tenants/entities/tenant.entity';
@@ -409,7 +413,9 @@ export class BlockPagesService {
     const safeFooterText = escapeHtml(effectiveFooterText);
     const safeSupportEmail = escapeHtml(effectiveSupportEmail);
     const safeSupportUrl = escapeHtml(effectiveSupportUrl);
-    const formAction = escapeHtml(submitUrl || '/block-pages/public/access-requests');
+    const formAction = escapeHtml(
+      submitUrl || '/block-pages/public/access-requests',
+    );
 
     return `<!DOCTYPE html>
 <html lang="${escapeHtml(blockPage.language || 'en')}">
@@ -574,11 +580,16 @@ export class BlockPagesService {
     if (file.size > 512 * 1024) {
       throw new BadRequestException('Logo must be 512KB or smaller');
     }
+    assertLogoUploadBytes(file.buffer, file.mimetype);
 
     const page = await this.findOne(tenantId, blockPageId);
     const ext = path.extname(file.originalname) || '.png';
-    const { absolutePath, storageKey, publicFilename } =
-      resolveTenantUploadKey(this.uploadRoot, tenantId, blockPageId, ext);
+    const { absolutePath, storageKey, publicFilename } = resolveTenantUploadKey(
+      this.uploadRoot,
+      tenantId,
+      blockPageId,
+      ext,
+    );
     await fs.mkdir(path.dirname(absolutePath), { recursive: true });
     await fs.writeFile(absolutePath, file.buffer);
 
@@ -607,7 +618,13 @@ export class BlockPagesService {
       throw new BadRequestException('Unable to verify block context');
     }
 
-    if (dto.turnstileToken) {
+    const turnstileSecret = this.configService.get<string>(
+      'TURNSTILE_SECRET_KEY',
+    );
+    if (turnstileSecret) {
+      if (!dto.turnstileToken?.trim()) {
+        throw new BadRequestException('Captcha verification required');
+      }
       await this.verifyTurnstile(dto.turnstileToken, ip);
     }
 
@@ -712,8 +729,7 @@ export class BlockPagesService {
 
       if (dto.addToAllowList !== false) {
         const listId =
-          dto.allowListId ||
-          (await this.ensureUnblockAllowListId(tenantId));
+          dto.allowListId || (await this.ensureUnblockAllowListId(tenantId));
         await this.listsService.addEntries(tenantId, listId, {
           entries: [
             {
@@ -763,9 +779,7 @@ export class BlockPagesService {
             ? 'Your unblock request was approved'
             : 'Your unblock request was denied',
           `<p>Your request for <strong>${escapeHtml(saved.domain)}</strong> was ${dto.status}.</p>${
-            dto.reviewNote
-              ? `<p>Note: ${escapeHtml(dto.reviewNote)}</p>`
-              : ''
+            dto.reviewNote ? `<p>Note: ${escapeHtml(dto.reviewNote)}</p>` : ''
           }`,
         );
       } catch (err) {
@@ -828,9 +842,7 @@ export class BlockPagesService {
   ): Promise<void> {
     try {
       const ipKey = `accessreq:ip:${ip}:${new Date().getUTCHours()}`;
-      const ipCount = await this.redisService
-        .getClient()
-        .incr(ipKey);
+      const ipCount = await this.redisService.getClient().incr(ipKey);
       if (ipCount === 1) {
         await this.redisService.getClient().expire(ipKey, 3600);
       }
@@ -846,7 +858,9 @@ export class BlockPagesService {
           await this.redisService.getClient().expire(tenantKey, 3600);
         }
         if (tenantCount > ACCESS_REQUEST_RATE_LIMIT.perTenantPerHour) {
-          throw new BadRequestException('Too many requests for this organization');
+          throw new BadRequestException(
+            'Too many requests for this organization',
+          );
         }
       }
     } catch (err) {
@@ -860,7 +874,7 @@ export class BlockPagesService {
   private async verifyTurnstile(token: string, ip: string): Promise<void> {
     const secret = this.configService.get<string>('TURNSTILE_SECRET_KEY');
     if (!secret) {
-      return;
+      throw new BadRequestException('Captcha verification is not configured');
     }
     const params = new URLSearchParams({
       secret,

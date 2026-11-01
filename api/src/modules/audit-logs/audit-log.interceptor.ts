@@ -84,7 +84,12 @@ export class AuditLogInterceptor implements NestInterceptor {
             userAgent,
             metadata: {
               ...(request.headers['x-device-id']
-                ? { deviceId: String(request.headers['x-device-id']).slice(0, 128) }
+                ? {
+                    deviceId: String(request.headers['x-device-id']).slice(
+                      0,
+                      128,
+                    ),
+                  }
                 : {}),
               ...(request.headers['x-app-version']
                 ? {

@@ -31,7 +31,10 @@ import { MspSubscription } from '../src/modules/msp-billing/entities/msp-subscri
 import { MspUsage } from '../src/modules/msp-billing/entities/msp-usage.entity';
 import { QueryBundle } from '../src/modules/msp-billing/entities/query-bundle.entity';
 import { MspClient } from '../src/modules/msp-clients/entities/msp-client.entity';
-import { MspTemplate, MspTemplateDeployment } from '../src/modules/msp/entities/msp-template.entity';
+import {
+  MspTemplate,
+  MspTemplateDeployment,
+} from '../src/modules/msp/entities/msp-template.entity';
 import { MspTemplateVersion } from '../src/modules/msp/entities/msp-template-version.entity';
 import { ClientTemplateApplication } from '../src/modules/msp/entities/client-template-application.entity';
 import { TemplateApplyJob } from '../src/modules/msp/entities/template-apply-job.entity';

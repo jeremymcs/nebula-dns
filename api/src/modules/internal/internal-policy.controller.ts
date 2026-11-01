@@ -7,9 +7,7 @@ import { InternalApiGuard } from './guards/internal-api.guard';
 @Controller('internal/v1/policy')
 @UseGuards(InternalApiGuard)
 export class InternalPolicyController {
-  constructor(
-    private readonly policyCompilerService: PolicyCompilerService,
-  ) {}
+  constructor(private readonly policyCompilerService: PolicyCompilerService) {}
 
   @Post('locations/:locationId/compile')
   @HttpCode(200)

@@ -4,10 +4,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import * as https from 'https';
 import * as http from 'http';
 import { RedisService } from '../redis/redis.service';
-import {
-  THREAT_CATEGORIES,
-  threatSetKey,
-} from './redis-threat-keys';
+import { THREAT_CATEGORIES, threatSetKey } from './redis-threat-keys';
 import {
   loadFeedMeta,
   rebuildThreatCategorySet,
@@ -94,8 +91,7 @@ export class ThreatFeedsService implements OnModuleInit {
       isEnabled: true,
       lastUpdated: null,
       entryCount: 0,
-      description:
-        'Online malicious domains (one per line; not a hostfile)',
+      description: 'Online malicious domains (one per line; not a hostfile)',
     },
     {
       id: 'shadowwhisperer-malware',
@@ -268,11 +264,9 @@ export class ThreatFeedsService implements OnModuleInit {
         merged.add(d);
       }
     }
-    await rebuildThreatCategorySet(
-      this.redisService.getClient(),
-      category,
-      [...merged],
-    );
+    await rebuildThreatCategorySet(this.redisService.getClient(), category, [
+      ...merged,
+    ]);
   }
 
   @Cron(CronExpression.EVERY_HOUR)
@@ -296,10 +290,9 @@ export class ThreatFeedsService implements OnModuleInit {
     }
 
     if (updated > 0) {
-      await this.redisService.getClient().publish(
-        'nebula:invalidate',
-        JSON.stringify({ type: 'threats' }),
-      );
+      await this.redisService
+        .getClient()
+        .publish('nebula:invalidate', JSON.stringify({ type: 'threats' }));
     }
 
     return {
@@ -524,8 +517,7 @@ export class ThreatFeedsService implements OnModuleInit {
     const lines = content
       .split('\n')
       .filter(
-        (line) =>
-          line.trim() && !line.startsWith('#') && !line.startsWith('!'),
+        (line) => line.trim() && !line.startsWith('#') && !line.startsWith('!'),
       );
 
     for (const line of lines) {

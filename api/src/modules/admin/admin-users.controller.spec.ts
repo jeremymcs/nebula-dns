@@ -1,7 +1,11 @@
 // Flux Shield - Admin Users Controller route order tests
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-import { INestApplication, CanActivate, ExecutionContext } from '@nestjs/common';
+import {
+  INestApplication,
+  CanActivate,
+  ExecutionContext,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
 import { AdminUsersController } from './admin-users.controller';
@@ -71,17 +75,13 @@ describe('AdminUsersController', () => {
   });
 
   it('GET /admin/users/invites resolves (not swallowed by GET :id)', async () => {
-    await request(app.getHttpServer())
-      .get('/admin/users/invites')
-      .expect(200);
+    await request(app.getHttpServer()).get('/admin/users/invites').expect(200);
 
     expect(mockInvitationsService.listInvitations).toHaveBeenCalled();
   });
 
   it('GET /admin/users/activity resolves (not swallowed by GET :id)', async () => {
-    await request(app.getHttpServer())
-      .get('/admin/users/activity')
-      .expect(200);
+    await request(app.getHttpServer()).get('/admin/users/activity').expect(200);
 
     expect(mockActivityService.query).toHaveBeenCalled();
   });

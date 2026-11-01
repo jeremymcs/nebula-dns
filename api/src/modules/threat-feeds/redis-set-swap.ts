@@ -74,7 +74,12 @@ export async function storeFeedMeta(
   meta: FeedMetaRecord,
 ): Promise<void> {
   const key = `${REDIS_FEED_META_PREFIX}${meta.id}`;
-  await redis.set(key, JSON.stringify(meta), 'EX', REDIS_THREAT_SET_TTL_SECONDS);
+  await redis.set(
+    key,
+    JSON.stringify(meta),
+    'EX',
+    REDIS_THREAT_SET_TTL_SECONDS,
+  );
 }
 
 export async function loadFeedMeta(

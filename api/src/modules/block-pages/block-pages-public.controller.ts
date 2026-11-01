@@ -19,7 +19,10 @@ import * as fs from 'fs/promises';
 import { ConfigService } from '@nestjs/config';
 import { BlockPagesService } from './block-pages.service';
 import { CreateAccessRequestDto } from './dto/block-page.dto';
-import { resolveTenantUploadFile } from './block-page-upload.util';
+import {
+  assertTenantUploadId,
+  assertSafeUploadFilename,
+} from './block-page-upload.util';
 
 function resolveClientIp(req: Request): string {
   const forwarded = req.headers['x-forwarded-for'];
@@ -50,14 +53,13 @@ export class BlockPagesPublicController {
     @Param('filename') filename: string,
     @Res() res: Response,
   ) {
-    const filePath = resolveTenantUploadFile(
-      this.uploadRoot,
-      tenantId,
-      filename,
-    );
+    assertTenantUploadId(tenantId);
+    const safeName = assertSafeUploadFilename(filename);
+    const tenantRoot = path.join(this.uploadRoot, tenantId);
+    const filePath = path.join(tenantRoot, safeName);
     try {
       await fs.access(filePath);
-      return res.sendFile(filePath);
+      return res.sendFile(safeName, { root: tenantRoot });
     } catch {
       throw new NotFoundException('Logo not found');
     }
@@ -65,7 +67,9 @@ export class BlockPagesPublicController {
 
   @Get('serve')
   @Header('Content-Type', 'text/html; charset=utf-8')
-  @ApiOperation({ summary: 'Render branded block page for sinkholed HTTP traffic' })
+  @ApiOperation({
+    summary: 'Render branded block page for sinkholed HTTP traffic',
+  })
   async serve(
     @Req() req: Request,
     @Query('tenantSlug') tenantSlug?: string,

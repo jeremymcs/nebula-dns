@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NestMiddleware,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, NestMiddleware, ForbiddenException } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import {
   MOBILE_CLIENT_REQUEST_KEY,
@@ -37,9 +33,7 @@ export class MobileClientMiddleware implements NestMiddleware {
       return;
     }
 
-    const user = req.user as
-      | { adminId?: string; id?: string }
-      | undefined;
+    const user = req.user as { adminId?: string; id?: string } | undefined;
 
     if (!user) {
       next();

@@ -108,8 +108,17 @@ describe('BlockPagesService', () => {
           provide: getRepositoryToken(AccessRequest),
           useValue: mockAccessRequestRepository,
         },
-        { provide: getRepositoryToken(Tenant), useValue: { findOne: jest.fn() } },
-        { provide: getRepositoryToken(Location), useValue: { find: jest.fn().mockResolvedValue([]), findOne: jest.fn() } },
+        {
+          provide: getRepositoryToken(Tenant),
+          useValue: { findOne: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(Location),
+          useValue: {
+            find: jest.fn().mockResolvedValue([]),
+            findOne: jest.fn(),
+          },
+        },
         { provide: TenantsService, useValue: {} },
         {
           provide: ListsService,
@@ -134,7 +143,10 @@ describe('BlockPagesService', () => {
             }),
           },
         },
-        { provide: EmailService, useValue: { sendTransactionalHtml: jest.fn() } },
+        {
+          provide: EmailService,
+          useValue: { sendTransactionalHtml: jest.fn() },
+        },
         {
           provide: ConfigService,
           useValue: { get: jest.fn().mockReturnValue('/tmp/uploads') },

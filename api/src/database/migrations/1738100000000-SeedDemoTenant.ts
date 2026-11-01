@@ -62,8 +62,6 @@ export class SeedDemoTenant1738100000000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `DELETE FROM "tenants" WHERE slug = 'demo'`,
-    );
+    await queryRunner.query(`DELETE FROM "tenants" WHERE slug = 'demo'`);
   }
 }

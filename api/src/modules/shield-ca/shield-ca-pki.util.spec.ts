@@ -54,7 +54,9 @@ describe('shield-ca-pki.util', () => {
     });
     expect(leaf.certificatePem).toContain('BEGIN CERTIFICATE');
     const leafCert = parsePemCertificate(leaf.certificatePem);
-    const san = leafCert.getExtension('subjectAltName') as { altNames?: { value: string }[] };
+    const san = leafCert.getExtension('subjectAltName') as {
+      altNames?: { value: string }[];
+    };
     expect(san?.altNames?.[0]?.value).toBe('blocked.example.com');
   });
 

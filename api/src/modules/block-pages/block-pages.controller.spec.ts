@@ -95,7 +95,6 @@ describe('BlockPagesController', () => {
     });
   });
 
-
   describe('POST /block-pages (Authenticated)', () => {
     it('should create block page with valid data', async () => {
       const createDto: CreateBlockPageDto = {
@@ -350,7 +349,10 @@ describe('BlockPagesController', () => {
       const mockRequests = [mockAccessRequest];
       mockBlockPagesService.getAccessRequests.mockResolvedValue(mockRequests);
 
-      const result = await controller.getAccessRequests(mockTenantId, undefined);
+      const result = await controller.getAccessRequests(
+        mockTenantId,
+        undefined,
+      );
 
       expect(service.getAccessRequests).toHaveBeenCalledWith(
         mockTenantId,
@@ -378,7 +380,10 @@ describe('BlockPagesController', () => {
     it('should return empty array when no requests exist', async () => {
       mockBlockPagesService.getAccessRequests.mockResolvedValue([]);
 
-      const result = await controller.getAccessRequests(mockTenantId, undefined);
+      const result = await controller.getAccessRequests(
+        mockTenantId,
+        undefined,
+      );
 
       expect(result.data).toEqual([]);
     });

@@ -60,7 +60,12 @@ export class Webhook extends BaseEntity {
   @Column({ name: 'failure_count', type: 'int', default: 0 })
   failureCount: number;
 
-  @Column({ name: 'ip_allowlist', type: 'text', array: true, default: () => "'{}'" })
+  @Column({
+    name: 'ip_allowlist',
+    type: 'text',
+    array: true,
+    default: () => "'{}'",
+  })
   ipAllowlist: string[];
 
   @Column({ name: 'rate_limit', type: 'int', default: 60 })

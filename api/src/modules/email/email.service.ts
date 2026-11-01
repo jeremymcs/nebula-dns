@@ -177,10 +177,26 @@ export class EmailService implements OnModuleInit {
     const capped = html.slice(0, 500_000);
     let withoutStyle = this.removeHtmlTagBlock(capped, 'style');
     withoutStyle = this.removeHtmlTagBlock(withoutStyle, 'script');
-    return withoutStyle
-      .replace(/<[^>]+>/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
+    return this.stripRemainingTags(withoutStyle).replace(/\s+/g, ' ').trim();
+  }
+
+  private stripRemainingTags(text: string): string {
+    let out = '';
+    let inTag = false;
+    for (const ch of text) {
+      if (ch === '<') {
+        inTag = true;
+        continue;
+      }
+      if (ch === '>' && inTag) {
+        inTag = false;
+        continue;
+      }
+      if (!inTag) {
+        out += ch;
+      }
+    }
+    return out;
   }
 
   private removeHtmlTagBlock(html: string, tagName: string): string {

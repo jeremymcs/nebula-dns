@@ -45,7 +45,9 @@ export class ShieldCaService {
     private readonly emailService: EmailService,
     private readonly configService: ConfigService,
   ) {
-    const master = this.configService.get<string>('SHIELD_CA_MASTER_KEY') || 'dev-shield-ca-master-key-32bytes!!';
+    const master =
+      this.configService.get<string>('SHIELD_CA_MASTER_KEY') ||
+      'dev-shield-ca-master-key-32bytes!!';
     this.encryptionKey = deriveKey(master, 'shield-ca-gcm');
     this.internalSecret =
       this.configService.get<string>('SHIELD_BLOCKPAGE_INTERNAL_SECRET') ||
@@ -106,7 +108,10 @@ export class ShieldCaService {
     return ca.certificatePem;
   }
 
-  async getMobileconfig(tenantId: string, organizationName: string): Promise<string> {
+  async getMobileconfig(
+    tenantId: string,
+    organizationName: string,
+  ): Promise<string> {
     const pem = await this.getCertificatePem(tenantId);
     return buildAppleMobileconfig({
       organizationName,
@@ -137,10 +142,14 @@ export class ShieldCaService {
       `${BLOCK_DOMAIN_SNI_PREFIX}${normalized}`,
     );
     if (!tenantId) {
-      throw new ForbiddenException('Domain is not an active blocked sinkhole host');
+      throw new ForbiddenException(
+        'Domain is not an active blocked sinkhole host',
+      );
     }
     if (!(await this.isDomainBlockedForTenant(tenantId, normalized))) {
-      throw new ForbiddenException('Domain is not blocked for this organization');
+      throw new ForbiddenException(
+        'Domain is not blocked for this organization',
+      );
     }
 
     const { ownerTenantId, scope } = await this.resolveCaOwner(tenantId);
@@ -188,7 +197,9 @@ export class ShieldCaService {
   }
 
   /** Intermediates expiring within 30 days (for cron + tests) */
-  async listIntermediatesExpiringWithinDays(days: number): Promise<ShieldCaIntermediate[]> {
+  async listIntermediatesExpiringWithinDays(
+    days: number,
+  ): Promise<ShieldCaIntermediate[]> {
     const cutoff = new Date(Date.now() + days * 86400000);
     return this.caRepository.find({
       where: {
@@ -202,7 +213,8 @@ export class ShieldCaService {
   async sendRotationAlertEmails(): Promise<number> {
     const expiring = await this.listIntermediatesExpiringWithinDays(30);
     const frontend =
-      this.configService.get<string>('FRONTEND_URL') || 'https://app.nebuladns.io';
+      this.configService.get<string>('FRONTEND_URL') ||
+      'https://app.nebuladns.io';
     let sent = 0;
 
     for (const ca of expiring) {
@@ -218,7 +230,9 @@ export class ShieldCaService {
       const admins = await this.userRepository.find({
         where: { tenantId: ca.ownerTenantId, role: In(['owner', 'admin']) },
       });
-      const recipients = [...new Set(admins.map((u) => u.email).filter(Boolean))];
+      const recipients = [
+        ...new Set(admins.map((u) => u.email).filter(Boolean)),
+      ];
       if (recipients.length === 0) {
         this.logger.warn(
           `Shield CA ${ca.id} expiring soon but no admin emails for tenant ${ca.ownerTenantId}`,
@@ -238,7 +252,11 @@ export class ShieldCaService {
       for (const email of recipients) {
         await this.emailService.sendTransactionalHtml(email, subject, html);
       }
-      await this.redisService.set(dedupeKey, '1', ROTATION_ALERT_DEDUPE_SECONDS);
+      await this.redisService.set(
+        dedupeKey,
+        '1',
+        ROTATION_ALERT_DEDUPE_SECONDS,
+      );
       sent += recipients.length;
     }
     return sent;

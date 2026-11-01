@@ -50,7 +50,12 @@ export class AccessRequest extends BaseEntity {
   })
   requesterName: string | null;
 
-  @Column({ name: 'block_reason', type: 'varchar', length: 100, nullable: true })
+  @Column({
+    name: 'block_reason',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
   blockReason: string | null;
 
   @Column({ name: 'allow_list_id', type: 'uuid', nullable: true })

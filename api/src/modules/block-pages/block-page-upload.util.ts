@@ -77,3 +77,44 @@ export function resolveTenantUploadKey(
   );
   return { absolutePath, storageKey, publicFilename };
 }
+
+const PNG_SIG = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
+const JPEG_SIG = Buffer.from([0xff, 0xd8, 0xff]);
+const WEBP_RIFF = Buffer.from('RIFF');
+const WEBP_MAGIC = Buffer.from('WEBP');
+
+export function assertLogoUploadBytes(buffer: Buffer, mimetype: string): void {
+  if (!buffer || buffer.length < 4) {
+    throw new BadRequestException('Invalid logo file');
+  }
+  switch (mimetype) {
+    case 'image/png':
+      if (!buffer.subarray(0, 4).equals(PNG_SIG)) {
+        throw new BadRequestException('Logo content does not match PNG');
+      }
+      break;
+    case 'image/jpeg':
+      if (!buffer.subarray(0, 3).equals(JPEG_SIG)) {
+        throw new BadRequestException('Logo content does not match JPEG');
+      }
+      break;
+    case 'image/webp':
+      if (
+        buffer.length < 12 ||
+        !buffer.subarray(0, 4).equals(WEBP_RIFF) ||
+        !buffer.subarray(8, 12).equals(WEBP_MAGIC)
+      ) {
+        throw new BadRequestException('Logo content does not match WebP');
+      }
+      break;
+    case 'image/svg+xml': {
+      const head = buffer.subarray(0, 256).toString('utf8').trimStart();
+      if (!head.startsWith('<') || !head.toLowerCase().includes('svg')) {
+        throw new BadRequestException('Logo content does not match SVG');
+      }
+      break;
+    }
+    default:
+      throw new BadRequestException('Unsupported logo type');
+  }
+}

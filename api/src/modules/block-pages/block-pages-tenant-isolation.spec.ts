@@ -17,19 +17,28 @@ import { ConfigService } from '@nestjs/config';
 
 describe('BlockPagesService tenant isolation', () => {
   it('rejects review when request belongs to another tenant', async () => {
-    const accessRepo = { findOne: jest.fn().mockResolvedValue(null), save: jest.fn() };
+    const accessRepo = {
+      findOne: jest.fn().mockResolvedValue(null),
+      save: jest.fn(),
+    };
     const module = await Test.createTestingModule({
       providers: [
         BlockPagesService,
         { provide: getRepositoryToken(BlockPage), useValue: {} },
         { provide: getRepositoryToken(AccessRequest), useValue: accessRepo },
         { provide: getRepositoryToken(Tenant), useValue: {} },
-        { provide: getRepositoryToken(Location), useValue: { find: jest.fn() } },
+        {
+          provide: getRepositoryToken(Location),
+          useValue: { find: jest.fn() },
+        },
         { provide: TenantsService, useValue: {} },
         { provide: ListsService, useValue: {} },
         { provide: PolicyCompilerService, useValue: {} },
         { provide: AuditLogsService, useValue: { log: jest.fn() } },
-        { provide: RedisService, useValue: { get: jest.fn(), getClient: jest.fn() } },
+        {
+          provide: RedisService,
+          useValue: { get: jest.fn(), getClient: jest.fn() },
+        },
         { provide: EmailService, useValue: {} },
         { provide: ConfigService, useValue: { get: jest.fn() } },
       ],

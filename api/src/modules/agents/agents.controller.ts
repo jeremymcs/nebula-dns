@@ -128,7 +128,8 @@ export class AgentsController {
     summary: 'Download Shield CA for registered agent (device_id query param)',
   })
   async shieldCaCertificate(@Query('device_id') deviceId: string) {
-    const pem = await this.agentsService.getShieldCaCertificateForDevice(deviceId);
+    const pem =
+      await this.agentsService.getShieldCaCertificateForDevice(deviceId);
     return pem;
   }
 

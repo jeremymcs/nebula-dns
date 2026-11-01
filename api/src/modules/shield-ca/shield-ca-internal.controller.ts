@@ -41,7 +41,9 @@ export class ShieldCaInternalController {
   }
 
   @Post('issue-leaf')
-  @ApiOperation({ summary: 'Mint short-lived leaf certificate for blocked host' })
+  @ApiOperation({
+    summary: 'Mint short-lived leaf certificate for blocked host',
+  })
   async issueLeaf(
     @Body() body: IssueLeafDto,
     @Headers('x-shield-internal-secret') secret: string,

@@ -89,19 +89,22 @@ export class AdminDashboardStatsResponseDto {
   activeTenants7d: DashboardStatNumberDto;
 
   @ApiProperty({
-    description: 'Paid MSP invoice revenue for the current calendar month (America/Chicago), in cents',
+    description:
+      'Paid MSP invoice revenue for the current calendar month (America/Chicago), in cents',
     type: DashboardStatNullableNumberDto,
   })
   monthlyRevenueCents: DashboardStatNullableNumberDto;
 
   @ApiProperty({
-    description: 'Paid MSP invoice revenue for the previous calendar month (America/Chicago), in cents',
+    description:
+      'Paid MSP invoice revenue for the previous calendar month (America/Chicago), in cents',
     type: DashboardStatNullableNumberDto,
   })
   prevMonthRevenueCents: DashboardStatNullableNumberDto;
 
   @ApiProperty({
-    description: 'False when billing/subscriptions are not configured (Stripe off at launch)',
+    description:
+      'False when billing/subscriptions are not configured (Stripe off at launch)',
     example: false,
   })
   billingEnabled: boolean;
@@ -112,7 +115,10 @@ export class AdminDashboardStatsResponseDto {
   })
   demoTenantCount: DashboardStatNumberDto;
 
-  @ApiProperty({ description: 'Snapshot timestamp', example: '2026-11-01T00:00:00.000Z' })
+  @ApiProperty({
+    description: 'Snapshot timestamp',
+    example: '2026-11-01T00:00:00.000Z',
+  })
   timestamp: string;
 }
 
