@@ -6,6 +6,7 @@ import { Injectable, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as dns from 'dns';
 import * as net from 'net';
+import * as tls from 'tls';
 
 import { ClickHouseService } from '../clickhouse/clickhouse.service';
 import { RedisService } from '../redis/redis.service';
@@ -21,6 +22,10 @@ import {
   QueryVolumeDto,
   RecentErrorDto,
 } from './dto/system-health.dto';
+import {
+  CertificateExpiryEntryDto,
+  CertificateExpiryResponseDto,
+} from './dto/certificate-expiry.dto';
 
 const dnsLookup = dns.promises.lookup;
 
@@ -55,6 +60,11 @@ export class AdminHealthService {
   private readonly dnsdistApiKey: string;
   private readonly unboundHost: string;
   private readonly unboundPort: number;
+  private readonly certProbeTargets: Array<{
+    hostname: string;
+    port: number;
+    service: string;
+  }>;
 
   // HTTP request timeout
   private readonly requestTimeoutMs = 5000;
@@ -88,6 +98,119 @@ export class AdminHealthService {
       this.configService.get<string>('UNBOUND_PORT'),
       53,
     );
+    this.certProbeTargets = this.parseCertProbeTargets(
+      this.configService.get<string>('ADMIN_CERT_PROBE_HOSTS'),
+    );
+  }
+
+  private parseCertProbeTargets(raw?: string): Array<{
+    hostname: string;
+    port: number;
+    service: string;
+  }> {
+    const defaultTargets =
+      'dns.shield.fluxlabs.net:853:DoT,dns.shield.fluxlabs.net:443:DoH';
+    const source = raw?.trim() || defaultTargets;
+    return source.split(',').map((entry) => {
+      const [hostname, portStr, service] = entry.trim().split(':');
+      return {
+        hostname: hostname || 'dns.shield.fluxlabs.net',
+        port: Number(portStr) || 443,
+        service: service || 'TLS',
+      };
+    });
+  }
+
+  /**
+   * Probe public TLS endpoints and return certificate notAfter dates
+   */
+  async getCertificateExpiry(): Promise<CertificateExpiryResponseDto> {
+    const checkedAt = new Date().toISOString();
+    const certificates: CertificateExpiryEntryDto[] = [];
+
+    for (const target of this.certProbeTargets) {
+      certificates.push(await this.probeCertificate(target));
+    }
+
+    return { certificates, checkedAt };
+  }
+
+  private probeCertificate(target: {
+    hostname: string;
+    port: number;
+    service: string;
+  }): Promise<CertificateExpiryEntryDto> {
+    return new Promise((resolve) => {
+      const socket = tls.connect(
+        {
+          host: target.hostname,
+          port: target.port,
+          servername: target.hostname,
+          timeout: this.requestTimeoutMs,
+        },
+        () => {
+          const cert = socket.getPeerCertificate();
+          socket.end();
+
+          if (!cert || !cert.valid_to) {
+            resolve({
+              hostname: target.hostname,
+              service: target.service,
+              port: target.port,
+              notAfter: null,
+              daysRemaining: null,
+              status: 'unknown',
+              errorMessage: 'No certificate returned',
+            });
+            return;
+          }
+
+          const notAfterDate = new Date(cert.valid_to);
+          const daysRemaining = Math.floor(
+            (notAfterDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000),
+          );
+          let status: CertificateExpiryEntryDto['status'] = 'ok';
+          if (daysRemaining < 0) status = 'critical';
+          else if (daysRemaining < 14) status = 'critical';
+          else if (daysRemaining < 30) status = 'warning';
+
+          resolve({
+            hostname: target.hostname,
+            service: target.service,
+            port: target.port,
+            notAfter: notAfterDate.toISOString(),
+            daysRemaining,
+            status,
+            errorMessage: null,
+          });
+        },
+      );
+
+      socket.on('error', (err) => {
+        resolve({
+          hostname: target.hostname,
+          service: target.service,
+          port: target.port,
+          notAfter: null,
+          daysRemaining: null,
+          status: 'error',
+          errorMessage: err.message,
+        });
+      });
+
+      socket.on('timeout', () => {
+        socket.destroy();
+        resolve({
+          hostname: target.hostname,
+          service: target.service,
+          port: target.port,
+          notAfter: null,
+          daysRemaining: null,
+          status: 'error',
+          errorMessage: 'TLS probe timed out',
+        });
+      });
+    });
   }
 
   /**
