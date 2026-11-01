@@ -268,8 +268,7 @@ jobs:
           NEXT_PUBLIC_API_URL: http://localhost:3000
 
       - name: Verify Docker image build (CI context)
-        run: docker build -f Dockerfile -t nebula-dns-ui:ci .
-        working-directory: ./ui
+        run: docker build -f ui/Dockerfile -t nebula-dns-ui:ci .
 
   admin-ui-test:
     name: Admin UI Tests
@@ -313,8 +312,7 @@ jobs:
           NEXT_PUBLIC_API_URL: http://localhost:3000
 
       - name: Verify Docker image build (CI context)
-        run: docker build -f Dockerfile -t nebula-dns-admin-ui:ci .
-        working-directory: ./admin-ui
+        run: docker build -f admin-ui/Dockerfile -t nebula-dns-admin-ui:ci .
 
   flux-shield-agent:
     name: Flux Shield Agent

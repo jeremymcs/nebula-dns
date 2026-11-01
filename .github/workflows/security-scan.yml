@@ -333,7 +333,19 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Build Docker Image (ui)
+        if: matrix.component == 'ui'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ui/Dockerfile
+          load: true
+          tags: nebula-dns-${{ matrix.component }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
       - name: Build Docker Image
+        if: matrix.component != 'ui'
         uses: docker/build-push-action@v5
         with:
           context: ./${{ matrix.component }}
@@ -401,7 +413,18 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Build Docker Image (ui)
+        if: matrix.component == 'ui'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ui/Dockerfile
+          load: true
+          tags: nebula-dns-${{ matrix.component }}:${{ github.sha }}
+          cache-from: type=gha
+
       - name: Build Docker Image
+        if: matrix.component != 'ui'
         uses: docker/build-push-action@v5
         with:
           context: ./${{ matrix.component }}
@@ -504,7 +527,8 @@ jobs:
       - name: Build Docker Image
         uses: docker/build-push-action@v5
         with:
-          context: ./ui
+          context: .
+          file: ui/Dockerfile
           load: true
           tags: nebula-dns-ui:${{ github.sha }}
           cache-from: type=gha

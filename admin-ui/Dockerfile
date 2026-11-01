@@ -1,26 +1,28 @@
 # Nebula DNS Admin UI Dockerfile
 # Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
+#
+# Build from repository root:
+#   docker build -f admin-ui/Dockerfile -t nebula-dns-admin-ui .
 
-# Development stage
+# Development stage (docker-compose mounts ./admin-ui at /app)
 FROM node:20-alpine AS development
 
 WORKDIR /app
 
-# Only copy package files initially - source will be mounted as volume
-COPY package*.json ./
+COPY admin-ui/package*.json ./
 
-# Install deps and start dev server
 CMD npm install && npm run dev
 
 # Build stage
 FROM node:20-alpine AS builder
 
-WORKDIR /app
+WORKDIR /app/admin-ui
 
-COPY package*.json ./
+COPY admin-ui/package*.json ./
 RUN npm ci
 
-COPY . .
+COPY admin-ui/ ./
+COPY shared/ /app/shared/
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
@@ -37,9 +39,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder /app/admin-ui/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/admin-ui/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/admin-ui/.next/static ./.next/static
 
 USER nextjs
 

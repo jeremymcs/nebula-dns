@@ -53,8 +53,8 @@ services:
   # ============================================
   ui:
     build:
-      context: ./ui
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ui/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${API_URL:-https://api.example.com}
     image: ghcr.io/nebuladns/ui:${TAG:-latest}
