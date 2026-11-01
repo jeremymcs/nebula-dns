@@ -2,7 +2,7 @@
 
 import { PrinterIcon } from '@heroicons/react/24/outline'
 import { Button } from '@/components/ui'
-import { printMfaBackupCodes } from '../../../../shared/print-mfa-backup-codes'
+import { printMfaBackupCodes } from '@/lib/print-mfa-backup-codes'
 import type { ButtonProps } from '@/components/ui/Button'
 
 type PrintBackupCodesButtonProps = {

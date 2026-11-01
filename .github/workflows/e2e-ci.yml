@@ -39,6 +39,7 @@ jobs:
             ui:
               - 'ui/**'
               - 'shared/**'
+              - 'shared/print-mfa-backup-codes.ts'
             ci:
               - '.github/**'
 

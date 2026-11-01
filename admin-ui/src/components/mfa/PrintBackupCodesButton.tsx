@@ -1,7 +1,7 @@
 'use client'
 
 import { PrinterIcon } from '@heroicons/react/24/outline'
-import { printMfaBackupCodes } from '../../../../shared/print-mfa-backup-codes'
+import { printMfaBackupCodes } from '@/lib/print-mfa-backup-codes'
 
 type PrintBackupCodesButtonProps = {
   codes: readonly string[]
