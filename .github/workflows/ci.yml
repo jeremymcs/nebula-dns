@@ -27,6 +27,7 @@ jobs:
     outputs:
       api: ${{ steps.outputs.outputs.api }}
       policy-svc: ${{ steps.outputs.outputs.policy-svc }}
+      shield-blockpage: ${{ steps.outputs.outputs.shield-blockpage }}
       ui: ${{ steps.outputs.outputs.ui }}
       admin-ui: ${{ steps.outputs.outputs.admin-ui }}
       agents: ${{ steps.outputs.outputs.agents }}
@@ -46,6 +47,9 @@ jobs:
               - 'api/**'
             policy-svc:
               - 'policy-svc/**'
+            shield-blockpage:
+              - 'shield-blockpage/**'
+              - 'deploy/droplet/shield-blockpage.Dockerfile'
             ui:
               - 'ui/**'
               - 'shared/**'
@@ -65,6 +69,7 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_call" ]; then
             echo "api=true" >> "$GITHUB_OUTPUT"
             echo "policy-svc=true" >> "$GITHUB_OUTPUT"
+            echo "shield-blockpage=true" >> "$GITHUB_OUTPUT"
             echo "ui=true" >> "$GITHUB_OUTPUT"
             echo "admin-ui=true" >> "$GITHUB_OUTPUT"
             echo "agents=true" >> "$GITHUB_OUTPUT"
@@ -73,6 +78,7 @@ jobs:
           else
             echo "api=${{ steps.filter.outputs.api }}" >> "$GITHUB_OUTPUT"
             echo "policy-svc=${{ steps.filter.outputs.policy-svc }}" >> "$GITHUB_OUTPUT"
+            echo "shield-blockpage=${{ steps.filter.outputs.shield-blockpage }}" >> "$GITHUB_OUTPUT"
             echo "ui=${{ steps.filter.outputs.ui }}" >> "$GITHUB_OUTPUT"
             echo "admin-ui=${{ steps.filter.outputs.admin-ui }}" >> "$GITHUB_OUTPUT"
             echo "agents=${{ steps.filter.outputs.agents }}" >> "$GITHUB_OUTPUT"
@@ -453,6 +459,45 @@ jobs:
           path: policy-svc/test-results/
           retention-days: 7
 
+  shield-blockpage-test:
+    name: Shield Block Page Service
+    runs-on: ubuntu-latest
+    needs: changes
+    if: |
+      needs.changes.outputs.ci == 'true' ||
+      needs.changes.outputs.shield-blockpage == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: shield-blockpage/go.mod
+
+      - name: Run tests
+        working-directory: ./shield-blockpage
+        run: go test -v ./...
+
+      - name: Build binary
+        working-directory: ./shield-blockpage
+        run: go build -o /tmp/shield-blockpage ./cmd/main.go
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build container image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: deploy/droplet/shield-blockpage.Dockerfile
+          push: false
+          tags: nebula-dns-shield-blockpage:ci
+          cache-from: type=gha,scope=shield-blockpage-ci
+          cache-to: type=gha,mode=max,scope=shield-blockpage-ci
+
   mobile-test:
     name: Mobile App
     runs-on: ubuntu-latest
@@ -501,6 +546,7 @@ jobs:
       - flux-shield-agent-msi
       - policy-svc-test
       - policy-integration-test
+      - shield-blockpage-test
       - mobile-test
     if: always()
 
@@ -525,6 +571,7 @@ jobs:
           check_result "flux-shield-agent-msi" "${{ needs.flux-shield-agent-msi.result }}"
           check_result "policy-svc-test" "${{ needs.policy-svc-test.result }}"
           check_result "policy-integration-test" "${{ needs.policy-integration-test.result }}"
+          check_result "shield-blockpage-test" "${{ needs.shield-blockpage-test.result }}"
           check_result "mobile-test" "${{ needs.mobile-test.result }}"
 
           echo "CI Gate passed (skipped jobs are OK for path-filtered runs)."

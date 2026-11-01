@@ -13,6 +13,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3000"
+      BLOCK_PAGE_UPLOAD_DIR: ${BLOCK_PAGE_UPLOAD_DIR:-/app/uploads/block-pages}
       CLICKHOUSE_URL: http://clickhouse:8123
       UNBOUND_HOST: unbound
       UNBOUND_PORT: "53"
@@ -20,6 +21,8 @@ services:
       DNSDIST_API_KEY: ${DNSDIST_API_KEY}
     expose:
       - "3000"
+    volumes:
+      - block-page-uploads:/app/uploads/block-pages
     depends_on:
       clickhouse:
         condition: service_healthy
@@ -130,10 +133,11 @@ services:
       dnsdist:
         condition: service_started
 
+  # Optional HTTPS block-page terminator (not on :443 — Caddy owns public TLS).
+  # Enable when sinkhole HTTPS routing is ready: docker compose --profile shield-blockpage up -d
   shield-blockpage:
-    build:
-      context: ../..
-      dockerfile: deploy/droplet/shield-blockpage.Dockerfile
+    profiles:
+      - shield-blockpage
     image: ghcr.io/jeremymcs/nebula-dns-shield-blockpage:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env
@@ -150,3 +154,4 @@ volumes:
   caddy_data:
   caddy_config:
   clickhouse-data:
+  block-page-uploads:
