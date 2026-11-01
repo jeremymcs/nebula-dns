@@ -3,13 +3,7 @@
  * Uses a unique client IP per HTTP verb so strict login rate limits do not flake across suites.
  */
 
-import * as supertestModule from 'supertest';
-
-type SupertestFn = (app: Parameters<typeof supertestModule>[0]) => supertestModule.Test;
-
-const supertest: SupertestFn =
-  (supertestModule as unknown as { default?: SupertestFn }).default ??
-  (supertestModule as unknown as SupertestFn);
+import request, { SuperTest, Test } from 'supertest';
 
 type HttpMethod = 'get' | 'post' | 'patch' | 'put' | 'delete' | 'options';
 
@@ -21,12 +15,8 @@ function clientIp(): string {
   return `203.0.113.${octet}`;
 }
 
-function withIp(
-  server: Parameters<SupertestFn>[0],
-  method: HttpMethod,
-  url: string,
-) {
-  const agent = supertest(server);
+function withIp(server: Parameters<typeof request>[0], method: HttpMethod, url: string) {
+  const agent: SuperTest<Test> = request(server);
   const ip = clientIp();
   switch (method) {
     case 'get':
@@ -49,7 +39,7 @@ function withIp(
 }
 
 /** Per-request supertest client with a unique X-Forwarded-For IP. */
-export function e2eRequest(server: Parameters<SupertestFn>[0]) {
+export function e2eRequest(server: Parameters<typeof request>[0]) {
   return {
     get: (url: string) => withIp(server, 'get', url),
     post: (url: string) => withIp(server, 'post', url),
