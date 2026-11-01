@@ -11,6 +11,8 @@ import { GeistMono } from 'geist/font/mono'
 import '@/styles/flux-shield-design-tokens.css'
 import './globals.css'
 import '@/styles/flux-shield-components.css'
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ToastProvider } from '@/components/Toast'
@@ -68,6 +70,8 @@ export default function RootLayout({
             </ToastProvider>
           </AuthProvider>
         </ThemeProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )

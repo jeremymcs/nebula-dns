@@ -7,6 +7,7 @@ import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import Link from 'next/link'
 import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
 import { APP_URL, SITE_URL } from '@/lib/config'
 import {
@@ -120,6 +121,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </footer>
         </div>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )

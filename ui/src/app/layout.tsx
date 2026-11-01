@@ -12,6 +12,8 @@ import { GeistMono } from 'geist/font/mono'
 import '@/styles/flux-shield-design-tokens.css'
 import './globals.css'
 import '@/styles/flux-shield-components.css'
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Providers } from './providers'
 import { PRODUCT_META_DESCRIPTION, PRODUCT_NAME } from '@/lib/branding'
 import { APP_ORIGIN } from '@/lib/public-urls'
@@ -59,6 +61,8 @@ export default function RootLayout({
     >
       <body className="h-full font-sans bg-canvas dark:bg-space-950 text-ink transition-colors" suppressHydrationWarning>
         <Providers>{children}</Providers>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
