@@ -51,11 +51,9 @@ export const metadata: Metadata = {
 }
 
 const navLinks = [
-  { href: '/features', label: 'Features' },
-  { href: '/msp', label: 'For MSPs' },
-  { href: '/enterprise', label: 'Enterprise' },
-  { href: '/pricing', label: 'Pricing' },
-  { href: '/docs', label: 'Docs' },
+  { href: '/#how', label: 'How it works' },
+  { href: '/features', label: 'What’s included' },
+  { href: '/about', label: 'About Flux Labs' },
   { href: '/blog', label: 'Blog' },
 ] as const
 
@@ -63,10 +61,10 @@ const footerColumns = [
   {
     title: 'Product',
     links: [
-      { href: '/features', label: 'Features' },
-      { href: '/msp', label: 'For MSPs' },
-      { href: '/enterprise', label: 'Enterprise' },
-      { href: '/pricing', label: 'Pricing' },
+      { href: '/#how', label: 'How it works' },
+      { href: '/features', label: 'What’s included' },
+      { href: '/enterprise', label: 'Larger organizations' },
+      { href: '/msp', label: 'For other MSPs' },
       { href: '/status', label: 'Status' },
     ],
   },
@@ -138,8 +136,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <a href={APP_URL} className="whitespace-nowrap transition-colors hover:text-ink">
                   Sign in
                 </a>
-                <Link href="/signup" className="fs-btn fs-btn-primary whitespace-nowrap no-underline">
-                  Start free trial
+                <Link href="/contact" className="fs-btn fs-btn-primary whitespace-nowrap no-underline">
+                  Talk to us
                 </Link>
               </div>
             </nav>
@@ -156,7 +154,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <ProductWordmark className="text-[15px] font-semibold text-ink" accentClassName="text-ink" />
                   </Link>
                   <p className="mt-3 max-w-[260px] text-sm leading-relaxed text-mut">
-                    DNS security and visibility for businesses, MSPs and families.
+                    Website and threat filtering for your business, managed by Flux Labs.
                   </p>
                 </div>
                 {footerColumns.map((column) => (

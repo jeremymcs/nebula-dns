@@ -9,7 +9,7 @@ import { MarketingPageHero, MarketingSerifAccent } from '@/components/marketing/
 import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
 
 export const metadata: Metadata = {
-  title: 'Features',
+  title: 'What’s included',
   description:
     'Threat protection, content filtering, query logs, live stream, reports, playbooks, a roaming agent and a full MSP console, all at the DNS layer.',
 }
@@ -210,13 +210,13 @@ export default function FeaturesPage() {
   return (
     <MarketingPageShell>
       <MarketingPageHero
-        eyebrow="Features"
+        eyebrow="What’s included"
         title={
           <>
-            Everything at the DNS layer, <MarketingSerifAccent>in one place.</MarketingSerifAccent>
+            Everything we run <MarketingSerifAccent>to protect you.</MarketingSerifAccent>
           </>
         }
-        lede="Flux Shield protects every device on your networks, shows you every query they make, and gives MSPs the tools to run it for many clients at once."
+        lede="Here’s the full toolkit behind Flux Shield. The Flux Labs team configures and watches all of it for you, and you can sign in to see it any time."
       >
         <nav aria-label="Feature groups" className="flex flex-wrap justify-center gap-2">
           {[...groups.map((g) => ({ id: g.id, label: g.eyebrow })), { id: 'deploy', label: 'Deploy' }].map((g) => (
@@ -295,9 +295,9 @@ export default function FeaturesPage() {
             ))}
           </div>
           <p className="mt-10 text-sm text-txt">
-            Running IT for clients?{' '}
-            <Link href="/msp" className="font-medium text-brand no-underline hover:underline">
-              See how Flux Shield works for MSPs →
+            Not sure what you need?{' '}
+            <Link href="/contact" className="font-medium text-brand no-underline hover:underline">
+              Talk to Flux Labs and we&apos;ll walk you through it →
             </Link>
           </p>
         </section>
@@ -306,7 +306,7 @@ export default function FeaturesPage() {
           className="mb-[120px]"
           title={
             <>
-              Ready to see <span className="font-serif-accent">every query?</span>
+              Want this <span className="font-serif-accent">looking after you?</span>
             </>
           }
         />
