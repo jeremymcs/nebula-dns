@@ -2,6 +2,9 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import Link from 'next/link'
+import { MarketingPageShell, MarketingCard } from '@/components/marketing/MarketingPageShell'
+import { MarketingPageHero, MarketingSerifAccent } from '@/components/marketing/MarketingPageHero'
+import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
 
 const values = [
   {
@@ -95,45 +98,25 @@ const milestones = [
 
 export default function AboutPage() {
   return (
-    <div className="bg-space-950">
-
-      {/* Hero Section */}
-      <section className="py-24 bg-space-950 relative overflow-hidden">
-        {/* Nebula orbs */}
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary-600/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-accent-600/15 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-4">
-            Our Story
-          </p>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight max-w-4xl mx-auto">
-            Securing the Internet,{' '}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
-              One Query at a Time
-            </span>
-          </h1>
-          <p className="mt-6 text-lg sm:text-xl text-space-400 max-w-3xl mx-auto">
-            We are on a mission to make DNS security accessible, privacy-focused, and lightning-fast for
-            organizations of all sizes — from home offices to global enterprises.
-          </p>
-          <p className="mt-4 text-sm text-space-500 max-w-2xl mx-auto">
-            Headquartered in Panama City Beach, Florida.
-          </p>
-        </div>
-      </section>
-
-      {/* Core Values */}
-      <section className="py-24 bg-space-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <MarketingPageShell>
+      <MarketingPageHero
+        eyebrow="Our Story"
+        title={<>Securing the Internet, <MarketingSerifAccent>One Query</MarketingSerifAccent> at a Time</>}
+        lede="We are on a mission to make DNS security accessible, privacy-focused, and lightning-fast for organizations of all sizes — from home offices to global enterprises."
+      >
+        <p className="mt-3 text-sm text-[var(--fs-mut)]">Headquartered in Panama City Beach, Florida.</p>
+      </MarketingPageHero>
+{/* Core Values */}
+      <section className="py-16 sm:py-20 border-t border-[var(--fs-line)]">
+        <div className="section-container">
           <div className="text-center mb-16">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">
+            <p className="fs-eyebrow mb-3">
               What Drives Us
             </p>
             <h2 className="text-3xl sm:text-4xl font-bold text-white">
               Our Core Values
             </h2>
-            <p className="mt-4 text-space-400 max-w-2xl mx-auto">
+            <p className="mt-4 text-[var(--fs-txt)] max-w-2xl mx-auto">
               The principles that guide every decision we make.
             </p>
           </div>
@@ -142,7 +125,7 @@ export default function AboutPage() {
             {values.map((value, index) => (
               <div
                 key={index}
-                className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6 hover:border-primary-700/50 transition-all"
+                className="fs-card rounded-[14px] p-6 hover:border-primary-700/50 transition-all"
               >
                 {value.accent === 'purple' ? (
                   <div className="h-12 w-12 rounded-xl bg-primary-900/50 border border-primary-800/50 flex items-center justify-center text-primary-400 mb-4">
@@ -156,7 +139,7 @@ export default function AboutPage() {
                 <h3 className="text-lg font-semibold text-white mb-2">
                   {value.title}
                 </h3>
-                <p className="text-space-400 text-sm leading-relaxed">
+                <p className="text-[var(--fs-txt)] text-sm leading-relaxed">
                   {value.description}
                 </p>
               </div>
@@ -166,18 +149,18 @@ export default function AboutPage() {
       </section>
 
       {/* Stats Row */}
-      <section className="py-24 bg-space-950">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 sm:py-20">
+        <div className="section-container">
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6 text-center"
+                className="fs-card rounded-[14px] p-6 text-center"
               >
                 <div className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400 mb-2">
                   {stat.value}
                 </div>
-                <div className="text-space-400 text-sm">
+                <div className="text-[var(--fs-txt)] text-sm">
                   {stat.label}
                 </div>
               </div>
@@ -187,16 +170,16 @@ export default function AboutPage() {
       </section>
 
       {/* Team Section */}
-      <section className="py-24 bg-space-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 sm:py-20 border-t border-[var(--fs-line)]">
+        <div className="section-container">
           <div className="text-center mb-16">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">
+            <p className="fs-eyebrow mb-3">
               The People Behind Flux Shield
             </p>
             <h2 className="text-3xl sm:text-4xl font-bold text-white">
               Meet the Team
             </h2>
-            <p className="mt-4 text-space-400 max-w-2xl mx-auto">
+            <p className="mt-4 text-[var(--fs-txt)] max-w-2xl mx-auto">
               Experienced security professionals passionate about building a safer internet.
             </p>
           </div>
@@ -205,7 +188,7 @@ export default function AboutPage() {
             {team.map((member, index) => (
               <div
                 key={index}
-                className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6 text-center hover:border-primary-700/50 transition-all"
+                className="fs-card rounded-[14px] p-6 text-center hover:border-primary-700/50 transition-all"
               >
                 <div className={`inline-flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br ${member.gradient} text-white text-2xl font-bold mb-4`}>
                   {member.initials}
@@ -216,7 +199,7 @@ export default function AboutPage() {
                 <div className="text-sm text-primary-400 mb-3">
                   {member.role}
                 </div>
-                <p className="text-sm text-space-400 leading-relaxed">
+                <p className="text-sm text-[var(--fs-txt)] leading-relaxed">
                   {member.bio}
                 </p>
               </div>
@@ -226,16 +209,16 @@ export default function AboutPage() {
       </section>
 
       {/* Timeline */}
-      <section className="py-24 bg-space-950">
+      <section className="py-16 sm:py-20">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">
+            <p className="fs-eyebrow mb-3">
               Company Milestones
             </p>
             <h2 className="text-3xl sm:text-4xl font-bold text-white">
               Our Journey
             </h2>
-            <p className="mt-4 text-space-400">
+            <p className="mt-4 text-[var(--fs-txt)]">
               From founding to global scale — a brief history of Flux Shield.
             </p>
           </div>
@@ -248,14 +231,14 @@ export default function AboutPage() {
                   <div className="h-2 w-2 rounded-full bg-white" />
                 </div>
 
-                <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6">
+                <div className="fs-card rounded-[14px] p-6">
                   <div className="text-xs font-semibold text-primary-400 uppercase tracking-widest mb-1">
                     {milestone.date}
                   </div>
                   <h3 className="text-lg font-bold text-white mb-1">
                     {milestone.event}
                   </h3>
-                  <p className="text-space-400 text-sm leading-relaxed">
+                  <p className="text-[var(--fs-txt)] text-sm leading-relaxed">
                     {milestone.description}
                   </p>
                 </div>
@@ -265,41 +248,20 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* CTA - Join Us */}
-      <section className="py-24 bg-space-900">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-10 text-center">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-4">
-              Join the Mission
-            </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Build the Future of DNS Security
-            </h2>
-            <p className="text-space-400 mb-8 max-w-xl mx-auto">
-              We are always looking for talented individuals who share our passion for security, privacy, and innovation.
-              Check out our open positions and become part of the Flux Shield story.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/careers"
-                className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center justify-center gap-2"
-              >
-                View Open Positions
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </Link>
-              <Link
-                href="/contact"
-                className="bg-space-800 border border-space-700 text-white hover:bg-space-700 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center justify-center"
-              >
-                Get in Touch
-              </Link>
-            </div>
-          </div>
-        </div>
+      <section className="section-container pb-16 sm:pb-24">
+        <MarketingCtaBand
+          title={
+            <>
+              Join the <MarketingSerifAccent>mission</MarketingSerifAccent>
+            </>
+          }
+          description="We're always looking for talented people who share our passion for security, privacy, and innovation."
+          primaryHref="/careers"
+          primaryLabel="View open positions"
+          secondaryHref="/contact"
+          secondaryLabel="Get in touch"
+        />
       </section>
-
-    </div>
+    </MarketingPageShell>
   )
 }

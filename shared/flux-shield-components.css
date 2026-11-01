@@ -147,4 +147,81 @@
       0 1px 2px rgba(11, 21, 48, 0.08),
       0 0 0 1px rgba(11, 21, 48, 0.05);
   }
+
+  .fs-label {
+    @apply block text-sm font-medium mb-1.5;
+    color: var(--fs-txt);
+  }
+
+  .fs-input {
+    @apply block w-full rounded-[10px] py-2.5 px-3.5 text-sm transition-shadow duration-200;
+    color: var(--fs-ink);
+    background: var(--fs-panel);
+    border: 1px solid var(--fs-line);
+    box-shadow: 0 1px 2px rgba(11, 21, 48, 0.03);
+  }
+
+  .fs-input::placeholder {
+    color: var(--fs-mut);
+  }
+
+  .fs-input:focus {
+    outline: none;
+    border-color: rgba(75, 124, 187, 0.55);
+    box-shadow:
+      0 0 0 3px rgba(75, 124, 187, 0.18),
+      0 1px 2px rgba(11, 21, 48, 0.04);
+  }
+
+  html.dark .fs-input {
+    background: var(--fs-surface);
+  }
+
+  .fs-input-error {
+    border-color: #e07a72;
+    box-shadow: 0 0 0 3px rgba(255, 110, 98, 0.15);
+  }
+
+  .fs-table-wrap {
+    @apply overflow-hidden rounded-[14px];
+    box-shadow:
+      0 0 0 1px rgba(11, 21, 48, 0.06),
+      0 1px 2px rgba(11, 21, 48, 0.04);
+  }
+
+  .fs-table {
+    @apply w-full text-left text-sm;
+    background: var(--fs-panel);
+  }
+
+  .fs-table thead {
+    @apply text-[11px] font-medium uppercase tracking-wide;
+    color: var(--fs-mut);
+    border-bottom: 1px solid var(--fs-line);
+  }
+
+  .fs-table th {
+    @apply px-4 py-3 font-medium;
+  }
+
+  .fs-table td {
+    @apply px-4 py-3.5;
+    color: var(--fs-txt);
+    border-bottom: 1px solid var(--fs-line);
+  }
+
+  .fs-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .fs-empty-state {
+    @apply text-center py-14 px-6;
+  }
+
+  .fs-empty-state-icon {
+    @apply mx-auto flex h-11 w-11 items-center justify-center rounded-xl;
+    color: var(--fs-mut);
+    box-shadow: 0 0 0 1px var(--fs-line);
+    background: var(--fs-panel);
+  }
 }

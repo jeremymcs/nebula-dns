@@ -5,6 +5,9 @@ import fs from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
 import Link from 'next/link'
+import { MarketingPageShell, MarketingCard } from '@/components/marketing/MarketingPageShell'
+import { MarketingPageHero, MarketingSerifAccent } from '@/components/marketing/MarketingPageHero'
+import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
 
 interface BlogPost {
   slug: string
@@ -121,31 +124,16 @@ export default function BlogPage() {
   const categories = ['all', 'security', 'dns', 'product', 'guide']
 
   return (
-    <div className="bg-space-950 min-h-screen">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden py-24">
-        {/* Nebula orbs */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-600/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent-600/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-4">
-            BLOG
-          </p>
-          <h1 className="text-5xl sm:text-6xl font-bold mb-6">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
-              Insights &amp; Updates
-            </span>
-          </h1>
-          <p className="text-xl text-space-400 max-w-3xl mx-auto">
-            Deep dives into DNS security, content filtering, network protection, and the latest from
-            the Flux Shield team.
-          </p>
-        </div>
-      </div>
+    <MarketingPageShell>
+      <MarketingPageHero
+        eyebrow="Blog"
+        title={<><MarketingSerifAccent>Insights</MarketingSerifAccent> & Updates</>}
+        lede="Deep dives into DNS security, content filtering, network protection, and the latest from the Flux Shield team."
+      >
+      </MarketingPageHero>
 
       {/* Category Filter Tabs */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+      <div className="section-container pb-8">
         <div className="flex flex-wrap gap-2 justify-center">
           {categories.map((cat) => (
             <button
@@ -153,7 +141,7 @@ export default function BlogPage() {
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all capitalize ${
                 cat === 'all'
                   ? 'bg-primary-600 text-white'
-                  : 'bg-space-800 text-space-400 hover:text-white hover:bg-space-700'
+                  : 'bg-space-800 text-[var(--fs-txt)] hover:text-white hover:bg-space-700'
               }`}
             >
               {cat}
@@ -163,12 +151,12 @@ export default function BlogPage() {
       </div>
 
       {/* Blog Posts Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20">
+      <div className="section-container py-8 pb-20">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {posts.map((post) => (
             <article
               key={post.slug}
-              className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6 flex flex-col hover:border-primary-700/50 transition-all group"
+              className="fs-card rounded-[14px] p-6 flex flex-col hover:border-primary-700/50 transition-all group"
             >
               {/* Category Badge */}
               <div className="mb-4">
@@ -185,12 +173,12 @@ export default function BlogPage() {
               </h2>
 
               {/* Excerpt */}
-              <p className="text-space-400 text-sm mb-5 line-clamp-3 flex-1">
+              <p className="text-[var(--fs-txt)] text-sm mb-5 line-clamp-3 flex-1">
                 {post.excerpt}
               </p>
 
               {/* Meta Info */}
-              <div className="flex items-center justify-between text-xs text-space-500 mb-4">
+              <div className="flex items-center justify-between text-xs text-[var(--fs-mut)] mb-4">
                 <div className="flex items-center gap-2">
                   <div className="h-6 w-6 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
                     {post.author.split(' ').map(n => n[0]).join('')}
@@ -227,14 +215,14 @@ export default function BlogPage() {
 
       {/* Newsletter CTA */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-        <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-10 text-center">
-          <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">
+        <div className="fs-card rounded-[14px] p-10 text-center">
+          <p className="fs-eyebrow mb-3">
             NEWSLETTER
           </p>
           <h2 className="text-3xl font-bold text-white mb-3">
             Stay in the Loop
           </h2>
-          <p className="text-space-400 mb-8 max-w-xl mx-auto">
+          <p className="text-[var(--fs-txt)] mb-8 max-w-xl mx-auto">
             Get the latest DNS security insights, product updates, and threat intelligence
             delivered straight to your inbox. No spam, ever.
           </p>
@@ -244,18 +232,18 @@ export default function BlogPage() {
               placeholder="you@company.com"
               className="flex-1 px-4 py-3 rounded-xl bg-space-800 border border-space-700 text-white placeholder-space-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
-            <button className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2 justify-center whitespace-nowrap">
+            <button className="fs-btn fs-btn-primary fs-btn-lg no-underline px-6 py-3 transition-all inline-flex items-center gap-2 justify-center whitespace-nowrap">
               Subscribe
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </button>
           </div>
-          <p className="text-space-600 text-xs mt-4">
+          <p className="text-[var(--fs-mut)] text-xs mt-4">
             Unsubscribe anytime. We respect your privacy.
           </p>
         </div>
       </div>
-    </div>
+    </MarketingPageShell>
   )
 }

@@ -5,6 +5,9 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { MarketingPageShell, MarketingCard } from '@/components/marketing/MarketingPageShell'
+import { MarketingPageHero, MarketingSerifAccent } from '@/components/marketing/MarketingPageHero'
+import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
 
 const guides = [
   {
@@ -92,52 +95,42 @@ export default function GuidesPage() {
   )
 
   return (
-    <div className="bg-space-950 min-h-screen">
-      {/* Hero Section */}
-      <div className="py-20 border-b border-space-800/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-4">
-              Guides
-            </p>
-            <h1 className="text-4xl sm:text-5xl font-bold">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
-                Learn Flux Shield
-              </span>
-            </h1>
-            <p className="mt-4 text-lg text-space-400 max-w-2xl mx-auto">
-              Step-by-step guides to help you get the most out of Flux Shield. From beginner setup to advanced integrations.
-            </p>
-          </div>
+    <MarketingPageShell>
+      <MarketingPageHero
+        eyebrow="Guides"
+        title={
+          <>
+            <MarketingSerifAccent>Learn</MarketingSerifAccent> Flux Shield
+          </>
+        }
+        lede="Step-by-step guides to help you get the most out of Flux Shield. From beginner setup to advanced integrations."
+      />
 
-          {/* Search Bar */}
-          <div className="mt-10 max-w-xl mx-auto">
-            <div className="relative">
-              <svg
-                className="absolute left-3.5 top-3.5 h-5 w-5 text-space-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search guides..."
-                className="w-full pl-11 pr-4 py-3 rounded-xl bg-space-900/60 backdrop-blur-sm border border-space-700/50 text-white placeholder-space-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-600/50 transition-colors"
-              />
-            </div>
-          </div>
+      <div className="section-container -mt-6 pb-8">
+        <div className="relative mx-auto max-w-xl">
+          <svg
+            className="absolute left-3.5 top-3.5 h-5 w-5 text-[var(--fs-mut)]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search guides..."
+            className="fs-input pl-11"
+          />
         </div>
       </div>
 
       {/* Guides Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="section-container py-16">
         {filteredGuides.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-space-400 text-lg">No guides found matching &quot;{searchQuery}&quot;</p>
+            <p className="text-[var(--fs-txt)] text-lg">No guides found matching &quot;{searchQuery}&quot;</p>
             <button
               onClick={() => setSearchQuery('')}
               className="mt-4 text-primary-400 hover:text-primary-300 transition-colors"
@@ -151,7 +144,7 @@ export default function GuidesPage() {
               <Link
                 key={index}
                 href="/docs/guides"
-                className="group bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6 hover:border-primary-600/50 hover:bg-space-900/80 transition-all"
+                className="group fs-card rounded-[14px] p-6 hover:border-primary-600/50 hover:bg-space-900/80 transition-all"
               >
                 {/* Icon */}
                 <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white mb-4">
@@ -171,13 +164,13 @@ export default function GuidesPage() {
                 </h3>
 
                 {/* Description */}
-                <p className="mt-2 text-space-400 text-sm line-clamp-2">
+                <p className="mt-2 text-[var(--fs-txt)] text-sm line-clamp-2">
                   {guide.description}
                 </p>
 
                 {/* Meta */}
                 <div className="mt-4 flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-sm text-space-500">
+                  <div className="flex items-center gap-1.5 text-sm text-[var(--fs-mut)]">
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -195,12 +188,12 @@ export default function GuidesPage() {
 
       {/* CTA Section */}
       <div className="border-t border-space-800/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+        <div className="section-container py-16 text-center">
           <div className="bg-primary-900/30 border border-primary-800/50 rounded-xl p-8 max-w-2xl mx-auto">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
               Can&apos;t find what you&apos;re looking for?
             </h2>
-            <p className="text-space-400 mb-8">
+            <p className="text-[var(--fs-txt)] mb-8">
               Our support team is here to help. Browse our full documentation or contact us directly.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -220,6 +213,6 @@ export default function GuidesPage() {
           </div>
         </div>
       </div>
-    </div>
+    </MarketingPageShell>
   )
 }

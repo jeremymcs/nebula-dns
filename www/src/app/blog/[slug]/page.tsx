@@ -6,6 +6,9 @@ import path from 'path'
 import matter from 'gray-matter'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { MarketingPageShell, MarketingCard } from '@/components/marketing/MarketingPageShell'
+import { MarketingPageHero, MarketingSerifAccent } from '@/components/marketing/MarketingPageHero'
+import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
 
 interface BlogPostFrontmatter {
   title: string
@@ -35,31 +38,31 @@ function parseMarkdownContent(content: string): string {
   let html = content
 
   // Headers
-  html = html.replace(/^### (.*$)/gim, '<h3 class="text-2xl font-bold text-white mt-8 mb-4">$1</h3>')
-  html = html.replace(/^## (.*$)/gim, '<h2 class="text-3xl font-bold text-white mt-10 mb-5">$1</h2>')
-  html = html.replace(/^# (.*$)/gim, '<h1 class="text-4xl font-bold text-white mt-12 mb-6">$1</h1>')
+  html = html.replace(/^### (.*$)/gim, '<h3 class="text-xl font-semibold text-ink mt-8 mb-4">$1</h3>')
+  html = html.replace(/^## (.*$)/gim, '<h2 class="text-2xl font-semibold text-ink mt-10 mb-5">$1</h2>')
+  html = html.replace(/^# (.*$)/gim, '<h1 class="text-3xl font-semibold text-ink mt-12 mb-6">$1</h1>')
 
   // Bold
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-white">$1</strong>')
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-ink">$1</strong>')
 
   // Italic
-  html = html.replace(/\*(.*?)\*/g, '<em class="italic text-space-300">$1</em>')
+  html = html.replace(/\*(.*?)\*/g, '<em class="italic text-[var(--fs-txt)]">$1</em>')
 
   // Links
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-primary-400 hover:text-primary-300 underline underline-offset-2">$1</a>')
 
   // Unordered lists
-  html = html.replace(/^\- (.*$)/gim, '<li class="ml-6 mb-2 text-space-300">$1</li>')
+  html = html.replace(/^\- (.*$)/gim, '<li class="ml-6 mb-2 text-[var(--fs-txt)]">$1</li>')
   html = html.replace(/(<li[\s\S]*<\/li>)/, '<ul class="list-disc space-y-2 my-4">$1</ul>')
 
   // Ordered lists
-  html = html.replace(/^\d+\. (.*$)/gim, '<li class="ml-6 mb-2 text-space-300">$1</li>')
+  html = html.replace(/^\d+\. (.*$)/gim, '<li class="ml-6 mb-2 text-[var(--fs-txt)]">$1</li>')
 
   // Code blocks
-  html = html.replace(/```([\s\S]*?)```/g, '<pre class="bg-space-900 border border-space-700 p-4 rounded-xl overflow-x-auto my-6"><code class="text-sm text-accent-400 font-mono">$1</code></pre>')
+  html = html.replace(/```([\s\S]*?)```/g, '<pre class="fs-card rounded-[14px] border border-[var(--fs-line)] p-4 overflow-x-auto my-6"><code class="text-sm text-[var(--fs-blue)] font-mono">$1</code></pre>')
 
   // Inline code
-  html = html.replace(/`([^`]+)`/g, '<code class="bg-space-900 border border-space-700 px-2 py-0.5 rounded text-sm text-accent-400 font-mono">$1</code>')
+  html = html.replace(/`([^`]+)`/g, '<code class="rounded-md border border-[var(--fs-line)] bg-[var(--fs-surface)] px-2 py-0.5 text-sm text-[var(--fs-blue)] font-mono">$1</code>')
 
   // Paragraphs
   const paragraphs = html.split('\n\n')
@@ -70,7 +73,7 @@ function parseMarkdownContent(content: string): string {
       if (p.startsWith('<h') || p.startsWith('<ul') || p.startsWith('<ol') || p.startsWith('<pre') || p.startsWith('<li')) {
         return p
       }
-      return `<p class="text-lg text-space-300 leading-relaxed mb-6">${p}</p>`
+      return `<p class="text-lg text-[var(--fs-txt)] leading-relaxed mb-6">${p}</p>`
     })
     .join('\n')
 
@@ -125,48 +128,35 @@ export default async function BlogPostPage({ params }: PageProps) {
   const linkedinShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://shield.fluxlabs.net/blog/${slug}`)}`
 
   return (
-    <div className="bg-space-950 min-h-screen">
-      {/* Breadcrumb + Hero */}
-      <div className="relative overflow-hidden pt-12 pb-16 border-b border-space-800">
-        {/* Nebula orb */}
-        <div className="absolute top-0 right-1/4 w-80 h-80 bg-primary-600/8 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-sm text-space-500 mb-8">
-            <Link href="/blog" className="hover:text-primary-400 transition-colors">
+    <MarketingPageShell>
+      <section className="border-b border-[var(--fs-line)] bg-canvas">
+        <div className="section-container relative z-[1] py-12 sm:py-16 max-w-4xl">
+          <nav className="mb-8 flex items-center gap-2 text-sm text-[var(--fs-mut)]">
+            <Link href="/blog" className="hover:text-[var(--fs-blue)] transition-colors">
               Blog
             </Link>
-            <svg className="h-4 w-4 text-space-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-            <span className="text-space-400 truncate max-w-xs">{frontmatter.title}</span>
+            <span aria-hidden>→</span>
+            <span className="truncate text-[var(--fs-txt)]">{frontmatter.title}</span>
           </nav>
 
-          {/* Category Badge */}
           <div className="mb-5">
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryBadge(frontmatter.category)}`}>
+            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border border-[var(--fs-line)] bg-[var(--fs-surface)] text-[var(--fs-txt)]`}>
               {frontmatter.category}
             </span>
           </div>
 
-          {/* Title */}
-          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-8 leading-tight">
-            {frontmatter.title}
-          </h1>
+          <h1 className="fs-section-title mt-0 max-w-none text-left">{frontmatter.title}</h1>
 
-          {/* Meta Info */}
-          <div className="flex flex-wrap items-center gap-5 text-space-400">
+          <div className="mt-8 flex flex-wrap items-center gap-5 text-[var(--fs-txt)]">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[var(--fs-navy)] text-sm font-semibold text-white">
                 {frontmatter.author.split(' ').map(n => n[0]).join('')}
               </div>
               <div>
-                <div className="font-medium text-white text-sm">{frontmatter.author}</div>
-                <div className="text-xs text-space-500">Author</div>
+                <div className="text-sm font-medium text-ink">{frontmatter.author}</div>
+                <div className="text-xs text-[var(--fs-mut)]">Author</div>
               </div>
             </div>
-            <span className="text-space-700">·</span>
             <time dateTime={frontmatter.date} className="text-sm">
               {new Date(frontmatter.date).toLocaleDateString('en-US', {
                 month: 'long',
@@ -174,49 +164,27 @@ export default async function BlogPostPage({ params }: PageProps) {
                 year: 'numeric',
               })}
             </time>
-            <span className="text-space-700">·</span>
             <span className="text-sm">{readTime}</span>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Article Body */}
-      <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-        <div
-          className="prose-nebula"
-          dangerouslySetInnerHTML={{ __html: htmlContent }}
-        />
+      <article className="section-container max-w-4xl py-14">
+        <div className="prose-nebula mx-auto" dangerouslySetInnerHTML={{ __html: htmlContent }} />
       </article>
 
-      {/* Social Sharing */}
-      <div className="border-t border-space-800 py-10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+      <div className="border-t border-[var(--fs-line)] py-10">
+        <div className="section-container max-w-4xl">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-white font-semibold mb-1">Share this article</p>
-              <p className="text-space-500 text-sm">Help others learn about DNS security</p>
+              <p className="font-semibold text-ink mb-1">Share this article</p>
+              <p className="text-sm text-[var(--fs-mut)]">Help others learn about DNS security</p>
             </div>
             <div className="flex gap-3">
-              <a
-                href={twitterShareUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-space-800 border border-space-700 text-white hover:bg-space-700 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2 text-sm"
-              >
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
-                </svg>
-                Share on Twitter
+              <a href={twitterShareUrl} target="_blank" rel="noopener noreferrer" className="fs-btn no-underline text-sm">
+                Share on X
               </a>
-              <a
-                href={linkedinShareUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-space-800 border border-space-700 text-white hover:bg-space-700 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2 text-sm"
-              >
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                </svg>
+              <a href={linkedinShareUrl} target="_blank" rel="noopener noreferrer" className="fs-btn no-underline text-sm">
                 Share on LinkedIn
               </a>
             </div>
@@ -224,26 +192,21 @@ export default async function BlogPostPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Related CTA */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-24">
-        <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div>
-            <p className="text-white font-semibold text-lg mb-1">Want to learn more?</p>
-            <p className="text-space-400 text-sm">
-              Browse the full collection of DNS security guides, product updates, and best practices.
-            </p>
-          </div>
-          <Link
-            href="/blog"
-            className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2 whitespace-nowrap"
-          >
-            View All Posts
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </Link>
-        </div>
+      <div className="section-container max-w-4xl pb-20">
+        <MarketingCtaBand
+          title={
+            <>
+              Explore more on the <MarketingSerifAccent>blog</MarketingSerifAccent>
+            </>
+          }
+          description="Browse guides, product updates, and DNS security best practices."
+          primaryHref="/blog"
+          primaryLabel="View all posts"
+          secondaryHref="/signup"
+          secondaryLabel="Start free trial"
+          finePrint=""
+        />
       </div>
-    </div>
+    </MarketingPageShell>
   )
 }
