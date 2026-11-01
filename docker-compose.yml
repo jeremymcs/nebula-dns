@@ -52,8 +52,8 @@ services:
 
   ui:
     build:
-      context: ./ui
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ui/Dockerfile
       target: development
     container_name: dnsfilter-ui
     ports:
@@ -94,8 +94,8 @@ services:
 
   admin-ui:
     build:
-      context: ./admin-ui
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: admin-ui/Dockerfile
       target: development
     container_name: dnsfilter-admin-ui
     ports:

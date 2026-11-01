@@ -53,9 +53,11 @@ jobs:
             ui:
               - 'ui/**'
               - 'shared/**'
+              - 'shared/print-mfa-backup-codes.ts'
             admin-ui:
               - 'admin-ui/**'
               - 'shared/**'
+              - 'shared/print-mfa-backup-codes.ts'
             agents:
               - 'agents/**'
             mobile:
@@ -265,6 +267,9 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: http://localhost:3000
 
+      - name: Verify Docker image build (CI context)
+        run: docker build -f ui/Dockerfile -t nebula-dns-ui:ci .
+
   admin-ui-test:
     name: Admin UI Tests
     runs-on: ubuntu-latest
@@ -305,6 +310,9 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_API_URL: http://localhost:3000
+
+      - name: Verify Docker image build (CI context)
+        run: docker build -f admin-ui/Dockerfile -t nebula-dns-admin-ui:ci .
 
   flux-shield-agent:
     name: Flux Shield Agent

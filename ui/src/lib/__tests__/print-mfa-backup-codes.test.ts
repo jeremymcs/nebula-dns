@@ -5,7 +5,7 @@ import {
   FLUX_SHIELD_PRODUCT_NAME,
   FLUX_LABS_POWERED_BY,
   printMfaBackupCodes,
-} from '../../../../shared/print-mfa-backup-codes'
+} from '@/lib/print-mfa-backup-codes'
 
 describe('print-mfa-backup-codes', () => {
   describe('escapeHtml', () => {

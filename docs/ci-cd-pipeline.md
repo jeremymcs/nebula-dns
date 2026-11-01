@@ -73,8 +73,8 @@ The pipeline builds and deploys 6 containerized services:
 | Service | Dockerfile Path | DOCR Image | Build Context |
 |---------|----------------|------------|---------------|
 | API | `api/Dockerfile` | `registry.digitalocean.com/nebula-dns/api` | `./api` |
-| UI | `ui/Dockerfile` | `registry.digitalocean.com/nebula-dns/ui` | `./ui` |
-| Admin UI | `admin-ui/Dockerfile` | `registry.digitalocean.com/nebula-dns/admin-ui` | `./admin-ui` |
+| UI | `ui/Dockerfile` (context: repo root) | `registry.digitalocean.com/nebula-dns/ui` | `.` |
+| Admin UI | `admin-ui/Dockerfile` (context: repo root) | `registry.digitalocean.com/nebula-dns/admin-ui` | `.` |
 | Policy Service | `policy-svc/Dockerfile` | `registry.digitalocean.com/nebula-dns/policy-svc` | `./policy-svc` |
 | dnsdist | `config/dnsdist/Dockerfile` | `registry.digitalocean.com/nebula-dns/dnsdist` | `./config/dnsdist` |
 | Unbound | `config/unbound/Dockerfile` | `registry.digitalocean.com/nebula-dns/unbound` | `./config/unbound` |
