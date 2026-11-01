@@ -1,7 +1,7 @@
 // Nebula DNS - SSO Configuration Entity
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-import { Entity, Column, OneToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, OneToOne, JoinColumn, BeforeInsert, BeforeUpdate } from 'typeorm';
 import { BaseEntity } from '@/common/entities/base.entity';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 
@@ -19,6 +19,16 @@ export class SsoConfiguration extends BaseEntity {
 
   @Column({ name: 'provider_type', type: 'varchar', length: 20 })
   providerType: SsoProviderType;
+
+  /** Legacy NOT NULL column from initial schema; kept in sync with providerType for inserts. */
+  @Column({ name: 'type', type: 'varchar', length: 20 })
+  type: SsoProviderType;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  syncLegacyTypeColumn(): void {
+    this.type = this.providerType;
+  }
 
   @Column({ name: 'is_enabled', type: 'boolean', default: false })
   isEnabled: boolean;
