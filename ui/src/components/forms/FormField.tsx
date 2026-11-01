@@ -3,7 +3,16 @@
 
 'use client'
 
-import { InputHTMLAttributes, TextareaHTMLAttributes, SelectHTMLAttributes, forwardRef } from 'react'
+import {
+  InputHTMLAttributes,
+  TextareaHTMLAttributes,
+  SelectHTMLAttributes,
+  forwardRef,
+  useId,
+  isValidElement,
+  cloneElement,
+  type ReactElement,
+} from 'react'
 import { ExclamationCircleIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 
@@ -13,19 +22,30 @@ interface FormFieldProps {
   error?: string
   hint?: string
   required?: boolean
+  id?: string
   children: React.ReactNode
 }
 
-export function FormField({ label, error, hint, required, children }: FormFieldProps) {
+export function FormField({ label, error, hint, required, id: idProp, children }: FormFieldProps) {
+  const generatedId = useId()
+  const fieldId = idProp ?? generatedId
+  const control =
+    isValidElement(children) && !(children.props as { id?: string }).id
+      ? cloneElement(children as ReactElement<{ id?: string }>, { id: fieldId })
+      : children
+
   return (
     <div className="space-y-1.5">
       {label && (
-        <label className="block text-sm font-medium text-space-700 dark:text-space-300">
+        <label
+          htmlFor={fieldId}
+          className="block text-sm font-medium text-space-700 dark:text-space-300"
+        >
           {label}
           {required && <span className="text-danger-500 ml-1">*</span>}
         </label>
       )}
-      {children}
+      {control}
       {hint && !error && (
         <p className="text-xs text-space-500 dark:text-space-400">{hint}</p>
       )}

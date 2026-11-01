@@ -17,12 +17,14 @@ test.describe('Settings - Main Page', () => {
   })
 
   test('should show settings navigation', async ({ page }) => {
-    // Check for settings tabs or sidebar
-    const securityTab = page.getByRole('link', { name: /security/i })
-    const teamTab = page.getByRole('link', { name: /team/i })
-    const apiKeysTab = page.getByRole('link', { name: /api keys/i })
+    const securityTab = page.getByRole('link', { name: /^security$/i })
+    const teamTab = page.getByRole('link', { name: /team members/i })
+    const apiKeysTab = page.getByRole('link', { name: /^api keys$/i })
 
-    const hasNavigation = await securityTab.isVisible() || await teamTab.isVisible() || await apiKeysTab.isVisible()
+    const hasNavigation =
+      (await securityTab.isVisible()) ||
+      (await teamTab.isVisible()) ||
+      (await apiKeysTab.isVisible())
     expect(hasNavigation).toBeTruthy()
   })
 

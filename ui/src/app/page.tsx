@@ -112,7 +112,7 @@ export default function LoginPage() {
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label htmlFor="email" className="fs-label">
-              Email
+              Email address
             </label>
             <input
               id="email"

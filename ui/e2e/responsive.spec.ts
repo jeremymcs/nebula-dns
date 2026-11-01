@@ -232,7 +232,7 @@ test.describe('Responsive Design - Desktop (1920x1080)', () => {
     await loginAndNavigate(page, '/dashboard')
     await waitForPageLoad(page)
 
-    const nav = page.getByRole('navigation')
+    const nav = page.getByRole('navigation', { name: /main navigation/i })
     await expect(nav).toBeVisible()
   })
 
