@@ -3,10 +3,11 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import { NextResponse } from 'next/server';
+import { resolveTenantUiOrigin } from '../../../../../shared/resolve-tenant-ui-url';
 
 export async function GET() {
   return NextResponse.json({
     apiUrl: process.env.API_URL || 'http://localhost:4010',
-    tenantUiUrl: process.env.TENANT_UI_URL || 'http://localhost:4011',
+    tenantUiUrl: resolveTenantUiOrigin(),
   });
 }
