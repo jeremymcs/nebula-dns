@@ -23,7 +23,7 @@
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFiles64Folder">
         <Directory Id="INSTALLDIR" Name="FluxShield">
-          <Component Id="AgentExe" Guid="A1B2C3D4-E5F6-7890-ABCD-EF1234567890">
+          <Component Id="AgentExe" Guid="A1B2C3D4-E5F6-7890-ABCD-EF1234567890" Win64="yes">
             <File Id="FluxShieldAgentExe"
                   Source="dist\fluxshield-agent.exe"
                   KeyPath="yes" />
