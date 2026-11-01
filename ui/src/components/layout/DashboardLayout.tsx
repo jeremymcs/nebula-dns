@@ -145,6 +145,7 @@ export function DashboardLayout({ children, showBreadcrumbs = true }: DashboardL
       <CommandBarProvider>
         <div
           data-flux-dashboard
+          data-flux-app-shell
           className="min-h-screen bg-surface dark:bg-space-950 flex flex-col lg:flex-row"
         >
           {/* US-028: Grace Period Warning Banner */}

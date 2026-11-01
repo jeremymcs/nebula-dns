@@ -17,17 +17,16 @@ test.describe('Locations - List View', () => {
   })
 
   test('should display locations list', async ({ page }) => {
-    // Look for table or grid of locations
-    const locationsList = page.getByRole('table').or(page.locator('[data-testid="locations-table"]'))
-    const hasLocations = await locationsList.isVisible().catch(() => false)
+    const locationsTable = page.getByRole('table').or(page.locator('[data-testid="locations-table"]'))
+    const hasTable = await locationsTable.isVisible().catch(() => false)
 
-    if (hasLocations) {
-      await expect(locationsList).toBeVisible()
-    } else {
-      // Check for empty state
-      const emptyState = page.getByText(/no locations yet|no matching zones|zones/i)
-      await expect(emptyState.first()).toBeVisible()
-    }
+    const locationCard = page.getByRole('heading', { level: 3, name: /HQ Network|Branch/i })
+    const hasCards = await locationCard.first().isVisible().catch(() => false)
+
+    const emptyState = page.getByText(/no locations yet|no matching zones/i)
+    const hasEmpty = await emptyState.first().isVisible().catch(() => false)
+
+    expect(hasTable || hasCards || hasEmpty).toBeTruthy()
   })
 
   test('should have add location button', async ({ page }) => {

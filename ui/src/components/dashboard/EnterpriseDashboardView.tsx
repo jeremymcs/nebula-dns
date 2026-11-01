@@ -5,6 +5,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import {
   useSummaryStats,
@@ -25,6 +26,11 @@ import {
 } from '@/components/dashboard'
 import { DashboardKpi, DashboardKpiGrid } from '@/components/dashboard/DashboardKpi'
 import clsx from 'clsx'
+import {
+  ChartBarIcon,
+  ShieldCheckIcon,
+  WifiIcon,
+} from '@heroicons/react/24/outline'
 
 const PERIODS = ['24h', '7d', '30d'] as const
 type Period = (typeof PERIODS)[number]
@@ -149,6 +155,33 @@ export function EnterpriseDashboardView() {
           delta={locationCount > 0 ? { text: 'monitored', tone: 'neutral' } : undefined}
         />
       </DashboardKpiGrid>
+
+      <section aria-label="Quick actions" className="fs-card px-5 py-4">
+        <h2 className="text-sm font-semibold tracking-tight text-ink mb-3">Quick actions</h2>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/policies"
+            className="inline-flex items-center gap-2 rounded-[7px] border fs-hairline bg-white/80 px-3 py-2 text-[13px] font-medium text-ink hover:bg-white dark:bg-space-900/40 dark:hover:bg-space-900/60"
+          >
+            <ShieldCheckIcon className="h-4 w-4 text-[var(--fs-navy)]" aria-hidden />
+            Policies
+          </Link>
+          <Link
+            href="/dashboard/locations"
+            className="inline-flex items-center gap-2 rounded-[7px] border fs-hairline bg-white/80 px-3 py-2 text-[13px] font-medium text-ink hover:bg-white dark:bg-space-900/40 dark:hover:bg-space-900/60"
+          >
+            <WifiIcon className="h-4 w-4 text-success-600" aria-hidden />
+            Networks
+          </Link>
+          <Link
+            href="/dashboard/reports"
+            className="inline-flex items-center gap-2 rounded-[7px] border fs-hairline bg-white/80 px-3 py-2 text-[13px] font-medium text-ink hover:bg-white dark:bg-space-900/40 dark:hover:bg-space-900/60"
+          >
+            <ChartBarIcon className="h-4 w-4 text-accent-500" aria-hidden />
+            Reports
+          </Link>
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.7fr_1fr]">
         <QueryTrendsChart data={trendChartData} isLoading={trendsLoading} />

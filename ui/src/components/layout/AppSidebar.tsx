@@ -78,7 +78,7 @@ export function AppSidebar() {
         <ModuleSwitcher variant="segment" />
       </div>
 
-      <nav className="mt-4 flex-1 overflow-y-auto space-y-4 pb-4">
+      <nav aria-label="Main navigation" className="mt-4 flex-1 overflow-y-auto space-y-4 pb-4">
         {groups.map((group) => (
           <div key={group.name}>
             <h6 className="px-2.5 pb-1.5 text-[11px] font-medium text-mut">{group.name}</h6>

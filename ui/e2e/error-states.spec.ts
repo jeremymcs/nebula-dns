@@ -68,12 +68,14 @@ test.describe('Error States - API Errors', () => {
   })
 
   test('should show retry option on API error', async ({ page }) => {
-    // Mock API failure
+    await loginAndNavigate(page, '/dashboard/reports')
+    await waitForPageLoad(page)
+
     await page.route('**/backend/**', (route) => {
       route.abort('failed')
     })
 
-    await loginAndNavigate(page, '/dashboard/reports')
+    await page.reload({ waitUntil: 'domcontentloaded' })
     await page.waitForTimeout(2000)
 
     const retryButton = page.getByRole('button', { name: /retry|try again|reload/i })
@@ -87,15 +89,18 @@ test.describe('Error States - API Errors', () => {
   })
 
   test('should handle 500 server errors', async ({ page }) => {
-    // Mock 500 error
+    await loginAndNavigate(page, '/dashboard/policies')
+    await waitForPageLoad(page)
+
     await page.route('**/backend/**', (route) => {
       route.fulfill({
         status: 500,
-        body: JSON.stringify({ message: 'Internal Server Error' })
+        contentType: 'application/json',
+        body: JSON.stringify({ message: 'Internal Server Error' }),
       })
     })
 
-    await loginAndNavigate(page, '/dashboard/policies')
+    await page.reload({ waitUntil: 'domcontentloaded' })
     await page.waitForTimeout(2000)
 
     const errorMessage = page.getByText(/error|server error|something went wrong/i)
