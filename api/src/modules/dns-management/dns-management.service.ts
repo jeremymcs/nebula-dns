@@ -82,8 +82,8 @@ export class DnsManagementService {
       throw new BadRequestException('Cloudflare token verification failed');
     }
 
-    const fingerprint = this.tokenFingerprint(params.apiToken);
     const ciphertext = encrypt(params.apiToken, this.encryptionKey);
+    const fingerprint = this.tokenFingerprint(ciphertext);
 
     let connection = await this.connectionRepository.findOne({
       where: { purpose: 'primary', status: DnsPlatformConnectionStatus.ACTIVE },
@@ -595,10 +595,10 @@ export class DnsManagementService {
     return decrypt(ciphertext, this.encryptionKey);
   }
 
-  private tokenFingerprint(token: string): string {
+  private tokenFingerprint(tokenCiphertext: string): string {
     return crypto
-      .createHmac('sha256', this.encryptionKey)
-      .update(token)
+      .createHash('sha256')
+      .update(tokenCiphertext)
       .digest('hex')
       .slice(0, 16);
   }

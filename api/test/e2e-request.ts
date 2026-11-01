@@ -11,6 +11,8 @@ const supertest: SupertestFn =
   (supertestModule as unknown as { default?: SupertestFn }).default ??
   (supertestModule as unknown as SupertestFn);
 
+type HttpMethod = 'get' | 'post' | 'patch' | 'put' | 'delete' | 'options';
+
 let ipCounter = 0;
 
 function clientIp(): string {
@@ -21,11 +23,29 @@ function clientIp(): string {
 
 function withIp(
   server: Parameters<SupertestFn>[0],
-  method: 'get' | 'post' | 'patch' | 'put' | 'delete' | 'options',
+  method: HttpMethod,
   url: string,
 ) {
   const agent = supertest(server);
-  return agent[method](url).set('X-Forwarded-For', clientIp());
+  const ip = clientIp();
+  switch (method) {
+    case 'get':
+      return agent.get(url).set('X-Forwarded-For', ip);
+    case 'post':
+      return agent.post(url).set('X-Forwarded-For', ip);
+    case 'patch':
+      return agent.patch(url).set('X-Forwarded-For', ip);
+    case 'put':
+      return agent.put(url).set('X-Forwarded-For', ip);
+    case 'delete':
+      return agent.delete(url).set('X-Forwarded-For', ip);
+    case 'options':
+      return agent.options(url).set('X-Forwarded-For', ip);
+    default: {
+      const exhaustive: never = method;
+      throw new Error(`Unsupported HTTP method: ${exhaustive}`);
+    }
+  }
 }
 
 /** Per-request supertest client with a unique X-Forwarded-For IP. */
