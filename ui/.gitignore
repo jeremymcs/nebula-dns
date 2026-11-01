@@ -1,0 +1,5 @@
+# Playwright artifacts (never commit)
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/

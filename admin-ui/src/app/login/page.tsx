@@ -1,55 +1,28 @@
 /**
- * Nebula DNS - Admin UI Login Page
- * Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
- *
- * Admin authentication page for Mission Control.
- * Split-screen design with cosmic branding on left, login form on right.
+ * Admin login — Design C
  */
 
 'use client'
 
-import { useState, useEffect, useContext } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { ThemeContext } from '@/contexts/ThemeContext'
-import { SunIcon, MoonIcon, ShieldCheckIcon } from '@heroicons/react/24/outline'
-import { ProductFooter } from '@/components/ProductFooter'
-import { ShieldMark } from '@/components/ShieldMark'
-import { ADMIN_PORTAL_NAME, PRODUCT_NAME } from '@/lib/branding'
-
-/**
- * Theme toggle button for light/dark mode
- */
-function ThemeToggle() {
-  const context = useContext(ThemeContext)
-  if (!context) return null
-  const { resolvedTheme, toggleTheme } = context
-
-  return (
-    <button
-      onClick={toggleTheme}
-      className="absolute top-6 right-6 z-20 p-2.5 rounded-xl bg-white/10 backdrop-blur-sm ring-1 ring-white/20 hover:bg-white/20 transition-all"
-      aria-label="Toggle theme"
-    >
-      {resolvedTheme === 'dark' ? (
-        <SunIcon className="w-5 h-5 text-warning-400" />
-      ) : (
-        <MoonIcon className="w-5 h-5 text-space-700" />
-      )}
-    </button>
-  )
-}
+import {
+  AdminAuthShell,
+  AdminAuthHeadingAccent,
+  AdminAuthErrorBanner,
+} from '@/components/auth/AdminAuthShell'
+import { FullPageLoading } from '@/components/LoadingSpinner'
+import { ADMIN_PORTAL_NAME } from '@/lib/branding'
 
 export default function AdminLoginPage() {
   const router = useRouter()
-  // Redirect to dashboard if already authenticated with MFA
   const { login, admin, loading: authLoading, mfaVerified } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // Redirect to dashboard if already authenticated
   useEffect(() => {
     if (!authLoading && admin && mfaVerified) {
       router.push('/')
@@ -60,10 +33,8 @@ export default function AdminLoginPage() {
     e.preventDefault()
     setError('')
     setLoading(true)
-
     try {
       await login(email, password)
-      // login() handles redirect to /
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {
@@ -71,203 +42,75 @@ export default function AdminLoginPage() {
     }
   }
 
-  // Show loading while checking auth state
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-space-900">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
-      </div>
-    )
-  }
-
-  // If already authenticated, show loading while redirecting
-  if (admin && mfaVerified) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-space-900">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
-      </div>
-    )
+  if (authLoading || (admin && mfaVerified)) {
+    return <FullPageLoading />
   }
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left Panel - Cosmic Gradient Background */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-flux-hero">
-        {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+    <AdminAuthShell
+      eyebrow="Mission Control"
+      title={
+        <>
+          Admin <AdminAuthHeadingAccent>access</AdminAuthHeadingAccent>
+        </>
+      }
+      subtitle={`Sign in to ${ADMIN_PORTAL_NAME}. All sessions are audited.`}
+    >
+      {error && <AdminAuthErrorBanner message={error} />}
 
-        {/* Content overlay */}
-        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20">
-          {/* Logo */}
-          <div className="flex items-center gap-4 mb-8">
-            <ShieldMark className="h-14 w-14 rounded-2xl shadow-2xl shadow-primary-700/30" iconClassName="h-8 w-8" />
-            <div>
-              <h1 className="text-3xl font-bold text-white">{PRODUCT_NAME}</h1>
-              <p className="text-primary-200 font-medium">{ADMIN_PORTAL_NAME}</p>
-            </div>
-          </div>
-
-          {/* Tagline */}
-          <h2 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-6">
-            Secure Operations<br />
-            <span className="bg-gradient-to-r from-primary-300 to-accent-400 bg-clip-text text-transparent">
-              Portal
-            </span>
-          </h2>
-
-          <p className="text-lg text-space-300 max-w-md mb-10">
-            Administrative access to manage tenants, MSPs, billing operations, and system health.
-          </p>
-
-          {/* Features */}
-          <div className="space-y-4">
-            {[
-              'Tenant management & impersonation',
-              'MSP onboarding & billing',
-              'System health monitoring',
-            ].map((feature) => (
-              <div key={feature} className="flex items-center gap-3 text-space-200">
-                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-500/20 flex items-center justify-center">
-                  <svg className="w-3 h-3 text-primary-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                {feature}
-              </div>
-            ))}
-          </div>
+      <form className="space-y-4" onSubmit={handleSubmit}>
+        <div>
+          <label htmlFor="email" className="fs-label">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="fs-input"
+            placeholder="admin@example.com"
+            disabled={loading}
+          />
         </div>
-      </div>
-
-      {/* Right Panel - Login Form */}
-      <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-12 xl:px-20 bg-white dark:bg-space-900 relative">
-        <ThemeToggle />
-
-        {/* Mobile Logo */}
-        <div className="lg:hidden flex items-center gap-3 mb-10">
-          <ShieldMark className="h-12 w-12 rounded-xl shadow-lg shadow-primary-700/25" iconClassName="h-7 w-7" />
-          <div>
-            <span className="text-2xl font-bold text-space-900 dark:text-white">{PRODUCT_NAME}</span>
-            <span className="block text-sm text-primary-500 dark:text-primary-300 font-medium">{ADMIN_PORTAL_NAME}</span>
-          </div>
+        <div>
+          <label htmlFor="password" className="fs-label">
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="fs-input"
+            placeholder="••••••••••••••"
+            disabled={loading}
+          />
         </div>
+        <button type="submit" disabled={loading} className="fs-btn fs-btn-primary w-full fs-btn-lg">
+          {loading ? 'Signing in…' : 'Sign in'}
+        </button>
+      </form>
 
-        <div className="w-full max-w-sm mx-auto lg:mx-0">
-          {/* Form Header */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-space-900 dark:text-white">
-              Admin Login
-            </h2>
-            <p className="mt-2 text-space-500 dark:text-space-400">
-              Sign in to access {ADMIN_PORTAL_NAME}
-            </p>
-          </div>
-
-          {/* Error Alert */}
-          {error && (
-            <div className="mb-6 p-4 rounded-xl bg-danger-50 dark:bg-danger-900/20 ring-1 ring-danger-200 dark:ring-danger-800">
-              <p className="text-sm text-danger-700 dark:text-danger-300">{error}</p>
-            </div>
-          )}
-
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="email" className="label">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="input"
-                placeholder="admin@example.com"
-                disabled={loading}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="label">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="input"
-                placeholder="Enter your password"
-                disabled={loading}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full py-3"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      fill="none"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                  Signing in...
-                </span>
-              ) : (
-                'Sign in'
-              )}
-            </button>
-          </form>
-
-          {/* Demo Login Buttons */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mt-8 pt-6 border-t border-space-200 dark:border-space-700">
-              <p className="text-xs text-center text-space-500 dark:text-space-400 mb-4">
-                Demo Accounts (Development Only)
-              </p>
-              <div className="grid grid-cols-1 gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('admin@nebula.local')
-                    setPassword('Admin@123456789!')
-                  }}
-                  disabled={loading}
-                  className="px-3 py-2 text-xs font-medium rounded-lg bg-danger-100 dark:bg-danger-900/30 text-danger-700 dark:text-danger-300 hover:bg-danger-200 dark:hover:bg-danger-900/50 transition-colors ring-1 ring-danger-200 dark:ring-danger-800"
-                >
-                  Super Admin (admin@nebula.local)
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Security Notice */}
-          <p className="mt-8 text-xs text-center text-space-500 dark:text-space-400">
-            This is a restricted area. Unauthorized access attempts are logged and monitored.
-          </p>
-
-          <ProductFooter variant="auth" />
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-6 pt-5 border-t fs-hairline">
+          <p className="text-[11px] text-center text-mut mb-3">Development demo</p>
+          <button
+            type="button"
+            onClick={() => {
+              setEmail('admin@nebula.local')
+              setPassword('Admin@123456789!')
+            }}
+            className="fs-btn w-full text-xs"
+          >
+            Fill super admin credentials
+          </button>
         </div>
-      </div>
-    </div>
+      )}
+    </AdminAuthShell>
   )
 }

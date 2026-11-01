@@ -10,6 +10,10 @@ import {
   TestAlertResult,
   AlertProviderType,
 } from '../interfaces/alert-provider.interface';
+import {
+  DEFAULT_APP_URL,
+  DEFAULT_PRODUCT_NAME,
+} from '../../../common/product-branding';
 
 /**
  * PagerDuty Events API v2 trigger event structure
@@ -109,7 +113,7 @@ export class PagerDutyProvider implements AlertProvider {
 
     try {
       const { routingKey } = config;
-      const dedupKey = `nebuladns:test:${Date.now()}`;
+      const dedupKey = `flux-shield:test:${Date.now()}`;
 
       // Send trigger event
       const triggerPayload: PagerDutyTriggerEvent = {
@@ -117,18 +121,18 @@ export class PagerDutyProvider implements AlertProvider {
         event_action: 'trigger',
         dedup_key: dedupKey,
         payload: {
-          summary: 'Nebula DNS Test Alert',
+          summary: `${DEFAULT_PRODUCT_NAME} Test Alert`,
           source: 'test',
           severity: 'info',
           timestamp: new Date().toISOString(),
-          component: 'Nebula DNS',
+          component: DEFAULT_PRODUCT_NAME,
           class: 'test',
           custom_details: {
             message: 'This is a test alert to verify PagerDuty integration.',
           },
         },
-        client: 'Nebula DNS',
-        client_url: process.env.APP_URL || 'https://app.nebuladns.com',
+        client: DEFAULT_PRODUCT_NAME,
+        client_url: process.env.APP_URL || DEFAULT_APP_URL,
       };
 
       const triggerResponse = await this.httpPost(
@@ -151,7 +155,7 @@ export class PagerDutyProvider implements AlertProvider {
         event_action: 'resolve',
         dedup_key: dedupKey,
         payload: {
-          summary: 'Nebula DNS Test Alert',
+          summary: `${DEFAULT_PRODUCT_NAME} Test Alert`,
           source: 'test',
           severity: 'info',
         },
@@ -211,11 +215,11 @@ export class PagerDutyProvider implements AlertProvider {
   /**
    * Generate consistent dedup_key to prevent incident explosion
    * ALERT-10: Same alert = same key = deduplicated incident
-   * Format: nebuladns:{source}:{type}:{identifier}
+   * Format: flux-shield:{source}:{type}:{identifier}
    */
   private generateDedupKey(alert: AlertEvent): string {
     const identifier = alert.metadata?.identifier || alert.id;
-    return `nebuladns:${alert.source}:${alert.type}:${identifier}`;
+    return `flux-shield:${alert.source}:${alert.type}:${identifier}`;
   }
 
   /**
@@ -235,15 +239,15 @@ export class PagerDutyProvider implements AlertProvider {
         source: alert.source,
         severity: alert.severity,
         timestamp: alert.timestamp.toISOString(),
-        component: 'Nebula DNS',
+        component: DEFAULT_PRODUCT_NAME,
         class: alert.type,
         custom_details: {
           message: alert.message,
           ...alert.metadata,
         },
       },
-      client: 'Nebula DNS',
-      client_url: process.env.APP_URL || 'https://app.nebuladns.com',
+      client: DEFAULT_PRODUCT_NAME,
+      client_url: process.env.APP_URL || DEFAULT_APP_URL,
     };
   }
 

@@ -47,6 +47,8 @@ import { ListsService } from '../lists/lists.service';
 import { PolicyCompilerService } from '../policies/policy-compiler.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { RedisService } from '../redis/redis.service';
+import { DEFAULT_PRODUCT_NAME } from '../../common/product-branding';
+import { renderUnblockDecisionEmail } from '../email/email-content.builder';
 import { EmailService } from '../email/email.service';
 import { Location } from '../locations/entities/location.entity';
 
@@ -800,15 +802,15 @@ export class BlockPagesService {
 
     if (saved.requesterEmail) {
       try {
-        await this.emailService.sendTransactionalHtml(
-          saved.requesterEmail,
-          dto.status === 'approved'
-            ? 'Your unblock request was approved'
-            : 'Your unblock request was denied',
-          `<p>Your request for <strong>${escapeHtml(saved.domain)}</strong> was ${dto.status}.</p>${
-            dto.reviewNote ? `<p>Note: ${escapeHtml(dto.reviewNote)}</p>` : ''
-          }`,
-        );
+        const rendered = renderUnblockDecisionEmail({
+          domain: saved.domain,
+          status: dto.status === 'approved' ? 'approved' : 'denied',
+          reviewNote: dto.reviewNote,
+          productName:
+            this.configService.get('PRODUCT_NAME', DEFAULT_PRODUCT_NAME) ??
+            DEFAULT_PRODUCT_NAME,
+        });
+        await this.emailService.sendRendered(saved.requesterEmail, rendered);
       } catch (err) {
         this.logger.warn(`Failed to send access request email: ${err}`);
       }

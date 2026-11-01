@@ -2,6 +2,9 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import Link from 'next/link'
+import { MarketingPageShell, MarketingCard } from '@/components/marketing/MarketingPageShell'
+import { MarketingPageHero, MarketingSerifAccent } from '@/components/marketing/MarketingPageHero'
+import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
 
 export default function EnterprisePage() {
   const enterpriseFeatures = [
@@ -130,87 +133,52 @@ export default function EnterprisePage() {
   ]
 
   return (
-    <div className="bg-space-950 min-h-screen">
-      {/* Hero */}
-      <div className="relative overflow-hidden py-24">
-        {/* Nebula orbs */}
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary-600/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-accent-600/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-900/50 text-primary-300 border border-primary-800/50 mb-6">
-            Enterprise Solutions
+    <MarketingPageShell>
+      <MarketingPageHero
+        eyebrow="Enterprise"
+        title={
+          <>
+            <MarketingSerifAccent>Enterprise</MarketingSerifAccent> DNS Security
+          </>
+        }
+        lede="Dedicated support, custom SLAs, and identity integrations for organizations that need more than a standard plan."
+      >
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-6 text-sm text-[var(--fs-mut)]">
+          <span className="flex items-center gap-2">
+            <svg className="h-4 w-4 text-[var(--fs-success)]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            99.99% SLA uptime
           </span>
-          <h1 className="text-5xl sm:text-6xl font-bold mb-6 leading-tight">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
-              Enterprise-Grade
-            </span>
-            <br />
-            <span className="text-white">DNS Security</span>
-          </h1>
-          <p className="text-xl text-space-400 max-w-3xl mx-auto mb-10">
-            Scale-ready DNS security with dedicated support, custom SLAs, and full enterprise integrations.
-            Protect thousands of users across global locations with confidence.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/contact?subject=enterprise-demo"
-              className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2 justify-center"
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
-              </svg>
-              Request Demo
-            </Link>
-            <Link
-              href="/contact?subject=enterprise-sales"
-              className="bg-space-800 border border-space-700 text-white hover:bg-space-700 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2 justify-center"
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-              </svg>
-              Talk to Sales
-            </Link>
-          </div>
-
-          {/* Trust signals */}
-          <div className="mt-14 flex flex-wrap items-center justify-center gap-8 text-space-500 text-sm">
-            <span className="flex items-center gap-2">
-              <svg className="h-4 w-4 text-success-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              99.99% SLA uptime
-            </span>
-            <span className="flex items-center gap-2">
-              <svg className="h-4 w-4 text-success-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              SOC 2 Type II certified
-            </span>
-            <span className="flex items-center gap-2">
-              <svg className="h-4 w-4 text-success-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              1-hour critical response
-            </span>
-            <span className="flex items-center gap-2">
-              <svg className="h-4 w-4 text-success-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              HIPAA &amp; PCI-DSS ready
-            </span>
-          </div>
+          <span className="flex items-center gap-2">
+            <svg className="h-4 w-4 text-[var(--fs-success)]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            SOC 2 Type II certified
+          </span>
+          <span className="flex items-center gap-2">
+            <svg className="h-4 w-4 text-[var(--fs-success)]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            1-hour critical response
+          </span>
+          <span className="flex items-center gap-2">
+            <svg className="h-4 w-4 text-[var(--fs-success)]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            HIPAA &amp; PCI-DSS ready
+          </span>
         </div>
-      </div>
+      </MarketingPageHero>
 
       {/* Enterprise Features Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <div className="section-container py-20">
         <div className="text-center mb-14">
-          <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">CAPABILITIES</p>
+          <p className="fs-eyebrow mb-3">CAPABILITIES</p>
           <h2 className="text-4xl font-bold text-white mb-4">
             Everything You Need at Enterprise Scale
           </h2>
-          <p className="text-space-400 text-lg max-w-2xl mx-auto">
+          <p className="text-[var(--fs-txt)] text-lg max-w-2xl mx-auto">
             Built for organizations that require maximum reliability, security, and customization.
           </p>
         </div>
@@ -219,16 +187,16 @@ export default function EnterprisePage() {
           {enterpriseFeatures.map((feature, index) => (
             <div
               key={index}
-              className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6 flex gap-5 hover:border-primary-700/50 transition-all"
+              className="fs-card rounded-[14px] p-6 flex gap-5 hover:border-primary-700/50 transition-all"
             >
               <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center text-white flex-shrink-0`}>
                 {feature.icon}
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white mb-2">
+                <h3 className="text-lg font-semibold text-ink mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-space-400 text-sm leading-relaxed">
+                <p className="text-[var(--fs-txt)] text-sm leading-relaxed">
                   {feature.description}
                 </p>
               </div>
@@ -239,13 +207,13 @@ export default function EnterprisePage() {
 
       {/* Testimonials */}
       <div className="border-t border-space-800/50 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="section-container">
           <div className="text-center mb-14">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">TESTIMONIALS</p>
+            <p className="fs-eyebrow mb-3">TESTIMONIALS</p>
             <h2 className="text-4xl font-bold text-white mb-4">
               Trusted by Enterprise Teams Worldwide
             </h2>
-            <p className="text-space-400 text-lg">
+            <p className="text-[var(--fs-txt)] text-lg">
               See what our enterprise customers have to say.
             </p>
           </div>
@@ -254,11 +222,11 @@ export default function EnterprisePage() {
             {testimonials.map((testimonial, index) => (
               <div
                 key={index}
-                className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8 flex flex-col"
+                className="fs-card rounded-[14px] p-8 flex flex-col"
               >
                 {/* Large quote mark */}
                 <div className="text-6xl font-serif text-primary-800 leading-none mb-4 select-none">&ldquo;</div>
-                <p className="text-space-300 leading-relaxed flex-1 mb-6">
+                <p className="text-[var(--fs-txt)] leading-relaxed flex-1 mb-6">
                   {testimonial.quote}
                 </p>
                 <div className="flex items-center gap-3 pt-4 border-t border-space-800">
@@ -267,7 +235,7 @@ export default function EnterprisePage() {
                   </div>
                   <div>
                     <div className="font-semibold text-white text-sm">{testimonial.author}</div>
-                    <div className="text-space-500 text-xs">{testimonial.role} &middot; {testimonial.company}</div>
+                    <div className="text-[var(--fs-mut)] text-xs">{testimonial.role} &middot; {testimonial.company}</div>
                   </div>
                 </div>
               </div>
@@ -279,20 +247,20 @@ export default function EnterprisePage() {
       {/* Pro vs Enterprise Comparison */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center mb-14">
-          <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">COMPARISON</p>
+          <p className="fs-eyebrow mb-3">COMPARISON</p>
           <h2 className="text-4xl font-bold text-white mb-4">
             Professional vs Enterprise
           </h2>
-          <p className="text-space-400 text-lg">
+          <p className="text-[var(--fs-txt)] text-lg">
             See how Enterprise compares to our Professional plan.
           </p>
         </div>
 
-        <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl overflow-hidden">
+        <div className="fs-card rounded-[14px] overflow-hidden">
           {/* Table Header */}
           <div className="grid grid-cols-3 border-b border-space-800">
             <div className="p-5">
-              <span className="text-space-400 text-sm font-medium">Feature</span>
+              <span className="text-[var(--fs-txt)] text-sm font-medium">Feature</span>
             </div>
             <div className="p-5 text-center border-l border-space-800">
               <span className="text-white font-semibold">Professional</span>
@@ -308,7 +276,7 @@ export default function EnterprisePage() {
               className={`grid grid-cols-3 border-b border-space-800/50 last:border-b-0 ${index % 2 === 1 ? 'bg-space-900/30' : ''}`}
             >
               <div className="p-4 flex items-center">
-                <span className="text-space-300 text-sm">{item.feature}</span>
+                <span className="text-[var(--fs-txt)] text-sm">{item.feature}</span>
               </div>
               <div className="p-4 text-center border-l border-space-800/50 flex items-center justify-center">
                 {typeof item.pro === 'boolean' ? (
@@ -320,7 +288,7 @@ export default function EnterprisePage() {
                     <span className="text-space-700 text-lg">—</span>
                   )
                 ) : (
-                  <span className="text-space-400 text-sm">{item.pro}</span>
+                  <span className="text-[var(--fs-txt)] text-sm">{item.pro}</span>
                 )}
               </div>
               <div className="p-4 text-center border-l border-space-800/50 bg-primary-900/10 flex items-center justify-center">
@@ -355,15 +323,15 @@ export default function EnterprisePage() {
 
       {/* Migration Timeline */}
       <div className="border-t border-space-800/50 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="section-container">
           <div className="grid lg:grid-cols-2 gap-12 items-start">
             {/* Migration benefits */}
             <div>
-              <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">MIGRATION</p>
+              <p className="fs-eyebrow mb-3">MIGRATION</p>
               <h2 className="text-4xl font-bold text-white mb-6">
                 Seamless Migration from Legacy Solutions
               </h2>
-              <p className="text-space-400 mb-8 leading-relaxed">
+              <p className="text-[var(--fs-txt)] mb-8 leading-relaxed">
                 Our enterprise onboarding team has migrated hundreds of organizations from legacy DNS security
                 providers. We handle the complexity so your team can focus on what matters.
               </p>
@@ -382,7 +350,7 @@ export default function EnterprisePage() {
                     </div>
                     <div>
                       <span className="text-white font-medium">{item.label}:</span>
-                      <span className="text-space-400"> {item.detail}</span>
+                      <span className="text-[var(--fs-txt)]"> {item.detail}</span>
                     </div>
                   </li>
                 ))}
@@ -390,7 +358,7 @@ export default function EnterprisePage() {
             </div>
 
             {/* Migration timeline card */}
-            <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8">
+            <div className="fs-card rounded-[14px] p-8">
               <h3 className="text-xl font-bold text-white mb-8 text-center">
                 Migration Timeline
               </h3>
@@ -408,7 +376,7 @@ export default function EnterprisePage() {
                       <div className="font-semibold text-white text-sm">
                         {phase.week}: {phase.task}
                       </div>
-                      <div className="text-space-400 text-sm mt-1">
+                      <div className="text-[var(--fs-txt)] text-sm mt-1">
                         {phase.description}
                       </div>
                     </div>
@@ -421,29 +389,29 @@ export default function EnterprisePage() {
       </div>
 
       {/* Final CTA */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-24">
-        <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-12 text-center relative overflow-hidden">
+      <div className="section-container py-12 pb-24">
+        <div className="fs-card rounded-[14px] p-12 text-center relative overflow-hidden">
           {/* Orb */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-40 bg-primary-600/10 rounded-full blur-3xl pointer-events-none" />
           <div className="relative">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-4">GET STARTED</p>
+            <p className="fs-eyebrow mb-4">GET STARTED</p>
             <h2 className="text-4xl font-bold text-white mb-4">
               Ready to Secure Your Enterprise?
             </h2>
-            <p className="text-space-400 text-lg mb-8 max-w-2xl mx-auto">
+            <p className="text-[var(--fs-txt)] text-lg mb-8 max-w-2xl mx-auto">
               Talk to our enterprise sales team to discuss your requirements, get a custom quote,
               and schedule a personalized demo.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/contact?subject=enterprise-demo"
-                className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2 justify-center"
+                className="fs-btn fs-btn-primary fs-btn-lg no-underline px-6 py-3 transition-all inline-flex items-center gap-2 justify-center"
               >
                 Schedule a Demo
               </Link>
               <Link
                 href="/contact?subject=enterprise-quote"
-                className="bg-space-800 border border-space-700 text-white hover:bg-space-700 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2 justify-center"
+                className="fs-btn rounded-[10px] px-6 py-3 transition-all inline-flex items-center gap-2 justify-center"
               >
                 Request a Quote
               </Link>
@@ -451,6 +419,6 @@ export default function EnterprisePage() {
           </div>
         </div>
       </div>
-    </div>
+    </MarketingPageShell>
   )
 }

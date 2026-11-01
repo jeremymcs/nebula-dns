@@ -5,23 +5,25 @@
  */
 
 import type { Metadata } from 'next'
-import { Inter, JetBrains_Mono } from 'next/font/google'
+import { Instrument_Serif } from 'next/font/google'
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
+import '@/styles/flux-shield-design-tokens.css'
 import './globals.css'
+import '@/styles/flux-shield-components.css'
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ToastProvider } from '@/components/Toast'
 import { PRODUCT_NAME, ADMIN_PORTAL_NAME, adminPortalTitle } from '@/lib/branding'
 import { ADMIN_ORIGIN } from '@/lib/public-urls'
 
-const inter = Inter({
+const instrumentSerif = Instrument_Serif({
   subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-})
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-jetbrains',
+  weight: '400',
+  style: ['italic'],
+  variable: '--font-instrument-serif',
   display: 'swap',
 })
 
@@ -52,9 +54,14 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`h-full ${GeistSans.variable} ${GeistMono.variable} ${instrumentSerif.variable}`}
+      suppressHydrationWarning
+    >
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} font-sans bg-space-50 dark:bg-space-950 text-space-900 dark:text-space-100 min-h-screen`}
+        className="min-h-screen h-full font-sans bg-canvas dark:bg-space-950 text-ink transition-colors"
+        suppressHydrationWarning
       >
         <ThemeProvider>
           <AuthProvider>
@@ -63,6 +70,8 @@ export default function RootLayout({
             </ToastProvider>
           </AuthProvider>
         </ThemeProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )

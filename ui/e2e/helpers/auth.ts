@@ -104,9 +104,10 @@ export async function loginAndNavigate(page: Page, path: string, tier: TenantTie
 
 export async function expectDashboardShell(page: Page) {
   const shell = page
-    .getByRole('link', { name: /flux shield/i })
-    .or(page.getByRole('heading', { level: 1, name: /^dashboard$/i }))
-    .or(page.locator('a[href="/dashboard"]').first())
+    .locator('[data-flux-app-shell]')
+    .or(page.getByRole('heading', { level: 1, name: /good (morning|afternoon|evening)/i }))
+    .or(page.getByText(/total queries/i).first())
+    .or(page.getByRole('link', { name: /^dashboard$/i }).first())
   await shell.first().waitFor({ state: 'visible', timeout: 20_000 })
 }
 

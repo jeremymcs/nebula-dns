@@ -3,6 +3,7 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAndNavigate, waitForPageLoad } from './helpers/auth'
+import { enterpriseDashboardHeading } from './helpers/selectors'
 
 test.describe('Dashboard', () => {
   test.beforeEach(async ({ page }) => {
@@ -12,13 +13,13 @@ test.describe('Dashboard', () => {
 
   test('should load dashboard page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard/)
-    await expect(page.getByRole('heading', { name: /^dashboard$/i })).toBeVisible()
+    await expect(enterpriseDashboardHeading(page)).toBeVisible()
   })
 
   test('should display overview stats cards', async ({ page }) => {
-    await expect(page.getByText('Total Queries', { exact: true })).toBeVisible()
-    await expect(page.getByText('Threats Blocked', { exact: true })).toBeVisible()
-    await expect(page.getByText('Policies Active', { exact: true })).toBeVisible()
+    await expect(page.getByText(/total queries/i).first()).toBeVisible()
+    await expect(page.getByText(/threats blocked/i).first()).toBeVisible()
+    await expect(page.getByText(/policies active/i).first()).toBeVisible()
   })
 
   test('should render query volume chart', async ({ page }) => {
@@ -31,7 +32,7 @@ test.describe('Dashboard', () => {
   })
 
   test('should display recent activity list', async ({ page }) => {
-    const activitySection = page.getByRole('heading', { name: /recent activity|activity feed/i })
+    const activitySection = page.getByRole('heading', { name: /live activity|recent activity|activity feed/i })
     if (await activitySection.isVisible()) {
       await expect(activitySection).toBeVisible()
     }
@@ -39,8 +40,8 @@ test.describe('Dashboard', () => {
 
   test('should have quick action buttons', async ({ page }) => {
     const policiesLink = page.getByRole('link', { name: /^policies$/i }).first()
-    const zonesLink = page.getByRole('link', { name: /^zones$/i }).first()
-    const hasQuickActions = (await policiesLink.isVisible()) || (await zonesLink.isVisible())
+    const networksLink = page.getByRole('link', { name: /^networks$/i }).first()
+    const hasQuickActions = (await policiesLink.isVisible()) || (await networksLink.isVisible())
     expect(hasQuickActions).toBeTruthy()
   })
 
@@ -51,8 +52,8 @@ test.describe('Dashboard', () => {
   })
 
   test('should navigate to locations from dashboard', async ({ page }) => {
-    const zonesLink = page.getByRole('link', { name: /^zones$/i }).first()
-    await zonesLink.click()
+    const networksLink = page.getByRole('link', { name: /^networks$/i }).first()
+    await networksLink.click()
     await expect(page).toHaveURL(/\/dashboard\/locations/)
   })
 
@@ -99,7 +100,7 @@ test.describe('Dashboard', () => {
   test('should have responsive layout on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 })
     await page.reload()
-    await expect(page.getByRole('heading', { name: /^dashboard$/i })).toBeVisible()
+    await expect(enterpriseDashboardHeading(page)).toBeVisible()
   })
 })
 

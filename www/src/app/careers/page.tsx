@@ -2,6 +2,9 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import Link from 'next/link'
+import { MarketingPageShell, MarketingCard } from '@/components/marketing/MarketingPageShell'
+import { MarketingPageHero, MarketingSerifAccent } from '@/components/marketing/MarketingPageHero'
+import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
 
 const values = [
   {
@@ -79,16 +82,21 @@ const openings = [
 
 export default function CareersPage() {
   return (
-    <div className="bg-space-950">
+    <MarketingPageShell>
+      <MarketingPageHero
+        eyebrow="Careers"
+        title={<><MarketingSerifAccent>Join</MarketingSerifAccent> the Team Building the Future of DNS</>}
+        lede="Our mission is to make the internet safer for everyone. We're a team of engineers, researchers, and security experts who believe DNS is the most under-leveraged layer of network defense."
+      >
+      </MarketingPageHero>
+
 
       {/* Hero Section */}
-      <div className="relative py-24 bg-space-950 overflow-hidden">
-        {/* Nebula orbs */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-600/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative py-16 sm:py-20 overflow-hidden">
+<div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent-600/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-4">
+        <div className="relative section-container text-center">
+          <p className="fs-eyebrow mb-4">
             CAREERS
           </p>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight">
@@ -97,13 +105,13 @@ export default function CareersPage() {
             </span>{' '}
             Building the Future of DNS
           </h1>
-          <p className="mt-6 text-lg text-space-400 max-w-2xl mx-auto">
+          <p className="mt-6 text-lg text-[var(--fs-txt)] max-w-2xl mx-auto">
             Our mission is to make the internet safer for everyone. We're a team of engineers, researchers, and security experts who believe DNS is the most under-leveraged layer of network defense.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="#openings"
-              className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
+              className="fs-btn fs-btn-primary fs-btn-lg no-underline px-6 py-3 transition-all inline-flex items-center gap-2"
             >
               View Open Positions
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -112,7 +120,7 @@ export default function CareersPage() {
             </a>
             <Link
               href="/about"
-              className="border border-space-700 text-space-300 hover:text-white hover:border-space-500 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
+              className="border border-space-700 text-[var(--fs-txt)] hover:text-white hover:border-space-500 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
             >
               Learn About Us
             </Link>
@@ -121,16 +129,16 @@ export default function CareersPage() {
       </div>
 
       {/* Core Values */}
-      <div className="py-24 bg-space-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="py-16 sm:py-20 border-t border-[var(--fs-line)]">
+        <div className="section-container">
           <div className="text-center mb-16">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">
+            <p className="fs-eyebrow mb-3">
               WHY NEBULA DNS
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink">
               Built for People Who Care About Their Work
             </h2>
-            <p className="mt-4 text-space-400 max-w-2xl mx-auto">
+            <p className="mt-4 text-[var(--fs-txt)] max-w-2xl mx-auto">
               We're building something special and we want the people who join us to feel that every day.
             </p>
           </div>
@@ -139,7 +147,7 @@ export default function CareersPage() {
             {values.map((value, index) => (
               <div
                 key={index}
-                className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6"
+                className="fs-card rounded-[14px] p-6"
               >
                 <div
                   className={
@@ -150,10 +158,10 @@ export default function CareersPage() {
                 >
                   {value.icon}
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">
+                <h3 className="text-lg font-semibold text-ink mb-2">
                   {value.title}
                 </h3>
-                <p className="text-space-400 text-sm">
+                <p className="text-[var(--fs-txt)] text-sm">
                   {value.description}
                 </p>
               </div>
@@ -163,16 +171,16 @@ export default function CareersPage() {
       </div>
 
       {/* Open Positions */}
-      <div id="openings" className="py-24 bg-space-950">
+      <div id="openings" className="py-16 sm:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">
+            <p className="fs-eyebrow mb-3">
               OPEN POSITIONS
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink">
               {openings.length} Roles Available
             </h2>
-            <p className="mt-4 text-space-400">
+            <p className="mt-4 text-[var(--fs-txt)]">
               All positions are fully remote. We hire globally.
             </p>
           </div>
@@ -181,25 +189,25 @@ export default function CareersPage() {
             {openings.map((job, index) => (
               <div
                 key={index}
-                className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6 hover:border-primary-700/50 transition-all group"
+                className="fs-card rounded-[14px] p-6 hover:border-primary-700/50 transition-all group"
               >
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                   <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-white group-hover:text-primary-300 transition-colors">
+                    <h3 className="text-xl font-semibold text-ink group-hover:text-primary-300 transition-colors">
                       {job.title}
                     </h3>
                     <div className="mt-2 flex flex-wrap gap-2 items-center">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold ${job.deptColor}`}>
                         {job.department}
                       </span>
-                      <span className="inline-flex items-center gap-1 text-xs text-space-400">
+                      <span className="inline-flex items-center gap-1 text-xs text-[var(--fs-txt)]">
                         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         </svg>
                         {job.location}
                       </span>
                     </div>
-                    <p className="mt-3 text-space-400 text-sm leading-relaxed">
+                    <p className="mt-3 text-[var(--fs-txt)] text-sm leading-relaxed">
                       {job.description}
                     </p>
                   </div>
@@ -222,23 +230,23 @@ export default function CareersPage() {
       </div>
 
       {/* Don't see your role */}
-      <div className="py-24 bg-space-900">
+      <div className="py-16 sm:py-20 border-t border-[var(--fs-line)]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-10 text-center">
+          <div className="fs-card rounded-[14px] p-10 text-center">
             <div className="h-12 w-12 rounded-xl bg-primary-900/50 border border-primary-800/50 flex items-center justify-center text-primary-400 mx-auto mb-6">
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-3">
+            <h3 className="text-2xl font-bold text-ink mb-3">
               Don't see your role?
             </h3>
-            <p className="text-space-400 max-w-xl mx-auto mb-8">
+            <p className="text-[var(--fs-txt)] max-w-xl mx-auto mb-8">
               We're always looking for talented people who share our passion for security and innovation. Send us your resume and tell us what makes you exceptional.
             </p>
             <a
               href="mailto:careers@shield.fluxlabs.net"
-              className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
+              className="fs-btn fs-btn-primary fs-btn-lg no-underline px-6 py-3 transition-all inline-flex items-center gap-2"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -250,26 +258,26 @@ export default function CareersPage() {
       </div>
 
       {/* Bottom CTA */}
-      <div className="py-24 bg-space-950 relative overflow-hidden">
+      <div className="py-16 sm:py-20 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-primary-700/10 rounded-full blur-3xl" />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-4">
+        <div className="relative section-container text-center">
+          <p className="fs-eyebrow mb-4">
             JOIN US
           </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-ink mb-4">
             Come build the future of{' '}
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
               DNS security
             </span>
           </h2>
-          <p className="text-space-400 max-w-2xl mx-auto mb-8">
+          <p className="text-[var(--fs-txt)] max-w-2xl mx-auto mb-8">
             We're on a mission to make the internet safer for billions of people. If that excites you, we want to hear from you.
           </p>
           <a
             href="#openings"
-            className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-8 py-4 transition-all inline-flex items-center gap-2 text-lg"
+            className="fs-btn fs-btn-primary fs-btn-lg no-underline px-8 py-4 transition-all inline-flex items-center gap-2 text-lg"
           >
             See Open Positions
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -278,7 +286,6 @@ export default function CareersPage() {
           </a>
         </div>
       </div>
-
-    </div>
+    </MarketingPageShell>
   )
 }

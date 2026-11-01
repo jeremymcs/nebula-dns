@@ -12,7 +12,6 @@ import {
   HttpStatus,
   UseGuards,
   Req,
-  Ip,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -21,6 +20,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { Request } from 'express';
+import { getClientIp } from '@/common/http/client-ip';
 import { AuthService, LoginContext } from './auth.service';
 import {
   LoginDto,
@@ -79,34 +79,12 @@ export class AuthController {
   async login(
     @Body() loginDto: LoginDto,
     @Req() req: Request,
-    @Ip() ip: string,
   ): Promise<LoginResponseDto | MfaRequiredResponseDto> {
     const context: LoginContext = {
       userAgent: req.headers['user-agent'] || 'Unknown',
-      ipAddress: this.getClientIp(req, ip),
+      ipAddress: getClientIp(req, { fallback: '0.0.0.0' }),
     };
     return this.authService.login(loginDto, context);
-  }
-
-  /**
-   * Extract client IP from request, handling proxies
-   */
-  private getClientIp(req: Request, defaultIp: string): string {
-    // Check for forwarded headers (when behind proxy/load balancer)
-    const forwarded = req.headers['x-forwarded-for'];
-    if (forwarded) {
-      const ips = Array.isArray(forwarded)
-        ? forwarded[0]
-        : forwarded.split(',')[0];
-      return ips.trim();
-    }
-
-    const realIp = req.headers['x-real-ip'];
-    if (realIp) {
-      return Array.isArray(realIp) ? realIp[0] : realIp;
-    }
-
-    return defaultIp || req.ip || '0.0.0.0';
   }
 
   @Post('mfa/verify')
@@ -149,11 +127,10 @@ export class AuthController {
   async refresh(
     @Body() refreshDto: RefreshTokenDto,
     @Req() req: Request,
-    @Ip() ip: string,
   ): Promise<LoginResponseDto> {
     const context: LoginContext = {
       userAgent: req.headers['user-agent'] || 'Unknown',
-      ipAddress: this.getClientIp(req, ip),
+      ipAddress: getClientIp(req, { fallback: '0.0.0.0' }),
     };
     return this.authService.refreshToken(refreshDto.refreshToken, context);
   }

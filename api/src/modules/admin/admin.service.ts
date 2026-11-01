@@ -64,6 +64,7 @@ import {
 } from '../audit-logs/entities/audit-log.entity';
 import { AdminUser } from './dto/admin-jwt-payload.dto';
 import { EmailService } from '../email/email.service';
+import { resolveAppUrl } from '../../common/public-urls';
 import { AlertDispatcherService } from '../alerting/alert-dispatcher.service';
 import { AdminActivityService } from './admin-activity.service';
 
@@ -1526,10 +1527,7 @@ export class AdminService {
     }
 
     // 8. Send welcome email after transaction commits
-    const loginUrl = this.configService.get<string>(
-      'APP_URL',
-      'https://app.nebuladns.com',
-    );
+    const loginUrl = resolveAppUrl(this.configService);
     let welcomeEmailSent = false;
 
     try {

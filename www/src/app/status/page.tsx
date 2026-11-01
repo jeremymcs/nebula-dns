@@ -5,6 +5,9 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { MarketingPageShell, MarketingCard } from '@/components/marketing/MarketingPageShell'
+import { MarketingPageHero, MarketingSerifAccent } from '@/components/marketing/MarketingPageHero'
+import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
 
 type ServiceStatus = 'operational' | 'degraded' | 'outage'
 
@@ -71,15 +74,22 @@ export default function StatusPage() {
   }
 
   return (
-    <div className="bg-space-950">
+    <MarketingPageShell>
+      <MarketingPageHero
+        eyebrow="System Status"
+        title={<>Service <MarketingSerifAccent>Status</MarketingSerifAccent></>}
+        lede="Real-time availability for API, DNS resolution, dashboard, and supporting services."
+      >
+      </MarketingPageHero>
+
 
       {/* Hero */}
-      <div className="relative py-24 bg-space-950 overflow-hidden">
+      <div className="relative py-16 sm:py-20 overflow-hidden">
         <div className="absolute top-0 left-1/3 w-96 h-96 bg-success-600/8 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 right-1/3 w-80 h-80 bg-accent-600/8 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-4">
+          <p className="fs-eyebrow mb-4">
             STATUS
           </p>
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-8">
@@ -102,7 +112,7 @@ export default function StatusPage() {
               />
               {allOperational ? 'All Systems Operational' : 'Partial Service Degradation'}
             </div>
-            <p className="mt-3 text-space-400 text-sm">
+            <p className="mt-3 text-[var(--fs-txt)] text-sm">
               Last updated:{' '}
               {new Date().toLocaleString('en-US', {
                 month: 'long',
@@ -130,13 +140,13 @@ export default function StatusPage() {
               return (
                 <div
                   key={index}
-                  className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6 flex items-start justify-between gap-4"
+                  className="fs-card rounded-[14px] p-6 flex items-start justify-between gap-4"
                 >
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-white">
+                    <h3 className="text-lg font-semibold text-ink">
                       {service.name}
                     </h3>
-                    <p className="mt-1 text-sm text-space-400">
+                    <p className="mt-1 text-sm text-[var(--fs-txt)]">
                       {service.description}
                     </p>
                   </div>
@@ -156,7 +166,7 @@ export default function StatusPage() {
       {/* Uptime */}
       <div className="py-16 bg-space-950">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8">
+          <div className="fs-card rounded-[14px] p-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <div>
                 <h3 className="text-3xl font-bold text-white mb-1">
@@ -164,13 +174,13 @@ export default function StatusPage() {
                     99.99%
                   </span>
                 </h3>
-                <p className="text-space-400 text-sm">uptime over the last 90 days</p>
+                <p className="text-[var(--fs-txt)] text-sm">uptime over the last 90 days</p>
               </div>
               <div className="text-right">
-                <p className="text-xs text-space-400 uppercase tracking-wider font-semibold mb-1">
+                <p className="text-xs text-[var(--fs-txt)] uppercase tracking-wider font-semibold mb-1">
                   90-Day History
                 </p>
-                <p className="text-xs text-space-400">
+                <p className="text-xs text-[var(--fs-txt)]">
                   Today &rarr;
                 </p>
               </div>
@@ -190,7 +200,7 @@ export default function StatusPage() {
               ))}
             </div>
 
-            <div className="flex justify-between mt-2 text-xs text-space-400">
+            <div className="flex justify-between mt-2 text-xs text-[var(--fs-txt)]">
               <span>90 days ago</span>
               <span>Today</span>
             </div>
@@ -205,16 +215,16 @@ export default function StatusPage() {
             Recent Incidents
           </h2>
 
-          <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-12 text-center">
+          <div className="fs-card rounded-[14px] p-12 text-center">
             <div className="h-14 w-14 rounded-xl bg-success-900/50 border border-success-800/50 flex items-center justify-center text-success-400 mx-auto mb-4">
               <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-white mb-2">
+            <h3 className="text-xl font-semibold text-ink mb-2">
               No incidents in the past 90 days
             </h3>
-            <p className="text-space-400 text-sm">
+            <p className="text-[var(--fs-txt)] text-sm">
               All systems have been running smoothly. Any incidents will be posted here in real time.
             </p>
           </div>
@@ -224,16 +234,16 @@ export default function StatusPage() {
       {/* Subscribe */}
       <div className="py-16 bg-space-950">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8 text-center">
+          <div className="fs-card rounded-[14px] p-8 text-center">
             <div className="h-12 w-12 rounded-xl bg-accent-900/50 border border-accent-800/50 flex items-center justify-center text-accent-400 mx-auto mb-5">
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-2">
+            <h3 className="text-2xl font-bold text-ink mb-2">
               Subscribe to Status Updates
             </h3>
-            <p className="text-space-400 mb-6 max-w-md mx-auto">
+            <p className="text-[var(--fs-txt)] mb-6 max-w-md mx-auto">
               Get notified the moment an incident is detected and when it has been resolved.
             </p>
 
@@ -256,14 +266,14 @@ export default function StatusPage() {
                 />
                 <button
                   type="submit"
-                  className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-5 py-2.5 transition-all text-sm whitespace-nowrap"
+                  className="fs-btn fs-btn-primary fs-btn-lg no-underline px-5 py-2.5 transition-all text-sm whitespace-nowrap"
                 >
                   Subscribe to Updates
                 </button>
               </form>
             )}
 
-            <p className="mt-3 text-xs text-space-400">
+            <p className="mt-3 text-xs text-[var(--fs-txt)]">
               We'll only contact you about service status changes.
             </p>
           </div>
@@ -271,20 +281,20 @@ export default function StatusPage() {
       </div>
 
       {/* CTA */}
-      <div className="py-24 bg-space-900 relative overflow-hidden">
+      <div className="py-16 sm:py-20 border-t border-[var(--fs-line)] relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[250px] bg-primary-700/10 rounded-full blur-3xl" />
         </div>
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-ink mb-4">
             Experiencing an issue?
           </h2>
-          <p className="text-space-400 mb-8 max-w-xl mx-auto">
+          <p className="text-[var(--fs-txt)] mb-8 max-w-xl mx-auto">
             If you're seeing something not reflected on this page, our support team is standing by.
           </p>
           <Link
             href="/contact"
-            className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
+            className="fs-btn fs-btn-primary fs-btn-lg no-underline px-6 py-3 transition-all inline-flex items-center gap-2"
           >
             Contact Support
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -293,7 +303,6 @@ export default function StatusPage() {
           </Link>
         </div>
       </div>
-
-    </div>
+    </MarketingPageShell>
   )
 }

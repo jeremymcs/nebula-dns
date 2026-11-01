@@ -4,7 +4,7 @@
 
 import { test, expect } from '@playwright/test'
 import { loginAsHome, loginAsEnterprise, loginAsMSP, waitForPageLoad, expectTierRestricted, homeDashboardHeading } from './helpers/auth'
-import { pageHeading } from './helpers/selectors'
+import { pageHeading, enterpriseDashboardHeading } from './helpers/selectors'
 
 test.describe('US-037: Home Tier Feature Access', () => {
   test.beforeEach(async ({ page }) => {
@@ -156,7 +156,7 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
 
   test('should access dashboard with Enterprise tier', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard/)
-    await expect(pageHeading(page, /^dashboard$/i)).toBeVisible()
+    await expect(enterpriseDashboardHeading(page)).toBeVisible()
   })
 
   test('should access all core features', async ({ page }) => {
@@ -312,7 +312,7 @@ test.describe('US-037: MSP Tier Feature Access', () => {
 
   test('should access dashboard with MSP tier', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard/)
-    await expect(pageHeading(page, /^dashboard$/i)).toBeVisible()
+    await expect(enterpriseDashboardHeading(page)).toBeVisible()
   })
 
   test('should access all Enterprise features', async ({ page }) => {

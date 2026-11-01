@@ -57,7 +57,7 @@ export function Modal({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-space-950/60 backdrop-blur-sm" />
+          <div className="fixed inset-0 bg-ink/40 backdrop-blur-[2px]" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -73,9 +73,7 @@ export function Modal({
             >
               <Dialog.Panel
                 className={clsx(
-                  'w-full transform rounded-2xl',
-                  'bg-white dark:bg-space-800 p-6 shadow-2xl',
-                  'ring-1 ring-space-900/5 dark:ring-white/10',
+                  'w-full transform rounded-[14px] fs-card p-6',
                   'transition-all max-h-[90vh] overflow-y-auto',
                   sizeStyles[size]
                 )}

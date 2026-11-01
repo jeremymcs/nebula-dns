@@ -6,7 +6,7 @@ const poweredByLinkClass =
 
 type ProductFooterProps = {
   className?: string
-  variant?: 'dashboard' | 'auth'
+  variant?: 'dashboard' | 'auth' | 'compact'
 }
 
 export function ProductFooter({ className = '', variant = 'dashboard' }: ProductFooterProps) {
@@ -14,7 +14,9 @@ export function ProductFooter({ className = '', variant = 'dashboard' }: Product
   const base =
     variant === 'auth'
       ? 'mt-10 pt-6 border-t border-space-200 dark:border-space-700 text-center'
-      : 'flex flex-col items-center py-4 px-4 border-t border-space-200/80 dark:border-space-800/80'
+      : variant === 'compact'
+        ? 'text-left text-mut'
+        : 'flex flex-col items-center py-4 px-4 border-t border-space-200/80 dark:border-space-800/80'
 
   return (
     <footer className={`${base} ${className}`.trim()} aria-label="Site footer">

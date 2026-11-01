@@ -3,8 +3,11 @@
 
 import {
   STRIPPED_UPSTREAM_RESPONSE_HEADERS,
+  applySignedFluxClientIpHeaders,
   buildUpstreamRequestHeaders,
   copyUpstreamResponseHeaders,
+  resolveIncomingBrowserClientIp,
+  signFluxClientIpHeader,
 } from '../backend-proxy-utils'
 
 describe('copyUpstreamResponseHeaders', () => {
@@ -60,5 +63,38 @@ describe('buildUpstreamRequestHeaders', () => {
     expect(outbound.get('host')).toBeNull()
     expect(outbound.get('connection')).toBeNull()
     expect(outbound.get('content-type')).toBe('application/json')
+  })
+})
+
+describe('applySignedFluxClientIpHeaders', () => {
+  it('adds signed flux headers for Vercel-forwarded browser IPs', () => {
+    const secret = 'vercel-proxy-secret'
+    const incoming = new Headers({
+      'x-vercel-forwarded-for': '203.0.113.44, 70.1.2.3',
+    })
+    const outbound = buildUpstreamRequestHeaders(incoming)
+
+    applySignedFluxClientIpHeaders(outbound, incoming, secret)
+
+    expect(outbound.get('x-flux-client-ip')).toBe('203.0.113.44')
+    expect(outbound.get('x-flux-client-ip-signature')).toBe(
+      signFluxClientIpHeader('203.0.113.44', secret),
+    )
+  })
+
+  it('does not add flux headers when secret is missing', () => {
+    const incoming = new Headers({
+      'x-forwarded-for': '203.0.113.44',
+    })
+    const outbound = buildUpstreamRequestHeaders(incoming)
+    applySignedFluxClientIpHeaders(outbound, incoming, undefined)
+    expect(outbound.get('x-flux-client-ip')).toBeNull()
+  })
+
+  it('normalizes IPv4-mapped addresses from edge headers', () => {
+    const headers = new Headers({
+      'x-real-ip': '::ffff:198.51.100.10',
+    })
+    expect(resolveIncomingBrowserClientIp(headers)).toBe('198.51.100.10')
   })
 })

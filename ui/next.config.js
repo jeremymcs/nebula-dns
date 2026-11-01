@@ -38,6 +38,11 @@ const nextConfig = {
         destination: '/',
         permanent: false,
       },
+      {
+        source: '/invite/invite/accept',
+        destination: '/invite/accept',
+        permanent: true,
+      },
       // Partner login redirects to main login
       {
         source: '/partner/login',

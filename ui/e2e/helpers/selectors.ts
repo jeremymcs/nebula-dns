@@ -3,6 +3,14 @@
 
 import { Page } from '@playwright/test'
 
+/** Enterprise dashboard h1 (Design C greeting). */
+export function enterpriseDashboardHeading(page: Page) {
+  return page.getByRole('heading', {
+    level: 1,
+    name: /good (morning|afternoon|evening)/i,
+  })
+}
+
 /** Primary page title (avoids matching empty-state h3 headings). */
 export function pageHeading(page: Page, name: string | RegExp) {
   return page.getByRole('heading', { level: 1, name })

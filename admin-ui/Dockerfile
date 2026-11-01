@@ -19,7 +19,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app/admin-ui
 
 COPY admin-ui/package*.json ./
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 COPY admin-ui/ ./
 COPY shared/ /app/shared/

@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
+import { getClientIp, tryGetClientIp } from '@/common/http/client-ip';
 
 export const REQUIRE_IP_ALLOWLIST_KEY = 'requireIpAllowlist';
 export const RequireIpAllowlist = () =>
@@ -52,7 +53,7 @@ export class IpAllowlistGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<Request>();
-    const clientIp = this.getClientIp(request);
+    const clientIp = tryGetClientIp(request);
 
     if (!clientIp) {
       throw new ForbiddenException('Unable to determine client IP address');
@@ -63,26 +64,6 @@ export class IpAllowlistGuard implements CanActivate {
     }
 
     throw new ForbiddenException('Access denied: IP address not in allowlist');
-  }
-
-  private getClientIp(request: Request): string | undefined {
-    // Check for proxy headers
-    const forwardedFor = request.headers['x-forwarded-for'];
-    if (forwardedFor) {
-      const ips = (
-        typeof forwardedFor === 'string' ? forwardedFor : forwardedFor[0]
-      )
-        .split(',')
-        .map((ip) => ip.trim());
-      return ips[0];
-    }
-
-    const realIp = request.headers['x-real-ip'];
-    if (realIp) {
-      return typeof realIp === 'string' ? realIp : realIp[0];
-    }
-
-    return request.ip || request.socket?.remoteAddress;
   }
 
   private isIpAllowed(ip: string): boolean {

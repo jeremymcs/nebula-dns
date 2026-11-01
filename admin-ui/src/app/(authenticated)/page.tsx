@@ -154,18 +154,18 @@ function StatCard({
   return (
     <Link
       href={href}
-      className="block bg-white dark:bg-space-900 rounded-2xl border border-space-200 dark:border-space-800 p-8 hover:shadow-xl hover:border-primary-400 dark:hover:border-primary-600 transition-all group"
+      className="block card p-8 transition-all hover:shadow-md group"
     >
       <div className="flex items-start justify-between">
         <div className="space-y-2">
-          <p className="text-xs font-bold text-space-500 dark:text-space-400 uppercase tracking-widest">{title}</p>
+          <p className="text-[11px] font-semibold text-mut uppercase tracking-widest">{title}</p>
           <p
-            className={`text-4xl font-black text-space-900 dark:text-white tracking-tight ${loading ? 'animate-pulse' : ''}`}
+            className={`text-3xl font-semibold text-ink tracking-tight ${loading ? 'animate-pulse' : ''}`}
           >
             {value}
           </p>
           {subtitle && (
-            <p className="text-sm font-medium text-space-500 dark:text-space-400">{subtitle}</p>
+            <p className="text-sm font-medium text-mut">{subtitle}</p>
           )}
         </div>
         <div className={`p-4 rounded-2xl transition-transform group-hover:scale-110 duration-300 ${colorStyles[color]}`}>
@@ -191,14 +191,14 @@ function ActionCard({
   return (
     <Link
       href={href}
-      className="flex items-center gap-6 bg-white dark:bg-space-900 rounded-2xl border border-space-200 dark:border-space-800 p-6 hover:shadow-lg hover:border-primary-400 dark:hover:border-primary-600 transition-all group"
+      className="flex items-center gap-6 card p-6 transition-all hover:shadow-md group"
     >
       <div className="p-4 rounded-xl bg-space-100 dark:bg-space-800 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20 transition-colors">
         <Icon className="h-6 w-6 text-space-600 dark:text-space-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors" />
       </div>
       <div>
-        <p className="font-bold text-space-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{title}</p>
-        <p className="text-sm font-medium text-space-500 dark:text-space-400">{description}</p>
+        <p className="font-semibold text-ink group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{title}</p>
+        <p className="text-sm font-medium text-mut">{description}</p>
       </div>
     </Link>
   )
@@ -253,9 +253,9 @@ export default function DashboardPage() {
   const healthCardColor =
     healthStatus === 'unhealthy' ? 'danger' : healthStatus === 'degraded' ? 'warning' : 'success'
 
-  const policySvc = health?.services.find((s) => s.name === 'policy-svc')
-  const dnsdist = health?.services.find((s) => s.name === 'dnsdist')
-  const unbound = health?.services.find((s) => s.name === 'unbound')
+  const policySvc = health?.services?.find((s) => s.name === 'policy-svc')
+  const dnsdist = health?.services?.find((s) => s.name === 'dnsdist')
+  const unbound = health?.services?.find((s) => s.name === 'unbound')
 
   const dnsWorst: ServiceHealthStatus =
     [dnsdist?.status, unbound?.status].includes('unhealthy')
@@ -363,7 +363,7 @@ export default function DashboardPage() {
         {/* System Status Panel */}
         <div className="space-y-6">
           <h2 className="text-xl font-bold text-space-900 dark:text-white">System Status</h2>
-          <div className="bg-white dark:bg-space-900 rounded-2xl border border-space-200 dark:border-space-800 p-6 shadow-sm">
+          <div className="card p-6">
             {healthLoading && !health ? (
               <p className="text-sm text-space-500 animate-pulse">Loading service status…</p>
             ) : (
@@ -377,15 +377,15 @@ export default function DashboardPage() {
                   label="DNS Resolution"
                 />
                 <StatusIndicator
-                  status={health?.storage.redis.connected ? 'healthy' : 'down'}
+                  status={health?.storage?.redis?.connected ? 'healthy' : 'down'}
                   label="Database"
                 />
                 <StatusIndicator
-                  status={health?.storage.redis.connected ? 'healthy' : 'down'}
+                  status={health?.storage?.redis?.connected ? 'healthy' : 'down'}
                   label="Redis Cache"
                 />
                 <StatusIndicator
-                  status={health?.storage.clickhouse.connected ? 'healthy' : 'degraded'}
+                  status={health?.storage?.clickhouse?.connected ? 'healthy' : 'degraded'}
                   label="ClickHouse Analytics"
                 />
               </div>
@@ -403,7 +403,7 @@ export default function DashboardPage() {
       {/* Recent Activity */}
       <div className="space-y-6">
         <h2 className="text-xl font-bold text-space-900 dark:text-white">Recent Activity</h2>
-        <div className="bg-white dark:bg-space-900 rounded-2xl border border-space-200 dark:border-space-800 overflow-hidden shadow-sm">
+        <div className="card overflow-hidden">
           {activityLoading && !activityData ? (
             <div className="px-6 py-8 text-sm text-space-500 animate-pulse">Loading activity…</div>
           ) : activities.length === 0 ? (

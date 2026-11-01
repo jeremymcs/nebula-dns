@@ -106,7 +106,7 @@ describe('AuthController', () => {
 
       mockAuthService.login.mockResolvedValue(mockLoginResponse);
 
-      const result = await controller.login(loginDto, mockRequest, mockIp);
+      const result = await controller.login(loginDto, mockRequest);
 
       expect(authService.login).toHaveBeenCalledWith(loginDto, {
         userAgent: 'Test User Agent',
@@ -124,7 +124,7 @@ describe('AuthController', () => {
 
       mockAuthService.login.mockResolvedValue(mockMfaResponse);
 
-      const result = await controller.login(loginDto, mockRequest, mockIp);
+      const result = await controller.login(loginDto, mockRequest);
 
       expect(authService.login).toHaveBeenCalledWith(loginDto, {
         userAgent: 'Test User Agent',
@@ -146,7 +146,7 @@ describe('AuthController', () => {
       );
 
       await expect(
-        controller.login(loginDto, mockRequest, mockIp),
+        controller.login(loginDto, mockRequest),
       ).rejects.toThrow(UnauthorizedException);
       expect(authService.login).toHaveBeenCalledWith(loginDto, {
         userAgent: 'Test User Agent',
@@ -165,7 +165,7 @@ describe('AuthController', () => {
       );
 
       await expect(
-        controller.login(loginDto, mockRequest, mockIp),
+        controller.login(loginDto, mockRequest),
       ).rejects.toThrow(UnauthorizedException);
       expect(authService.login).toHaveBeenCalledWith(loginDto, {
         userAgent: 'Test User Agent',
@@ -184,7 +184,7 @@ describe('AuthController', () => {
       );
 
       await expect(
-        controller.login(loginDto, mockRequest, mockIp),
+        controller.login(loginDto, mockRequest),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -204,7 +204,7 @@ describe('AuthController', () => {
       );
 
       await expect(
-        controller.login(loginDto, mockRequest, mockIp),
+        controller.login(loginDto, mockRequest),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -219,7 +219,7 @@ describe('AuthController', () => {
       );
 
       try {
-        await controller.login(loginDto, mockRequest, mockIp);
+        await controller.login(loginDto, mockRequest);
         fail('Should have thrown UnauthorizedException');
       } catch (error) {
         expect(error.message).toBe('Invalid credentials');
@@ -228,7 +228,7 @@ describe('AuthController', () => {
       }
     });
 
-    it('should extract IP from X-Forwarded-For header', async () => {
+    it('uses Express req.ip from trusted proxy (ignores spoofed XFF)', async () => {
       const loginDto: LoginDto = {
         email: 'test@example.com',
         password: 'ValidP@ssw0rd!',
@@ -237,14 +237,14 @@ describe('AuthController', () => {
       const reqWithProxy = {
         headers: {
           'user-agent': 'Test Agent',
-          'x-forwarded-for': '10.0.0.1, 192.168.1.1',
+          'x-forwarded-for': '8.8.8.8, 192.168.1.1',
         },
-        ip: '127.0.0.1',
+        ip: '10.0.0.1',
       } as unknown as Request;
 
       mockAuthService.login.mockResolvedValue(mockLoginResponse);
 
-      await controller.login(loginDto, reqWithProxy, '127.0.0.1');
+      await controller.login(loginDto, reqWithProxy);
 
       expect(authService.login).toHaveBeenCalledWith(loginDto, {
         userAgent: 'Test Agent',
@@ -336,7 +336,7 @@ describe('AuthController', () => {
 
       mockAuthService.refreshToken.mockResolvedValue(mockLoginResponse);
 
-      const result = await controller.refresh(refreshDto, mockRequest, mockIp);
+      const result = await controller.refresh(refreshDto, mockRequest);
 
       expect(authService.refreshToken).toHaveBeenCalledWith(
         refreshDto.refreshToken,
@@ -360,7 +360,7 @@ describe('AuthController', () => {
       );
 
       await expect(
-        controller.refresh(refreshDto, mockRequest, mockIp),
+        controller.refresh(refreshDto, mockRequest),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -374,7 +374,7 @@ describe('AuthController', () => {
       );
 
       await expect(
-        controller.refresh(refreshDto, mockRequest, mockIp),
+        controller.refresh(refreshDto, mockRequest),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -388,7 +388,7 @@ describe('AuthController', () => {
       );
 
       await expect(
-        controller.refresh(refreshDto, mockRequest, mockIp),
+        controller.refresh(refreshDto, mockRequest),
       ).rejects.toThrow(UnauthorizedException);
     });
   });
@@ -729,7 +729,7 @@ describe('AuthController', () => {
         );
 
         await expect(
-          controller.login(loginDto, mockRequest, mockIp),
+          controller.login(loginDto, mockRequest),
         ).rejects.toThrow(UnauthorizedException);
       }
 
@@ -739,7 +739,7 @@ describe('AuthController', () => {
       );
 
       await expect(
-        controller.login(loginDto, mockRequest, mockIp),
+        controller.login(loginDto, mockRequest),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -751,7 +751,7 @@ describe('AuthController', () => {
 
       mockAuthService.login.mockResolvedValue(mockLoginResponse);
 
-      const result = await controller.login(loginDto, mockRequest, mockIp);
+      const result = await controller.login(loginDto, mockRequest);
 
       expect(result).toEqual(mockLoginResponse);
     });
@@ -767,7 +767,7 @@ describe('AuthController', () => {
       );
 
       try {
-        await controller.login(loginDto, mockRequest, mockIp);
+        await controller.login(loginDto, mockRequest);
         fail('Should have thrown UnauthorizedException');
       } catch (error) {
         expect(error.message).toBe('Invalid credentials');
@@ -784,7 +784,7 @@ describe('AuthController', () => {
 
       mockAuthService.login.mockResolvedValue(mockLoginResponse);
 
-      const result = await controller.login(loginDto, mockRequest, mockIp);
+      const result = await controller.login(loginDto, mockRequest);
 
       expect(result).toEqual(mockLoginResponse);
     });
@@ -802,7 +802,7 @@ describe('AuthController', () => {
       );
 
       try {
-        await controller.login(loginDto, mockRequest, mockIp);
+        await controller.login(loginDto, mockRequest);
         fail('Should have thrown UnauthorizedException');
       } catch (error) {
         expect(error).toBeInstanceOf(UnauthorizedException);

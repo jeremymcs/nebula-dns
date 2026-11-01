@@ -5,6 +5,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { MarketingPageShell, MarketingCard } from '@/components/marketing/MarketingPageShell'
+import { MarketingPageHero, MarketingSerifAccent } from '@/components/marketing/MarketingPageHero'
+import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
 
 const subjects = [
   'Sales Inquiry',
@@ -45,74 +48,53 @@ export default function ContactPage() {
 
   if (submitted) {
     return (
-      <div className="bg-space-950 min-h-screen">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-32">
-          <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-12 text-center">
-            {/* Gradient checkmark */}
-            <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-success-600 to-accent-500 text-white mx-auto mb-6">
-              <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h2 className="text-3xl font-bold text-white mb-4">
-              Message Sent!
-            </h2>
-            <p className="text-space-400 text-lg mb-8">
-              We&apos;ve received your message and will get back to you within 24 hours.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/pricing"
-                className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center justify-center gap-2"
-              >
-                View Pricing
-              </Link>
-              <Link
-                href="/"
-                className="bg-space-800 border border-space-700 text-white hover:bg-space-700 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center justify-center"
-              >
-                Back to Home
-              </Link>
-            </div>
+      <MarketingPageShell>
+        <div className="section-container py-24 sm:py-32">
+          <div className="mx-auto max-w-3xl">
+            <MarketingCard className="p-12 text-center">
+              <div className="mx-auto mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-[var(--fs-success-soft)] text-[var(--fs-success)]">
+                <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2 className="text-3xl font-semibold text-ink mb-4">Message Sent!</h2>
+              <p className="text-[var(--fs-txt)] text-lg mb-8">
+                We&apos;ve received your message and will get back to you within 24 hours.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/pricing" className="fs-btn fs-btn-primary fs-btn-lg no-underline">
+                  View Pricing
+                </Link>
+                <Link href="/" className="fs-btn no-underline">
+                  Back to Home
+                </Link>
+              </div>
+            </MarketingCard>
           </div>
         </div>
-      </div>
+      </MarketingPageShell>
     )
   }
 
   return (
-    <div className="bg-space-950">
-
-      {/* Hero Section */}
-      <section className="py-24 bg-space-950 relative overflow-hidden">
-        <div className="absolute top-0 left-1/3 w-96 h-96 bg-primary-600/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-1/3 w-72 h-72 bg-accent-600/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-4">
-            Contact Us
-          </p>
-          <h1 className="text-4xl sm:text-5xl font-bold text-white">
-            Get in{' '}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
-              Touch
-            </span>
-          </h1>
-          <p className="mt-4 text-lg text-space-400 max-w-2xl mx-auto">
-            Have questions about Flux Shield? We&apos;re here to help. Send us a message and our team will get back to you shortly.
-          </p>
-        </div>
-      </section>
-
-      {/* Contact Form + Sidebar */}
-      <section className="py-24 bg-space-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <MarketingPageShell>
+      <MarketingPageHero
+        eyebrow="Contact Us"
+        title={
+          <>
+            Get in <MarketingSerifAccent>Touch</MarketingSerifAccent>
+          </>
+        }
+        lede="Have questions about Flux Shield? We're here to help. Send us a message and our team will get back to you shortly."
+      />
+      <section className="py-16 sm:py-20 border-t border-[var(--fs-line)]">
+        <div className="section-container">
           <div className="grid lg:grid-cols-3 gap-8">
 
             {/* Form — wider column */}
             <div className="lg:col-span-2">
-              <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8">
-                <h2 className="text-2xl font-bold text-white mb-6">
+              <div className="fs-card rounded-[14px] p-8">
+                <h2 className="text-2xl font-bold text-ink mb-6">
                   Send us a message
                 </h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -120,7 +102,7 @@ export default function ContactPage() {
                   {/* Name + Email row */}
                   <div className="grid sm:grid-cols-2 gap-6">
                     <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-space-400 mb-2">
+                      <label htmlFor="name" className="block text-sm font-medium text-[var(--fs-txt)] mb-2">
                         Full Name
                       </label>
                       <input
@@ -131,11 +113,11 @@ export default function ContactPage() {
                         value={formState.name}
                         onChange={handleChange}
                         placeholder="John Smith"
-                        className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 outline-none w-full transition-all"
+                        className="fs-input"
                       />
                     </div>
                     <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-space-400 mb-2">
+                      <label htmlFor="email" className="block text-sm font-medium text-[var(--fs-txt)] mb-2">
                         Email Address
                       </label>
                       <input
@@ -146,16 +128,16 @@ export default function ContactPage() {
                         value={formState.email}
                         onChange={handleChange}
                         placeholder="john@company.com"
-                        className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 outline-none w-full transition-all"
+                        className="fs-input"
                       />
                     </div>
                   </div>
 
                   {/* Company (optional) */}
                   <div>
-                    <label htmlFor="company" className="block text-sm font-medium text-space-400 mb-2">
+                    <label htmlFor="company" className="block text-sm font-medium text-[var(--fs-txt)] mb-2">
                       Company{' '}
-                      <span className="text-space-600 font-normal">(optional)</span>
+                      <span className="text-[var(--fs-mut)] font-normal">(optional)</span>
                     </label>
                     <input
                       type="text"
@@ -164,13 +146,13 @@ export default function ContactPage() {
                       value={formState.company}
                       onChange={handleChange}
                       placeholder="Acme Corp"
-                      className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 outline-none w-full transition-all"
+                      className="fs-input"
                     />
                   </div>
 
                   {/* Subject dropdown */}
                   <div>
-                    <label htmlFor="subject" className="block text-sm font-medium text-space-400 mb-2">
+                    <label htmlFor="subject" className="block text-sm font-medium text-[var(--fs-txt)] mb-2">
                       Subject
                     </label>
                     <select
@@ -181,7 +163,7 @@ export default function ContactPage() {
                       onChange={handleChange}
                       className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-primary-500 outline-none w-full transition-all appearance-none"
                     >
-                      <option value="" disabled className="text-space-500">
+                      <option value="" disabled className="text-[var(--fs-mut)]">
                         Select a subject...
                       </option>
                       {subjects.map((s) => (
@@ -194,7 +176,7 @@ export default function ContactPage() {
 
                   {/* Message */}
                   <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-space-400 mb-2">
+                    <label htmlFor="message" className="block text-sm font-medium text-[var(--fs-txt)] mb-2">
                       Message
                     </label>
                     <textarea
@@ -205,14 +187,14 @@ export default function ContactPage() {
                       value={formState.message}
                       onChange={handleChange}
                       placeholder="Tell us about your DNS security needs..."
-                      className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 outline-none w-full transition-all resize-none"
+                      className="fs-input resize-none"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full fs-btn fs-btn-primary fs-btn-lg no-underline px-6 py-3 transition-all inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? (
                       <>
@@ -240,7 +222,7 @@ export default function ContactPage() {
             <div className="space-y-5">
 
               {/* Sales */}
-              <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6">
+              <div className="fs-card rounded-[14px] p-6">
                 <div className="flex items-start gap-4">
                   <div className="h-12 w-12 rounded-xl bg-primary-900/50 border border-primary-800/50 flex items-center justify-center text-primary-400 flex-shrink-0">
                     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -249,7 +231,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-white font-semibold mb-1">Sales</h3>
-                    <p className="text-space-400 text-sm mb-2">
+                    <p className="text-[var(--fs-txt)] text-sm mb-2">
                       Questions about plans, pricing, or enterprise options?
                     </p>
                     <a
@@ -263,7 +245,7 @@ export default function ContactPage() {
               </div>
 
               {/* Support */}
-              <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6">
+              <div className="fs-card rounded-[14px] p-6">
                 <div className="flex items-start gap-4">
                   <div className="h-12 w-12 rounded-xl bg-accent-900/50 border border-accent-800/50 flex items-center justify-center text-accent-400 flex-shrink-0">
                     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -272,7 +254,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-white font-semibold mb-1">Support</h3>
-                    <p className="text-space-400 text-sm mb-2">
+                    <p className="text-[var(--fs-txt)] text-sm mb-2">
                       Technical issues or account help?
                     </p>
                     <a
@@ -286,7 +268,7 @@ export default function ContactPage() {
               </div>
 
               {/* Live Chat */}
-              <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6">
+              <div className="fs-card rounded-[14px] p-6">
                 <div className="flex items-start gap-4">
                   <div className="h-12 w-12 rounded-xl bg-primary-900/50 border border-primary-800/50 flex items-center justify-center text-primary-400 flex-shrink-0">
                     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -295,7 +277,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-white font-semibold mb-1">Live Chat</h3>
-                    <p className="text-space-400 text-sm">
+                    <p className="text-[var(--fs-txt)] text-sm">
                       Get instant answers via the chat widget in the bottom right corner.
                       Available during business hours.
                     </p>
@@ -304,16 +286,16 @@ export default function ContactPage() {
               </div>
 
               {/* Business Hours */}
-              <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6">
+              <div className="fs-card rounded-[14px] p-6">
                 <h3 className="text-white font-semibold mb-4">Business Hours</h3>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-space-400">Monday – Friday</span>
+                    <span className="text-[var(--fs-txt)]">Monday – Friday</span>
                     <span className="text-white font-medium">9am – 6pm EST</span>
                   </div>
                   <div className="border-t border-space-700/50 pt-3 flex justify-between">
-                    <span className="text-space-400">Saturday – Sunday</span>
-                    <span className="text-space-500">Closed</span>
+                    <span className="text-[var(--fs-txt)]">Saturday – Sunday</span>
+                    <span className="text-[var(--fs-mut)]">Closed</span>
                   </div>
                   <div className="border-t border-space-700/50 pt-3">
                     <div className="flex items-center gap-2">
@@ -328,7 +310,6 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
-
-    </div>
+    </MarketingPageShell>
   )
 }

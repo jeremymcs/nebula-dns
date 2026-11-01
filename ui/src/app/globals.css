@@ -66,11 +66,20 @@
   }
 
   .btn-primary {
-    @apply btn bg-gradient-to-r from-primary-700 to-primary-500 text-white shadow-lg shadow-primary-700/25 hover:shadow-xl hover:shadow-primary-600/30 hover:from-primary-600 hover:to-primary-400 active:scale-[0.98] focus-visible:ring-primary-600;
+    @apply btn text-white active:scale-[0.98] focus-visible:ring-primary-600;
+    background: linear-gradient(180deg, #24468c, var(--fs-navy));
+    box-shadow:
+      0 0 0 1px #17306a,
+      inset 0 1px 0 rgba(255, 255, 255, 0.18),
+      0 6px 16px -6px rgba(30, 59, 120, 0.6);
   }
 
   .btn-secondary {
-    @apply btn bg-white dark:bg-space-800 text-space-700 dark:text-space-200 shadow-sm ring-1 ring-space-200 dark:ring-space-700 hover:bg-space-50 dark:hover:bg-space-700 active:scale-[0.98] focus-visible:ring-primary-500;
+    @apply btn text-ink dark:text-space-200 active:scale-[0.98] focus-visible:ring-primary-500;
+    background: #fff;
+    box-shadow:
+      0 0 0 1px rgba(11, 21, 48, 0.08),
+      0 1px 2px rgba(11, 21, 48, 0.06);
   }
 
   .btn-ghost {
@@ -102,7 +111,16 @@
    * ============================================ */
 
   .card {
-    @apply bg-white dark:bg-space-800/50 rounded-2xl shadow-sm ring-1 ring-space-900/5 dark:ring-white/5;
+    background: var(--fs-panel);
+    border-radius: 0.875rem;
+    box-shadow:
+      0 0 0 1px rgba(11, 21, 48, 0.06),
+      0 1px 2px rgba(11, 21, 48, 0.04),
+      0 8px 24px -16px rgba(11, 21, 48, 0.12);
+  }
+
+  html.dark .card {
+    box-shadow: 0 0 0 1px var(--fs-line);
   }
 
   .card-glass {
@@ -126,7 +144,30 @@
    * ============================================ */
 
   .input {
-    @apply block w-full rounded-xl border-0 py-2.5 px-4 text-space-900 dark:text-space-100 bg-white dark:bg-space-800 shadow-sm ring-1 ring-inset ring-space-200 dark:ring-space-700 placeholder:text-space-400 dark:placeholder:text-space-500 focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:focus:ring-primary-400 text-sm transition-shadow duration-200;
+    @apply block w-full rounded-[10px] py-2.5 px-3.5 text-sm transition-shadow duration-200;
+    color: var(--fs-ink);
+    background: var(--fs-panel);
+    border: 1px solid var(--fs-line);
+    box-shadow: 0 1px 2px rgba(11, 21, 48, 0.03);
+  }
+
+  .input::placeholder {
+    color: var(--fs-mut);
+  }
+
+  .input:focus {
+    outline: none;
+    border-color: rgba(75, 124, 187, 0.55);
+    box-shadow: 0 0 0 3px rgba(75, 124, 187, 0.18);
+  }
+
+  html.dark .input {
+    background: var(--fs-surface);
+  }
+
+  .label {
+    @apply block text-sm font-medium mb-1.5;
+    color: var(--fs-txt);
   }
 
   .input-error {
@@ -146,10 +187,6 @@
 
   .textarea {
     @apply input min-h-[100px] resize-y;
-  }
-
-  .label {
-    @apply block text-sm font-medium text-space-700 dark:text-space-300 mb-1.5;
   }
 
   .input-group {

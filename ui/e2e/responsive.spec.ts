@@ -3,7 +3,7 @@
 
 import { test, expect, devices } from '@playwright/test'
 import { loginAndNavigate, waitForPageLoad } from './helpers/auth'
-import { loginHeading, pageHeading } from './helpers/selectors'
+import { loginHeading, pageHeading, enterpriseDashboardHeading } from './helpers/selectors'
 
 test.describe('Responsive Design - Mobile (375x667)', () => {
   test.beforeEach(async ({ page }) => {
@@ -148,7 +148,7 @@ test.describe('Responsive Design - Tablet (768x1024)', () => {
     await loginAndNavigate(page, '/dashboard')
     await waitForPageLoad(page)
 
-    await expect(pageHeading(page, /^dashboard$/i)).toBeVisible()
+    await expect(enterpriseDashboardHeading(page)).toBeVisible()
   })
 
   test('should show sidebar navigation on tablet', async ({ page }) => {
@@ -225,7 +225,7 @@ test.describe('Responsive Design - Desktop (1920x1080)', () => {
     await loginAndNavigate(page, '/dashboard')
     await waitForPageLoad(page)
 
-    await expect(pageHeading(page, /^dashboard$/i)).toBeVisible()
+    await expect(enterpriseDashboardHeading(page)).toBeVisible()
   })
 
   test('should show full sidebar on desktop', async ({ page }) => {
@@ -337,14 +337,14 @@ test.describe('Responsive Design - Orientation Changes', () => {
     await loginAndNavigate(page, '/dashboard')
     await waitForPageLoad(page)
 
-    await expect(pageHeading(page, /^dashboard$/i)).toBeVisible()
+    await expect(enterpriseDashboardHeading(page)).toBeVisible()
 
     // Switch to landscape
     await page.setViewportSize({ width: 667, height: 375 })
     await page.waitForTimeout(500)
 
     // Dashboard should still be visible and functional
-    await expect(pageHeading(page, /^dashboard$/i)).toBeVisible()
+    await expect(enterpriseDashboardHeading(page)).toBeVisible()
   })
 
   test('should handle landscape to portrait on tablet', async ({ page }) => {
@@ -353,13 +353,13 @@ test.describe('Responsive Design - Orientation Changes', () => {
     await loginAndNavigate(page, '/dashboard')
     await waitForPageLoad(page)
 
-    await expect(pageHeading(page, /^dashboard$/i)).toBeVisible()
+    await expect(enterpriseDashboardHeading(page)).toBeVisible()
 
     // Switch to portrait
     await page.setViewportSize({ width: 768, height: 1024 })
     await page.waitForTimeout(500)
 
-    await expect(pageHeading(page, /^dashboard$/i)).toBeVisible()
+    await expect(enterpriseDashboardHeading(page)).toBeVisible()
   })
 })
 
