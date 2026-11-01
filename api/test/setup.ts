@@ -7,6 +7,8 @@
 
 // Set test environment
 process.env.NODE_ENV = 'test';
+process.env.ADMIN_JWT_SECRET =
+  process.env.ADMIN_JWT_SECRET || 'test-admin-jwt-secret-for-e2e';
 
 // Set reasonable timeouts for tests
 jest.setTimeout(30000);
