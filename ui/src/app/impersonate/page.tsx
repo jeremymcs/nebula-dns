@@ -7,52 +7,52 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { storeImpersonation } from '@/lib/impersonation'
+import { useSearchParams } from 'next/navigation'
+import {
+  bootstrapImpersonationSession,
+  parseImpersonationParams,
+} from '@/lib/impersonation-session'
 import { ADMIN_UI_URL } from '@/lib/api'
 
 export default function ImpersonatePage() {
   const searchParams = useSearchParams()
-  const router = useRouter()
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const token = searchParams.get('token')
-    const info = searchParams.get('info')
+    let cancelled = false
 
-    if (!token) {
-      setError('Missing impersonation token')
-      return
-    }
+    const run = async () => {
+      const token = searchParams.get('token')
+      const info = searchParams.get('info')
 
-    try {
-      // Parse impersonation info from URL
-      const parsedInfo = info ? JSON.parse(decodeURIComponent(info)) : null
-
-      if (!parsedInfo || !parsedInfo.tenantId || !parsedInfo.tenantName) {
-        setError('Invalid impersonation info')
+      const parsed = parseImpersonationParams(token, info)
+      if ('error' in parsed) {
+        if (!cancelled) {
+          setError(parsed.error)
+        }
         return
       }
 
-      // Store impersonation data in localStorage
-      storeImpersonation(token, {
-        tenantId: parsedInfo.tenantId,
-        tenantName: parsedInfo.tenantName,
-        tenantTier: parsedInfo.tenantTier || 'home',
-      })
-
-      // Also store user info if provided
-      if (parsedInfo.user) {
-        localStorage.setItem('user', JSON.stringify(parsedInfo.user))
+      try {
+        await bootstrapImpersonationSession(parsed.token, parsed.info)
+        if (!cancelled) {
+          window.location.href = '/dashboard'
+        }
+      } catch (err) {
+        if (!cancelled) {
+          const message =
+            err instanceof Error ? err.message : 'Failed to set up impersonation session'
+          setError(message)
+        }
       }
-
-      // Redirect to dashboard
-      router.replace('/dashboard')
-    } catch (err) {
-      console.error('Failed to process impersonation:', err)
-      setError('Failed to process impersonation data')
     }
-  }, [searchParams, router])
+
+    void run()
+
+    return () => {
+      cancelled = true
+    }
+  }, [searchParams])
 
   if (error) {
     return (

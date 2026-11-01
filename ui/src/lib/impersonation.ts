@@ -67,5 +67,7 @@ export function clearImpersonation(): void {
   localStorage.removeItem(IMPERSONATION_TOKEN_KEY)
   localStorage.removeItem(IMPERSONATION_INFO_KEY)
   localStorage.removeItem(TOKEN_KEY)
+  localStorage.removeItem('user')
+  localStorage.removeItem('mspInfo')
   // Note: admin_token is preserved
 }
