@@ -28,6 +28,14 @@ import { AdminDashboardService } from './admin-dashboard.service';
 import { AdminActivityModule } from './admin-activity.module';
 import { AdminUsersService } from './admin-users.service';
 import { AdminInvitationsService } from './admin-invitations.service';
+import { AdminMfaService } from './admin-mfa.service';
+import { AdminMfaGuard } from './guards/admin-mfa.guard';
+import { AgentInstallation } from '../agents/entities/agent-installation.entity';
+import { AuditLog } from '../audit-logs/entities/audit-log.entity';
+import { AdminTenantsService } from './admin-tenants.service';
+import { AdminTenantsController } from './admin-tenants.controller';
+import { AdminPlatformAuditService } from './admin-platform-audit.service';
+import { AdminPlatformAuditController } from './admin-platform-audit.controller';
 import { AdminController } from './admin.controller';
 import { AdminUsersController } from './admin-users.controller';
 import { RedisModule } from '../redis/redis.module';
@@ -41,6 +49,10 @@ import { SubscriptionLapseModule } from '../subscription-lapse/subscription-laps
 import { AlertingModule } from '../alerting/alerting.module';
 import { DnsManagementModule } from '../dns-management/dns-management.module';
 import { AdminDnsManagementController } from '../dns-management/admin-dns-management.controller';
+import { LimitsModule } from '../limits/limits.module';
+import { AdminRefreshToken } from '../mobile/entities/admin-refresh-token.entity';
+import { AdminRefreshTokenService } from '../mobile/admin-refresh-token.service';
+import { MobileModule } from '../mobile/mobile.module';
 
 /**
  * Admin Module
@@ -50,7 +62,7 @@ import { AdminDnsManagementController } from '../dns-management/admin-dns-manage
  *
  * - Uses separate ADMIN_JWT_SECRET (not JWT_SECRET)
  * - Uses named strategy 'admin-jwt' (not default 'jwt')
- * - 8-hour session duration (workday sessions)
+ * - 15-minute access tokens with rotating refresh tokens (mobile Phase 0)
  * - Tokens have issuer 'nebula-admin' to distinguish from tenant tokens
  *
  * Components:
@@ -66,14 +78,14 @@ import { AdminDnsManagementController } from '../dns-management/admin-dns-manage
     // Passport with admin-jwt as default strategy for this module
     PassportModule.register({ defaultStrategy: 'admin-jwt' }),
 
-    // JWT configuration with separate secret and 8-hour expiry
+    // JWT configuration with separate secret and 15-minute access TTL
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('ADMIN_JWT_SECRET'),
         signOptions: {
-          expiresIn: '8h', // 8-hour workday session per CONTEXT.md
+          expiresIn: configService.get<string>('ADMIN_JWT_EXPIRY') || '15m',
           issuer: 'nebula-admin', // Distinguishes from tenant tokens
         },
       }),
@@ -85,12 +97,17 @@ import { AdminDnsManagementController } from '../dns-management/admin-dns-manage
       AdminMfa,
       AdminInvitation,
       AdminActivityLog,
+      AdminRefreshToken,
       Tenant,
       Location,
       User,
       Subscription,
       MspInvoice,
+      AgentInstallation,
+      AuditLog,
     ]),
+
+    LimitsModule,
 
     // Redis for session management (blacklist, session tracking)
     RedisModule,
@@ -112,10 +129,13 @@ import { AdminDnsManagementController } from '../dns-management/admin-dns-manage
     AlertingModule,
     forwardRef(() => DnsManagementModule),
     AdminActivityModule,
+    forwardRef(() => MobileModule),
   ],
 
   // Admin API endpoints
   controllers: [
+    AdminTenantsController,
+    AdminPlatformAuditController,
     AdminController,
     AdminUsersController,
     AdminDnsManagementController,
@@ -125,25 +145,34 @@ import { AdminDnsManagementController } from '../dns-management/admin-dns-manage
   providers: [
     AdminService,
     AdminSessionService,
+    AdminRefreshTokenService,
     AdminHealthService,
     AdminBillingService,
     AdminDashboardService,
     AdminUsersService,
     AdminInvitationsService,
+    AdminMfaService,
+    AdminTenantsService,
+    AdminPlatformAuditService,
     AdminJwtStrategy,
     AdminAuthGuard,
     AdminRolesGuard,
+    AdminMfaGuard,
   ],
 
   // Export service and guard for use by other modules
   exports: [
     AdminService,
+    AdminSessionService,
+    AdminRefreshTokenService,
     AdminHealthService,
     AdminBillingService,
     AdminDashboardService,
     AdminActivityModule,
     AdminUsersService,
     AdminInvitationsService,
+    AdminTenantsService,
+    AdminPlatformAuditService,
     AdminAuthGuard,
     AdminRolesGuard,
     JwtModule,

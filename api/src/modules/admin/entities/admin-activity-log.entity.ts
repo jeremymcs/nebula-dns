@@ -38,7 +38,11 @@ export type AdminActivityAction =
   | 'dns_platform_connection_verified'
   | 'dns_platform_connection_revoked'
   | 'dns_platform_zones_synced'
-  | 'dns_platform_zone_created';
+  | 'dns_platform_zone_created'
+  | 'tenant_suspended'
+  | 'tenant_reactivated'
+  | 'tenant_limits_updated'
+  | 'tenant_modules_updated';
 
 /**
  * AdminActivityLog Entity

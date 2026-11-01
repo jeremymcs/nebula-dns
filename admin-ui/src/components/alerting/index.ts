@@ -13,3 +13,5 @@ export { PagerDutyConfigModal } from './PagerDutyConfigModal'
 
 export { TestAlertButton } from './TestAlertButton'
 export type { TestAlertButtonProps } from './TestAlertButton'
+
+export { EditAlertConfigModal } from './EditAlertConfigModal'

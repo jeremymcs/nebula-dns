@@ -6,6 +6,10 @@
 
 name: Deploy
 
+concurrency:
+  group: deploy-production-droplet
+  cancel-in-progress: false
+
 on:
   push:
     branches: [main]
@@ -50,6 +54,7 @@ jobs:
 
   deploy-droplet:
     name: Deploy droplet stack
+    if: github.ref == 'refs/heads/main'
     needs: [build-api, build-policy-svc, build-dnsdist, build-unbound]
     runs-on: ubuntu-latest
     environment: production
@@ -164,6 +169,17 @@ jobs:
 
             export IMAGE_TAG
 
+            ENV_FILE=".env"
+            if [ -f "${ENV_FILE}" ]; then
+              if grep -q '^IMAGE_TAG=' "${ENV_FILE}"; then
+                sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=${IMAGE_TAG}/" "${ENV_FILE}"
+              else
+                echo "IMAGE_TAG=${IMAGE_TAG}" >> "${ENV_FILE}"
+              fi
+            else
+              echo "IMAGE_TAG=${IMAGE_TAG}" > "${ENV_FILE}"
+            fi
+
             pull_one() {
               local svc="$1"
               local log
@@ -195,6 +211,9 @@ jobs:
             mapfile -t UNIQUE_RECREATE < <(printf '%s\n' "${RECREATE[@]}" | awk '!seen[$0]++')
             echo "Recreating services: ${UNIQUE_RECREATE[*]}"
             docker compose up -d --remove-orphans "${UNIQUE_RECREATE[@]}"
+            if [ "${CADDYFILE_CHANGED:-false}" = "true" ]; then
+              docker compose restart caddy
+            fi
             docker compose ps
 
       - name: Deployment summary
@@ -203,5 +222,5 @@ jobs:
           echo "## Droplet deployment" >> "$GITHUB_STEP_SUMMARY"
           echo "**Commit:** \`${{ github.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "**Deploy path:** \`${{ env.DEPLOY_PATH || env.DEFAULT_DEPLOY_PATH }}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "**API:** https://api.nebuladns.io/health" >> "$GITHUB_STEP_SUMMARY"
-          echo "**App (Vercel):** https://app.nebuladns.io" >> "$GITHUB_STEP_SUMMARY"
+          echo "**API:** https://api.shield.fluxlabs.net/health" >> "$GITHUB_STEP_SUMMARY"
+          echo "**App (Vercel):** https://shield.fluxlabs.net" >> "$GITHUB_STEP_SUMMARY"

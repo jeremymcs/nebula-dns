@@ -65,6 +65,7 @@ import { RateLimitModule } from './modules/rate-limit/rate-limit.module';
 // Threat intelligence & category blacklists (Redis → policy-svc)
 import { ThreatFeedsModule } from './modules/threat-feeds/threat-feeds.module';
 import { CategoryFeedsModule } from './modules/category-feeds/category-feeds.module';
+import { InternalModule } from './modules/internal/internal.module';
 
 // Secrets Management
 import { SecretsModule } from './modules/secrets/secrets.module';
@@ -85,6 +86,7 @@ import { SubscriptionLapseModule } from './modules/subscription-lapse/subscripti
 import configuration from './config/configuration';
 import { getPostgresSslConfig } from './database/pg-ssl';
 import { SsoConfigurationSubscriber } from './modules/sso/subscribers/sso-configuration.subscriber';
+import { MobileModule } from './modules/mobile/mobile.module';
 
 @Module({
   imports: [
@@ -208,6 +210,7 @@ import { SsoConfigurationSubscriber } from './modules/sso/subscribers/sso-config
 
     ThreatFeedsModule,
     CategoryFeedsModule,
+    InternalModule,
 
     // Secrets Management (AWS/Vault/env)
     SecretsModule,
@@ -223,6 +226,9 @@ import { SsoConfigurationSubscriber } from './modules/sso/subscribers/sso-config
 
     // Subscription Lapse (US-027, US-028, US-029)
     SubscriptionLapseModule,
+
+    // Mobile Phase 0 (devices, refresh tokens, push)
+    MobileModule,
   ],
 })
 export class AppModule implements NestModule {

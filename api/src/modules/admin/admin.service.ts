@@ -54,6 +54,9 @@ import {
   EndImpersonationResponseDto,
 } from './dto/impersonation.dto';
 import { AdminSessionService, AdminDeviceInfo } from './admin-session.service';
+import { AdminRefreshTokenService } from '../mobile/admin-refresh-token.service';
+import { MobileDevicesService } from '../mobile/mobile-devices.service';
+import { NotificationService } from '../mobile/notification.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import {
   AuditAction,
@@ -70,6 +73,7 @@ import { AdminActivityService } from './admin-activity.service';
 export interface AdminLoginContext {
   userAgent: string;
   ipAddress: string;
+  externalDeviceId?: string;
 }
 
 /**
@@ -105,8 +109,13 @@ export class AdminService {
     private readonly clickhouseService: ClickHouseService,
     private readonly emailService: EmailService,
     private readonly activityService: AdminActivityService,
+    private readonly adminRefreshTokenService: AdminRefreshTokenService,
     @Optional()
     private readonly alertDispatcher?: AlertDispatcherService,
+    @Optional()
+    private readonly mobileDevicesService?: MobileDevicesService,
+    @Optional()
+    private readonly notificationService?: NotificationService,
   ) {
     // Lockout configuration
     this.maxFailedAttempts = this.configService.get<number>(
@@ -175,8 +184,18 @@ export class AdminService {
       lastLoginAt: new Date(),
     });
 
-    // Generate token and create session
-    return this.generateTokenAndSession(admin, context);
+    // Password step only — MFA must be verified before full admin access
+    return this.createAuthenticatedSession(admin, context, false);
+  }
+
+  /**
+   * Issue a new admin JWT after MFA verification (or re-auth).
+   */
+  async createMfaVerifiedSession(
+    admin: Admin,
+    context: AdminLoginContext,
+  ): Promise<AdminLoginResponseDto> {
+    return this.createAuthenticatedSession(admin, context, true);
   }
 
   /**
@@ -226,11 +245,113 @@ export class AdminService {
   /**
    * Revoke all sessions for an admin except current
    */
+  async revokeSession(
+    adminId: string,
+    sessionId: string,
+    currentJti?: string,
+  ): Promise<void> {
+    return this.adminSessionService.revokeSession(
+      adminId,
+      sessionId,
+      currentJti,
+    );
+  }
+
+  /**
+   * Exchange a rotating admin refresh token for new access + refresh tokens.
+   */
+  async refreshAdminSession(
+    refreshToken: string,
+    context: AdminLoginContext,
+  ): Promise<AdminLoginResponseDto> {
+    const rotated = await this.adminRefreshTokenService.rotateRefreshToken(
+      refreshToken,
+    );
+
+    const admin = await this.findById(rotated.adminId);
+    if (!admin || admin.status === 'suspended') {
+      throw new UnauthorizedException('Admin not found or suspended');
+    }
+
+    let deviceInternalId: string | null = null;
+    if (context.externalDeviceId && this.mobileDevicesService) {
+      const device = await this.mobileDevicesService.findActiveByExternalIdForAdmin(
+        admin.id,
+        context.externalDeviceId,
+      );
+      deviceInternalId = device?.id ?? null;
+    }
+
+    const payload = {
+      sub: admin.id,
+      email: admin.email,
+      name: admin.name,
+      jti: rotated.sessionJti,
+      mfaVerified: rotated.mfaVerified,
+      role: admin.role,
+    };
+
+    const accessToken = this.jwtService.sign(payload);
+    const accessExpiresIn = this.getAdminAccessTtlSeconds();
+
+    const deviceInfo: AdminDeviceInfo =
+      this.adminSessionService.parseDeviceInfo(context.userAgent);
+
+    await this.adminSessionService.createSession(
+      admin.id,
+      rotated.sessionJti,
+      deviceInfo,
+      context.ipAddress,
+    );
+
+    if (deviceInternalId) {
+      await this.mobileDevicesService?.updateLastRefreshJti(
+        deviceInternalId,
+        rotated.sessionJti,
+      );
+    }
+
+    return {
+      accessToken,
+      refreshToken: rotated.refreshToken,
+      expiresIn: accessExpiresIn,
+      admin: {
+        id: admin.id,
+        email: admin.email,
+        name: admin.name,
+        status: admin.status,
+        mfaSetupComplete: admin.mfaSetupComplete,
+        role: admin.role,
+      },
+      mfaRequired: !rotated.mfaVerified,
+      mfaEnrollmentRequired: !admin.mfaSetupComplete,
+    };
+  }
+
+  private getAdminAccessTtlSeconds(): number {
+    const expiry = this.configService.get<string>('ADMIN_JWT_EXPIRY') || '15m';
+    if (expiry.endsWith('m')) {
+      return parseInt(expiry, 10) * 60;
+    }
+    if (expiry.endsWith('h')) {
+      return parseInt(expiry, 10) * 3600;
+    }
+    return 900;
+  }
+
+  /**
+   * Revoke all sessions for an admin except current
+   */
   async revokeAllSessions(
     adminId: string,
     currentJti?: string,
   ): Promise<number> {
-    return this.adminSessionService.revokeAllSessions(adminId, currentJti);
+    const count = await this.adminSessionService.revokeAllSessions(
+      adminId,
+      currentJti,
+    );
+    await this.adminRefreshTokenService.revokeAllForAdmin(adminId);
+    return count;
   }
 
   /**
@@ -369,6 +490,20 @@ export class AdminService {
       this.logger.warn(
         `Admin account locked due to too many failed attempts: ${admin.email}`,
       );
+
+      await this.notificationService?.enqueue({
+        eventType: 'failed_admin_login',
+        title: 'Admin account locked',
+        body: `${admin.email} was locked after ${attempts} failed login attempts`,
+        adminId: admin.id,
+      });
+    } else if (attempts >= Math.max(3, this.maxFailedAttempts - 1)) {
+      await this.notificationService?.enqueue({
+        eventType: 'failed_admin_login',
+        title: 'Repeated failed admin login',
+        body: `${attempts} failed login attempts for ${admin.email}`,
+        adminId: admin.id,
+      });
     }
 
     await this.adminRepository.update(admin.id, updateData);
@@ -402,9 +537,10 @@ export class AdminService {
   /**
    * Generate JWT token and create session
    */
-  private async generateTokenAndSession(
+  private async createAuthenticatedSession(
     admin: Admin,
     context: AdminLoginContext,
+    mfaVerified: boolean,
   ): Promise<AdminLoginResponseDto> {
     const jti = uuidv4();
 
@@ -415,7 +551,7 @@ export class AdminService {
       email: admin.email,
       name: admin.name,
       jti,
-      mfaVerified: admin.mfaSetupComplete,
+      mfaVerified,
       role: admin.role,
     };
 
@@ -425,6 +561,16 @@ export class AdminService {
     // Create session in Redis
     const deviceInfo: AdminDeviceInfo =
       this.adminSessionService.parseDeviceInfo(context.userAgent);
+
+    let deviceInternalId: string | null = null;
+    if (context.externalDeviceId && this.mobileDevicesService) {
+      const existingDevice =
+        await this.mobileDevicesService.findActiveByExternalIdForAdmin(
+          admin.id,
+          context.externalDeviceId,
+        );
+      deviceInternalId = existingDevice?.id ?? null;
+    }
 
     try {
       await this.adminSessionService.createSession(
@@ -446,11 +592,25 @@ export class AdminService {
       ipAddress: context.ipAddress,
     });
 
-    // Get token expiry time from JWT config (8 hours default)
-    const expiresIn = 8 * 60 * 60; // 28800 seconds = 8 hours
+    const issuedRefresh = await this.adminRefreshTokenService.issueToken({
+      adminId: admin.id,
+      sessionJti: jti,
+      mfaVerified,
+      deviceId: deviceInternalId,
+    });
+
+    if (deviceInternalId) {
+      await this.mobileDevicesService?.updateLastRefreshJti(
+        deviceInternalId,
+        jti,
+      );
+    }
+
+    const expiresIn = this.getAdminAccessTtlSeconds();
 
     return {
       accessToken,
+      refreshToken: issuedRefresh.token,
       expiresIn,
       admin: {
         id: admin.id,
@@ -460,6 +620,8 @@ export class AdminService {
         mfaSetupComplete: admin.mfaSetupComplete,
         role: admin.role,
       },
+      mfaRequired: !mfaVerified,
+      mfaEnrollmentRequired: !admin.mfaSetupComplete,
     };
   }
 
@@ -1037,7 +1199,26 @@ export class AdminService {
     adminUser: AdminUser,
     tenantId: string,
     ipAddress?: string,
+    options?: {
+      reason?: string;
+      externalDeviceId?: string;
+      appVersion?: string;
+    },
   ): Promise<StartImpersonationResponseDto> {
+    const mobileImpersonationEnabled =
+      this.configService.get<string>('MOBILE_IMPERSONATION_ENABLED') === 'true';
+
+    if (options?.externalDeviceId && !mobileImpersonationEnabled) {
+      throw new ForbiddenException({
+        message: 'Mobile impersonation is disabled',
+        code: 'MOBILE_IMPERSONATION_DISABLED',
+      });
+    }
+
+    if (options?.externalDeviceId && !options.reason?.trim()) {
+      throw new BadRequestException('Impersonation reason is required from mobile clients');
+    }
+
     // 1. Verify tenant exists
     const tenant = await this.tenantRepository.findOne({
       where: { id: tenantId },
@@ -1088,6 +1269,12 @@ export class AdminService {
         adminEmail: adminUser.email,
         tenantName: tenant.name,
         tenantTier: tenant.tier,
+        reason: options?.reason,
+        mobileImpersonation: !!options?.externalDeviceId,
+        ...(options?.externalDeviceId
+          ? { deviceId: options.externalDeviceId }
+          : {}),
+        ...(options?.appVersion ? { appVersion: options.appVersion } : {}),
       },
     });
 
@@ -1356,6 +1543,13 @@ export class AdminService {
       );
       // Don't fail the operation if email fails
     }
+
+    await this.notificationService?.enqueue({
+      eventType: 'msp_signup',
+      title: 'New MSP onboarded',
+      body: `${savedTenant.name} was created by admin ${createdByAdminId}`,
+      adminId: createdByAdminId,
+    });
 
     // 9. Return response (tempPassword excluded from response)
     return {

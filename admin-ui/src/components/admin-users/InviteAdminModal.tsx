@@ -69,8 +69,21 @@ export function InviteAdminModal({ isOpen, onClose, onSuccess }: InviteAdminModa
     setError(null)
 
     try {
-      await inviteAdmin(data)
-      showToast('success', 'Invitation Sent', `An invitation has been sent to ${data.email}`)
+      const result = await inviteAdmin(data)
+      if (result.emailSent) {
+        showToast('success', 'Invitation Sent', `An invitation has been sent to ${data.email}`)
+      } else {
+        showToast(
+          'warning',
+          'Invite created — email not sent',
+          result.inviteUrl
+            ? 'Copy the invite link and share it securely with the new admin.'
+            : 'SendGrid is not configured; share the invite manually.',
+        )
+        if (result.inviteUrl && typeof navigator !== 'undefined' && navigator.clipboard) {
+          await navigator.clipboard.writeText(result.inviteUrl)
+        }
+      }
       reset()
       onSuccess()
       onClose()

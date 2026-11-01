@@ -59,6 +59,8 @@ export const ADMIN_ROLE_STYLES: Record<
 export const ADMIN_PERMISSIONS = {
   dashboard: ['super_admin', 'admin', 'viewer'] as AdminRole[],
   msps: ['super_admin', 'admin', 'viewer'] as AdminRole[],
+  tenants: ['super_admin', 'admin', 'viewer'] as AdminRole[],
+  audit: ['super_admin', 'admin', 'viewer'] as AdminRole[],
   health: ['super_admin', 'admin', 'viewer'] as AdminRole[],
   'tenant-billing': ['super_admin', 'admin', 'viewer'] as AdminRole[],
   'tenant-billing-write': ['super_admin', 'admin'] as AdminRole[],

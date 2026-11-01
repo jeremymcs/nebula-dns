@@ -118,6 +118,13 @@ export class RateLimitMiddleware implements NestMiddleware {
   }
 
   use(req: Request, res: Response, next: NextFunction) {
+    if (
+      process.env.DISABLE_RATE_LIMIT === 'true' ||
+      process.env.RATE_LIMIT_DISABLED === 'true'
+    ) {
+      return next();
+    }
+
     // Skip rate limiting for local/internal requests
     const clientIp = this.getClientIp(req);
     if (clientIp === '127.0.0.1' || clientIp === '::1') {

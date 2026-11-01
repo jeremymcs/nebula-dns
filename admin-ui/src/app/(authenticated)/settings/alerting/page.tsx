@@ -26,6 +26,7 @@ import {
   AlertConfigCard,
   SlackConfigModal,
   PagerDutyConfigModal,
+  EditAlertConfigModal,
 } from '@/components/alerting'
 import type { AlertConfigResponse, TestAlertResponse } from '@/types/alerting'
 
@@ -37,6 +38,7 @@ export default function AlertingSettingsPage() {
   // Modal state
   const [showSlackModal, setShowSlackModal] = useState(false)
   const [showPagerDutyModal, setShowPagerDutyModal] = useState(false)
+  const [editConfig, setEditConfig] = useState<AlertConfigResponse | null>(null)
 
   // Operation state
   const [testingId, setTestingId] = useState<string | null>(null)
@@ -115,9 +117,8 @@ export default function AlertingSettingsPage() {
 
   // Handler: edit configuration (placeholder for future edit modal)
   const handleEdit = useCallback((config: AlertConfigResponse) => {
-    // TODO: Implement edit modal in future enhancement
-    showToast('info', 'Edit Coming Soon', `Edit functionality for "${config.name}" will be available soon`)
-  }, [showToast])
+    setEditConfig(config)
+  }, [])
 
   // Handler: modal success (refresh list)
   const handleCreateSuccess = useCallback(() => {
@@ -258,6 +259,13 @@ export default function AlertingSettingsPage() {
       <PagerDutyConfigModal
         isOpen={showPagerDutyModal}
         onClose={() => setShowPagerDutyModal(false)}
+        onSuccess={handleCreateSuccess}
+      />
+
+      <EditAlertConfigModal
+        config={editConfig}
+        isOpen={!!editConfig}
+        onClose={() => setEditConfig(null)}
         onSuccess={handleCreateSuccess}
       />
     </div>

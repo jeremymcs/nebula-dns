@@ -33,6 +33,7 @@ import { Card, Badge, Skeleton } from '@/components/ui'
 import {
   useAdminSystemHealth,
   useAdminRecentErrors,
+  useAdminCertificateExpiry,
   ServiceStatus,
   ServiceHealthStatus,
   RecentError,
@@ -426,6 +427,8 @@ export default function SystemHealthPage() {
   // Fetch recent errors with auto-refresh
   const { data: errors, mutate: mutateErrors } = useAdminRecentErrors(25, 30000, effectivePaused)
 
+  const { data: certData, isLoading: certsLoading } = useAdminCertificateExpiry()
+
   // Update lastUpdated timestamp when health data changes
   useEffect(() => {
     if (health) {
@@ -489,6 +492,10 @@ export default function SystemHealthPage() {
     return { total, avg, peak }
   }, [health?.queryVolume, period])
 
+  const usesMockAnalytics =
+    health?.errorRates?.isMockData === true ||
+    health?.queryVolume?.isMockData === true
+
   // Error state
   if (error) {
     return (
@@ -530,6 +537,23 @@ export default function SystemHealthPage() {
 
   return (
     <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {usesMockAnalytics && (
+        <div
+          role="status"
+          className="flex items-start gap-3 rounded-xl border border-warning-300 dark:border-warning-700 bg-warning-50 dark:bg-warning-900/20 px-4 py-3"
+        >
+          <ExclamationTriangleIcon className="h-5 w-5 text-warning-600 dark:text-warning-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-warning-800 dark:text-warning-200">
+              Analytics data is simulated
+            </p>
+            <p className="text-sm text-warning-700 dark:text-warning-300 mt-1">
+              ClickHouse is unavailable or not configured. Error rates and query volume shown below may be placeholder values — do not use them for operational decisions.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Page Header */}
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
@@ -625,6 +649,68 @@ export default function SystemHealthPage() {
             </>
           ) : null}
         </div>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold text-space-900 dark:text-white mb-4">
+          TLS certificate expiry
+        </h2>
+        <Card variant="glass" padding="md">
+          {certsLoading && (
+            <p className="text-sm text-space-500">Checking public DoT/DoH endpoints…</p>
+          )}
+          {!certsLoading && certData && (
+            <div className="overflow-x-auto">
+              <table className="table text-sm w-full">
+                <thead className="table-header">
+                  <tr>
+                    <th className="table-header-cell">Service</th>
+                    <th className="table-header-cell">Host</th>
+                    <th className="table-header-cell">Expires</th>
+                    <th className="table-header-cell">Days left</th>
+                    <th className="table-header-cell">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="table-body">
+                  {certData.certificates.map((cert) => (
+                    <tr key={`${cert.hostname}-${cert.port}`} className="table-row">
+                      <td className="table-cell">{cert.service}</td>
+                      <td className="table-cell font-mono text-xs">
+                        {cert.hostname}:{cert.port}
+                      </td>
+                      <td className="table-cell text-xs">
+                        {cert.notAfter
+                          ? new Date(cert.notAfter).toLocaleDateString()
+                          : cert.errorMessage || '—'}
+                      </td>
+                      <td className="table-cell">
+                        {cert.daysRemaining != null ? cert.daysRemaining : '—'}
+                      </td>
+                      <td className="table-cell">
+                        <Badge
+                          variant={
+                            cert.status === 'ok'
+                              ? 'success'
+                              : cert.status === 'warning'
+                                ? 'warning'
+                                : 'danger'
+                          }
+                          size="sm"
+                        >
+                          {cert.status}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="text-xs text-space-500 mt-3">
+                Probed at {new Date(certData.checkedAt).toLocaleString()}. Configure targets with{' '}
+                <code className="font-mono">ADMIN_CERT_PROBE_HOSTS</code>.
+              </p>
+            </div>
+          )}
+        </Card>
       </div>
 
       {/* Two-column layout: Error Metrics (left) and Query Volume Chart (right) */}

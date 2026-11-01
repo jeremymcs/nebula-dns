@@ -106,6 +106,7 @@ export interface ListInvitationsResponse {
 export interface CreateInvitationResponse {
   invitation: AdminInvitation
   emailSent: boolean
+  inviteUrl?: string
 }
 
 // ============================================

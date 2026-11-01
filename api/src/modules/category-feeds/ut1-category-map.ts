@@ -3,9 +3,6 @@
 export const UT1_CATEGORY_MAP: Record<string, string> = {
   adult: 'adult',
   mixed_adult: 'adult',
-  porn: 'adult',
-  sex: 'adult',
-  lingerie: 'adult',
   gambling: 'gambling',
   arjel: 'gambling',
   social_networks: 'social_media',
@@ -19,9 +16,11 @@ export const UT1_CATEGORY_MAP: Record<string, string> = {
   marketingware: 'advertising',
   adv: 'advertising',
   drugs: 'drugs',
+  drogue: 'drugs',
   weapons: 'weapons',
   violence: 'violence',
   aggressive: 'violence',
+  agressif: 'violence',
   warez: 'piracy',
   vpn: 'vpn_proxy',
   anonvpn: 'vpn_proxy',
@@ -41,13 +40,36 @@ export const UT1_CATEGORY_MAP: Record<string, string> = {
   dialer: 'malware',
 };
 
-export const UT1_LOAD_CATEGORIES = [
-  ...new Set(Object.keys(UT1_CATEGORY_MAP)),
+/**
+ * Default UT1 source categories (modest Redis footprint — see PR memory table).
+ * Override with optional env `CATEGORY_FEEDS_ENABLED` (comma-separated UT1 folder names).
+ */
+export const DEFAULT_UT1_SOURCE_CATEGORIES = [
+  'mixed_adult',
+  'gambling',
+  'dating',
+  'social_networks',
+  'games',
+  'audio-video',
+  'ddos',
+  'dialer',
+  'drogue',
+  'agressif',
 ];
 
-export const UT1_BASE_URL =
-  'https://dsi.ut-capitole.fr/blacklists/download';
+export const UT1_TAR_URL =
+  'https://dsi.ut-capitole.fr/blacklists/download/blacklists.tar.gz';
 
-export function ut1DomainsUrl(ut1Category: string): string {
-  return `${UT1_BASE_URL}/${ut1Category}/domains`;
+export const UT1_OLBAT_MIRROR_BASE =
+  'https://raw.githubusercontent.com/olbat/ut1-blacklists/master/blacklists';
+
+export function olbatDomainsUrl(ut1Category: string): string {
+  return `${UT1_OLBAT_MIRROR_BASE}/${ut1Category}/domains`;
+}
+
+/** Rough average bytes per domain member in Redis SETs (overhead included). */
+export const ESTIMATED_BYTES_PER_DOMAIN = 48;
+
+export function estimateCategoryMemoryBytes(domainCount: number): number {
+  return domainCount * ESTIMATED_BYTES_PER_DOMAIN;
 }
