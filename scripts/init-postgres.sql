@@ -521,6 +521,32 @@ CREATE INDEX idx_subscriptions_stripe_customer ON subscriptions(stripe_customer_
 CREATE INDEX idx_subscriptions_status ON subscriptions(status);
 
 -- ============================================
+-- TRIAL HISTORY (tier upgrade trials)
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS trial_history (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    trial_tier VARCHAR(20) NOT NULL CHECK (trial_tier IN ('home', 'enterprise', 'msp')),
+    original_tier VARCHAR(20) NOT NULL CHECK (original_tier IN ('home', 'enterprise', 'msp')),
+    started_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    ends_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'converted', 'expired', 'cancelled')),
+    ended_at TIMESTAMP WITH TIME ZONE,
+    converted_at TIMESTAMP WITH TIME ZONE,
+    stripe_subscription_id VARCHAR(100),
+    warning_email_sent BOOLEAN NOT NULL DEFAULT FALSE,
+    metadata JSONB,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_trial_history_tenant_tier ON trial_history(tenant_id, trial_tier);
+CREATE INDEX IF NOT EXISTS idx_trial_history_status ON trial_history(status) WHERE status = 'active';
+CREATE INDEX IF NOT EXISTS idx_trial_history_ends_at ON trial_history(ends_at) WHERE status = 'active';
+CREATE INDEX IF NOT EXISTS idx_trial_history_tenant_id ON trial_history(tenant_id);
+
+-- ============================================
 -- SIGNUP REQUESTS
 -- ============================================
 

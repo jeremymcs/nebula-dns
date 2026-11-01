@@ -1,9 +1,6 @@
 /**
- * Nebula DNS - Admin UI Authentication Context
+ * Flux Shield - Admin UI Authentication Context
  * Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
- *
- * Authentication context for Mission Control admin users.
- * Uses separate localStorage keys from tenant auth.
  */
 
 'use client'
@@ -22,25 +19,25 @@ import {
   adminLogin as apiLogin,
   adminLogout as apiLogout,
   getAdminProfile,
+  applyAdminSession,
+  AdminLoginResponse,
 } from '@/lib/api'
 import { AdminRole } from '@/lib/admin-permissions'
 
-// localStorage keys - distinct from tenant auth
 const ADMIN_TOKEN_KEY = 'admin_token'
 const ADMIN_USER_KEY = 'admin_user'
 const ADMIN_SESSION_EXPIRY_KEY = 'admin_session_expiry'
+const ADMIN_MFA_VERIFIED_KEY = 'admin_mfa_verified'
 
-/**
- * Admin authentication context type
- */
 interface AuthContextType {
   admin: AdminUser | null
   loading: boolean
   login: (email: string, password: string) => Promise<void>
+  completeMfaSession: (data: AdminLoginResponse) => void
   logout: () => void
   isAuthenticated: boolean
+  mfaVerified: boolean
   sessionExpiresAt: Date | null
-  // Role convenience helpers
   adminRole: AdminRole | undefined
   isSuperAdmin: boolean
   isAdmin: boolean
@@ -49,40 +46,35 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Public paths that don't require admin authentication
-const publicPaths = ['/login']
+const publicPaths = ['/login', '/login/mfa', '/login/mfa/enroll', '/invite/accept']
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [admin, setAdmin] = useState<AdminUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
   const [sessionExpiresAt, setSessionExpiresAt] = useState<Date | null>(null)
+  const [mfaVerified, setMfaVerified] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
 
-  const isPublicPath = publicPaths.some((path) => pathname === path)
+  const isPublicPath = publicPaths.some((path) => pathname?.startsWith(path))
 
-  // Set mounted state on client-side
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  /**
-   * Clear all admin-specific localStorage keys and state
-   */
   const clearAdminState = useCallback(() => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(ADMIN_TOKEN_KEY)
       localStorage.removeItem(ADMIN_USER_KEY)
       localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY)
+      localStorage.removeItem(ADMIN_MFA_VERIFIED_KEY)
     }
     setAdmin(null)
     setSessionExpiresAt(null)
+    setMfaVerified(false)
   }, [])
 
-  /**
-   * Logout the admin user
-   */
   const logout = useCallback(() => {
     const token =
       typeof window !== 'undefined'
@@ -90,7 +82,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         : null
 
     if (token) {
-      // Fire and forget - we clear state regardless of API response
       apiLogout(token)
     }
 
@@ -98,31 +89,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login')
   }, [clearAdminState, router])
 
-  /**
-   * Login with email and password
-   */
+  const completeMfaSession = useCallback(
+    (data: AdminLoginResponse) => {
+      applyAdminSession(data)
+      setAdmin(data.admin)
+      setMfaVerified(true)
+      const expiryDate = new Date(Date.now() + data.expiresIn * 1000)
+      setSessionExpiresAt(expiryDate)
+      router.push('/')
+    },
+    [router],
+  )
+
   const login = async (email: string, password: string): Promise<void> => {
     const data = await apiLogin(email, password)
+    applyAdminSession(data)
 
-    // Calculate session expiry from expiresIn (seconds)
     const expiryDate = new Date(Date.now() + data.expiresIn * 1000)
-
-    // Store in localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(ADMIN_TOKEN_KEY, data.accessToken)
-      localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(data.admin))
-      localStorage.setItem(ADMIN_SESSION_EXPIRY_KEY, expiryDate.toISOString())
-    }
-
     setAdmin(data.admin)
     setSessionExpiresAt(expiryDate)
+    setMfaVerified(!data.mfaRequired)
+
+    if (data.mfaRequired) {
+      if (data.mfaEnrollmentRequired) {
+        router.push('/login/mfa/enroll')
+      } else {
+        router.push('/login/mfa')
+      }
+      return
+    }
+
     router.push('/')
   }
 
-  /**
-   * Initialize auth state from localStorage
-   * Validates existing session by calling getAdminProfile
-   */
   useEffect(() => {
     if (!mounted) return
 
@@ -131,17 +130,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const token = localStorage.getItem(ADMIN_TOKEN_KEY)
         const storedAdmin = localStorage.getItem(ADMIN_USER_KEY)
         const storedExpiry = localStorage.getItem(ADMIN_SESSION_EXPIRY_KEY)
+        const storedMfa = localStorage.getItem(ADMIN_MFA_VERIFIED_KEY)
 
         if (!token || !storedAdmin) {
           setLoading(false)
           return
         }
 
-        // Check if session has expired locally first
         if (storedExpiry) {
           const expiryDate = new Date(storedExpiry)
           if (expiryDate <= new Date()) {
-            // Session expired - clear state
             clearAdminState()
             setLoading(false)
             return
@@ -149,20 +147,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setSessionExpiresAt(expiryDate)
         }
 
-        // Set admin from localStorage while we validate
         setAdmin(JSON.parse(storedAdmin))
+        setMfaVerified(storedMfa === 'true')
 
-        // Validate token with API
         try {
           const profile = await getAdminProfile(token)
           setAdmin(profile)
+          const verified = profile.mfaVerified === true
+          setMfaVerified(verified)
           localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(profile))
+          localStorage.setItem(ADMIN_MFA_VERIFIED_KEY, verified ? 'true' : 'false')
+
+          if (!verified && !isPublicPath) {
+            if (!profile.mfaSetupComplete) {
+              router.push('/login/mfa/enroll')
+            } else {
+              router.push('/login/mfa')
+            }
+          }
         } catch {
-          // Token invalid - clear state
           clearAdminState()
         }
       } catch {
-        // Error parsing stored data - clear state
         clearAdminState()
       } finally {
         setLoading(false)
@@ -170,18 +176,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     initAuth()
-  }, [mounted, clearAdminState])
+  }, [mounted, clearAdminState, isPublicPath, router])
 
-  /**
-   * Redirect unauthenticated users away from protected routes
-   */
   useEffect(() => {
     if (!loading && !admin && !isPublicPath) {
       router.push('/login')
     }
   }, [loading, admin, isPublicPath, router])
 
-  // Compute role convenience helpers
+  useEffect(() => {
+    if (!loading && admin && !mfaVerified && !isPublicPath) {
+      if (!admin.mfaSetupComplete) {
+        router.push('/login/mfa/enroll')
+      } else {
+        router.push('/login/mfa')
+      }
+    }
+  }, [loading, admin, mfaVerified, isPublicPath, router])
+
   const adminRole = admin?.role
   const isSuperAdmin = adminRole === 'super_admin'
   const isAdmin = adminRole === 'admin' || isSuperAdmin
@@ -193,10 +205,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         admin,
         loading,
         login,
+        completeMfaSession,
         logout,
-        isAuthenticated: !!admin,
+        isAuthenticated: !!admin && mfaVerified,
+        mfaVerified,
         sessionExpiresAt,
-        // Role helpers
         adminRole,
         isSuperAdmin,
         isAdmin,
@@ -208,10 +221,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 }
 
-/**
- * Hook to access admin auth context
- * @throws Error if used outside AuthProvider
- */
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {

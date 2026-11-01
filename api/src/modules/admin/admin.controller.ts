@@ -15,6 +15,7 @@ import {
   HttpStatus,
   UseGuards,
   UnauthorizedException,
+  BadRequestException,
   Req,
   Res,
   Ip,
@@ -36,6 +37,7 @@ import { AdminService, AdminLoginContext } from './admin.service';
 import { AdminHealthService } from './admin-health.service';
 import { AdminBillingService } from './admin-billing.service';
 import { AdminDashboardService } from './admin-dashboard.service';
+import { AdminMfaService } from './admin-mfa.service';
 import { AdminLoginDto } from './dto/admin-login.dto';
 import {
   AdminLoginResponseDto,
@@ -88,8 +90,15 @@ import {
   SetDefaultPaymentMethodResponseDto,
   DeletePaymentMethodResponseDto,
 } from './dto/billing.dto';
+import {
+  AdminMfaCodeDto,
+  AdminMfaEnrollStartResponseDto,
+  AdminMfaVerifyResponseDto,
+} from './dto/admin-mfa.dto';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { AdminRolesGuard } from './guards/admin-roles.guard';
+import { AdminMfaGuard } from './guards/admin-mfa.guard';
+import { SkipAdminMfa } from './decorators/skip-admin-mfa.decorator';
 import { AdminRoles } from './decorators/admin-roles.decorator';
 import { AdminRole } from './enums/admin-role.enum';
 import { AdminUser } from './dto/admin-jwt-payload.dto';
@@ -105,12 +114,14 @@ import { AdminUser } from './dto/admin-jwt-payload.dto';
  */
 @ApiTags('Admin')
 @Controller('admin')
+@UseGuards(AdminMfaGuard)
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     private readonly adminHealthService: AdminHealthService,
     private readonly adminBillingService: AdminBillingService,
     private readonly adminDashboardService: AdminDashboardService,
+    private readonly adminMfaService: AdminMfaService,
   ) {}
 
   /**
@@ -118,6 +129,7 @@ export class AdminController {
    * Authenticates admin credentials and returns JWT token
    */
   @Post('login')
+  @SkipAdminMfa()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Admin login',
@@ -148,6 +160,87 @@ export class AdminController {
       ipAddress: this.getClientIp(req, ip),
     };
     return this.adminService.login(loginDto, context);
+  }
+
+  /**
+   * Start MFA enrollment (QR / secret) for admins who have not completed setup.
+   */
+  @Post('mfa/enroll/start')
+  @SkipAdminMfa()
+  @UseGuards(AdminAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({ summary: 'Start admin MFA enrollment' })
+  async startMfaEnrollment(
+    @Req() req: Request,
+  ): Promise<AdminMfaEnrollStartResponseDto> {
+    const user = req.user as AdminUser;
+    return this.adminMfaService.startEnrollment(user.adminId);
+  }
+
+  /**
+   * Complete MFA enrollment with TOTP verification code.
+   */
+  @Post('mfa/enroll/verify')
+  @SkipAdminMfa()
+  @UseGuards(AdminAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({ summary: 'Verify admin MFA enrollment' })
+  async verifyMfaEnrollment(
+    @Body() dto: AdminMfaCodeDto,
+    @Req() req: Request,
+    @Ip() ip: string,
+  ): Promise<AdminMfaVerifyResponseDto> {
+    const user = req.user as AdminUser;
+    await this.adminMfaService.completeEnrollment(user.adminId, dto.code);
+    const admin = await this.adminService.findById(user.adminId);
+    if (!admin) {
+      throw new UnauthorizedException('Admin not found');
+    }
+    const context: AdminLoginContext = {
+      userAgent: req.headers['user-agent'] || 'Unknown',
+      ipAddress: this.getClientIp(req, ip),
+    };
+    return this.adminService.createMfaVerifiedSession(admin, context);
+  }
+
+  /**
+   * Verify TOTP (or backup code) after password login for enrolled admins.
+   */
+  @Post('mfa/verify')
+  @SkipAdminMfa()
+  @UseGuards(AdminAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({ summary: 'Verify admin MFA challenge' })
+  async verifyMfaChallenge(
+    @Body() dto: AdminMfaCodeDto,
+    @Req() req: Request,
+    @Ip() ip: string,
+  ): Promise<AdminMfaVerifyResponseDto> {
+    const user = req.user as AdminUser;
+    const admin = await this.adminService.findById(user.adminId);
+    if (!admin) {
+      throw new UnauthorizedException('Admin not found');
+    }
+    if (!admin.mfaSetupComplete) {
+      throw new BadRequestException(
+        'MFA enrollment required. Use /admin/mfa/enroll/start first.',
+      );
+    }
+    const valid = await this.adminMfaService.verifyChallenge(
+      user.adminId,
+      dto.code,
+    );
+    if (!valid) {
+      throw new UnauthorizedException('Invalid MFA code');
+    }
+    const context: AdminLoginContext = {
+      userAgent: req.headers['user-agent'] || 'Unknown',
+      ipAddress: this.getClientIp(req, ip),
+    };
+    return this.adminService.createMfaVerifiedSession(admin, context);
   }
 
   /**
@@ -432,6 +525,7 @@ export class AdminController {
    * Blacklists the current token
    */
   @Post('logout')
+  @SkipAdminMfa()
   @UseGuards(AdminAuthGuard, AdminRolesGuard)
   @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
   @HttpCode(HttpStatus.OK)
@@ -466,6 +560,7 @@ export class AdminController {
    * Returns admin information from the JWT
    */
   @Get('me')
+  @SkipAdminMfa()
   @UseGuards(AdminAuthGuard, AdminRolesGuard)
   @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
   @ApiBearerAuth('admin-jwt')

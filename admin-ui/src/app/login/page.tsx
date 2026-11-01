@@ -42,7 +42,8 @@ function ThemeToggle() {
 
 export default function AdminLoginPage() {
   const router = useRouter()
-  const { login, admin, loading: authLoading } = useAuth()
+  // Redirect to dashboard if already authenticated with MFA
+  const { login, admin, loading: authLoading, mfaVerified } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -50,10 +51,10 @@ export default function AdminLoginPage() {
 
   // Redirect to dashboard if already authenticated
   useEffect(() => {
-    if (!authLoading && admin) {
+    if (!authLoading && admin && mfaVerified) {
       router.push('/')
     }
-  }, [authLoading, admin, router])
+  }, [authLoading, admin, mfaVerified, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -80,7 +81,7 @@ export default function AdminLoginPage() {
   }
 
   // If already authenticated, show loading while redirecting
-  if (admin) {
+  if (admin && mfaVerified) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-space-900">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />

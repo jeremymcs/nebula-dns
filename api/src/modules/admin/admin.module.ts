@@ -28,6 +28,9 @@ import { AdminDashboardService } from './admin-dashboard.service';
 import { AdminActivityService } from './admin-activity.service';
 import { AdminUsersService } from './admin-users.service';
 import { AdminInvitationsService } from './admin-invitations.service';
+import { AdminMfaService } from './admin-mfa.service';
+import { AdminMfaGuard } from './guards/admin-mfa.guard';
+import { AgentInstallation } from '../agents/entities/agent-installation.entity';
 import { AdminController } from './admin.controller';
 import { AdminUsersController } from './admin-users.controller';
 import { RedisModule } from '../redis/redis.module';
@@ -88,6 +91,7 @@ import { AlertingModule } from '../alerting/alerting.module';
       User,
       Subscription,
       MspInvoice,
+      AgentInstallation,
     ]),
 
     // Redis for session management (blacklist, session tracking)
@@ -123,9 +127,11 @@ import { AlertingModule } from '../alerting/alerting.module';
     AdminActivityService,
     AdminUsersService,
     AdminInvitationsService,
+    AdminMfaService,
     AdminJwtStrategy,
     AdminAuthGuard,
     AdminRolesGuard,
+    AdminMfaGuard,
   ],
 
   // Export service and guard for use by other modules
