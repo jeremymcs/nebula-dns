@@ -33,13 +33,19 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+RUN apk add --no-cache su-exec
+
 COPY package*.json ./
 RUN npm ci --only=production && npm cache clean --force
 
 COPY --from=build /app/dist ./dist
 
-USER node
+RUN mkdir -p /app/uploads/block-pages && chown -R node:node /app/uploads
+
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 3000
 
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["node", "dist/main"]

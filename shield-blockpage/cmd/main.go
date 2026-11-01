@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -15,6 +16,8 @@ import (
 	"sync"
 	"time"
 )
+
+var errNoCertificate = errors.New("tls: no certificate available")
 
 type leafResponse struct {
 	Data struct {
@@ -49,7 +52,7 @@ func main() {
 			GetCertificate: func(ch *tls.ClientHelloInfo) (*tls.Certificate, error) {
 				domain := strings.ToLower(strings.TrimSuffix(ch.ServerName, "."))
 				if domain == "" {
-					return nil, tls.ErrNoCertificates
+					return nil, errNoCertificate
 				}
 				if v, ok := certCache.Load(domain); ok {
 					if entry, ok := v.(cacheEntry); ok && entry.expires.After(time.Now()) {
@@ -75,7 +78,10 @@ type cacheEntry struct {
 }
 
 func fetchLeaf(apiURL, secret, domain string) (*tls.Certificate, error) {
-	body, _ := json.Marshal(map[string]string{"domain": domain})
+	body, err := json.Marshal(map[string]string{"domain": domain})
+	if err != nil {
+		return nil, err
+	}
 	req, err := http.NewRequest(http.MethodPost, strings.TrimRight(apiURL, "/")+"/shield-ca/internal/issue-leaf", bytes.NewReader(body))
 	if err != nil {
 		return nil, err
@@ -88,14 +94,18 @@ func fetchLeaf(apiURL, secret, domain string) (*tls.Certificate, error) {
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusCreated && res.StatusCode != http.StatusOK {
-		b, _ := io.ReadAll(res.Body)
-		return nil, tls.ErrNoCertificates
+		_, _ = io.ReadAll(res.Body)
+		return nil, errNoCertificate
 	}
 	var parsed leafResponse
 	if err := json.NewDecoder(res.Body).Decode(&parsed); err != nil {
 		return nil, err
 	}
-	return tls.X509KeyPair([]byte(parsed.Data.CertificatePem), []byte(parsed.Data.PrivateKeyPem))
+	pair, err := tls.X509KeyPair([]byte(parsed.Data.CertificatePem), []byte(parsed.Data.PrivateKeyPem))
+	if err != nil {
+		return nil, err
+	}
+	return &pair, nil
 }
 
 func env(k, def string) string {

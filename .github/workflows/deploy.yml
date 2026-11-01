@@ -52,6 +52,14 @@ jobs:
       context: ./config/unbound
       image_name: nebula-dns-unbound
 
+  build-shield-blockpage:
+    uses: ./.github/workflows/_build-push-ghcr.yml
+    with:
+      service: shield-blockpage
+      context: .
+      dockerfile: deploy/droplet/shield-blockpage.Dockerfile
+      image_name: nebula-dns-shield-blockpage
+
   deploy-droplet:
     name: Deploy droplet stack
     if: github.ref == 'refs/heads/main'
