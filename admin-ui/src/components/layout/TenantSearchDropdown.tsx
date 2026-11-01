@@ -3,7 +3,7 @@
  * Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
  *
  * Spotlight-style search dropdown for finding and impersonating tenants.
- * When a tenant is selected, redirects to tenant UI at localhost:4011.
+ * When a tenant is selected, redirects to the customer app impersonation handler.
  */
 
 'use client'

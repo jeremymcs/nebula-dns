@@ -44,7 +44,7 @@ func TestThreatFeeds_MalwareDomain(t *testing.T) {
 	}
 
 	// Add malware threat to Redis
-	testRedisClient.Set(ctx, "threat:evil.malware.com", "malware", 0)
+	testRedisClient.SAdd(ctx, "nebula:threats:malware", "evil.malware.com")
 
 	// Evaluate malware domain
 	req := &models.EvaluateRequest{
@@ -96,7 +96,7 @@ func TestThreatFeeds_PhishingDomain(t *testing.T) {
 	}
 
 	// Add phishing threat to Redis
-	testRedisClient.Set(ctx, "threat:fake-bank.com", "phishing", 0)
+	testRedisClient.SAdd(ctx, "nebula:threats:phishing", "fake-bank.com")
 
 	// Evaluate phishing domain
 	req := &models.EvaluateRequest{
@@ -194,7 +194,7 @@ func TestThreatFeeds_TypeFiltering(t *testing.T) {
 	}
 
 	// Add malware threat to Redis (but policy doesn't enable malware)
-	testRedisClient.Set(ctx, "threat:malware-domain.com", "malware", 0)
+	testRedisClient.SAdd(ctx, "nebula:threats:malware", "malware-domain.com")
 
 	// Evaluate malware domain - should be allowed because malware feed not enabled
 	req := &models.EvaluateRequest{
@@ -240,9 +240,9 @@ func TestThreatFeeds_AllWildcard(t *testing.T) {
 	}
 
 	// Add various threat types
-	testRedisClient.Set(ctx, "threat:malware-test.com", "malware", 0)
-	testRedisClient.Set(ctx, "threat:phishing-test.com", "phishing", 0)
-	testRedisClient.Set(ctx, "threat:botnet-test.com", "botnet", 0)
+	testRedisClient.SAdd(ctx, "nebula:threats:malware", "malware-test.com")
+	testRedisClient.SAdd(ctx, "nebula:threats:phishing", "phishing-test.com")
+	testRedisClient.SAdd(ctx, "nebula:threats:botnet", "botnet-test.com")
 
 	// Test malware
 	req := &models.EvaluateRequest{
@@ -302,7 +302,7 @@ func TestThreatFeeds_AllowlistPrecedence(t *testing.T) {
 	}
 
 	// Add threat data (false positive)
-	testRedisClient.Set(ctx, "threat:false-positive.com", "malware", 0)
+	testRedisClient.SAdd(ctx, "nebula:threats:malware", "false-positive.com")
 
 	// Evaluate - allowlist should take precedence
 	req := &models.EvaluateRequest{
@@ -351,7 +351,7 @@ func TestThreatFeeds_CacheInvalidation(t *testing.T) {
 	}
 
 	// Add threat data
-	testRedisClient.Set(ctx, "threat:threat-test.com", "malware", 0)
+	testRedisClient.SAdd(ctx, "nebula:threats:malware", "threat-test.com")
 
 	// First evaluation - should be blocked
 	req := &models.EvaluateRequest{
@@ -368,7 +368,7 @@ func TestThreatFeeds_CacheInvalidation(t *testing.T) {
 	}
 
 	// Remove threat from Redis first
-	testRedisClient.Del(ctx, "threat:threat-test.com")
+	testRedisClient.SRem(ctx, "nebula:threats:malware", "threat-test.com")
 
 	// Invalidate threat cache
 	invalidationMsg := map[string]string{
@@ -415,7 +415,7 @@ func TestThreatFeeds_BotnetBlock(t *testing.T) {
 	}
 
 	// Add botnet threat
-	testRedisClient.Set(ctx, "threat:botnet-c2.com", "botnet", 0)
+	testRedisClient.SAdd(ctx, "nebula:threats:botnet", "botnet-c2.com")
 
 	// Evaluate botnet domain
 	req := &models.EvaluateRequest{

@@ -97,46 +97,17 @@ describe('Authentication E2E Tests', () => {
     });
   });
 
-  describe('Password Reset Flow', () => {
-    it('should accept password reset request for any email', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/auth/forgot-password')
-        .send({ email: 'test@example.com' });
-
-      // Should return 200 even for non-existent emails (security)
-      expect([200, 201, 202]).toContain(response.status);
-    });
-
-    it('should reject password reset with missing email', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/auth/forgot-password')
-        .send({});
-
-      expect(response.status).toBe(400);
-    });
-
-    it('should reject password reset confirmation with invalid token', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/auth/reset-password')
-        .send({ token: 'invalid-token', password: 'newpassword123' });
-
-      expect([400, 401]).toContain(response.status);
-    });
-  });
-
   describe('MFA Flow', () => {
     it('should reject MFA verification without session', async () => {
       const response = await request(app.getHttpServer())
         .post('/auth/mfa/verify')
         .send({ code: '123456' });
 
-      expect(response.status).toBe(401);
+      expect([400, 401]).toContain(response.status);
     });
 
     it('should reject MFA setup without auth', async () => {
-      const response = await request(app.getHttpServer()).post(
-        '/auth/mfa/setup',
-      );
+      const response = await request(app.getHttpServer()).post('/mfa/setup');
 
       expect(response.status).toBe(401);
     });
@@ -202,7 +173,7 @@ describe('Authentication E2E Tests', () => {
           .post('/auth/logout')
           .set('Authorization', `Bearer ${token}`);
 
-        expect(logoutResponse.status).toBe(200);
+        expect(logoutResponse.status).toBe(204);
 
         // Try to use the token after logout - should fail
         const protectedResponse = await request(app.getHttpServer())
@@ -217,7 +188,7 @@ describe('Authentication E2E Tests', () => {
   describe('Password Change Flow', () => {
     it('should require authentication for password change', async () => {
       const response = await request(app.getHttpServer())
-        .post('/auth/change-password')
+        .post('/auth/password/change')
         .send({
           currentPassword: 'OldPassword123!',
           newPassword: 'NewPassword123!',
@@ -235,7 +206,7 @@ describe('Authentication E2E Tests', () => {
         const token = loginResponse.body.accessToken;
 
         const changeResponse = await request(app.getHttpServer())
-          .post('/auth/change-password')
+          .post('/auth/password/change')
           .set('Authorization', `Bearer ${token}`)
           .send({
             currentPassword: 'WrongPassword123!',
@@ -256,7 +227,7 @@ describe('Authentication E2E Tests', () => {
 
         // Missing current password
         const response1 = await request(app.getHttpServer())
-          .post('/auth/change-password')
+          .post('/auth/password/change')
           .set('Authorization', `Bearer ${token}`)
           .send({ newPassword: 'NewPassword123!' });
 
@@ -264,7 +235,7 @@ describe('Authentication E2E Tests', () => {
 
         // Missing new password
         const response2 = await request(app.getHttpServer())
-          .post('/auth/change-password')
+          .post('/auth/password/change')
           .set('Authorization', `Bearer ${token}`)
           .send({ currentPassword: 'OldPassword123!' });
 

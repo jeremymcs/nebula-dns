@@ -35,11 +35,11 @@ describe('AppController (e2e)', () => {
         .get('/health')
         .expect(200)
         .expect((res: any) => {
-          expect(res.body.status).toMatch(/^(healthy|degraded|unhealthy)$/);
+          expect(['healthy', 'degraded']).toContain(res.body.status);
         });
     });
 
-    it('/health (GET) - detailed payload includes dependencies', () => {
+    it('/health (GET) - should include dependency details', () => {
       return request(app.getHttpServer())
         .get('/health')
         .expect(200)
