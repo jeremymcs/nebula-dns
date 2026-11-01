@@ -1,0 +1,23 @@
+# git filter-repo --replace-text (service-level patterns only; no live values)
+# Belt-and-suspenders if any leaked material exists outside the purged paths.
+# Format: regex:PATTERN==>REPLACEMENT
+
+# DigitalOcean personal access token
+regex:dop_v1_[0-9A-Za-z]+==>dop_v1_REDACTED
+
+# SendGrid API key
+regex:SG\.[0-9A-Za-z_-]{10,}\.[0-9A-Za-z_-]{10,}==>SG.REDACTED
+
+# Stripe secret / webhook signing secrets
+regex:sk_live_[0-9A-Za-z]{16,}==>sk_live_REDACTED
+regex:whsec_[0-9A-Za-z]{16,}==>whsec_REDACTED
+
+# Sentry project DSN (ingest URL with public key segment)
+regex:https://[0-9a-f]{32}@o[0-9]+\.ingest(\.us)?\.sentry\.io/[0-9]+==>https://REDACTED@o0.ingest.sentry.io/0
+
+# ClickHouse Cloud API credentials (as committed in go-live plan tfvars blocks)
+regex:(?i)clickhouse_token_key\s*=\s*"[0-9A-Za-z]+"==>clickhouse_token_key = "REDACTED"
+regex:(?i)clickhouse_token_secret\s*=\s*"[0-9A-Za-z]+"==>clickhouse_token_secret = "REDACTED"
+
+# AWS / Spaces-style access key id in export lines (20-char id form)
+regex:AKIA[0-9A-Z]{16}==>AKIA_REDACTED

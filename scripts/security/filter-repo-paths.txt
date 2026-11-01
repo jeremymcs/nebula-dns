@@ -1,0 +1,7 @@
+# Paths to remove from all commits (git filter-repo --paths-from-file ... --invert-paths)
+# Real credentials appeared only in these blobs across full-history scan.
+.plans/GO-LIVE-PLAN.md
+config/certs/server.key
+config/certs/client-ca.key
+config/certs/server.crt
+config/certs/client-ca.crt
