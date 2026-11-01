@@ -45,7 +45,7 @@ func TestCategoryBlocking_BlockedCategory(t *testing.T) {
 	}
 
 	// Add category data to Redis
-	testRedisClient.Set(ctx, "category:casino.example.com", "gambling", 0)
+	testRedisClient.SAdd(ctx, "nebula:categories:gambling", "casino.example.com")
 
 	// Evaluate domain with blocked category
 	req := &models.EvaluateRequest{
@@ -97,7 +97,7 @@ func TestCategoryBlocking_AllowedCategory(t *testing.T) {
 	}
 
 	// Add category data to Redis
-	testRedisClient.Set(ctx, "category:news.example.com", "news", 0)
+	testRedisClient.SAdd(ctx, "nebula:categories:news", "news.example.com")
 
 	// Evaluate domain with allowed category
 	req := &models.EvaluateRequest{
@@ -159,7 +159,7 @@ func TestCategoryBlocking_ScheduleActive(t *testing.T) {
 	}
 
 	// Add category data to Redis
-	testRedisClient.Set(ctx, "category:facebook.example.com", "social_media", 0)
+	testRedisClient.SAdd(ctx, "nebula:categories:social_media", "facebook.example.com")
 
 	// Evaluate domain with category blocked by schedule
 	req := &models.EvaluateRequest{
@@ -222,7 +222,7 @@ func TestCategoryBlocking_ScheduleInactive(t *testing.T) {
 	}
 
 	// Add category data to Redis
-	testRedisClient.Set(ctx, "category:facebook.example.com", "social_media", 0)
+	testRedisClient.SAdd(ctx, "nebula:categories:social_media", "facebook.example.com")
 
 	// Evaluate domain - should be allowed because schedule is inactive
 	req := &models.EvaluateRequest{
@@ -280,7 +280,7 @@ func TestCategoryBlocking_TimezoneHandling(t *testing.T) {
 	}
 
 	// Add category data to Redis
-	testRedisClient.Set(ctx, "category:game.example.com", "gaming", 0)
+	testRedisClient.SAdd(ctx, "nebula:categories:gaming", "game.example.com")
 
 	// Evaluate domain
 	req := &models.EvaluateRequest{
@@ -337,7 +337,7 @@ func TestCategoryBlocking_InvalidTimezone(t *testing.T) {
 	}
 
 	// Add category data to Redis
-	testRedisClient.Set(ctx, "category:game.example.com", "gaming", 0)
+	testRedisClient.SAdd(ctx, "nebula:categories:gaming", "game.example.com")
 
 	// Evaluate domain - should still work with UTC fallback
 	req := &models.EvaluateRequest{
@@ -384,7 +384,7 @@ func TestCategoryBlocking_CacheInvalidation(t *testing.T) {
 	}
 
 	// Add category data
-	testRedisClient.Set(ctx, "category:test.example.com", "news", 0)
+	testRedisClient.SAdd(ctx, "nebula:categories:news", "test.example.com")
 
 	// First evaluation - should be allowed
 	req := &models.EvaluateRequest{
