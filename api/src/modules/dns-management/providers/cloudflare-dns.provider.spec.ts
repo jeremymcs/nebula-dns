@@ -42,6 +42,8 @@ describe('CloudflareDnsProvider', () => {
     const result = await provider.verifyToken('test-token');
 
     expect(result.status).toBe('active');
+    expect(result.tokenId).toBe('acct-1');
+    expect(result).not.toHaveProperty('accountId');
     expect(fetchMock).toHaveBeenCalledWith(
       'https://api.cloudflare.com/client/v4/user/tokens/verify',
       expect.objectContaining({
@@ -50,6 +52,29 @@ describe('CloudflareDnsProvider', () => {
           Authorization: 'Bearer test-token',
         }),
       }),
+    );
+  });
+
+  it('listAccounts maps account payloads', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: { get: () => null },
+      json: async () => ({
+        success: true,
+        result: [
+          { id: 'cf-account-uuid', name: 'Flux Labs' },
+        ],
+      }),
+    });
+
+    const accounts = await provider.listAccounts('token');
+    expect(accounts).toEqual([
+      { id: 'cf-account-uuid', name: 'Flux Labs' },
+    ]);
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.cloudflare.com/client/v4/accounts?page=1&per_page=50',
+      expect.objectContaining({ method: 'GET' }),
     );
   });
 
