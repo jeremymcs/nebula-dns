@@ -188,6 +188,10 @@ func (s *Service) evaluateDomain(ctx context.Context, policy *models.CompiledPol
 		}
 	}
 
+	if category == "" {
+		category = s.cache.GetDomainCategory(ctx, domain)
+	}
+
 	// ============================================
 	// PRIORITY 6: Default Allow
 	// ============================================
