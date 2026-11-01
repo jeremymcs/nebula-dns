@@ -253,9 +253,9 @@ export default function DashboardPage() {
   const healthCardColor =
     healthStatus === 'unhealthy' ? 'danger' : healthStatus === 'degraded' ? 'warning' : 'success'
 
-  const policySvc = health?.services.find((s) => s.name === 'policy-svc')
-  const dnsdist = health?.services.find((s) => s.name === 'dnsdist')
-  const unbound = health?.services.find((s) => s.name === 'unbound')
+  const policySvc = health?.services?.find((s) => s.name === 'policy-svc')
+  const dnsdist = health?.services?.find((s) => s.name === 'dnsdist')
+  const unbound = health?.services?.find((s) => s.name === 'unbound')
 
   const dnsWorst: ServiceHealthStatus =
     [dnsdist?.status, unbound?.status].includes('unhealthy')
@@ -377,15 +377,15 @@ export default function DashboardPage() {
                   label="DNS Resolution"
                 />
                 <StatusIndicator
-                  status={health?.storage.redis.connected ? 'healthy' : 'down'}
+                  status={health?.storage?.redis?.connected ? 'healthy' : 'down'}
                   label="Database"
                 />
                 <StatusIndicator
-                  status={health?.storage.redis.connected ? 'healthy' : 'down'}
+                  status={health?.storage?.redis?.connected ? 'healthy' : 'down'}
                   label="Redis Cache"
                 />
                 <StatusIndicator
-                  status={health?.storage.clickhouse.connected ? 'healthy' : 'degraded'}
+                  status={health?.storage?.clickhouse?.connected ? 'healthy' : 'degraded'}
                   label="ClickHouse Analytics"
                 />
               </div>

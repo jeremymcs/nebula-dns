@@ -21,7 +21,7 @@ export default function TermsPage() {
 
         {/* Section 1 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             1. Acceptance of Terms
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -37,7 +37,7 @@ export default function TermsPage() {
 
         {/* Section 2 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             2. Description of Service
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -78,7 +78,7 @@ export default function TermsPage() {
 
         {/* Section 3 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             3. Account Registration
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -111,7 +111,7 @@ export default function TermsPage() {
 
         {/* Section 4 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             4. Acceptable Use Policy
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -158,7 +158,7 @@ export default function TermsPage() {
 
         {/* Section 5 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             5. Intellectual Property
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -179,11 +179,11 @@ export default function TermsPage() {
 
         {/* Section 6 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             6. Payment Terms
           </h2>
 
-          <h3 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h3 className="text-xl font-semibold text-ink mt-8 mb-3">
             Pricing and Billing
           </h3>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -191,7 +191,7 @@ export default function TermsPage() {
             dollars and non-refundable except as required by law or stated in these Terms.
           </p>
 
-          <h3 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h3 className="text-xl font-semibold text-ink mt-8 mb-3">
             Free Trials
           </h3>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -199,7 +199,7 @@ export default function TermsPage() {
             ends. You may cancel at any time during the trial without charge.
           </p>
 
-          <h3 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h3 className="text-xl font-semibold text-ink mt-8 mb-3">
             Payment Methods
           </h3>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -207,7 +207,7 @@ export default function TermsPage() {
             your payment method for all fees incurred.
           </p>
 
-          <h3 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h3 className="text-xl font-semibold text-ink mt-8 mb-3">
             Late Payment
           </h3>
           <p className="text-[var(--fs-txt)]">
@@ -219,11 +219,11 @@ export default function TermsPage() {
 
         {/* Section 7 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             7. Cancellation and Termination
           </h2>
 
-          <h3 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h3 className="text-xl font-semibold text-ink mt-8 mb-3">
             Your Right to Cancel
           </h3>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -232,7 +232,7 @@ export default function TermsPage() {
             billing periods.
           </p>
 
-          <h3 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h3 className="text-xl font-semibold text-ink mt-8 mb-3">
             Our Right to Terminate
           </h3>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -241,7 +241,7 @@ export default function TermsPage() {
             but may terminate immediately for serious violations.
           </p>
 
-          <h3 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h3 className="text-xl font-semibold text-ink mt-8 mb-3">
             Effect of Termination
           </h3>
           <p className="text-[var(--fs-txt)]">
@@ -252,7 +252,7 @@ export default function TermsPage() {
 
         {/* Section 8 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             8. Limitation of Liability
           </h2>
           <p className="text-[var(--fs-mut)] text-sm mb-4">
@@ -288,7 +288,7 @@ export default function TermsPage() {
 
         {/* Section 9 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             9. Warranty Disclaimer
           </h2>
           <p className="text-[var(--fs-mut)] text-sm mb-4">
@@ -321,7 +321,7 @@ export default function TermsPage() {
 
         {/* Section 10 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             10. Indemnification
           </h2>
           <p className="text-[var(--fs-txt)]">
@@ -334,7 +334,7 @@ export default function TermsPage() {
 
         {/* Section 11 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             11. Governing Law
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -349,7 +349,7 @@ export default function TermsPage() {
 
         {/* Section 12 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             12. Changes to Terms
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -364,7 +364,7 @@ export default function TermsPage() {
 
         {/* Section 13 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             13. Contact Information
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">

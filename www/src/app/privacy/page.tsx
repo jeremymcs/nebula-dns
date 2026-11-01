@@ -22,11 +22,11 @@ export default function PrivacyPage() {
 
         {/* Section 1 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             1. Information We Collect
           </h2>
 
-          <h3 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h3 className="text-xl font-semibold text-ink mt-8 mb-3">
             Account Information
           </h3>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -34,7 +34,7 @@ export default function PrivacyPage() {
             information. This information is necessary to provide and manage your service.
           </p>
 
-          <h3 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h3 className="text-xl font-semibold text-ink mt-8 mb-3">
             DNS Query Data
           </h3>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -43,7 +43,7 @@ export default function PrivacyPage() {
             identifiers. We do not log source IP addresses by default.
           </p>
 
-          <h3 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h3 className="text-xl font-semibold text-ink mt-8 mb-3">
             Usage Data
           </h3>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -51,7 +51,7 @@ export default function PrivacyPage() {
             pages visited, features used, and configuration changes made.
           </p>
 
-          <h3 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h3 className="text-xl font-semibold text-ink mt-8 mb-3">
             Technical Data
           </h3>
           <p className="text-[var(--fs-txt)]">
@@ -62,7 +62,7 @@ export default function PrivacyPage() {
 
         {/* Section 2 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             2. How We Use Your Information
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -102,7 +102,7 @@ export default function PrivacyPage() {
 
         {/* Section 3 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             3. Data Storage and Security
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -138,7 +138,7 @@ export default function PrivacyPage() {
 
         {/* Section 4 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             4. Cookies and Tracking Technologies
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -170,7 +170,7 @@ export default function PrivacyPage() {
 
         {/* Section 5 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             5. Third-Party Services
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -202,7 +202,7 @@ export default function PrivacyPage() {
 
         {/* Section 6 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             6. Your Rights
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -240,7 +240,7 @@ export default function PrivacyPage() {
 
         {/* Section 7 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             7. Data Retention
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -269,7 +269,7 @@ export default function PrivacyPage() {
 
         {/* Section 8 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             8. Children&apos;s Privacy
           </h2>
           <p className="text-[var(--fs-txt)]">
@@ -281,7 +281,7 @@ export default function PrivacyPage() {
 
         {/* Section 9 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             9. Changes to This Policy
           </h2>
           <p className="text-[var(--fs-txt)]">
@@ -293,7 +293,7 @@ export default function PrivacyPage() {
 
         {/* Section 10 */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-white mt-8 mb-3">
+          <h2 className="text-xl font-semibold text-ink mt-8 mb-3">
             10. Contact Us
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">

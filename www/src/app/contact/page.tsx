@@ -94,7 +94,7 @@ export default function ContactPage() {
             {/* Form — wider column */}
             <div className="lg:col-span-2">
               <div className="fs-card rounded-[14px] p-8">
-                <h2 className="text-2xl font-bold text-white mb-6">
+                <h2 className="text-2xl font-bold text-ink mb-6">
                   Send us a message
                 </h2>
                 <form onSubmit={handleSubmit} className="space-y-6">

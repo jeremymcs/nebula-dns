@@ -135,7 +135,7 @@ export default function CareersPage() {
             <p className="fs-eyebrow mb-3">
               WHY NEBULA DNS
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink">
               Built for People Who Care About Their Work
             </h2>
             <p className="mt-4 text-[var(--fs-txt)] max-w-2xl mx-auto">
@@ -158,7 +158,7 @@ export default function CareersPage() {
                 >
                   {value.icon}
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">
+                <h3 className="text-lg font-semibold text-ink mb-2">
                   {value.title}
                 </h3>
                 <p className="text-[var(--fs-txt)] text-sm">
@@ -177,7 +177,7 @@ export default function CareersPage() {
             <p className="fs-eyebrow mb-3">
               OPEN POSITIONS
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink">
               {openings.length} Roles Available
             </h2>
             <p className="mt-4 text-[var(--fs-txt)]">
@@ -193,7 +193,7 @@ export default function CareersPage() {
               >
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                   <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-white group-hover:text-primary-300 transition-colors">
+                    <h3 className="text-xl font-semibold text-ink group-hover:text-primary-300 transition-colors">
                       {job.title}
                     </h3>
                     <div className="mt-2 flex flex-wrap gap-2 items-center">
@@ -238,7 +238,7 @@ export default function CareersPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-3">
+            <h3 className="text-2xl font-bold text-ink mb-3">
               Don't see your role?
             </h3>
             <p className="text-[var(--fs-txt)] max-w-xl mx-auto mb-8">
@@ -266,7 +266,7 @@ export default function CareersPage() {
           <p className="fs-eyebrow mb-4">
             JOIN US
           </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-ink mb-4">
             Come build the future of{' '}
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
               DNS security

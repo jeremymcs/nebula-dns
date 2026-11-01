@@ -40,17 +40,11 @@ export function MarketingCtaBand({
         )}
       </div>
       <div className="relative z-[1] flex w-full flex-col items-stretch gap-3 sm:w-auto sm:items-end">
-        <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
-          <Link
-            href={primaryHref}
-            className="fs-btn fs-btn-primary fs-btn-lg inline-flex shrink-0 items-center justify-center whitespace-nowrap no-underline"
-          >
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+          <Link href={primaryHref} className="fs-cta-band-action-primary w-full sm:w-auto">
             {primaryLabel} <span className="opacity-80">→</span>
           </Link>
-          <Link
-            href={secondaryHref}
-            className="fs-btn-ghost-on-dark fs-btn-lg inline-flex shrink-0 items-center justify-center whitespace-nowrap no-underline"
-          >
+          <Link href={secondaryHref} className="fs-cta-band-action-secondary w-full sm:w-auto">
             {secondaryLabel}
           </Link>
         </div>

@@ -233,37 +233,32 @@ export default function PricingPage() {
               return (
                 <div
                   key={plan.id}
-                  className={`relative flex flex-col rounded-2xl transition-all ${
-                    isPopular
-                      ? 'bg-gradient-to-b from-primary-900/40 to-space-900/60 border border-primary-600/50 shadow-glow'
-                      : 'fs-card rounded-[14px] hover:border-space-600/70'
+                  className={`relative flex flex-col rounded-[14px] transition-all fs-card ${
+                    isPopular ? 'ring-2 ring-[var(--fs-blue)]/35 shadow-[0_8px_30px_-12px_rgba(30,59,120,0.35)]' : ''
                   }`}
                 >
-                  {/* Most Popular Badge */}
                   {isPopular && (
                     <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                      <span className="bg-gradient-to-r from-primary-600 to-primary-500 text-white text-xs font-semibold px-4 py-1 rounded-full shadow-glow-sm">
+                      <span className="rounded-full bg-[var(--fs-navy)] px-4 py-1 text-xs font-semibold text-white">
                         Most Popular
                       </span>
                     </div>
                   )}
 
                   <div className="p-6 flex flex-col flex-1">
-                    {/* Plan Name & Description */}
                     <div>
-                      <h3 className="text-xl font-bold text-white">{plan.name}</h3>
+                      <h3 className="text-xl font-bold text-ink">{plan.name}</h3>
                       <p className="mt-2 text-sm text-[var(--fs-txt)] min-h-[2.5rem]">{plan.description}</p>
                     </div>
 
-                    {/* Price */}
                     <div className="mt-6">
                       {isEnterprise ? (
                         <div className="flex items-baseline">
-                          <span className="text-4xl font-bold text-white">Custom</span>
+                          <span className="text-4xl font-bold text-ink">Custom</span>
                         </div>
                       ) : (
                         <div className="flex items-baseline gap-1">
-                          <span className={`text-4xl font-bold ${plan.id === 'free' ? 'text-[var(--fs-txt)]' : 'text-white'}`}>
+                          <span className="text-4xl font-bold text-ink">
                             ${price === 0 ? '0' : price}
                           </span>
                           {price > 0 && (
@@ -366,7 +361,7 @@ export default function PricingPage() {
                   key={index}
                   className="fs-card rounded-[14px] p-6"
                 >
-                  <h3 className="text-base font-semibold text-white mb-2">{faq.q}</h3>
+                  <h3 className="text-base font-semibold text-ink mb-2">{faq.q}</h3>
                   <p className="text-[var(--fs-txt)] text-sm leading-relaxed">{faq.a}</p>
                 </div>
               ))}

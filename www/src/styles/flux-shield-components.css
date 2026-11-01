@@ -23,6 +23,7 @@
     box-shadow: 0 0 0 1px var(--fs-line);
   }
 
+  .fs-btn.fs-btn-primary,
   .fs-btn-primary {
     background: linear-gradient(180deg, #24468c, var(--fs-navy));
     color: #fff;
@@ -32,6 +33,7 @@
       0 6px 16px -6px rgba(30, 59, 120, 0.6);
   }
 
+  .fs-btn.fs-btn-primary:hover,
   .fs-btn-primary:hover {
     filter: brightness(1.05);
   }

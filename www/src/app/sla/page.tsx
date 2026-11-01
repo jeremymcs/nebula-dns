@@ -17,7 +17,7 @@ export default function SLAPage() {
 
         {/* Service Availability */}
         <div className="fs-card rounded-[14px] p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">
+          <h2 className="text-xl font-semibold text-ink mb-4">
             Service Availability
           </h2>
           <p className="text-[var(--fs-txt)] mb-6">
@@ -73,7 +73,7 @@ export default function SLAPage() {
 
         {/* Measurement */}
         <div className="fs-card rounded-[14px] p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">
+          <h2 className="text-xl font-semibold text-ink mb-4">
             Measurement
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -89,7 +89,7 @@ export default function SLAPage() {
 
         {/* Exclusions */}
         <div className="fs-card rounded-[14px] p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">
+          <h2 className="text-xl font-semibold text-ink mb-4">
             Exclusions
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -121,7 +121,7 @@ export default function SLAPage() {
 
         {/* Service Credits */}
         <div className="fs-card rounded-[14px] p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">
+          <h2 className="text-xl font-semibold text-ink mb-4">
             Service Credits
           </h2>
           <p className="text-[var(--fs-txt)] mb-6">
@@ -163,7 +163,7 @@ export default function SLAPage() {
 
         {/* Requesting Service Credits */}
         <div className="fs-card rounded-[14px] p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">
+          <h2 className="text-xl font-semibold text-ink mb-4">
             Requesting Service Credits
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -181,7 +181,7 @@ export default function SLAPage() {
 
         {/* Support Response Times */}
         <div className="fs-card rounded-[14px] p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">
+          <h2 className="text-xl font-semibold text-ink mb-4">
             Support Response Times
           </h2>
           <p className="text-[var(--fs-txt)] mb-6">
@@ -230,7 +230,7 @@ export default function SLAPage() {
 
         {/* Scheduled Maintenance */}
         <div className="fs-card rounded-[14px] p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">
+          <h2 className="text-xl font-semibold text-ink mb-4">
             Scheduled Maintenance
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">

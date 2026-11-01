@@ -148,7 +148,7 @@ export default function FeaturesPage() {
             <p className="fs-eyebrow mb-3">
               What We Offer
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink">
               Everything You Need to Stay Protected
             </h2>
             <p className="mt-4 text-[var(--fs-txt)] max-w-2xl mx-auto">
@@ -171,7 +171,7 @@ export default function FeaturesPage() {
                     {feature.icon}
                   </div>
                 )}
-                <h3 className="text-lg font-semibold text-white mb-3">
+                <h3 className="text-lg font-semibold text-ink mb-3">
                   {feature.name}
                 </h3>
                 <p className="text-[var(--fs-txt)] text-sm leading-relaxed">
@@ -190,7 +190,7 @@ export default function FeaturesPage() {
             <p className="fs-eyebrow mb-3">
               Simple Setup
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink">
               How It Works
             </h2>
             <p className="mt-4 text-[var(--fs-txt)] max-w-2xl mx-auto">
@@ -231,7 +231,7 @@ export default function FeaturesPage() {
             <p className="fs-eyebrow mb-3">
               By the Numbers
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink">
               Built for Performance at Scale
             </h2>
             <p className="mt-4 text-[var(--fs-txt)] max-w-2xl mx-auto">
@@ -293,7 +293,7 @@ export default function FeaturesPage() {
             <p className="fs-eyebrow mb-4">
               Get Started Today
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink mb-4">
               Ready to secure your network?
             </h2>
             <p className="text-[var(--fs-txt)] mb-8 max-w-xl mx-auto">

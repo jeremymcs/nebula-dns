@@ -113,7 +113,7 @@ export default function AboutPage() {
             <p className="fs-eyebrow mb-3">
               What Drives Us
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink">
               Our Core Values
             </h2>
             <p className="mt-4 text-[var(--fs-txt)] max-w-2xl mx-auto">
@@ -136,7 +136,7 @@ export default function AboutPage() {
                     {value.icon}
                   </div>
                 )}
-                <h3 className="text-lg font-semibold text-white mb-2">
+                <h3 className="text-lg font-semibold text-ink mb-2">
                   {value.title}
                 </h3>
                 <p className="text-[var(--fs-txt)] text-sm leading-relaxed">
@@ -176,7 +176,7 @@ export default function AboutPage() {
             <p className="fs-eyebrow mb-3">
               The People Behind Flux Shield
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink">
               Meet the Team
             </h2>
             <p className="mt-4 text-[var(--fs-txt)] max-w-2xl mx-auto">
@@ -193,7 +193,7 @@ export default function AboutPage() {
                 <div className={`inline-flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br ${member.gradient} text-white text-2xl font-bold mb-4`}>
                   {member.initials}
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-1">
+                <h3 className="text-lg font-semibold text-ink mb-1">
                   {member.name}
                 </h3>
                 <div className="text-sm text-primary-400 mb-3">
@@ -215,7 +215,7 @@ export default function AboutPage() {
             <p className="fs-eyebrow mb-3">
               Company Milestones
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink">
               Our Journey
             </h2>
             <p className="mt-4 text-[var(--fs-txt)]">
@@ -235,7 +235,7 @@ export default function AboutPage() {
                   <div className="text-xs font-semibold text-primary-400 uppercase tracking-widest mb-1">
                     {milestone.date}
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-1">
+                  <h3 className="text-lg font-bold text-ink mb-1">
                     {milestone.event}
                   </h3>
                   <p className="text-[var(--fs-txt)] text-sm leading-relaxed">

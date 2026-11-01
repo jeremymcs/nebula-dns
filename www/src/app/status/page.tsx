@@ -143,7 +143,7 @@ export default function StatusPage() {
                   className="fs-card rounded-[14px] p-6 flex items-start justify-between gap-4"
                 >
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-white">
+                    <h3 className="text-lg font-semibold text-ink">
                       {service.name}
                     </h3>
                     <p className="mt-1 text-sm text-[var(--fs-txt)]">
@@ -221,7 +221,7 @@ export default function StatusPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-white mb-2">
+            <h3 className="text-xl font-semibold text-ink mb-2">
               No incidents in the past 90 days
             </h3>
             <p className="text-[var(--fs-txt)] text-sm">
@@ -240,7 +240,7 @@ export default function StatusPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-2">
+            <h3 className="text-2xl font-bold text-ink mb-2">
               Subscribe to Status Updates
             </h3>
             <p className="text-[var(--fs-txt)] mb-6 max-w-md mx-auto">
@@ -286,7 +286,7 @@ export default function StatusPage() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[250px] bg-primary-700/10 rounded-full blur-3xl" />
         </div>
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-ink mb-4">
             Experiencing an issue?
           </h2>
           <p className="text-[var(--fs-txt)] mb-8 max-w-xl mx-auto">

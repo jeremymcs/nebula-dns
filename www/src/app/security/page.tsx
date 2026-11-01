@@ -233,7 +233,7 @@ export default function SecurityPage() {
             <p className="fs-eyebrow mb-3">
               SECURITY ARCHITECTURE
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink">
               Comprehensive Security at Every Layer
             </h2>
             <p className="mt-4 text-[var(--fs-txt)] max-w-2xl mx-auto">
@@ -256,7 +256,7 @@ export default function SecurityPage() {
                 >
                   {feature.icon}
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">
+                <h3 className="text-lg font-semibold text-ink mb-2">
                   {feature.title}
                 </h3>
                 <p className="text-[var(--fs-txt)] text-sm leading-relaxed">
@@ -275,7 +275,7 @@ export default function SecurityPage() {
             <p className="fs-eyebrow mb-3">
               DATA PRIVACY
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink">
               Your Privacy is Non-Negotiable
             </h2>
             <p className="mt-4 text-[var(--fs-txt)] max-w-2xl mx-auto">
@@ -311,7 +311,7 @@ export default function SecurityPage() {
             <p className="fs-eyebrow mb-3">
               COMPLIANCE
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink">
               Meeting the Highest Standards
             </h2>
             <p className="mt-4 text-[var(--fs-txt)] max-w-2xl mx-auto">
@@ -328,7 +328,7 @@ export default function SecurityPage() {
                 <div className="h-14 w-14 rounded-xl bg-primary-900/50 border border-primary-800/50 flex items-center justify-center text-primary-400 mx-auto mb-4">
                   {item.icon}
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2">
+                <h3 className="text-lg font-bold text-ink mb-2">
                   {item.name}
                 </h3>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold mb-3 ${item.statusColor}`}>
@@ -419,7 +419,7 @@ export default function SecurityPage() {
           <p className="fs-eyebrow mb-4">
             OUR FOUNDATION
           </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-ink mb-4">
             Security is our{' '}
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
               foundation

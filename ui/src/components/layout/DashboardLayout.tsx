@@ -143,7 +143,10 @@ export function DashboardLayout({ children, showBreadcrumbs = true }: DashboardL
   return (
     <ErrorBoundary name="AppLayout" showReload>
       <CommandBarProvider>
-        <div className="min-h-screen bg-surface dark:bg-space-950 flex flex-col lg:flex-row">
+        <div
+          data-flux-dashboard
+          className="min-h-screen bg-surface dark:bg-space-950 flex flex-col lg:flex-row"
+        >
           {/* US-028: Grace Period Warning Banner */}
           {gracePeriodInfo?.subscriptionStatus === 'grace' && gracePeriodInfo.daysRemaining !== null && (
             <GracePeriodBanner

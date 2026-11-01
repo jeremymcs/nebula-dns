@@ -57,7 +57,10 @@ export function AppSidebar() {
     pathname === href || (href !== '/dashboard' && pathname?.startsWith(href))
 
   return (
-    <aside className="hidden lg:flex w-[248px] shrink-0 flex-col border-r fs-hairline bg-canvas dark:bg-space-950 px-3 py-3.5">
+    <aside
+      data-flux-app-shell
+      className="hidden lg:flex w-[248px] shrink-0 flex-col border-r fs-hairline bg-canvas dark:bg-space-950 px-3 py-3.5"
+    >
       <div className="flex items-center gap-2 px-2 py-2">
         <ShieldMark className="h-7 w-7 rounded-[7px] shadow-none" iconClassName="h-4 w-4" />
         <div className="min-w-0 flex-1">

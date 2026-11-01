@@ -17,7 +17,7 @@ export default function GDPRPage() {
 
         {/* Our Commitment */}
         <div className="fs-card rounded-[14px] p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">
+          <h2 className="text-xl font-semibold text-ink mb-4">
             Our Commitment
           </h2>
           <p className="text-[var(--fs-txt)] mb-6">
@@ -64,7 +64,7 @@ export default function GDPRPage() {
 
         {/* Data We Process */}
         <div className="fs-card rounded-[14px] p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">
+          <h2 className="text-xl font-semibold text-ink mb-4">
             Data We Process
           </h2>
           <p className="text-[var(--fs-txt)] mb-6">
@@ -115,7 +115,7 @@ export default function GDPRPage() {
 
         {/* Legal Basis for Processing */}
         <div className="fs-card rounded-[14px] p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">
+          <h2 className="text-xl font-semibold text-ink mb-4">
             Legal Basis for Processing
           </h2>
           <p className="text-[var(--fs-txt)] mb-6">
@@ -155,7 +155,7 @@ export default function GDPRPage() {
 
         {/* Your Rights */}
         <div className="fs-card rounded-[14px] p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">
+          <h2 className="text-xl font-semibold text-ink mb-4">
             Your Rights
           </h2>
           <p className="text-[var(--fs-txt)] mb-6">
@@ -230,7 +230,7 @@ export default function GDPRPage() {
 
         {/* Data Processing Agreement */}
         <div className="fs-card rounded-[14px] p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">
+          <h2 className="text-xl font-semibold text-ink mb-4">
             Data Processing Agreement
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -268,7 +268,7 @@ export default function GDPRPage() {
 
         {/* International Data Transfers */}
         <div className="fs-card rounded-[14px] p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">
+          <h2 className="text-xl font-semibold text-ink mb-4">
             International Data Transfers
           </h2>
           <p className="text-[var(--fs-txt)] mb-6">
@@ -294,7 +294,7 @@ export default function GDPRPage() {
 
         {/* Data Protection Officer */}
         <div className="fs-card rounded-[14px] p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">
+          <h2 className="text-xl font-semibold text-ink mb-4">
             Data Protection Officer
           </h2>
           <p className="text-[var(--fs-txt)] mb-4">
@@ -320,7 +320,7 @@ export default function GDPRPage() {
 
         {/* How to Exercise Your Rights */}
         <div className="fs-card rounded-[14px] p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">
+          <h2 className="text-xl font-semibold text-ink mb-4">
             How to Exercise Your Rights
           </h2>
           <p className="text-[var(--fs-txt)] mb-6">

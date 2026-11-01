@@ -166,7 +166,7 @@ export default function BlogPage() {
               </div>
 
               {/* Title */}
-              <h2 className="text-lg font-bold text-white mb-3 group-hover:text-primary-300 transition-colors leading-snug">
+              <h2 className="text-lg font-bold text-ink mb-3 group-hover:text-primary-300 transition-colors leading-snug">
                 <Link href={`/blog/${post.slug}`}>
                   {post.title}
                 </Link>

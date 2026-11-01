@@ -312,7 +312,7 @@ function SignupFormContent() {
                 {/* Step 1: Account Details */}
                 {step === 1 && (
                   <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-white">Create Your Account</h2>
+                    <h2 className="text-2xl font-bold text-ink">Create Your Account</h2>
 
                     <div>
                       <label className="block text-sm font-medium text-[var(--fs-txt)] mb-2">
@@ -364,7 +364,7 @@ function SignupFormContent() {
                 {/* Step 2: Company Info */}
                 {step === 2 && (
                   <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-white">Tell Us About Your Organization</h2>
+                    <h2 className="text-2xl font-bold text-ink">Tell Us About Your Organization</h2>
 
                     <div>
                       <label className="block text-sm font-medium text-[var(--fs-txt)] mb-2">
@@ -459,7 +459,7 @@ function SignupFormContent() {
                 {/* Step 3: Review & Confirm */}
                 {step === 3 && (
                   <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-white">Review & Confirm</h2>
+                    <h2 className="text-2xl font-bold text-ink">Review & Confirm</h2>
 
                     <div className="bg-space-900 border border-space-700/60 rounded-xl p-5 space-y-3">
                       {[
@@ -541,7 +541,7 @@ function SignupFormContent() {
           {/* Order Summary Panel */}
           <div className="lg:col-span-1">
             <div className="fs-card rounded-[14px] p-6 sticky top-24">
-              <h3 className="text-base font-semibold text-white mb-5">Order Summary</h3>
+              <h3 className="text-base font-semibold text-ink mb-5">Order Summary</h3>
 
               {/* Plan Selection */}
               <div className="space-y-2 mb-5">

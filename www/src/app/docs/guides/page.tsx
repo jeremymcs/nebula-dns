@@ -159,7 +159,7 @@ export default function GuidesPage() {
                 </div>
 
                 {/* Title */}
-                <h3 className="text-xl font-semibold text-white group-hover:text-primary-300 transition-colors">
+                <h3 className="text-xl font-semibold text-ink group-hover:text-primary-300 transition-colors">
                   {guide.title}
                 </h3>
 
@@ -190,7 +190,7 @@ export default function GuidesPage() {
       <div className="border-t border-space-800/50">
         <div className="section-container py-16 text-center">
           <div className="bg-primary-900/30 border border-primary-800/50 rounded-xl p-8 max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink mb-4">
               Can&apos;t find what you&apos;re looking for?
             </h2>
             <p className="text-[var(--fs-txt)] mb-8">

@@ -218,7 +218,7 @@ export default function ApiReferencePage() {
               </svg>
             </div>
             <div className="flex-1">
-              <h2 className="text-2xl font-bold text-white mb-3">Authentication</h2>
+              <h2 className="text-2xl font-bold text-ink mb-3">Authentication</h2>
               <p className="text-[var(--fs-txt)] mb-5">
                 The Flux Shield API uses Bearer token authentication. Include your API token in the{' '}
                 <code className="bg-space-900 border border-space-700 px-1.5 py-0.5 rounded text-xs text-accent-400 font-mono">Authorization</code>{' '}
@@ -270,7 +270,7 @@ export default function ApiReferencePage() {
                     {group.icon}
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-white mb-0.5">{group.title}</h3>
+                    <h3 className="text-lg font-bold text-ink mb-0.5">{group.title}</h3>
                     <p className="text-[var(--fs-mut)] text-sm">{group.description}</p>
                   </div>
                 </div>

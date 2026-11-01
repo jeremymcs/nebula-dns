@@ -193,7 +193,7 @@ export default function EnterprisePage() {
                 {feature.icon}
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white mb-2">
+                <h3 className="text-lg font-semibold text-ink mb-2">
                   {feature.title}
                 </h3>
                 <p className="text-[var(--fs-txt)] text-sm leading-relaxed">

@@ -3,6 +3,7 @@
 
 import Link from 'next/link'
 import { QueryTraceHero } from '@/components/marketing/QueryTraceHero'
+import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
 
 const stats = [
   { value: '99.99%', label: 'Uptime SLA' },
@@ -275,29 +276,14 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <div className="fs-cta-band mb-[120px] flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative">
-            <h2 className="fs-cta-band-title">
+        <MarketingCtaBand
+          className="mb-[120px]"
+          title={
+            <>
               Ready to secure <span className="font-serif-accent">your network?</span>
-            </h2>
-            <p className="relative mt-4 max-w-[520px] text-[17px] leading-relaxed text-[#AEB9D3]">
-              Deploy in minutes, not days. Change two resolver addresses and every device is protected.
-            </p>
-          </div>
-          <div className="relative flex flex-col items-start gap-3.5 lg:items-end">
-            <div className="flex flex-wrap gap-2.5">
-              <Link href="/signup" className="fs-btn fs-btn-lg bg-white text-ink no-underline shadow-none">
-                Start free trial →
-              </Link>
-              <Link href="/pricing" className="fs-btn-ghost-on-dark fs-btn-lg no-underline">
-                View pricing
-              </Link>
-            </div>
-            <span className="text-[13px] text-[#8590AB]">
-              No credit card required · 14-day free trial · Cancel anytime
-            </span>
-          </div>
-        </div>
+            </>
+          }
+        />
       </div>
     </>
   )
