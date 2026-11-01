@@ -61,118 +61,32 @@
               - generic [ref=e68]: MSP
               - img [ref=e69]
     - main [ref=e71]:
-      - generic [ref=e73]:
-        - generic [ref=e74]:
-          - heading "Dashboard" [level=1] [ref=e75]
-          - paragraph [ref=e76]: MSP Provider Inc • DNS security at a glance
-        - generic [ref=e77]:
-          - generic [ref=e81]:
-            - generic [ref=e82]:
-              - paragraph [ref=e83]: Total Queries
-              - paragraph [ref=e84]: 125,000
-              - paragraph [ref=e85]: Last 24 hours
-              - generic [ref=e86]: ↑ 0%
-            - img [ref=e89]
-          - generic [ref=e94]:
-            - generic [ref=e95]:
-              - paragraph [ref=e96]: Threats Blocked
-              - paragraph [ref=e97]: "890"
-              - paragraph [ref=e98]: Last 24 hours
-              - generic [ref=e99]: ↑ 0%
-            - img [ref=e102]
-          - generic [ref=e107]:
-            - generic [ref=e108]:
-              - paragraph [ref=e109]: Policies Active
-              - paragraph [ref=e110]: "0"
-              - paragraph [ref=e111]: Across all locations
-            - img [ref=e114]
-          - generic [ref=e119]:
-            - generic [ref=e120]:
-              - paragraph [ref=e121]: Locations
-              - paragraph [ref=e122]: "0"
-              - paragraph [ref=e123]: Protected networks
-            - img [ref=e126]
-        - generic [ref=e129]:
-          - generic [ref=e130]:
-            - generic [ref=e132]:
-              - heading "Query Trends" [level=3] [ref=e133]
-              - paragraph [ref=e134]: Total queries vs blocked over time
-            - application [ref=e138]:
-              - generic [ref=e155]:
-                - generic [ref=e156]:
-                  - generic [ref=e158]: Sun, Nov 1
-                  - generic [ref=e160]: Sat, Oct 31
-                  - generic [ref=e162]: Fri, Oct 30
-                  - generic [ref=e164]: Thu, Oct 29
-                  - generic [ref=e166]: Wed, Oct 28
-                  - generic [ref=e168]: Mon, Oct 26
-                - generic [ref=e169]:
-                  - generic [ref=e171]: "0"
-                  - generic [ref=e173]: 4k
-                  - generic [ref=e175]: 7k
-                  - generic [ref=e177]: 11k
-                  - generic [ref=e179]: 14k
-          - generic [ref=e180]:
-            - generic [ref=e182]:
-              - heading "Categories Blocked" [level=3] [ref=e183]
-              - paragraph [ref=e184]: Distribution of blocked content
-            - generic [ref=e187]:
-              - generic [ref=e189]:
-                - generic [ref=e192]: malware
-                - generic [ref=e195]: phishing
-              - application [ref=e196]
-        - generic [ref=e204]:
-          - generic [ref=e206]:
-            - generic [ref=e208]:
-              - heading "Top Blocked" [level=3] [ref=e209]
-              - paragraph [ref=e210]: Most frequently blocked domains
-            - generic [ref=e211]:
-              - generic [ref=e212]:
-                - generic [ref=e214]: "1"
-                - generic [ref=e216]:
-                  - generic [ref=e217]: bad.example.com
-                  - generic [ref=e218]: malware
-                - generic [ref=e221]:
-                  - text: "120"
-                  - paragraph [ref=e222]: blocks
-              - generic [ref=e223]:
-                - generic [ref=e225]: "2"
-                - generic [ref=e227]:
-                  - generic [ref=e228]: phish.example.com
-                  - generic [ref=e229]: phishing
-                - generic [ref=e232]:
-                  - text: "80"
-                  - paragraph [ref=e233]: blocks
-          - generic [ref=e235]:
-            - generic [ref=e236]:
-              - generic [ref=e237]:
-                - heading "Live Activity" [level=3] [ref=e238]
-                - paragraph [ref=e239]: Recent DNS queries
-              - generic [ref=e243]: Live
-            - generic [ref=e244]:
-              - generic [ref=e245]:
-                - img [ref=e247]
-                - generic [ref=e249]:
-                  - generic [ref=e250]:
-                    - generic [ref=e251]: bad.example.com
-                    - generic [ref=e252]: Blocked
-                  - generic [ref=e254]: malware
-                - generic [ref=e255]: Just now
-              - generic [ref=e256]:
-                - img [ref=e258]
-                - generic [ref=e260]:
-                  - generic [ref=e261]:
-                    - generic [ref=e262]: phish.example.com
-                    - generic [ref=e263]: Blocked
-                  - generic [ref=e265]: phishing
-                - generic [ref=e266]: Just now
-    - contentinfo "Site footer" [ref=e267]:
-      - paragraph [ref=e268]:
+      - navigation [ref=e72]:
+        - link "Dashboard" [ref=e74] [cursor=pointer]:
+          - /url: /dashboard
+        - generic [ref=e75]:
+          - img [ref=e76]
+          - link "MSP" [ref=e78] [cursor=pointer]:
+            - /url: /dashboard/msp
+        - generic [ref=e79]:
+          - img [ref=e80]
+          - generic [ref=e82]: Templates
+      - generic [ref=e85]:
+        - img [ref=e87]
+        - heading "Something went wrong" [level=2] [ref=e89]
+        - paragraph [ref=e90]: Cannot read properties of undefined (reading 'threatBlocking')
+        - generic [ref=e91]:
+          - button "Try Again" [ref=e92] [cursor=pointer]:
+            - img [ref=e93]
+            - text: Try Again
+          - button "Go to Dashboard" [ref=e95] [cursor=pointer]:
+            - img [ref=e96]
+            - text: Go to Dashboard
+    - contentinfo "Site footer" [ref=e98]:
+      - paragraph [ref=e99]:
         - text: © 2026 · Powered by
-        - link "Flux Labs" [ref=e269] [cursor=pointer]:
+        - link "Flux Labs" [ref=e100] [cursor=pointer]:
           - /url: https://fluxlabs.net
-    - button [ref=e270] [cursor=pointer]:
-      - img [ref=e273]
-    - generic [ref=e275]: Meet Orion- Your AI Co-Pilot
-  - generic [ref=e277]: "0"
+    - button [ref=e101] [cursor=pointer]:
+      - img [ref=e103]
 ```

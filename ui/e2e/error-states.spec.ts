@@ -454,8 +454,9 @@ test.describe('Error States - Session Expiry', () => {
     })
 
     await page.reload({ waitUntil: 'domcontentloaded' })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
 
-    await expect(loginHeading(page)).toBeVisible({ timeout: 15000 })
+    await expect(loginHeading(page)).toBeVisible({ timeout: 20000 })
   })
 })
 

@@ -162,7 +162,7 @@
             - generic [ref=e188]:
               - generic [ref=e189]:
                 - paragraph [ref=e190]: Total Queries
-                - paragraph [ref=e191]: 124.6K
+                - paragraph [ref=e191]: 125.0K
                 - generic [ref=e192]: ↑ 12%
               - img [ref=e195]
             - generic [ref=e200]:
@@ -174,7 +174,7 @@
             - generic [ref=e212]:
               - generic [ref=e213]:
                 - paragraph [ref=e214]: Threats
-                - paragraph [ref=e215]: "887"
+                - paragraph [ref=e215]: "889"
                 - generic [ref=e216]: ↓ 15%
               - img [ref=e219]
             - generic [ref=e224]:

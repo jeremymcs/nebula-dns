@@ -55,6 +55,17 @@ export async function login(page: Page, tier: TenantTier = 'enterprise') {
       locationLimit: tier === 'home' ? 5 : tier === 'enterprise' ? 50 : null,
       clientLimit: tier === 'msp' ? null : undefined
     }))
+    if (tier === 'msp') {
+      localStorage.setItem(
+        'mspInfo',
+        JSON.stringify({
+          isMsp: true,
+          partnerId: 'msp-partner-1',
+          currentOrg: { id: 'client-1', name: 'Acme Corp', slug: 'acme-corp', status: 'active' },
+          organizations: [{ id: 'client-1', name: 'Acme Corp', slug: 'acme-corp', status: 'active' }],
+        }),
+      )
+    }
   }, { tier })
 
   await page.goto('/dashboard', { waitUntil: 'domcontentloaded' })

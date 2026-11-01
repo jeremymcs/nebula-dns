@@ -150,11 +150,8 @@ test.describe('Settings - Team Management', () => {
   })
 
   test('should open invite member form', async ({ page }) => {
-    const inviteButton = page.getByRole('button', { name: /invite|add member|add user/i })
-    await inviteButton.click()
-
-    // Should show invite form
-    const emailInput = page.getByLabel(/email/i).or(page.getByPlaceholder(/email/i)).first()
+    await page.getByRole('button', { name: /invite member/i }).click()
+    const emailInput = page.getByRole('dialog').getByRole('textbox').first()
     await expect(emailInput).toBeVisible({ timeout: 5000 })
   })
 
@@ -280,8 +277,7 @@ test.describe('Settings - API Keys', () => {
     const createButton = page.getByRole('button', { name: /create|new|generate|add.*key/i })
     await createButton.click()
 
-    // Should show form
-    const nameInput = page.getByLabel(/key name|name|label/i).first()
+    const nameInput = page.getByRole('dialog').getByRole('textbox').first()
     await expect(nameInput).toBeVisible({ timeout: 5000 })
   })
 
@@ -289,8 +285,7 @@ test.describe('Settings - API Keys', () => {
     const createButton = page.getByRole('button', { name: /create|new|generate|add.*key/i })
     await createButton.click()
 
-    // Fill key name
-    const nameInput = page.getByLabel(/key name|name|label/i).first()
+    const nameInput = page.getByRole('dialog').getByRole('textbox').first()
     await nameInput.fill('E2E Test API Key')
 
     // Select permissions if available
@@ -383,13 +378,8 @@ test.describe('Settings - Integrations/Webhooks', () => {
     await loginAndNavigate(page, '/dashboard/settings/integrations')
     await waitForPageLoad(page)
 
-    const webhookSection = page.getByText(/webhooks?|webhook configuration/i)
-
-    if (await webhookSection.isVisible()) {
-      await expect(webhookSection).toBeVisible()
-    } else {
-      test.skip()
-    }
+    const webhookSection = page.getByText(/webhooks/i).first()
+    await expect(webhookSection).toBeVisible()
   })
 
   test('should create new webhook', async ({ page }) => {

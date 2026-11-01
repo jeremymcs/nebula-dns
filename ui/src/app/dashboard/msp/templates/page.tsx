@@ -32,7 +32,7 @@ interface Client {
 }
 
 export default function MspTemplatesPage() {
-  const { isMspTier, organizations } = useAuth()
+  const { isMspTier, loading, organizations } = useAuth()
   const { showToast } = useToast()
   const { data: templatesData, isLoading } = useMspTemplates()
   const [search, setSearch] = useState('')
@@ -255,6 +255,12 @@ export default function MspTemplatesPage() {
   }
 
   // Redirect non-MSP users
+  if (loading) {
+    return (
+      <div className="animate-pulse rounded-2xl bg-space-100 dark:bg-space-800/50 h-64" />
+    )
+  }
+
   if (!isMspTier) {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-center">

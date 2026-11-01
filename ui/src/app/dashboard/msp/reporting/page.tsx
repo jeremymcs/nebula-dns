@@ -9,7 +9,13 @@ import { ChartBarIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '@/contexts/AuthContext'
 
 export default function CrossClientReportingPage() {
-  const { isMspTier } = useAuth()
+  const { isMspTier, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="animate-pulse rounded-2xl bg-space-100 dark:bg-space-800/50 h-64" />
+    )
+  }
 
   if (!isMspTier) {
     return (
