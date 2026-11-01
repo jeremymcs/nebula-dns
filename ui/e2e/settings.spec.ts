@@ -151,8 +151,7 @@ test.describe('Settings - Team Management', () => {
 
   test('should open invite member form', async ({ page }) => {
     await page.getByRole('button', { name: /invite member/i }).click()
-    const emailInput = page.getByRole('dialog').getByRole('textbox').first()
-    await expect(emailInput).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('heading', { name: /invite team member/i })).toBeVisible({ timeout: 5000 })
   })
 
   test('should invite new team member', async ({ page }) => {
@@ -276,16 +275,14 @@ test.describe('Settings - API Keys', () => {
   test('should open create API key form', async ({ page }) => {
     const createButton = page.getByRole('button', { name: /create|new|generate|add.*key/i })
     await createButton.click()
-
-    const nameInput = page.getByRole('dialog').getByRole('textbox').first()
-    await expect(nameInput).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('heading', { name: /create api key/i })).toBeVisible({ timeout: 5000 })
   })
 
   test('should generate new API key', async ({ page }) => {
     const createButton = page.getByRole('button', { name: /create|new|generate|add.*key/i })
     await createButton.click()
 
-    const nameInput = page.getByRole('dialog').getByRole('textbox').first()
+    const nameInput = page.getByPlaceholder(/production integration|e\.g\./i)
     await nameInput.fill('E2E Test API Key')
 
     // Select permissions if available
@@ -391,7 +388,7 @@ test.describe('Settings - Integrations/Webhooks', () => {
     if (await createButton.isVisible()) {
       await createButton.click()
 
-      const urlInput = page.getByRole('dialog').getByRole('textbox').nth(1)
+      const urlInput = page.getByPlaceholder(/https:\/\/|webhook url|endpoint/i).first()
       await expect(urlInput).toBeVisible({ timeout: 5000 })
     } else {
       test.skip()

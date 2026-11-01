@@ -22,7 +22,7 @@ test.describe('MSP Client Management', () => {
     const hasTable = await clientTable.isVisible().catch(() => false)
     const hasCards = (await clientCards.count()) > 0
     expect(hasTable || hasCards).toBeTruthy()
-    await expect(page.getByText(/acme corp/i)).toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole('heading', { name: /acme corp/i })).toBeVisible({ timeout: 10000 })
   })
 
   test('should add new client', async ({ page }) => {

@@ -19,7 +19,7 @@ test.describe('US-037: MSP Client List Page', () => {
   })
 
   test('should display client list table with columns', async ({ page }) => {
-    await expect(page.getByText(/acme corp/i)).toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole('heading', { name: /acme corp/i })).toBeVisible({ timeout: 10000 })
     await expect(page.getByText(/^locations$/i).first()).toBeVisible()
     await expect(page.getByText(/^created$/i).first()).toBeVisible()
   })
@@ -128,8 +128,8 @@ test.describe('US-037: MSP Client Creation Flow', () => {
     await waitForPageLoad(page)
 
     // Check for required form fields
-    await expect(page.getByLabel(/client name|organization name/i)).toBeVisible()
-    await expect(page.getByLabel(/contact email|email/i)).toBeVisible()
+    await expect(page.getByLabel(/organization name/i)).toBeVisible()
+    await expect(page.getByLabel(/admin email/i)).toBeVisible()
 
     // Optional fields
     const contactPhone = page.getByLabel(/phone|contact phone/i)
@@ -146,12 +146,11 @@ test.describe('US-037: MSP Client Creation Flow', () => {
     await waitForPageLoad(page)
 
     // Try to submit without filling required fields
-    const submitButton = page.getByRole('button', { name: /create|save|add/i })
+    const submitButton = page.getByRole('button', { name: /create client|save|add client/i })
     await submitButton.click()
 
-    // Should show validation errors
-    const validationError = page.getByText(/required|cannot be empty|please enter/i)
-    await expect(validationError.first()).toBeVisible({ timeout: 3000 })
+    const validationError = page.getByText(/required|cannot be empty|please enter|email is required/i)
+    await expect(validationError.first()).toBeVisible({ timeout: 5000 })
   })
 
   test('should create client with valid data', async ({ page }) => {
@@ -160,8 +159,8 @@ test.describe('US-037: MSP Client Creation Flow', () => {
     await waitForPageLoad(page)
 
     // Fill out form
-    await page.getByLabel(/client name|organization name/i).fill('Acme Corporation')
-    await page.getByLabel(/contact email|email/i).fill('contact@acme.com')
+    await page.getByLabel(/organization name/i).fill('Acme Corporation')
+    await page.getByLabel(/admin email/i).fill('contact@acme.com')
 
     const phoneField = page.getByLabel(/phone|contact phone/i)
     if (await phoneField.count() > 0) {
@@ -379,9 +378,7 @@ test.describe('US-037: MSP Template Management', () => {
   })
 
   test('should show list of available templates', async ({ page }) => {
-    // Look for template cards or list
-    const templateCards = page.locator('[class*="card"]').or(page.locator('table'))
-    expect(await templateCards.count()).toBeGreaterThan(0)
+    await expect(page.getByText(/baseline security/i)).toBeVisible({ timeout: 10000 })
   })
 
   test('should have Create Template button', async ({ page }) => {

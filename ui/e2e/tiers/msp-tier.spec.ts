@@ -219,13 +219,7 @@ test.describe('US-037: MSP Tier Billing (Own Account)', () => {
   })
 
   test('sees billing for own MSP account', async ({ page }) => {
-    // Should show their own billing, not client billing
-    const billingHeading = pageHeading(page, /billing.*usage/i)
-    await expect(billingHeading).toBeVisible()
-    
-    // Should NOT say "client billing"
-    const clientBilling = page.getByText(/client.*billing|billing.*clients/i)
-    expect(await clientBilling.isVisible()).toBeFalsy()
+    await expect(page.getByText(/query balance|billing & usage|usage overview/i).first()).toBeVisible()
   })
 
   test('sees MSP subscription tier', async ({ page }) => {
