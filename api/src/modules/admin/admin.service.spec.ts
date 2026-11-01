@@ -13,7 +13,6 @@ import * as bcrypt from 'bcrypt';
 import { AdminService } from './admin.service';
 import { AdminSessionService } from './admin-session.service';
 import { AdminRefreshTokenService } from '../mobile/admin-refresh-token.service';
-import { AdminHealthService } from './admin-health.service';
 import { AdminActivityService } from './admin-activity.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { ClickHouseService } from '../clickhouse/clickhouse.service';

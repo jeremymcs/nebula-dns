@@ -95,11 +95,14 @@ import {
   AdminMfaEnrollStartResponseDto,
   AdminMfaVerifyResponseDto,
 } from './dto/admin-mfa.dto';
-import { AdminRefreshTokenDto } from '../mobile/dto/mobile.dto';
-import { StartImpersonationBodyDto } from '../mobile/dto/mobile.dto';
+import {
+  AdminRefreshTokenDto,
+  StartImpersonationBodyDto,
+} from '../mobile/dto/mobile.dto';
 import { AdminSessionResponse } from './admin-session.service';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { AdminRolesGuard } from './guards/admin-roles.guard';
+import { AdminMfaGuard } from './guards/admin-mfa.guard';
 import { SkipAdminMfa } from './decorators/skip-admin-mfa.decorator';
 import { AdminRoles } from './decorators/admin-roles.decorator';
 import { AdminRole } from './enums/admin-role.enum';
@@ -116,6 +119,7 @@ import { AdminUser } from './dto/admin-jwt-payload.dto';
  */
 @ApiTags('Admin')
 @Controller('admin')
+@UseGuards(AdminMfaGuard)
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
