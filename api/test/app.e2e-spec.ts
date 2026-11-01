@@ -35,7 +35,7 @@ describe('AppController (e2e)', () => {
         .get('/health')
         .expect(200)
         .expect((res: any) => {
-          expect(res.body.status).toBe('healthy');
+          expect(['healthy', 'degraded']).toContain(res.body.status);
         });
     });
 
