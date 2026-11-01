@@ -13,8 +13,6 @@ const workspaceRoot = path.join(__dirname, '..')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
-  outputFileTracingRoot: workspaceRoot,
   pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
   experimental: {
     externalDir: true,
