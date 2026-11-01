@@ -11,7 +11,7 @@ interface ShieldMarkProps {
  */
 export function ShieldMark({ className }: ShieldMarkProps) {
   return (
-    <span className={`relative inline-flex shrink-0 text-white dark:text-space-950 ${className ?? ''}`}>
+    <span className={`relative inline-flex shrink-0 text-ink dark:text-space-950 ${className ?? ''}`}>
       <svg viewBox="0 0 64 64" className="h-full w-full" aria-hidden>
         <path d="M32 4L54 12V30C54 44 44.5 54.5 32 60C19.5 54.5 10 44 10 30V12Z" fill="#1E3B78" />
         <path d="M32 4L54 12V30C54 44 44.5 54.5 32 60Z" fill="#4B7CBB" />

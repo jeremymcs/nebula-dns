@@ -366,7 +366,7 @@ export default function ReportsPage() {
               size="sm"
               leftIcon={<ArrowDownTrayIcon className="h-4 w-4" />}
               onClick={() => setShowExportModal(true)}
-              className="!bg-white !text-space-900 hover:!bg-white/90 !border-white"
+              
             >
               Export Report
             </Button>

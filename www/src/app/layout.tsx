@@ -19,6 +19,7 @@ import {
 } from '@/lib/branding'
 import { ProductWordmark } from '@/components/ProductWordmark'
 import { ShieldMark } from '@/components/ShieldMark'
+import { ThemeToggle, themeInitScript } from '@/components/ThemeToggle'
 
 const instrumentSerif = Instrument_Serif({
   subsets: ['latin'],
@@ -64,6 +65,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`h-full ${GeistSans.variable} ${GeistMono.variable} ${instrumentSerif.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="h-full bg-canvas font-sans text-ink antialiased" suppressHydrationWarning>
         <div className="flex min-h-screen flex-col">
           <header className="relative z-10 border-b border-[var(--fs-line)]">
@@ -89,6 +93,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
 
               <div className="ml-auto flex items-center gap-[18px] text-sm text-[var(--fs-txt)]">
+                <ThemeToggle />
                 <a href={APP_URL} className="transition-colors hover:text-ink">
                   Sign in
                 </a>

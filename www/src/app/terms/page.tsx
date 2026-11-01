@@ -46,27 +46,27 @@ export default function TermsPage() {
           </p>
           <ul className="space-y-2 mb-4">
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>DNS-level malware, phishing, and botnet blocking</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Content filtering across 20+ categories</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Real-time analytics and reporting</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Custom allowlists and blocklists</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>API access for automation and integration</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Management dashboard and configuration tools</span>
             </li>
           </ul>
@@ -87,19 +87,19 @@ export default function TermsPage() {
           </p>
           <ul className="space-y-2 mb-4">
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Maintaining the confidentiality of your account credentials</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>All activities that occur under your account</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Notifying us immediately of any unauthorized access</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Keeping your account information current and accurate</span>
             </li>
           </ul>
@@ -119,35 +119,35 @@ export default function TermsPage() {
           </p>
           <ul className="space-y-2 mb-4">
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Violate any laws, regulations, or third-party rights</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Transmit malware, viruses, or harmful code</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Engage in fraudulent or deceptive practices</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Attempt to gain unauthorized access to our systems</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Interfere with or disrupt the Service or servers</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Use the Service to harm minors in any way</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Resell or redistribute the Service without authorization</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Reverse engineer or attempt to extract source code</span>
             </li>
           </ul>
@@ -260,23 +260,23 @@ export default function TermsPage() {
           </p>
           <ul className="space-y-2 mb-4">
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Indirect, incidental, special, consequential, or punitive damages</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Loss of profits, revenue, data, or business opportunities</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Service interruptions or downtime</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Security breaches or unauthorized access to your data</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Errors, bugs, or inaccuracies in the Service</span>
             </li>
           </ul>
@@ -297,19 +297,19 @@ export default function TermsPage() {
           </p>
           <ul className="space-y-2 mb-4">
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>The Service will be uninterrupted, secure, or error-free</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>The Service will meet your specific requirements</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Results obtained from the Service will be accurate or reliable</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>All threats, malware, or harmful content will be blocked</span>
             </li>
           </ul>
@@ -372,19 +372,19 @@ export default function TermsPage() {
           </p>
           <div className="fs-card rounded-[14px] p-6">
             <p className="text-[var(--fs-txt)] mb-2">
-              <strong className="text-white">Email:</strong>{' '}
-              <a href="mailto:legal@shield.fluxlabs.net" className="text-primary-400 hover:text-primary-300 transition-colors">
+              <strong className="text-ink">Email:</strong>{' '}
+              <a href="mailto:legal@shield.fluxlabs.net" className="text-brand hover:text-brand transition-colors">
                 legal@shield.fluxlabs.net
               </a>
             </p>
             <p className="text-[var(--fs-txt)] mb-2">
-              <strong className="text-white">Support:</strong>{' '}
-              <a href="mailto:support@shield.fluxlabs.net" className="text-primary-400 hover:text-primary-300 transition-colors">
+              <strong className="text-ink">Support:</strong>{' '}
+              <a href="mailto:support@shield.fluxlabs.net" className="text-brand hover:text-brand transition-colors">
                 support@shield.fluxlabs.net
               </a>
             </p>
             <p className="text-[var(--fs-txt)]">
-              <strong className="text-white">Address:</strong> Flux Labs, Panama City Beach, FL 32407, United States
+              <strong className="text-ink">Address:</strong> Flux Labs, Panama City Beach, FL 32407, United States
             </p>
           </div>
         </section>

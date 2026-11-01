@@ -22,6 +22,9 @@ const FLUX = {
   chartPink: '#ff4f81',
 }
 
+/** Tailwind color backed by an RGB-channel CSS variable (supports /opacity). */
+const tok = (name) => `rgb(var(--fs-c-${name}) / <alpha-value>)`
+
 /** @type {import('tailwindcss').Config['theme']} */
 const fluxLabsThemeExtend = {
   colors: {
@@ -68,12 +71,17 @@ const fluxLabsThemeExtend = {
       950: '#0c111d',
     },
     flux: FLUX,
-    ink: FLUX.ink,
-    txt: FLUX.txt,
-    mut: FLUX.mut,
-    line: FLUX.line,
-    canvas: FLUX.canvas,
-    surface: FLUX.surface,
+    // Semantic tokens: driven by CSS variables in flux-shield-design-tokens.css,
+    // so they switch automatically in dark mode.
+    ink: tok('ink'),
+    txt: tok('txt'),
+    mut: tok('mut'),
+    line: tok('line'),
+    canvas: tok('canvas'),
+    surface: tok('surface'),
+    panel: tok('panel'),
+    brand: tok('brand'),
+    action: { DEFAULT: tok('action'), fg: tok('on-action') },
     success: {
       50: '#ecfdf5',
       100: '#d1fae5',

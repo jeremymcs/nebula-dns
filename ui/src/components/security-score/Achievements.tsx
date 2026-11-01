@@ -53,7 +53,7 @@ export function Achievements({ achievements, className }: AchievementsProps) {
               className={clsx(
                 'relative p-3 rounded-xl border-2 transition-all',
                 isUnlocked
-                  ? 'bg-amber-50 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-300 dark:border-amber-700 hover:scale-105'
+                  ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700 hover:scale-105'
                   : 'bg-space-50 dark:bg-space-900 border-space-200 dark:border-space-700 opacity-60 hover:opacity-80'
               )}
             >

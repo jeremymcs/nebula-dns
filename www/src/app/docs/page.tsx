@@ -20,7 +20,7 @@ export default function DocsPage() {
       topics: ['Quick Start', 'DNS Setup', 'Policy Configuration', 'Client Agents', 'Troubleshooting'],
       accentColor: 'from-primary-600 to-primary-500',
       dotColor: 'bg-primary-500',
-      linkColor: 'text-primary-400 hover:text-primary-300',
+      linkColor: 'text-brand hover:text-brand',
     },
     {
       title: 'API Reference',
@@ -48,7 +48,7 @@ export default function DocsPage() {
       topics: ['DNS Security', 'Best Practices', 'Case Studies', 'Release Notes', 'Industry News'],
       accentColor: 'from-primary-600 to-accent-500',
       dotColor: 'bg-accent-500',
-      linkColor: 'text-primary-400 hover:text-primary-300',
+      linkColor: 'text-brand hover:text-brand',
     },
   ]
 
@@ -67,7 +67,7 @@ export default function DocsPage() {
     {
       category: 'Security',
       icon: (
-        <svg className="h-5 w-5 text-danger-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="h-5 w-5 text-[var(--fs-danger)]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
         </svg>
       ),
@@ -93,7 +93,7 @@ export default function DocsPage() {
     {
       category: 'Account',
       icon: (
-        <svg className="h-5 w-5 text-primary-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="h-5 w-5 text-brand" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
         </svg>
       ),
@@ -150,7 +150,7 @@ export default function DocsPage() {
             <Link
               key={index}
               href={category.href}
-              className="fs-card rounded-[14px] p-8 hover:border-primary-700/50 transition-all group flex flex-col"
+              className="fs-card rounded-[14px] p-8 hover:border-primary-500/50 transition-all group flex flex-col"
             >
               <div className={`h-16 w-16 rounded-xl bg-gradient-to-br ${category.accentColor} flex items-center justify-center text-white mb-6 group-hover:scale-105 transition-transform`}>
                 {category.icon}
@@ -181,11 +181,11 @@ export default function DocsPage() {
       </div>
 
       {/* Quick Links Grid */}
-      <div className="border-t border-space-800/50 py-16">
+      <div className="border-t border-line py-16">
         <div className="section-container">
           <div className="text-center mb-10">
             <p className="fs-eyebrow mb-3">QUICK ACCESS</p>
-            <h2 className="text-3xl font-bold text-white mb-3">
+            <h2 className="text-3xl font-bold text-ink mb-3">
               Popular Topics
             </h2>
             <p className="text-[var(--fs-txt)]">
@@ -198,7 +198,7 @@ export default function DocsPage() {
               <Link
                 key={index}
                 href={link.href}
-                className="fs-card rounded-[14px] px-4 py-4 hover:border-primary-700/50 transition-all group flex items-center justify-between"
+                className="fs-card rounded-[14px] px-4 py-4 hover:border-primary-500/50 transition-all group flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-lg" aria-hidden="true">{link.icon}</span>
@@ -235,7 +235,7 @@ export default function DocsPage() {
                     {item.version}
                   </span>
                   <div>
-                    <div className="font-medium text-white text-sm">{item.title}</div>
+                    <div className="font-medium text-ink text-sm">{item.title}</div>
                     <div className="text-[var(--fs-mut)] text-sm mt-0.5">{item.detail}</div>
                   </div>
                 </li>
@@ -243,7 +243,7 @@ export default function DocsPage() {
             </ul>
             <Link
               href="/blog/releases"
-              className="mt-8 inline-flex items-center gap-1 text-primary-400 hover:text-primary-300 font-medium text-sm transition-colors"
+              className="mt-8 inline-flex items-center gap-1 text-brand hover:text-brand font-medium text-sm transition-colors"
             >
               View all releases
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -267,14 +267,14 @@ export default function DocsPage() {
                 <div key={index}>
                   <div className="flex items-center gap-2 mb-3">
                     {topic.icon}
-                    <span className="text-white font-medium text-sm">{topic.category}</span>
+                    <span className="text-ink font-medium text-sm">{topic.category}</span>
                   </div>
                   <ul className="space-y-2 pl-7">
                     {topic.links.map((link, linkIndex) => (
                       <li key={linkIndex}>
                         <Link
                           href={link.href}
-                          className="text-[var(--fs-txt)] hover:text-primary-400 text-sm flex items-center gap-1.5 group transition-colors"
+                          className="text-[var(--fs-txt)] hover:text-brand text-sm flex items-center gap-1.5 group transition-colors"
                         >
                           <svg className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />

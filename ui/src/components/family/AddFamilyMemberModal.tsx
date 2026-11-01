@@ -132,7 +132,7 @@ export function AddFamilyMemberModal({ isOpen, onClose, onSave }: AddFamilyMembe
                   )}
                 >
                   {role === r.value && (
-                    <div className="w-2 h-2 rounded-full bg-white" />
+                    <div className="w-2 h-2 rounded-full bg-panel" />
                   )}
                 </div>
               </button>

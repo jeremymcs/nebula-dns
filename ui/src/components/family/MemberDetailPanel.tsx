@@ -214,7 +214,7 @@ export function MemberDetailPanel({ member, onClose, onSave }: MemberDetailPanel
                   onClick={() => setRestrictions({ ...restrictions, safeSearch: !restrictions.safeSearch })}
                   className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${restrictions.safeSearch ? 'bg-success-500' : 'bg-space-200 dark:bg-space-600'}`}
                 >
-                  <span className={`${restrictions.safeSearch ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`} />
+                  <span className={`${restrictions.safeSearch ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-panel shadow ring-0 transition duration-200 ease-in-out`} />
                 </button>
               </div>
             </div>

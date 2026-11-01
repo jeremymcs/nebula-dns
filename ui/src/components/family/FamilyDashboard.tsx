@@ -163,7 +163,7 @@ export function FamilyDashboard({ className }: FamilyDashboardProps) {
   const selectedMemberData = members.find(m => m.id === selectedMember) || null
 
   return (
-    <div className={clsx('min-h-screen bg-blue-50 dark:from-space-900 dark:to-space-800', className)}>
+    <div className={clsx('min-h-screen bg-surface', className)}>
       {/* Header */}
       <header className="bg-white/80 dark:bg-space-800/80 backdrop-blur-lg border-b border-space-200 dark:border-space-700 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -306,7 +306,7 @@ export function FamilyDashboard({ className }: FamilyDashboardProps) {
               onClick={() => setDefaultSettings({ ...defaultSettings, safeSearch: !defaultSettings.safeSearch })}
               className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${defaultSettings.safeSearch ? 'bg-success-500' : 'bg-space-200 dark:bg-space-600'}`}
             >
-              <span className={`${defaultSettings.safeSearch ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`} />
+              <span className={`${defaultSettings.safeSearch ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-panel shadow ring-0 transition duration-200 ease-in-out`} />
             </button>
           </div>
         </div>

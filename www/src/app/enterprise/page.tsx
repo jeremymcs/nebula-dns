@@ -175,7 +175,7 @@ export default function EnterprisePage() {
       <div className="section-container py-20">
         <div className="text-center mb-14">
           <p className="fs-eyebrow mb-3">CAPABILITIES</p>
-          <h2 className="text-4xl font-bold text-white mb-4">
+          <h2 className="text-4xl font-bold text-ink mb-4">
             Everything You Need at Enterprise Scale
           </h2>
           <p className="text-[var(--fs-txt)] text-lg max-w-2xl mx-auto">
@@ -187,7 +187,7 @@ export default function EnterprisePage() {
           {enterpriseFeatures.map((feature, index) => (
             <div
               key={index}
-              className="fs-card rounded-[14px] p-6 flex gap-5 hover:border-primary-700/50 transition-all"
+              className="fs-card rounded-[14px] p-6 flex gap-5 hover:border-primary-500/50 transition-all"
             >
               <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center text-white flex-shrink-0`}>
                 {feature.icon}
@@ -206,11 +206,11 @@ export default function EnterprisePage() {
       </div>
 
       {/* Testimonials */}
-      <div className="border-t border-space-800/50 py-20">
+      <div className="border-t border-line py-20">
         <div className="section-container">
           <div className="text-center mb-14">
             <p className="fs-eyebrow mb-3">TESTIMONIALS</p>
-            <h2 className="text-4xl font-bold text-white mb-4">
+            <h2 className="text-4xl font-bold text-ink mb-4">
               Trusted by Enterprise Teams Worldwide
             </h2>
             <p className="text-[var(--fs-txt)] text-lg">
@@ -229,12 +229,12 @@ export default function EnterprisePage() {
                 <p className="text-[var(--fs-txt)] leading-relaxed flex-1 mb-6">
                   {testimonial.quote}
                 </p>
-                <div className="flex items-center gap-3 pt-4 border-t border-space-800">
+                <div className="flex items-center gap-3 pt-4 border-t border-line">
                   <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                     {testimonial.initials}
                   </div>
                   <div>
-                    <div className="font-semibold text-white text-sm">{testimonial.author}</div>
+                    <div className="font-semibold text-ink text-sm">{testimonial.author}</div>
                     <div className="text-[var(--fs-mut)] text-xs">{testimonial.role} &middot; {testimonial.company}</div>
                   </div>
                 </div>
@@ -248,7 +248,7 @@ export default function EnterprisePage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center mb-14">
           <p className="fs-eyebrow mb-3">COMPARISON</p>
-          <h2 className="text-4xl font-bold text-white mb-4">
+          <h2 className="text-4xl font-bold text-ink mb-4">
             Professional vs Enterprise
           </h2>
           <p className="text-[var(--fs-txt)] text-lg">
@@ -258,30 +258,30 @@ export default function EnterprisePage() {
 
         <div className="fs-card rounded-[14px] overflow-hidden">
           {/* Table Header */}
-          <div className="grid grid-cols-3 border-b border-space-800">
+          <div className="grid grid-cols-3 border-b border-line">
             <div className="p-5">
               <span className="text-[var(--fs-txt)] text-sm font-medium">Feature</span>
             </div>
-            <div className="p-5 text-center border-l border-space-800">
-              <span className="text-white font-semibold">Professional</span>
+            <div className="p-5 text-center border-l border-line">
+              <span className="text-ink font-semibold">Professional</span>
             </div>
-            <div className="p-5 text-center border-l border-space-800 bg-primary-900/20">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400 font-semibold">Enterprise</span>
+            <div className="p-5 text-center border-l border-line bg-primary-500/10">
+              <span className="text-ink font-semibold">Enterprise</span>
             </div>
           </div>
 
           {comparisonItems.map((item, index) => (
             <div
               key={index}
-              className={`grid grid-cols-3 border-b border-space-800/50 last:border-b-0 ${index % 2 === 1 ? 'bg-space-900/30' : ''}`}
+              className={`grid grid-cols-3 border-b border-line last:border-b-0 ${index % 2 === 1 ? 'bg-canvas' : ''}`}
             >
               <div className="p-4 flex items-center">
                 <span className="text-[var(--fs-txt)] text-sm">{item.feature}</span>
               </div>
-              <div className="p-4 text-center border-l border-space-800/50 flex items-center justify-center">
+              <div className="p-4 text-center border-l border-line flex items-center justify-center">
                 {typeof item.pro === 'boolean' ? (
                   item.pro ? (
-                    <svg className="h-5 w-5 text-success-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <svg className="h-5 w-5 text-[var(--fs-success)]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   ) : (
@@ -291,17 +291,17 @@ export default function EnterprisePage() {
                   <span className="text-[var(--fs-txt)] text-sm">{item.pro}</span>
                 )}
               </div>
-              <div className="p-4 text-center border-l border-space-800/50 bg-primary-900/10 flex items-center justify-center">
+              <div className="p-4 text-center border-l border-line bg-primary-500/10 flex items-center justify-center">
                 {typeof item.enterprise === 'boolean' ? (
                   item.enterprise ? (
-                    <svg className="h-5 w-5 text-success-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <svg className="h-5 w-5 text-[var(--fs-success)]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   ) : (
                     <span className="text-space-700 text-lg">—</span>
                   )
                 ) : (
-                  <span className="text-primary-300 text-sm font-medium">{item.enterprise}</span>
+                  <span className="text-brand text-sm font-medium">{item.enterprise}</span>
                 )}
               </div>
             </div>
@@ -311,7 +311,7 @@ export default function EnterprisePage() {
         <div className="mt-6 text-center">
           <Link
             href="/pricing"
-            className="inline-flex items-center gap-1 text-primary-400 hover:text-primary-300 font-medium transition-colors"
+            className="inline-flex items-center gap-1 text-brand hover:text-brand font-medium transition-colors"
           >
             See full feature comparison
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -322,13 +322,13 @@ export default function EnterprisePage() {
       </div>
 
       {/* Migration Timeline */}
-      <div className="border-t border-space-800/50 py-20">
+      <div className="border-t border-line py-20">
         <div className="section-container">
           <div className="grid lg:grid-cols-2 gap-12 items-start">
             {/* Migration benefits */}
             <div>
               <p className="fs-eyebrow mb-3">MIGRATION</p>
-              <h2 className="text-4xl font-bold text-white mb-6">
+              <h2 className="text-4xl font-bold text-ink mb-6">
                 Seamless Migration from Legacy Solutions
               </h2>
               <p className="text-[var(--fs-txt)] mb-8 leading-relaxed">
@@ -344,12 +344,12 @@ export default function EnterprisePage() {
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-3">
                     <div className="h-6 w-6 rounded-full bg-success-900/50 border border-success-700/50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <svg className="h-3.5 w-3.5 text-success-400" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <svg className="h-3.5 w-3.5 text-[var(--fs-success)]" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
                     <div>
-                      <span className="text-white font-medium">{item.label}:</span>
+                      <span className="text-ink font-medium">{item.label}:</span>
                       <span className="text-[var(--fs-txt)]"> {item.detail}</span>
                     </div>
                   </li>
@@ -359,7 +359,7 @@ export default function EnterprisePage() {
 
             {/* Migration timeline card */}
             <div className="fs-card rounded-[14px] p-8">
-              <h3 className="text-xl font-bold text-white mb-8 text-center">
+              <h3 className="text-xl font-bold text-ink mb-8 text-center">
                 Migration Timeline
               </h3>
               <div className="space-y-0">
@@ -367,13 +367,13 @@ export default function EnterprisePage() {
                   <div key={index} className="flex items-start gap-4 relative">
                     {/* Connector line */}
                     {index < migrationPhases.length - 1 && (
-                      <div className="absolute left-5 top-10 bottom-0 w-px bg-space-700" />
+                      <div className="absolute left-5 top-10 bottom-0 w-px bg-surface" />
                     )}
                     <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-600 to-primary-500 text-white flex items-center justify-center font-bold text-sm flex-shrink-0 relative z-10">
                       {index + 1}
                     </div>
                     <div className="pb-8">
-                      <div className="font-semibold text-white text-sm">
+                      <div className="font-semibold text-ink text-sm">
                         {phase.week}: {phase.task}
                       </div>
                       <div className="text-[var(--fs-txt)] text-sm mt-1">
@@ -395,7 +395,7 @@ export default function EnterprisePage() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-40 bg-primary-600/10 rounded-full blur-3xl pointer-events-none" />
           <div className="relative">
             <p className="fs-eyebrow mb-4">GET STARTED</p>
-            <h2 className="text-4xl font-bold text-white mb-4">
+            <h2 className="text-4xl font-bold text-ink mb-4">
               Ready to Secure Your Enterprise?
             </h2>
             <p className="text-[var(--fs-txt)] text-lg mb-8 max-w-2xl mx-auto">

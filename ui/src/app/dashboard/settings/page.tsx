@@ -298,7 +298,7 @@ export default function SettingsPage() {
                     onClick={() => setThreatAlerts(!threatAlerts)}
                     className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${threatAlerts ? 'bg-primary-600' : 'bg-space-200 dark:bg-space-600'}`}
                   >
-                    <span className={`${threatAlerts ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`} />
+                    <span className={`${threatAlerts ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-panel shadow ring-0 transition duration-200 ease-in-out`} />
                   </button>
                 </div>
 
@@ -311,7 +311,7 @@ export default function SettingsPage() {
                     onClick={() => setWeeklyReports(!weeklyReports)}
                     className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${weeklyReports ? 'bg-primary-600' : 'bg-space-200 dark:bg-space-600'}`}
                   >
-                    <span className={`${weeklyReports ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`} />
+                    <span className={`${weeklyReports ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-panel shadow ring-0 transition duration-200 ease-in-out`} />
                   </button>
                 </div>
 
@@ -324,7 +324,7 @@ export default function SettingsPage() {
                     onClick={() => setSystemUpdates(!systemUpdates)}
                     className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${systemUpdates ? 'bg-primary-600' : 'bg-space-200 dark:bg-space-600'}`}
                   >
-                    <span className={`${systemUpdates ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`} />
+                    <span className={`${systemUpdates ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-panel shadow ring-0 transition duration-200 ease-in-out`} />
                   </button>
                 </div>
 
@@ -387,7 +387,7 @@ export default function SettingsPage() {
                       onClick={() => setDnssecEnabled(!dnssecEnabled)}
                       className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${dnssecEnabled ? 'bg-primary-600' : 'bg-space-200 dark:bg-space-600'}`}
                     >
-                      <span className={`${dnssecEnabled ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`} />
+                      <span className={`${dnssecEnabled ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-panel shadow ring-0 transition duration-200 ease-in-out`} />
                     </button>
                   </div>
 
@@ -400,7 +400,7 @@ export default function SettingsPage() {
                       onClick={() => setLogAllQueries(!logAllQueries)}
                       className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${logAllQueries ? 'bg-primary-600' : 'bg-space-200 dark:bg-space-600'}`}
                     >
-                      <span className={`${logAllQueries ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`} />
+                      <span className={`${logAllQueries ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-panel shadow ring-0 transition duration-200 ease-in-out`} />
                     </button>
                   </div>
 

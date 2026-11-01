@@ -517,7 +517,7 @@ export function ZoneEditorModal({
               >
                 <span
                   className={clsx(
-                    'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                    'inline-block h-4 w-4 transform rounded-full bg-panel transition-transform',
                     form.scheduleEnabled ? 'translate-x-6' : 'translate-x-1'
                   )}
                 />
@@ -605,7 +605,7 @@ export function ZoneEditorModal({
               >
                 <span
                   className={clsx(
-                    'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                    'inline-block h-4 w-4 transform rounded-full bg-panel transition-transform',
                     form.loggingEnabled ? 'translate-x-6' : 'translate-x-1'
                   )}
                 />

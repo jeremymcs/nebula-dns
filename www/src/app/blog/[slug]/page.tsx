@@ -29,10 +29,10 @@ function getCategoryBadge(category: string): string {
     'Security': 'bg-danger-900/50 text-danger-300 border border-danger-800/50',
     'DNS': 'bg-accent-900/50 text-accent-300 border border-accent-800/50',
     'Product': 'bg-success-900/50 text-success-300 border border-success-800/50',
-    'Tutorial': 'bg-primary-900/50 text-primary-300 border border-primary-800/50',
+    'Tutorial': 'bg-primary-500/10 text-brand border border-primary-500/30',
     'Guide': 'bg-accent-900/50 text-accent-300 border border-accent-800/50',
   }
-  return badges[category] || 'bg-primary-900/50 text-primary-300 border border-primary-800/50'
+  return badges[category] || 'bg-primary-500/10 text-brand border border-primary-500/30'
 }
 
 function parseMarkdownContent(content: string): string {
@@ -50,7 +50,7 @@ function parseMarkdownContent(content: string): string {
   html = html.replace(/\*(.*?)\*/g, '<em class="italic text-[var(--fs-txt)]">$1</em>')
 
   // Links
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-primary-400 hover:text-primary-300 underline underline-offset-2">$1</a>')
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-brand hover:text-brand underline underline-offset-2">$1</a>')
 
   // Unordered lists
   html = html.replace(/^\- (.*$)/gim, '<li class="ml-6 mb-2 text-[var(--fs-txt)]">$1</li>')

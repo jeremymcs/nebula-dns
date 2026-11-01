@@ -5,7 +5,7 @@
     border-radius: 0.5625rem;
     font-size: 0.875rem;
     color: var(--fs-ink);
-    background: #fff;
+    background: var(--fs-panel);
     box-shadow:
       0 0 0 1px rgba(11, 21, 48, 0.08),
       0 1px 2px rgba(11, 21, 48, 0.06);
@@ -17,9 +17,10 @@
   }
 
   .fs-btn.fs-btn-primary,
-  .fs-btn-primary {
-    background: linear-gradient(180deg, #24468c, var(--fs-navy));
-    color: #fff;
+  .fs-btn-primary,
+  html.dark .fs-btn.fs-btn-primary {
+    background: rgb(var(--fs-c-action));
+    color: rgb(var(--fs-c-on-action));
     box-shadow:
       0 0 0 1px #17306a,
       inset 0 1px 0 rgba(255, 255, 255, 0.18),

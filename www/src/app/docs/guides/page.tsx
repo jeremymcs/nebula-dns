@@ -133,7 +133,7 @@ export default function GuidesPage() {
             <p className="text-[var(--fs-txt)] text-lg">No guides found matching &quot;{searchQuery}&quot;</p>
             <button
               onClick={() => setSearchQuery('')}
-              className="mt-4 text-primary-400 hover:text-primary-300 transition-colors"
+              className="mt-4 text-brand hover:text-brand transition-colors"
             >
               Clear search
             </button>
@@ -144,7 +144,7 @@ export default function GuidesPage() {
               <Link
                 key={index}
                 href="/docs/guides"
-                className="group fs-card rounded-[14px] p-6 hover:border-primary-600/50 hover:bg-space-900/80 transition-all"
+                className="group fs-card rounded-[14px] p-6 hover:border-primary-500/50 hover:bg-space-900/80 transition-all"
               >
                 {/* Icon */}
                 <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white mb-4">
@@ -176,7 +176,7 @@ export default function GuidesPage() {
                     </svg>
                     <span>{guide.time}</span>
                   </div>
-                  <span className="text-primary-400 text-sm font-medium group-hover:text-primary-300 transition-colors">
+                  <span className="text-brand text-sm font-medium group-hover:text-primary-300 transition-colors">
                     Read Guide →
                   </span>
                 </div>
@@ -187,9 +187,9 @@ export default function GuidesPage() {
       </div>
 
       {/* CTA Section */}
-      <div className="border-t border-space-800/50">
+      <div className="border-t border-line">
         <div className="section-container py-16 text-center">
-          <div className="bg-primary-900/30 border border-primary-800/50 rounded-xl p-8 max-w-2xl mx-auto">
+          <div className="bg-primary-500/10 border border-primary-500/30 rounded-xl p-8 max-w-2xl mx-auto">
             <h2 className="text-3xl sm:text-4xl font-bold text-ink mb-4">
               Can&apos;t find what you&apos;re looking for?
             </h2>
@@ -205,7 +205,7 @@ export default function GuidesPage() {
               </Link>
               <Link
                 href="/contact"
-                className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-space-700/50 text-primary-400 hover:text-primary-300 hover:border-primary-700/50 font-medium transition-all"
+                className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-line text-brand hover:text-brand hover:border-primary-500/50 font-medium transition-all"
               >
                 Contact Support
               </Link>

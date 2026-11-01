@@ -180,7 +180,7 @@ export default function LandingPage() {
       <section className="relative overflow-hidden border-b border-[var(--fs-line)] fs-hero-backdrop fs-hero-grid">
         <div className="section-container relative z-[2] pb-0 pt-0 text-center">
           <div className="pt-[92px]">
-            <div className="inline-flex h-[30px] items-center gap-2.5 rounded-full bg-white/70 px-3 pl-1.5 text-[13px] text-[var(--fs-txt)] shadow-[0_0_0_1px_var(--fs-line)] backdrop-blur-md">
+            <div className="inline-flex h-[30px] items-center gap-2.5 rounded-full bg-panel/70 px-3 pl-1.5 text-[13px] text-[var(--fs-txt)] shadow-[0_0_0_1px_var(--fs-line)] backdrop-blur-md">
               <span className="inline-flex h-[21px] items-center rounded-full bg-[var(--fs-danger-soft)] px-2 text-xs font-medium text-[#D9483C]">
                 Soon
               </span>
@@ -242,7 +242,7 @@ export default function LandingPage() {
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="relative border-b border-r border-[var(--fs-line)] bg-white p-[30px] pb-[34px]"
+                className="relative border-b border-r border-[var(--fs-line)] bg-panel p-[30px] pb-[34px]"
               >
                 <div
                   className={`mb-[26px] h-[120px] overflow-hidden rounded-xl bg-gradient-to-b from-[#F6F8FC] to-[#FDFDFE] p-4 shadow-[inset_0_0_0_1px_var(--fs-line)] ${'artClassName' in feature && feature.artClassName ? feature.artClassName : ''}`}

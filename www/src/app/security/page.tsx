@@ -134,7 +134,7 @@ const complianceItems = [
   {
     name: 'SOC 2 Type II',
     status: 'In Progress',
-    statusColor: 'text-warning-400 bg-warning-900/40 border border-warning-800/50',
+    statusColor: 'text-[var(--fs-warning)] bg-warning-900/40 border border-warning-800/50',
     description: 'Expected certification Q2 2026',
     icon: (
       <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -145,7 +145,7 @@ const complianceItems = [
   {
     name: 'GDPR',
     status: 'Compliant',
-    statusColor: 'text-success-400 bg-success-900/40 border border-success-800/50',
+    statusColor: 'text-[var(--fs-success)] bg-success-900/40 border border-success-800/50',
     description: 'Full compliance with EU data regulations',
     icon: (
       <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -156,7 +156,7 @@ const complianceItems = [
   {
     name: 'ISO 27001',
     status: 'In Progress',
-    statusColor: 'text-warning-400 bg-warning-900/40 border border-warning-800/50',
+    statusColor: 'text-[var(--fs-warning)] bg-warning-900/40 border border-warning-800/50',
     description: 'Information security management certification',
     icon: (
       <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -167,7 +167,7 @@ const complianceItems = [
   {
     name: 'CCPA',
     status: 'Compliant',
-    statusColor: 'text-success-400 bg-success-900/40 border border-success-800/50',
+    statusColor: 'text-[var(--fs-success)] bg-success-900/40 border border-success-800/50',
     description: 'California Consumer Privacy Act compliance',
     icon: (
       <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -194,14 +194,14 @@ export default function SecurityPage() {
         <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-accent-600/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative section-container text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-900/50 border border-primary-800/50 text-primary-400 text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/10 border border-primary-500/30 text-brand text-sm font-medium mb-6">
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
             </svg>
             Enterprise-Grade Security
           </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-ink leading-tight">
+            <span className="text-brand">
               Security-First
             </span>{' '}
             Platform
@@ -218,7 +218,7 @@ export default function SecurityPage() {
             </Link>
             <Link
               href="/contact?subject=security-consultation"
-              className="border border-space-700 text-[var(--fs-txt)] hover:text-white hover:border-space-500 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
+              className="border border-line text-[var(--fs-txt)] hover:text-ink hover:border-line rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
             >
               Talk to Our Security Team
             </Link>
@@ -245,12 +245,12 @@ export default function SecurityPage() {
             {securityFeatures.map((feature, index) => (
               <div
                 key={index}
-                className="fs-card rounded-[14px] p-6 hover:border-primary-700/40 transition-all"
+                className="fs-card rounded-[14px] p-6 hover:border-primary-500/50 transition-all"
               >
                 <div
                   className={
                     feature.variant === 'purple'
-                      ? 'h-12 w-12 rounded-xl bg-primary-900/50 border border-primary-800/50 flex items-center justify-center text-primary-400 mb-4'
+                      ? 'h-12 w-12 rounded-xl bg-primary-500/10 border border-primary-500/30 flex items-center justify-center text-brand mb-4'
                       : 'h-12 w-12 rounded-xl bg-accent-900/50 border border-accent-800/50 flex items-center justify-center text-accent-400 mb-4'
                   }
                 >
@@ -290,12 +290,12 @@ export default function SecurityPage() {
                 className="fs-card rounded-[14px] p-6 flex items-start gap-4"
               >
                 <div className="shrink-0 mt-0.5">
-                  <svg className="h-5 w-5 text-success-400" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <svg className="h-5 w-5 text-[var(--fs-success)]" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-white font-semibold mb-1">{item.title}</h3>
+                  <h3 className="text-ink font-semibold mb-1">{item.title}</h3>
                   <p className="text-[var(--fs-txt)] text-sm leading-relaxed">{item.description}</p>
                 </div>
               </div>
@@ -325,7 +325,7 @@ export default function SecurityPage() {
                 key={index}
                 className="fs-card rounded-[14px] p-6 text-center"
               >
-                <div className="h-14 w-14 rounded-xl bg-primary-900/50 border border-primary-800/50 flex items-center justify-center text-primary-400 mx-auto mb-4">
+                <div className="h-14 w-14 rounded-xl bg-primary-500/10 border border-primary-500/30 flex items-center justify-center text-brand mx-auto mb-4">
                   {item.icon}
                 </div>
                 <h3 className="text-lg font-bold text-ink mb-2">
@@ -352,7 +352,7 @@ export default function SecurityPage() {
                 <p className="fs-eyebrow mb-3">
                   BUG BOUNTY
                 </p>
-                <h2 className="text-3xl font-bold text-white mb-4">
+                <h2 className="text-3xl font-bold text-ink mb-4">
                   We Reward Responsible Disclosure
                 </h2>
                 <p className="text-[var(--fs-txt)] mb-6 leading-relaxed">
@@ -367,7 +367,7 @@ export default function SecurityPage() {
                   ].map((tier, i) => (
                     <div key={i} className="flex items-center justify-between text-sm">
                       <span className="text-[var(--fs-txt)]">{tier.label}</span>
-                      <span className="text-white font-semibold">{tier.reward}</span>
+                      <span className="text-ink font-semibold">{tier.reward}</span>
                     </div>
                   ))}
                 </div>
@@ -383,21 +383,21 @@ export default function SecurityPage() {
                   </Link>
                 </div>
               </div>
-              <div className="bg-space-950/60 border border-space-700/50 rounded-2xl p-8 text-center">
-                <div className="h-16 w-16 rounded-xl bg-primary-900/50 border border-primary-800/50 flex items-center justify-center text-primary-400 mx-auto mb-4">
+              <div className="bg-canvas border border-line rounded-2xl p-8 text-center">
+                <div className="h-16 w-16 rounded-xl bg-primary-500/10 border border-primary-500/30 flex items-center justify-center text-brand mx-auto mb-4">
                   <svg className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                   </svg>
                 </div>
-                <div className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400 mb-2">
+                <div className="text-4xl font-bold text-ink mb-2">
                   $10,000
                 </div>
                 <p className="text-[var(--fs-txt)] text-sm">maximum reward for critical vulnerabilities</p>
-                <div className="mt-6 pt-6 border-t border-space-700/50 text-left space-y-2">
+                <div className="mt-6 pt-6 border-t border-line text-left space-y-2">
                   <p className="text-xs text-[var(--fs-txt)] font-semibold uppercase tracking-wider mb-3">In-scope targets</p>
                   {['api.shield.fluxlabs.net', 'app.shield.fluxlabs.net', 'DNS infrastructure', 'Authentication systems'].map((t, i) => (
                     <div key={i} className="flex items-center gap-2 text-sm text-[var(--fs-txt)]">
-                      <svg className="h-3.5 w-3.5 text-success-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-3.5 w-3.5 text-[var(--fs-success)] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                       </svg>
                       {t}
@@ -421,7 +421,7 @@ export default function SecurityPage() {
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-ink mb-4">
             Security is our{' '}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
+            <span className="text-brand">
               foundation
             </span>
           </h2>
@@ -437,7 +437,7 @@ export default function SecurityPage() {
             </Link>
             <Link
               href="/contact?subject=security-consultation"
-              className="border border-space-700 text-[var(--fs-txt)] hover:text-white hover:border-space-500 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
+              className="border border-line text-[var(--fs-txt)] hover:text-ink hover:border-line rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
             >
               Schedule a Security Review
             </Link>

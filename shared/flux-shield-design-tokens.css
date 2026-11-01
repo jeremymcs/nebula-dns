@@ -4,42 +4,73 @@
  */
 
 :root {
+  /*
+   * Flux Shield color system.
+   * Brand: navy #1E3B78, blue #4B7CBB, coral #FF6E62 (fluxlabs.net).
+   * Surfaces and text are tokens that flip in dark mode; use them via
+   * Tailwind (bg-canvas, bg-panel, text-ink, text-txt, text-mut, border-line,
+   * text-brand, bg-action) instead of fixed grays or `text-white`.
+   * The --fs-c-* values are RGB channels so Tailwind opacity (/40) works.
+   */
+  --fs-c-canvas: 246 247 250;   /* page background        #F6F7FA */
+  --fs-c-surface: 238 241 246;  /* subtle fills, hovers    #EEF1F6 */
+  --fs-c-panel: 255 255 255;    /* cards, menus, inputs    #FFFFFF */
+  --fs-c-line: 227 231 239;     /* borders, dividers       #E3E7EF */
+  --fs-c-ink: 11 21 48;         /* headings, key numbers   #0B1530 */
+  --fs-c-txt: 59 71 99;         /* body text               #3B4763 */
+  --fs-c-mut: 91 102 128;       /* secondary text (AA)     #5B6680 */
+  --fs-c-brand: 30 59 120;      /* links, brand text       #1E3B78 */
+  --fs-c-action: 30 59 120;     /* primary buttons         #1E3B78 */
+  --fs-c-on-action: 255 255 255;
+  --fs-c-coral: 255 110 98;     /* accent, "blocked"       #FF6E62 */
+
   --fs-navy: #1e3b78;
   --fs-blue: #4b7cbb;
   --fs-coral: #ff6e62;
-  --fs-ink: #0b1530;
-  --fs-txt: #3b4763;
-  --fs-mut: #7a849b;
-  --fs-line: #e6e9f0;
-  --fs-line-soft: #e9ecf2;
-  --fs-bg: #fbfbfd;
-  --fs-surface: #f7f8fb;
-  --fs-panel: #ffffff;
-  --fs-success: #1f9d67;
-  --fs-success-soft: #e9f7f0;
-  --fs-danger: #d9483c;
-  --fs-danger-soft: #fff0ee;
-  --fs-warning: #a26a00;
+  --fs-ink: rgb(var(--fs-c-ink));
+  --fs-txt: rgb(var(--fs-c-txt));
+  --fs-mut: rgb(var(--fs-c-mut));
+  --fs-line: rgb(var(--fs-c-line));
+  --fs-line-soft: rgb(var(--fs-c-line) / 0.7);
+  --fs-bg: rgb(var(--fs-c-canvas));
+  --fs-surface: rgb(var(--fs-c-surface));
+  --fs-panel: rgb(var(--fs-c-panel));
+  --fs-success: #1a8455;
+  --fs-success-soft: #e7f5ee;
+  --fs-danger: #c8382d;
+  --fs-danger-soft: #fdeeec;
+  --fs-warning: #8f5d00;
+  --fs-warning-soft: #fdf4e2;
 
   --background: var(--fs-bg);
   --foreground: var(--fs-ink);
   --ring: var(--fs-blue);
 
+  color-scheme: light;
   letter-spacing: -0.005em;
 }
 
+/* Dark: navy-tinted (not neutral gray) so it still reads as Flux. */
 html.dark {
   color-scheme: dark;
-  --fs-bg: #0c111d;
-  --fs-surface: #111827;
-  --fs-panel: #151b2b;
-  --fs-ink: #f3f4f6;
-  --fs-txt: #c5cad6;
-  --fs-mut: #8a93a8;
-  --fs-line: #2a3347;
-  --fs-line-soft: #232b3d;
-  --background: var(--fs-bg);
-  --foreground: var(--fs-ink);
+  --fs-c-canvas: 10 16 32;      /* #0A1020 */
+  --fs-c-surface: 22 32 54;     /* #162036 */
+  --fs-c-panel: 17 26 45;       /* #111A2D */
+  --fs-c-line: 38 51 79;        /* #26334F */
+  --fs-c-ink: 238 242 249;      /* #EEF2F9 */
+  --fs-c-txt: 196 204 220;      /* #C4CCDC */
+  --fs-c-mut: 146 157 182;      /* #929DB6 */
+  --fs-c-brand: 139 184 227;    /* #8BB8E3 */
+  --fs-c-action: 91 143 214;    /* #5B8FD6 */
+  --fs-c-on-action: 255 255 255;
+
+  --fs-blue: #6a9fd4;
+  --fs-success: #46c28a;
+  --fs-success-soft: rgb(70 194 138 / 0.14);
+  --fs-danger: #ff8a7f;
+  --fs-danger-soft: rgb(255 110 98 / 0.14);
+  --fs-warning: #f0b44c;
+  --fs-warning-soft: rgb(240 180 76 / 0.14);
   --ring: #6a9fd4;
 }
 

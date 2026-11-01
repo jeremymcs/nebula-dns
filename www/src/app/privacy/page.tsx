@@ -70,31 +70,31 @@ export default function PrivacyPage() {
           </p>
           <ul className="space-y-2 mb-4">
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Provide DNS security and content filtering services</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Generate analytics, reports, and insights about DNS activity</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Detect and prevent malware, phishing, and security threats</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Process payments and manage your account</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Communicate with you about service updates and support</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Improve our services and develop new features</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Comply with legal obligations and enforce our terms</span>
             </li>
           </ul>
@@ -110,23 +110,23 @@ export default function PrivacyPage() {
           </p>
           <ul className="space-y-2 mb-4">
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Encryption in transit using TLS 1.3</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Encryption at rest for all stored data</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Regular security audits and penetration testing</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Access controls and authentication requirements</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>24/7 security monitoring and incident response</span>
             </li>
           </ul>
@@ -146,19 +146,19 @@ export default function PrivacyPage() {
           </p>
           <ul className="space-y-2 mb-4">
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Keep you logged in to your dashboard</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Remember your preferences and settings</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Analyze how you use our services</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
+              <span className="text-brand mt-0.5">•</span>
               <span>Prevent fraud and improve security</span>
             </li>
           </ul>
@@ -178,20 +178,20 @@ export default function PrivacyPage() {
           </p>
           <ul className="space-y-2 mb-4">
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
-              <span><strong className="text-white">Payment Processing:</strong> Stripe (credit card processing)</span>
+              <span className="text-brand mt-0.5">•</span>
+              <span><strong className="text-ink">Payment Processing:</strong> Stripe (credit card processing)</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
-              <span><strong className="text-white">Cloud Infrastructure:</strong> AWS, Google Cloud (data hosting)</span>
+              <span className="text-brand mt-0.5">•</span>
+              <span><strong className="text-ink">Cloud Infrastructure:</strong> AWS, Google Cloud (data hosting)</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
-              <span><strong className="text-white">Analytics:</strong> PostHog (usage analytics)</span>
+              <span className="text-brand mt-0.5">•</span>
+              <span><strong className="text-ink">Analytics:</strong> PostHog (usage analytics)</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
-              <span><strong className="text-white">Support:</strong> Intercom (customer support chat)</span>
+              <span className="text-brand mt-0.5">•</span>
+              <span><strong className="text-ink">Support:</strong> Intercom (customer support chat)</span>
             </li>
           </ul>
           <p className="text-[var(--fs-txt)]">
@@ -210,29 +210,29 @@ export default function PrivacyPage() {
           </p>
           <ul className="space-y-2 mb-4">
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
-              <span><strong className="text-white">Access:</strong> Request a copy of your personal data</span>
+              <span className="text-brand mt-0.5">•</span>
+              <span><strong className="text-ink">Access:</strong> Request a copy of your personal data</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
-              <span><strong className="text-white">Rectification:</strong> Correct inaccurate or incomplete data</span>
+              <span className="text-brand mt-0.5">•</span>
+              <span><strong className="text-ink">Rectification:</strong> Correct inaccurate or incomplete data</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
-              <span><strong className="text-white">Erasure:</strong> Request deletion of your data</span>
+              <span className="text-brand mt-0.5">•</span>
+              <span><strong className="text-ink">Erasure:</strong> Request deletion of your data</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
-              <span><strong className="text-white">Portability:</strong> Receive your data in a machine-readable format</span>
+              <span className="text-brand mt-0.5">•</span>
+              <span><strong className="text-ink">Portability:</strong> Receive your data in a machine-readable format</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
-              <span><strong className="text-white">Objection:</strong> Object to certain processing activities</span>
+              <span className="text-brand mt-0.5">•</span>
+              <span><strong className="text-ink">Objection:</strong> Object to certain processing activities</span>
             </li>
           </ul>
           <p className="text-[var(--fs-txt)]">
             To exercise these rights, contact us at{' '}
-            <a href="mailto:privacy@shield.fluxlabs.net" className="text-primary-400 hover:text-primary-300 transition-colors">
+            <a href="mailto:privacy@shield.fluxlabs.net" className="text-brand hover:text-brand transition-colors">
               privacy@shield.fluxlabs.net
             </a>
           </p>
@@ -249,20 +249,20 @@ export default function PrivacyPage() {
           </p>
           <ul className="space-y-2 mb-4">
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
-              <span><strong className="text-white">Account Data:</strong> Retained while your account is active, plus 90 days after closure</span>
+              <span className="text-brand mt-0.5">•</span>
+              <span><strong className="text-ink">Account Data:</strong> Retained while your account is active, plus 90 days after closure</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
-              <span><strong className="text-white">DNS Query Logs:</strong> Retained for 90 days by default (configurable)</span>
+              <span className="text-brand mt-0.5">•</span>
+              <span><strong className="text-ink">DNS Query Logs:</strong> Retained for 90 days by default (configurable)</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
-              <span><strong className="text-white">Billing Records:</strong> Retained for 7 years for tax and accounting purposes</span>
+              <span className="text-brand mt-0.5">•</span>
+              <span><strong className="text-ink">Billing Records:</strong> Retained for 7 years for tax and accounting purposes</span>
             </li>
             <li className="flex items-start gap-2 text-[var(--fs-txt)]">
-              <span className="text-primary-400 mt-0.5">•</span>
-              <span><strong className="text-white">Aggregated Data:</strong> May be retained indefinitely for analytics</span>
+              <span className="text-brand mt-0.5">•</span>
+              <span><strong className="text-ink">Aggregated Data:</strong> May be retained indefinitely for analytics</span>
             </li>
           </ul>
         </section>
@@ -301,19 +301,19 @@ export default function PrivacyPage() {
           </p>
           <div className="fs-card rounded-[14px] p-6">
             <p className="text-[var(--fs-txt)] mb-2">
-              <strong className="text-white">Email:</strong>{' '}
-              <a href="mailto:privacy@shield.fluxlabs.net" className="text-primary-400 hover:text-primary-300 transition-colors">
+              <strong className="text-ink">Email:</strong>{' '}
+              <a href="mailto:privacy@shield.fluxlabs.net" className="text-brand hover:text-brand transition-colors">
                 privacy@shield.fluxlabs.net
               </a>
             </p>
             <p className="text-[var(--fs-txt)] mb-2">
-              <strong className="text-white">Data Protection Officer:</strong>{' '}
-              <a href="mailto:dpo@shield.fluxlabs.net" className="text-primary-400 hover:text-primary-300 transition-colors">
+              <strong className="text-ink">Data Protection Officer:</strong>{' '}
+              <a href="mailto:dpo@shield.fluxlabs.net" className="text-brand hover:text-brand transition-colors">
                 dpo@shield.fluxlabs.net
               </a>
             </p>
             <p className="text-[var(--fs-txt)]">
-              <strong className="text-white">Address:</strong> Flux Labs, Panama City Beach, FL 32407, United States
+              <strong className="text-ink">Address:</strong> Flux Labs, Panama City Beach, FL 32407, United States
             </p>
           </div>
         </section>

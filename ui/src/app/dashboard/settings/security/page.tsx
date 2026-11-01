@@ -513,7 +513,7 @@ export default function SecuritySettingsPage() {
                 <p className="text-sm text-space-600 dark:text-space-400 mb-4">
                   Open your authenticator app and scan this QR code:
                 </p>
-                <div className="bg-white p-4 rounded-xl inline-block shadow-lg ring-1 ring-space-200">
+                <div className="bg-panel p-4 rounded-xl inline-block shadow-lg ring-1 ring-space-200">
                   <QRCodeSVG
                     value={setupData.qrCodeUrl}
                     size={180}

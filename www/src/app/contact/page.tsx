@@ -161,13 +161,13 @@ export default function ContactPage() {
                       required
                       value={formState.subject}
                       onChange={handleChange}
-                      className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-primary-500 outline-none w-full transition-all appearance-none"
+                      className="bg-canvas border border-line rounded-xl px-4 py-3 text-ink focus:ring-2 focus:ring-primary-500 outline-none w-full transition-all appearance-none"
                     >
                       <option value="" disabled className="text-[var(--fs-mut)]">
                         Select a subject...
                       </option>
                       {subjects.map((s) => (
-                        <option key={s} value={s} className="bg-space-900 text-white">
+                        <option key={s} value={s} className="bg-canvas text-ink">
                           {s}
                         </option>
                       ))}
@@ -224,19 +224,19 @@ export default function ContactPage() {
               {/* Sales */}
               <div className="fs-card rounded-[14px] p-6">
                 <div className="flex items-start gap-4">
-                  <div className="h-12 w-12 rounded-xl bg-primary-900/50 border border-primary-800/50 flex items-center justify-center text-primary-400 flex-shrink-0">
+                  <div className="h-12 w-12 rounded-xl bg-primary-500/10 border border-primary-500/30 flex items-center justify-center text-brand flex-shrink-0">
                     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold mb-1">Sales</h3>
+                    <h3 className="text-ink font-semibold mb-1">Sales</h3>
                     <p className="text-[var(--fs-txt)] text-sm mb-2">
                       Questions about plans, pricing, or enterprise options?
                     </p>
                     <a
                       href="mailto:sales@shield.fluxlabs.net"
-                      className="text-primary-400 text-sm hover:text-primary-300 transition-colors"
+                      className="text-brand text-sm hover:text-brand transition-colors"
                     >
                       sales@shield.fluxlabs.net
                     </a>
@@ -253,7 +253,7 @@ export default function ContactPage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold mb-1">Support</h3>
+                    <h3 className="text-ink font-semibold mb-1">Support</h3>
                     <p className="text-[var(--fs-txt)] text-sm mb-2">
                       Technical issues or account help?
                     </p>
@@ -270,13 +270,13 @@ export default function ContactPage() {
               {/* Live Chat */}
               <div className="fs-card rounded-[14px] p-6">
                 <div className="flex items-start gap-4">
-                  <div className="h-12 w-12 rounded-xl bg-primary-900/50 border border-primary-800/50 flex items-center justify-center text-primary-400 flex-shrink-0">
+                  <div className="h-12 w-12 rounded-xl bg-primary-500/10 border border-primary-500/30 flex items-center justify-center text-brand flex-shrink-0">
                     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold mb-1">Live Chat</h3>
+                    <h3 className="text-ink font-semibold mb-1">Live Chat</h3>
                     <p className="text-[var(--fs-txt)] text-sm">
                       Get instant answers via the chat widget in the bottom right corner.
                       Available during business hours.
@@ -287,20 +287,20 @@ export default function ContactPage() {
 
               {/* Business Hours */}
               <div className="fs-card rounded-[14px] p-6">
-                <h3 className="text-white font-semibold mb-4">Business Hours</h3>
+                <h3 className="text-ink font-semibold mb-4">Business Hours</h3>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-[var(--fs-txt)]">Monday – Friday</span>
-                    <span className="text-white font-medium">9am – 6pm EST</span>
+                    <span className="text-ink font-medium">9am – 6pm EST</span>
                   </div>
-                  <div className="border-t border-space-700/50 pt-3 flex justify-between">
+                  <div className="border-t border-line pt-3 flex justify-between">
                     <span className="text-[var(--fs-txt)]">Saturday – Sunday</span>
                     <span className="text-[var(--fs-mut)]">Closed</span>
                   </div>
-                  <div className="border-t border-space-700/50 pt-3">
+                  <div className="border-t border-line pt-3">
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full bg-success-400 animate-pulse" />
-                      <span className="text-success-400 text-xs font-medium">Currently Online</span>
+                      <span className="text-[var(--fs-success)] text-xs font-medium">Currently Online</span>
                     </div>
                   </div>
                 </div>

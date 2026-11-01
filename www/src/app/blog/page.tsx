@@ -53,10 +53,10 @@ function getCategoryBadge(category: string): string {
     'Security': 'bg-danger-900/50 text-danger-300 border border-danger-800/50',
     'DNS': 'bg-accent-900/50 text-accent-300 border border-accent-800/50',
     'Product': 'bg-success-900/50 text-success-300 border border-success-800/50',
-    'Tutorial': 'bg-primary-900/50 text-primary-300 border border-primary-800/50',
+    'Tutorial': 'bg-primary-500/10 text-brand border border-primary-500/30',
     'Guide': 'bg-accent-900/50 text-accent-300 border border-accent-800/50',
   }
-  return badges[category] || 'bg-primary-900/50 text-primary-300 border border-primary-800/50'
+  return badges[category] || 'bg-primary-500/10 text-brand border border-primary-500/30'
 }
 
 // Static fallback posts shown when no MDX files exist
@@ -141,7 +141,7 @@ export default function BlogPage() {
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all capitalize ${
                 cat === 'all'
                   ? 'bg-primary-600 text-white'
-                  : 'bg-space-800 text-[var(--fs-txt)] hover:text-white hover:bg-space-700'
+                  : 'bg-panel text-[var(--fs-txt)] hover:text-ink hover:bg-surface'
               }`}
             >
               {cat}
@@ -156,7 +156,7 @@ export default function BlogPage() {
           {posts.map((post) => (
             <article
               key={post.slug}
-              className="fs-card rounded-[14px] p-6 flex flex-col hover:border-primary-700/50 transition-all group"
+              className="fs-card rounded-[14px] p-6 flex flex-col hover:border-primary-500/50 transition-all group"
             >
               {/* Category Badge */}
               <div className="mb-4">
@@ -201,7 +201,7 @@ export default function BlogPage() {
               {/* Read More */}
               <Link
                 href={`/blog/${post.slug}`}
-                className="inline-flex items-center gap-1 text-primary-400 text-sm font-medium hover:text-primary-300 transition-colors group-hover:translate-x-0.5 transform"
+                className="inline-flex items-center gap-1 text-brand text-sm font-medium hover:text-brand transition-colors group-hover:translate-x-0.5 transform"
               >
                 Read More
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -219,7 +219,7 @@ export default function BlogPage() {
           <p className="fs-eyebrow mb-3">
             NEWSLETTER
           </p>
-          <h2 className="text-3xl font-bold text-white mb-3">
+          <h2 className="text-3xl font-bold text-ink mb-3">
             Stay in the Loop
           </h2>
           <p className="text-[var(--fs-txt)] mb-8 max-w-xl mx-auto">
@@ -230,7 +230,7 @@ export default function BlogPage() {
             <input
               type="email"
               placeholder="you@company.com"
-              className="flex-1 px-4 py-3 rounded-xl bg-space-800 border border-space-700 text-white placeholder-space-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="flex-1 px-4 py-3 rounded-xl bg-panel border border-line text-ink placeholder-space-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
             <button className="fs-btn fs-btn-primary fs-btn-lg no-underline px-6 py-3 transition-all inline-flex items-center gap-2 justify-center whitespace-nowrap">
               Subscribe

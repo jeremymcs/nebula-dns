@@ -160,10 +160,10 @@ export default function FeaturesPage() {
             {features.map((feature) => (
               <div
                 key={feature.name}
-                className="fs-card rounded-[14px] p-6 hover:border-primary-700/50 transition-all"
+                className="fs-card rounded-[14px] p-6 hover:border-primary-500/50 transition-all"
               >
                 {feature.accent === 'purple' ? (
-                  <div className="h-12 w-12 rounded-xl bg-primary-900/50 border border-primary-800/50 flex items-center justify-center text-primary-400 mb-4">
+                  <div className="h-12 w-12 rounded-xl bg-primary-500/10 border border-primary-500/30 flex items-center justify-center text-brand mb-4">
                     {feature.icon}
                   </div>
                 ) : (
@@ -208,10 +208,10 @@ export default function FeaturesPage() {
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary-600 to-accent-600 text-white font-bold text-xl mb-6">
                     {step.number}
                   </div>
-                  <div className="mb-4 text-primary-400">
+                  <div className="mb-4 text-brand">
                     {step.icon}
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-3">
+                  <h3 className="text-xl font-bold text-ink mb-3">
                     {step.title}
                   </h3>
                   <p className="text-[var(--fs-txt)] leading-relaxed">
@@ -245,7 +245,7 @@ export default function FeaturesPage() {
                 key={stat.label}
                 className="fs-card rounded-[14px] p-6 text-center"
               >
-                <div className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400 mb-2">
+                <div className="text-4xl font-bold text-ink mb-2">
                   {stat.value}
                 </div>
                 <div className="text-[var(--fs-txt)] text-sm">
@@ -257,7 +257,7 @@ export default function FeaturesPage() {
 
           {/* Performance feature list */}
           <div className="fs-card rounded-[14px] p-8">
-            <h3 className="text-xl font-bold text-white mb-6 text-center">
+            <h3 className="text-xl font-bold text-ink mb-6 text-center">
               Enterprise-Grade Infrastructure
             </h3>
             <div className="grid sm:grid-cols-2 gap-4">
@@ -271,7 +271,7 @@ export default function FeaturesPage() {
               ].map((item) => (
                 <div key={item} className="flex items-start gap-3">
                   <svg
-                    className="h-5 w-5 text-success-400 flex-shrink-0 mt-0.5"
+                    className="h-5 w-5 text-[var(--fs-success)] flex-shrink-0 mt-0.5"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
