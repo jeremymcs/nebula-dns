@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { ConfigService } from '@nestjs/config';
+import { getClientIp } from '@/common/http/client-ip';
 
 interface RateLimitEntry {
   count: number;
@@ -126,7 +127,7 @@ export class RateLimitMiddleware implements NestMiddleware {
     }
 
     // Skip rate limiting for local/internal requests
-    const clientIp = this.getClientIp(req);
+    const clientIp = getClientIp(req);
     if (clientIp === '127.0.0.1' || clientIp === '::1') {
       return next();
     }
@@ -171,24 +172,6 @@ export class RateLimitMiddleware implements NestMiddleware {
     }
 
     next();
-  }
-
-  private getClientIp(req: Request): string {
-    // Check various headers for the real IP (behind proxies/load balancers)
-    const forwardedFor = req.headers['x-forwarded-for'];
-    if (forwardedFor) {
-      const ips = (
-        Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor
-      ).split(',');
-      return ips[0].trim();
-    }
-
-    const realIp = req.headers['x-real-ip'];
-    if (realIp) {
-      return Array.isArray(realIp) ? realIp[0] : realIp;
-    }
-
-    return req.ip || req.socket.remoteAddress || 'unknown';
   }
 
   private normalizeEndpoint(path: string): string {

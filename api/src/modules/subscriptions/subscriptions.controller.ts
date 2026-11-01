@@ -23,6 +23,7 @@ import {
   ApiExcludeEndpoint,
 } from '@nestjs/swagger';
 import { Request } from 'express';
+import { tryGetClientIp } from '@/common/http/client-ip';
 import { ConfigService } from '@nestjs/config';
 import { SubscriptionsService } from './subscriptions.service';
 import {
@@ -76,7 +77,7 @@ export class SubscriptionsController {
   @ApiResponse({ status: 201, description: 'Signup initiated or completed' })
   @ApiResponse({ status: 400, description: 'Invalid signup data' })
   async signup(@Body() dto: CreateSignupDto, @Req() req: Request) {
-    const ipAddress = req.ip || req.socket.remoteAddress;
+    const ipAddress = tryGetClientIp(req);
     const userAgent = req.headers['user-agent'];
 
     const signupRequest = await this.subscriptionsService.createSignupRequest(

@@ -28,6 +28,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { Request } from 'express';
+import { tryGetClientIp } from '@/common/http/client-ip';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import {
   CurrentUser,
@@ -207,7 +208,7 @@ export class MspController {
     @Param('id') clientId: string,
     @Req() req: Request,
   ): Promise<ContextSwitchResponseDto> {
-    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const ipAddress = tryGetClientIp(req);
     return this.mspService.switchToClient(
       user.id,
       tenantId,
@@ -236,7 +237,7 @@ export class MspController {
     @CurrentTenant() tenantId: string,
     @Req() req: Request,
   ): Promise<SwitchBackResponseDto> {
-    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const ipAddress = tryGetClientIp(req);
     // Extract mspParentTenantId from the user object (set by JWT strategy)
     const mspParentTenantId = user.mspParentTenantId;
     return this.mspService.switchBackToMsp(
@@ -304,7 +305,7 @@ export class MspController {
     @Body() dto: CreateMspTemplateDto,
     @Req() req: Request,
   ): Promise<MspTemplateResponseDto> {
-    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const ipAddress = tryGetClientIp(req);
     return this.mspTemplatesService.create(user.id, tenantId, dto, ipAddress);
   }
 
@@ -346,7 +347,7 @@ export class MspController {
     @Body() dto: UpdateMspTemplateDto,
     @Req() req: Request,
   ): Promise<MspTemplateResponseDto> {
-    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const ipAddress = tryGetClientIp(req);
     return this.mspTemplatesService.update(
       user.id,
       tenantId,
@@ -370,7 +371,7 @@ export class MspController {
     @Param('id') templateId: string,
     @Req() req: Request,
   ): Promise<void> {
-    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const ipAddress = tryGetClientIp(req);
     await this.mspTemplatesService.remove(
       user.id,
       tenantId,
@@ -401,7 +402,7 @@ export class MspController {
     @Body() dto: DeployTemplateDto,
     @Req() req: Request,
   ): Promise<DeploymentResultDto> {
-    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const ipAddress = tryGetClientIp(req);
     return this.mspTemplatesService.deploy(
       user.id,
       tenantId,
@@ -560,7 +561,7 @@ export class MspController {
     @Body() dto: RollbackTemplateDto,
     @Req() req: Request,
   ): Promise<RollbackResponseDto> {
-    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const ipAddress = tryGetClientIp(req);
     return this.mspTemplatesService.rollbackToVersion(
       user.id,
       tenantId,
@@ -629,7 +630,7 @@ export class MspController {
     @Body() dto: ApplyTemplateToClientsDto,
     @Req() req: Request,
   ): Promise<ApplyJobResponseDto> {
-    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const ipAddress = tryGetClientIp(req);
     return this.mspTemplatesService.startApplyJob(
       user.id,
       tenantId,
@@ -691,7 +692,7 @@ export class MspController {
     @Body() dto: RetryApplicationDto,
     @Req() req: Request,
   ): Promise<ApplyJobResponseDto> {
-    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const ipAddress = tryGetClientIp(req);
     return this.mspTemplatesService.retryFailedApplications(
       user.id,
       tenantId,

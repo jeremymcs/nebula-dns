@@ -216,10 +216,11 @@ describe('RedisRateLimitGuard', () => {
   });
 
   describe('identifier extraction', () => {
-    it('should extract IP from x-forwarded-for header', async () => {
+    it('should use trusted req.ip and ignore spoofed x-forwarded-for', async () => {
       const request = {
         ...mockRequest,
-        headers: { 'x-forwarded-for': '10.0.0.1, 192.168.1.1' },
+        ip: '10.0.0.1',
+        headers: { 'x-forwarded-for': '8.8.8.8, 192.168.1.1' },
       };
 
       const context = {
@@ -253,10 +254,11 @@ describe('RedisRateLimitGuard', () => {
       );
     });
 
-    it('should extract IP from x-real-ip header', async () => {
+    it('should use req.ip from trusted proxy path', async () => {
       const request = {
         ...mockRequest,
-        headers: { 'x-real-ip': '10.0.0.2' },
+        ip: '10.0.0.2',
+        headers: { 'x-real-ip': '8.8.8.8' },
       };
 
       const context = {

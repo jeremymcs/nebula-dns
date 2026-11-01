@@ -17,6 +17,7 @@ import {
   RateLimitResult,
 } from '../interfaces/rate-limit.interface';
 import { RATE_LIMIT_KEY } from '../decorators/rate-limit.decorator';
+import { getClientIp } from '@/common/http/client-ip';
 
 /**
  * Redis-backed distributed rate limiting guard.
@@ -124,7 +125,7 @@ export class RedisRateLimitGuard implements CanActivate {
 
     switch (options.type) {
       case RateLimitType.PER_IP:
-        return this.getClientIp(request);
+        return getClientIp(request);
 
       case RateLimitType.PER_TENANT:
         return request.user?.tenantId || request.tenantId || null;
@@ -145,29 +146,6 @@ export class RedisRateLimitGuard implements CanActivate {
       default:
         return null;
     }
-  }
-
-  /**
-   * Extract client IP from request, handling proxies
-   */
-  private getClientIp(request: any): string {
-    // Check X-Forwarded-For header (when behind proxy/load balancer)
-    const forwardedFor = request.headers['x-forwarded-for'];
-    if (forwardedFor) {
-      const ips = (
-        Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor
-      ).split(',');
-      return ips[0].trim();
-    }
-
-    // Check X-Real-IP header
-    const realIp = request.headers['x-real-ip'];
-    if (realIp) {
-      return Array.isArray(realIp) ? realIp[0] : realIp;
-    }
-
-    // Fall back to request IP
-    return request.ip || request.socket?.remoteAddress || 'unknown';
   }
 
   /**

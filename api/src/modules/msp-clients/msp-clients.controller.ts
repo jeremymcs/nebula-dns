@@ -26,6 +26,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { Request } from 'express';
+import { tryGetClientIp } from '@/common/http/client-ip';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { MspTierGuard } from './guards/msp-tier.guard';
 import {
@@ -141,7 +142,7 @@ export class MspClientsController {
     @Body() dto: CreateMspClientDto,
     @Req() req: Request,
   ): Promise<MspClientResponseDto> {
-    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const ipAddress = tryGetClientIp(req);
     return this.mspClientsService.create(tenantId, dto, user.id, ipAddress);
   }
 

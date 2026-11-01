@@ -4,7 +4,11 @@
 
 api.nebuladns.io, api.shield.fluxlabs.net {
   encode gzip
-  reverse_proxy api:3000
+  reverse_proxy api:3000 {
+    # Replace any client-supplied XFF; upstream API trusts these from Docker/Caddy only.
+    header_up X-Real-IP {remote_host}
+    header_up X-Forwarded-For {remote_host}
+  }
 }
 
 # HTTP sinkhole for block-page DNS answers (see docs/modules/block-pages/DROPLET-DEPLOY.md)
