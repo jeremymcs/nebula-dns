@@ -1,10 +1,10 @@
-import {
-  DEFAULT_APP_ORIGIN,
-  DEFAULT_API_ORIGIN,
-  DEFAULT_DNS1_HOST,
-  DEFAULT_DNS2_HOST,
-  DEFAULT_WWW_ORIGIN,
-} from '../../../shared/public-url-defaults'
+const DEFAULT_WWW_ORIGIN = 'https://shield.fluxlabs.net'
+const DEFAULT_APP_ORIGIN = 'https://app.shield.fluxlabs.net'
+const DEFAULT_API_ORIGIN = 'https://api.shield.fluxlabs.net'
+const DEFAULT_DNS1_HOST = 'dns1.shield.fluxlabs.net'
+const DEFAULT_DNS2_HOST = 'dns2.shield.fluxlabs.net'
+
+/** Keep in sync with `shared/public-url-defaults.ts` (monorepo source of truth). */
 
 export const WWW_ORIGIN =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || DEFAULT_WWW_ORIGIN
