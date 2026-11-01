@@ -115,10 +115,15 @@ export class RedisService implements OnModuleDestroy {
   async storeCompiledPolicy(
     locationId: string,
     policy: object,
-    ttlSeconds = 300,
+    ttlSeconds?: number,
   ): Promise<void> {
     const key = `policy:${locationId}`;
-    await this.set(key, JSON.stringify(policy), ttlSeconds);
+    const payload = JSON.stringify(policy);
+    if (ttlSeconds !== undefined && ttlSeconds > 0) {
+      await this.set(key, payload, ttlSeconds);
+    } else {
+      await this.client.set(key, payload);
+    }
   }
 
   async getCompiledPolicy(locationId: string): Promise<object | null> {
@@ -131,10 +136,15 @@ export class RedisService implements OnModuleDestroy {
   async storeToken(
     tokenHash: string,
     tokenInfo: object,
-    ttlSeconds = 86400,
+    ttlSeconds?: number,
   ): Promise<void> {
     const key = `token:${tokenHash}`;
-    await this.set(key, JSON.stringify(tokenInfo), ttlSeconds);
+    const payload = JSON.stringify(tokenInfo);
+    if (ttlSeconds !== undefined && ttlSeconds > 0) {
+      await this.set(key, payload, ttlSeconds);
+    } else {
+      await this.client.set(key, payload);
+    }
   }
 
   async getToken(tokenHash: string): Promise<object | null> {

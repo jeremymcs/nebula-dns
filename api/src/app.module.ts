@@ -65,6 +65,7 @@ import { RateLimitModule } from './modules/rate-limit/rate-limit.module';
 // Threat intelligence & category blacklists (Redis → policy-svc)
 import { ThreatFeedsModule } from './modules/threat-feeds/threat-feeds.module';
 import { CategoryFeedsModule } from './modules/category-feeds/category-feeds.module';
+import { InternalModule } from './modules/internal/internal.module';
 
 // Secrets Management
 import { SecretsModule } from './modules/secrets/secrets.module';
@@ -206,6 +207,7 @@ import { getPostgresSslConfig } from './database/pg-ssl';
 
     ThreatFeedsModule,
     CategoryFeedsModule,
+    InternalModule,
 
     // Secrets Management (AWS/Vault/env)
     SecretsModule,

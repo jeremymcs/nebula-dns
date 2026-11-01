@@ -1,13 +1,16 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { ConfigService } from '@nestjs/config';
+import { Cron } from '@nestjs/schedule';
 import * as https from 'https';
 import * as http from 'http';
 import { RedisService } from '../redis/redis.service';
 import {
+  DEFAULT_UT1_SOURCE_CATEGORIES,
   UT1_CATEGORY_MAP,
-  UT1_LOAD_CATEGORIES,
-  ut1DomainsUrl,
+  UT1_TAR_URL,
+  olbatDomainsUrl,
 } from './ut1-category-map';
+import { extractUt1DomainsFromTarGz, parseDomainLines } from './ut1-tar-extract';
 import {
   rebuildCategoryContentSet,
   storeFeedMeta,
@@ -19,6 +22,7 @@ export interface CategoryLoadStats {
   lastError: string | null;
   byCategory: Record<string, number>;
   ut1CategoriesLoaded: number;
+  enabledUt1Sources: string[];
 }
 
 @Injectable()
@@ -29,53 +33,103 @@ export class CategoryFeedsService implements OnModuleInit {
     lastError: null,
     byCategory: {},
     ut1CategoriesLoaded: 0,
+    enabledUt1Sources: [],
   };
 
-  constructor(private readonly redisService: RedisService) {}
+  constructor(
+    private readonly redisService: RedisService,
+    private readonly configService: ConfigService,
+  ) {}
 
   async onModuleInit(): Promise<void> {
     setTimeout(() => {
-      this.loadUt1Categories().catch((err) =>
-        this.logger.error(`Initial UT1 category load failed: ${err.message}`),
+      this.ensureCategoryDataLoaded().catch((err) =>
+        this.logger.error(`Startup category load failed: ${err.message}`),
       );
-    }, 15_000);
+    }, 12_000);
   }
 
   getStats(): CategoryLoadStats {
-    return { ...this.stats, byCategory: { ...this.stats.byCategory } };
+    return {
+      ...this.stats,
+      byCategory: { ...this.stats.byCategory },
+      enabledUt1Sources: [...this.stats.enabledUt1Sources],
+    };
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  getEnabledUt1SourceCategories(): string[] {
+    const raw = this.configService.get<string>('CATEGORY_FEEDS_ENABLED');
+    if (raw?.trim()) {
+      return raw
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+    return [...DEFAULT_UT1_SOURCE_CATEGORIES];
+  }
+
+  @Cron('0 3 * * *', { timeZone: 'America/Chicago' })
   async loadUt1CategoriesScheduled(): Promise<void> {
     await this.loadUt1Categories();
   }
 
+  async ensureCategoryDataLoaded(): Promise<void> {
+    const redis = this.redisService.getClient();
+    const probeKey = categorySetKey('gambling');
+    const exists = await redis.exists(probeKey);
+    if (exists) {
+      this.logger.debug('Category Redis sets present; skipping startup full reload');
+      return;
+    }
+    await this.loadUt1Categories();
+  }
+
   async loadUt1Categories(): Promise<CategoryLoadStats> {
-    this.logger.log('Starting UT1 category blacklist load');
+    const sources = this.getEnabledUt1SourceCategories();
+    this.logger.log(
+      `Starting UT1 category load (${sources.length} source categories)`,
+    );
+
     const redis = this.redisService.getClient();
     const merged: Record<string, Set<string>> = {};
     let ut1Loaded = 0;
     let lastError: string | null = null;
 
-    for (const ut1Cat of UT1_LOAD_CATEGORIES) {
+    const fromTar = await this.tryLoadFromUt1Tar(sources);
+    for (const [ut1Cat, domains] of fromTar.entries()) {
       const mapped = UT1_CATEGORY_MAP[ut1Cat];
-      if (!mapped) continue;
+      if (!mapped || domains.length === 0) continue;
+      ut1Loaded++;
+      if (!merged[mapped]) merged[mapped] = new Set();
+      for (const d of domains) {
+        if (this.isValidDomain(d)) merged[mapped].add(d);
+      }
+    }
 
+    for (const ut1Cat of sources) {
+      if (fromTar.has(ut1Cat)) continue;
+      const mapped = UT1_CATEGORY_MAP[ut1Cat];
+      if (!mapped) {
+        this.logger.warn(`Unknown UT1 category in CATEGORY_FEEDS_ENABLED: ${ut1Cat}`);
+        continue;
+      }
       try {
-        const content = await this.fetchUrl(ut1DomainsUrl(ut1Cat));
-        const domains = this.parseDomainList(content);
+        const content = await this.fetchUrl(olbatDomainsUrl(ut1Cat));
+        const domains = parseDomainLines(content).filter((d) =>
+          this.isValidDomain(d),
+        );
         if (domains.length === 0) {
-          this.logger.warn(`UT1 category ${ut1Cat} returned no domains`);
+          this.logger.warn(`UT1 mirror ${ut1Cat} returned no domains`);
           continue;
         }
         ut1Loaded++;
         if (!merged[mapped]) merged[mapped] = new Set();
         for (const d of domains) merged[mapped].add(d);
       } catch (err) {
-        lastError = err.message;
-        this.logger.warn(`UT1 ${ut1Cat} failed: ${err.message}`);
+        lastError = err instanceof Error ? err.message : String(err);
+        this.logger.warn(`UT1 mirror ${ut1Cat} failed: ${lastError}`);
       }
-      await this.delay(500);
+      await this.delay(300);
     }
 
     const byCategory: Record<string, number> = {};
@@ -89,7 +143,7 @@ export class CategoryFeedsService implements OnModuleInit {
     }
 
     if (Object.keys(byCategory).length > 0) {
-      await this.redisService.getClient().publish(
+      await redis.publish(
         'nebula:invalidate',
         JSON.stringify({ type: 'categories' }),
       );
@@ -109,21 +163,24 @@ export class CategoryFeedsService implements OnModuleInit {
       lastError,
       byCategory,
       ut1CategoriesLoaded: ut1Loaded,
+      enabledUt1Sources: sources,
     };
 
     return this.getStats();
   }
 
-  private parseDomainList(content: string): string[] {
-    const out: string[] = [];
-    for (const line of content.split('\n')) {
-      const trimmed = line.trim().toLowerCase();
-      if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('!')) {
-        continue;
-      }
-      if (this.isValidDomain(trimmed)) out.push(trimmed);
+  private async tryLoadFromUt1Tar(
+    categories: string[],
+  ): Promise<Map<string, string[]>> {
+    try {
+      const buffer = await this.fetchBuffer(UT1_TAR_URL);
+      return await extractUt1DomainsFromTarGz(buffer, categories);
+    } catch (err) {
+      this.logger.warn(
+        `UT1 tar.gz load failed, will use mirror fallback: ${err instanceof Error ? err.message : err}`,
+      );
+      return new Map();
     }
-    return out;
   }
 
   private isValidDomain(domain: string): boolean {
@@ -134,23 +191,20 @@ export class CategoryFeedsService implements OnModuleInit {
     );
   }
 
-  private async fetchUrl(url: string): Promise<string> {
+  private async fetchBuffer(url: string): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const protocol = url.startsWith('https') ? https : http;
       const request = protocol.get(
         url,
         {
-          headers: {
-            'User-Agent': 'FluxShield-CategoryLoader/1.0',
-            Accept: 'text/plain',
-          },
-          timeout: 120_000,
+          headers: { 'User-Agent': 'FluxShield-CategoryLoader/1.0' },
+          timeout: 300_000,
         },
         (res) => {
           if (res.statusCode === 301 || res.statusCode === 302) {
             const loc = res.headers.location;
             if (loc) {
-              this.fetchUrl(loc).then(resolve).catch(reject);
+              this.fetchBuffer(loc).then(resolve).catch(reject);
               return;
             }
           }
@@ -160,9 +214,9 @@ export class CategoryFeedsService implements OnModuleInit {
             );
             return;
           }
-          let data = '';
-          res.on('data', (chunk) => (data += chunk));
-          res.on('end', () => resolve(data));
+          const chunks: Buffer[] = [];
+          res.on('data', (chunk: Buffer) => chunks.push(chunk));
+          res.on('end', () => resolve(Buffer.concat(chunks)));
           res.on('error', reject);
         },
       );
@@ -172,6 +226,11 @@ export class CategoryFeedsService implements OnModuleInit {
         reject(new Error('Request timeout'));
       });
     });
+  }
+
+  private async fetchUrl(url: string): Promise<string> {
+    const buffer = await this.fetchBuffer(url);
+    return buffer.toString('utf8');
   }
 
   private delay(ms: number): Promise<void> {
