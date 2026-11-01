@@ -19,15 +19,16 @@ export interface TransactionalEmailLayoutOptions {
 }
 
 const FLUX_LABS_URL = 'https://fluxlabs.net';
+const FONT_STACK =
+  "Geist, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif";
+const MONO_STACK = "'Geist Mono', Menlo, Consolas, monospace";
 
 export function emailButton(href: string, label: string): string {
   return `
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin: 28px auto;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 30px 0 0 0;">
   <tr>
-    <td style="border-radius: 6px; background-color: ${BRAND_BLUE};">
-      <a href="${href}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 14px 28px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 16px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 6px;">
-        ${label}
-      </a>
+    <td bgcolor="${BRAND_NAVY}" style="background:${BRAND_NAVY}; border-radius:10px;">
+      <a href="${href}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:13px 22px;font-family:${FONT_STACK};font-size:14px;font-weight:500;color:#ffffff;text-decoration:none;">${label} &nbsp;→</a>
     </td>
   </tr>
 </table>`;
@@ -40,38 +41,57 @@ export function emailCallout(
   const styles: Record<EmailCalloutVariant, { bg: string; border: string; text: string }> =
     {
       info: {
-        bg: '#eff6ff',
-        border: BRAND_BLUE,
-        text: '#1e3a5f',
+        bg: '#F7F8FB',
+        border: '#EEF0F5',
+        text: '#3B4763',
       },
       warning: {
-        bg: '#fff7ed',
+        bg: '#FFF7ED',
         border: BRAND_CORAL,
         text: '#7c2d12',
       },
       danger: {
-        bg: '#fef2f2',
-        border: BRAND_CORAL,
+        bg: '#FFF0EE',
+        border: '#FFD9D4',
         text: '#7f1d1d',
       },
     };
   const palette = styles[variant];
   return `
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 20px 0;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 26px 0 0 0;">
   <tr>
-    <td style="background-color: ${palette.bg}; border: 1px solid ${palette.border}; border-left: 4px solid ${palette.border}; border-radius: 8px; padding: 16px 18px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 15px; line-height: 1.55; color: ${palette.text};">
+    <td bgcolor="${palette.bg}" style="background-color:${palette.bg}; border:1px solid ${palette.border}; border-radius:10px; padding:14px 16px; font-family:${FONT_STACK}; font-size:13px; line-height:20px; color:${palette.text};">
       ${innerHtml}
     </td>
   </tr>
 </table>`;
 }
 
+export function emailGettingStartedSteps(steps: string[]): string {
+  const rows = steps
+    .map((text, index) => {
+      const num = String(index + 1).padStart(2, '0');
+      const numColor = index === steps.length - 1 ? BRAND_CORAL : BRAND_BLUE;
+      const border =
+        index === 0 ? '' : 'border-top:1px solid #F0F2F6;';
+      return `<tr>
+  <td width="34" valign="top" style="padding:12px 0;${border} font-family:${MONO_STACK}; font-size:12px; color:${numColor};">${num}</td>
+  <td style="padding:12px 0;${border} font-family:${FONT_STACK}; font-size:14px; line-height:21px; color:#0B1530;">${text}</td>
+</tr>`;
+    })
+    .join('');
+  return `
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-family:${FONT_STACK};">
+${rows}
+</table>`;
+}
+
 export function emailPanel(title: string, innerHtml: string): string {
   return `
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 20px 0;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 26px 0 0 0;">
   <tr>
-    <td style="background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 18px 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-      <p style="margin: 0 0 10px 0; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: ${BRAND_BLUE};">${title}</p>
+    <td style="background-color: #F7F8FB; border: 1px solid #EEF0F5; border-radius: 10px; padding: 16px 18px; font-family: ${FONT_STACK};">
+      <p style="margin: 0 0 10px 0; font-size: 12px; font-weight: 500; letter-spacing: 0.2px; color: #7A849B;">${title}</p>
       ${innerHtml}
     </td>
   </tr>
@@ -83,7 +103,6 @@ export function buildTransactionalEmailHtml(
 ): string {
   const productName = options.productName ?? DEFAULT_PRODUCT_NAME;
   const logoUrl = options.logoUrl ?? DEFAULT_EMAIL_LOGO_URL;
-  const headerTitle = options.headerTitle ?? productName;
   const preheader = options.preheader ?? options.title;
   const year = new Date().getFullYear();
 
@@ -93,52 +112,48 @@ export function buildTransactionalEmailHtml(
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="color-scheme" content="light dark">
-  <meta name="supported-color-schemes" content="light dark">
   <title>${escapeHtml(options.title)}</title>
-  <style>
-    :root { color-scheme: light dark; }
-    body { margin: 0; padding: 0; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
-    table { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
-    img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
-    @media (prefers-color-scheme: dark) {
-      .flux-email-bg { background-color: #0c111d !important; }
-      .flux-email-card { background-color: #151b2b !important; }
-      .flux-email-body-text { color: #e5e7eb !important; }
-      .flux-email-muted { color: #9ca3af !important; }
-      .flux-email-panel { background-color: #1c2438 !important; border-color: #2d3748 !important; }
-    }
-  </style>
 </head>
-<body class="flux-email-bg" style="margin: 0; padding: 0; background-color: #f3f4f6;">
-  <div style="display: none; max-height: 0; overflow: hidden; opacity: 0; color: transparent; mso-hide: all;">
-    ${escapeHtml(preheader)}
-  </div>
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" class="flux-email-bg" style="background-color: #f3f4f6; padding: 24px 12px;">
+<body style="margin:0;padding:0;background:#F4F5F9;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;mso-hide:all;">${escapeHtml(preheader)}</div>
+  <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" align="center" bgcolor="#F4F5F9" style="width:100%;max-width:600px;background:#F4F5F9;">
     <tr>
-      <td align="center">
-        <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" class="flux-email-card" data-flux-email-layout="1" style="width: 100%; max-width: 600px; background-color: #ffffff; border-radius: 10px; overflow: hidden; border: 1px solid #e5e7eb;">
+      <td align="center" style="padding:40px 32px 28px;">
+        <table role="presentation" width="536" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:536px;">
           <tr>
-            <td style="background-color: ${BRAND_NAVY}; padding: 24px 28px; text-align: center;">
-              <a href="${logoUrl.replace(/\/favicon\.svg.*/, '')}" style="text-decoration: none;">
-                <img src="${logoUrl}" width="40" height="40" alt="${escapeHtml(productName)}" style="display: block; margin: 0 auto 10px auto; width: 40px; height: 40px;">
-                <span style="display: block; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 22px; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;">${escapeHtml(headerTitle)}</span>
-              </a>
+            <td align="left" style="padding:0 4px 22px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td><img src="${logoUrl}" alt="${escapeHtml(productName)}" width="24" height="24" style="display:block;border:0;" /></td>
+                  <td style="padding-left:8px;font-family:${FONT_STACK};font-size:15px;font-weight:600;color:#0B1530;letter-spacing:-0.2px;">${escapeHtml(productName)}</td>
+                </tr>
+              </table>
             </td>
           </tr>
           <tr>
-            <td style="height: 3px; background-color: ${BRAND_BLUE}; font-size: 0; line-height: 0;">&nbsp;</td>
-          </tr>
-          <tr>
-            <td class="flux-email-body-text" style="padding: 28px 28px 8px 28px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 16px; line-height: 1.6; color: #374151;">
-              ${options.bodyHtml}
+            <td bgcolor="#ffffff" data-flux-email-layout="1" style="background:#ffffff;border-radius:16px;border:1px solid #E6E9F0;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="padding:44px 48px 0;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="44" height="3" style="width:44px;height:3px;line-height:3px;font-size:0;border-radius:2px;background:linear-gradient(90deg,${BRAND_NAVY},${BRAND_BLUE} 55%,${BRAND_CORAL});">&nbsp;</td></tr></table>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="flux-email-body-text" style="padding:22px 48px 0;font-family:${FONT_STACK};font-size:16px;line-height:1.55;color:#3B4763;">
+                    ${options.bodyHtml}
+                  </td>
+                </tr>
+                <tr>
+                  <td data-flux-email-footer style="padding:24px 48px 40px;font-family:${FONT_STACK};font-size:12.5px;line-height:19px;color:#7A849B;">
+                    &nbsp;
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
           <tr>
-            <td data-flux-email-footer style="padding: 8px 28px 24px 28px; border-top: 1px solid #e5e7eb; text-align: center;">
-              <p class="flux-email-muted" style="margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 11px; color: #9ca3af;">
-                © ${year} · Powered by <a href="${FLUX_LABS_URL}" style="color: ${FLUX_LABS_LINK_COLOR}; text-decoration: none; font-weight: 600;">Flux Labs</a>
-              </p>
+            <td align="center" style="padding:24px 0 0;font-family:${FONT_STACK};font-size:12px;line-height:18px;color:#9AA3B8;">
+              © ${year} ${escapeHtml(productName)} · Powered by <span style="color:${FLUX_LABS_LINK_COLOR};"><a href="${FLUX_LABS_URL}" style="color:${FLUX_LABS_LINK_COLOR};text-decoration:none;">Flux Labs</a></span>
             </td>
           </tr>
         </table>

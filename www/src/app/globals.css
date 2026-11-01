@@ -2,245 +2,162 @@
  * Nebula DNS - Marketing Website
  * Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
  *
- * Global Styles - Nebula Dark Theme
+ * Global Styles - Flux Shield Design C (light)
  */
+
+@import '../../../shared/flux-shield-design-tokens.css';
 
 @tailwind base;
 @tailwind components;
+@import '../../../shared/flux-shield-components.css';
 @tailwind utilities;
 
 @layer base {
   html {
-    @apply antialiased scroll-smooth;
-    color-scheme: dark;
+    @apply scroll-smooth antialiased;
+    color-scheme: light;
   }
 
   body {
-    @apply bg-space-950 text-white;
+    @apply bg-canvas text-ink;
   }
 
-  /* Custom scrollbar */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-space-900;
+    @apply bg-[var(--fs-surface)];
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-space-700 rounded-full;
+    @apply rounded-full bg-[var(--fs-line)];
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-space-600;
+    @apply bg-[var(--fs-mut)];
   }
 
-  /* Focus ring */
   *:focus-visible {
-    @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-space-950;
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-canvas;
   }
 }
 
 @layer components {
-  /* ============================================
-   * BUTTONS
-   * ============================================ */
+  .fs-hero-title {
+    @apply mx-auto mt-7 max-w-[980px] text-[clamp(2.5rem,6vw,5.25rem)] font-semibold leading-none tracking-[-0.045em] text-ink;
+  }
+
+  .fs-hero-title-accent {
+    @apply font-serif-accent inline-block bg-gradient-to-r from-[#1E3B78] via-[#4B7CBB] to-[#FF6E62] bg-clip-text pr-1.5 text-[clamp(2.75rem,6.5vw,6rem)] tracking-[-0.02em] text-transparent;
+  }
+
+  .fs-section-title {
+    @apply mt-4 max-w-[960px] text-[clamp(2rem,4vw,3.25rem)] font-semibold leading-[1.05] tracking-[-0.04em] text-ink;
+  }
+
+  .fs-section-title .font-serif-accent {
+    @apply text-[clamp(2.25rem,4.5vw,3.625rem)] text-[var(--fs-navy)];
+  }
+
+  .fs-feature-art-line {
+    @apply flex justify-between border-b border-dashed border-[#E3E7EF] py-1.5 text-[11.5px] text-[var(--fs-txt)] last:border-0;
+  }
+
+  .fs-tag {
+    @apply mb-1.5 mr-1 inline-block rounded-md bg-white px-2 py-0.5 text-[11px] shadow-[0_0_0_1px_var(--fs-line)];
+  }
+
+  .fs-tag-on {
+    @apply fs-tag bg-[var(--fs-danger-soft)] text-[#C9443A] shadow-[0_0_0_1px_#FFD9D4];
+  }
+
+  .fs-cta-band {
+    @apply relative overflow-hidden rounded-3xl bg-[#0B1530] px-8 py-16 text-white sm:px-20 sm:py-[88px];
+  }
+
+  .fs-cta-band::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(600px 300px at 85% 0%, rgba(75, 124, 187, 0.45), transparent 70%),
+      radial-gradient(400px 260px at 100% 100%, rgba(255, 110, 98, 0.28), transparent 70%);
+    pointer-events: none;
+  }
+
+  .fs-cta-band::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 1.5rem;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    pointer-events: none;
+  }
+
+  .fs-cta-band-title {
+    @apply relative m-0 text-[clamp(2rem,4vw,3.5rem)] font-semibold tracking-[-0.04em] text-white;
+  }
+
+  .fs-cta-band-title .font-serif-accent {
+    @apply text-[#FFB3AC];
+  }
+
+  .fs-btn-ghost-on-dark {
+    @apply inline-flex items-center justify-center gap-2 font-medium transition-all duration-200;
+    height: 2.375rem;
+    padding: 0 1rem;
+    border-radius: 0.5625rem;
+    font-size: 0.875rem;
+    border: 0;
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16);
+  }
+
+  .fs-btn-ghost-on-dark.fs-btn-lg {
+    height: 2.875rem;
+    padding: 0 1.375rem;
+    font-size: 0.9375rem;
+    border-radius: 0.6875rem;
+  }
 
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .btn-primary {
-    @apply btn bg-gradient-to-r from-primary-700 to-primary-500 text-white shadow-glow hover:shadow-glow-lg hover:from-primary-600 hover:to-primary-400 active:scale-[0.98] focus-visible:ring-primary-600;
+    @apply btn bg-gradient-to-r from-primary-700 to-primary-500 text-white shadow-lg shadow-primary-700/25 hover:from-primary-600 hover:to-primary-400 active:scale-[0.98];
   }
 
   .btn-secondary {
-    @apply btn bg-space-800 text-white border border-space-700 hover:bg-space-700 hover:border-space-600 active:scale-[0.98] focus-visible:ring-primary-500;
-  }
-
-  .btn-ghost {
-    @apply btn text-space-400 hover:bg-space-800 hover:text-white;
-  }
-
-  .btn-accent {
-    @apply btn bg-gradient-to-r from-accent-600 to-accent-500 text-white shadow-glow-accent hover:shadow-glow-lg active:scale-[0.98] focus-visible:ring-accent-600;
-  }
-
-  .btn-sm {
-    @apply px-3 py-1.5 text-xs rounded-lg;
-  }
-
-  .btn-lg {
-    @apply px-6 py-3.5 text-base rounded-2xl;
-  }
-
-  .btn-icon {
-    @apply p-2.5 rounded-xl;
-  }
-
-  /* ============================================
-   * GRADIENT TEXT
-   * ============================================ */
-
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400;
-  }
-
-  .text-gradient-purple {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-300 to-primary-500;
-  }
-
-  /* ============================================
-   * CARDS & PANELS
-   * ============================================ */
-
-  .glass-card {
-    @apply bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl;
-  }
-
-  .glass-card-hover {
-    @apply glass-card hover:border-primary-700/50 hover:bg-space-900/80 transition-all duration-300;
-  }
-
-  /* ============================================
-   * NEBULA BADGE
-   * ============================================ */
-
-  .badge-nebula {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-primary-900/50 text-primary-300 border border-primary-800/50;
-  }
-
-  .badge-cyan {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-accent-900/50 text-accent-300 border border-accent-800/50;
-  }
-
-  .badge-success {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-success-900/50 text-success-300 border border-success-800/50;
-  }
-
-  /* ============================================
-   * ICON CONTAINERS
-   * ============================================ */
-
-  .icon-nebula {
-    @apply h-12 w-12 rounded-xl bg-primary-900/50 border border-primary-800/50 flex items-center justify-center text-primary-400;
-  }
-
-  .icon-cyan {
-    @apply h-12 w-12 rounded-xl bg-accent-900/50 border border-accent-800/50 flex items-center justify-center text-accent-400;
-  }
-
-  /* ============================================
-   * SECTIONS
-   * ============================================ */
-
-  .section-dark {
-    @apply py-24 bg-space-950;
-  }
-
-  .section-alt {
-    @apply py-24 bg-space-900;
+    @apply btn bg-white text-space-700 shadow-sm ring-1 ring-space-200 hover:bg-space-50 active:scale-[0.98];
   }
 
   .section-container {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    @apply mx-auto max-w-[1200px] px-4 sm:px-6;
   }
-
-  .section-heading {
-    @apply text-3xl sm:text-4xl font-bold text-white;
-  }
-
-  .section-sub {
-    @apply mt-4 text-lg text-space-400 max-w-2xl mx-auto;
-  }
-
-  /* ============================================
-   * NEBULA GLOW ORBS (atmospheric effects)
-   * ============================================ */
-
-  .nebula-orb-purple {
-    @apply absolute rounded-full bg-primary-500/15 blur-3xl pointer-events-none;
-  }
-
-  .nebula-orb-cyan {
-    @apply absolute rounded-full bg-accent-500/15 blur-3xl pointer-events-none;
-  }
-
-  /* ============================================
-   * FORM INPUTS
-   * ============================================ */
-
-  .input-dark {
-    @apply w-full bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
-  }
-
-  .label-dark {
-    @apply block text-sm font-medium text-space-300 mb-1.5;
-  }
-
-  /* ============================================
-   * DIVIDER
-   * ============================================ */
-
-  .divider-nebula {
-    @apply border-t border-space-800;
-  }
-
-  /* ============================================
-   * PROSE (blog/docs content)
-   * ============================================ */
 
   .prose-nebula {
-    @apply text-space-300 leading-relaxed;
+    @apply leading-relaxed text-[var(--fs-txt)];
   }
 
   .prose-nebula h1,
   .prose-nebula h2,
   .prose-nebula h3,
   .prose-nebula h4 {
-    @apply text-white font-bold;
-  }
-
-  .prose-nebula h2 {
-    @apply text-2xl mt-8 mb-4;
-  }
-
-  .prose-nebula h3 {
-    @apply text-xl mt-6 mb-3;
-  }
-
-  .prose-nebula p {
-    @apply mb-4;
+    @apply font-bold text-ink;
   }
 
   .prose-nebula a {
-    @apply text-primary-400 hover:text-primary-300 underline underline-offset-2;
+    @apply text-primary-600 underline underline-offset-2 hover:text-primary-500;
   }
 
   .prose-nebula code {
-    @apply bg-space-800 text-accent-400 px-1.5 py-0.5 rounded text-sm font-mono;
-  }
-
-  .prose-nebula pre {
-    @apply bg-space-900 border border-space-700 rounded-xl p-4 overflow-x-auto;
-  }
-
-  .prose-nebula pre code {
-    @apply bg-transparent p-0;
-  }
-
-  .prose-nebula ul {
-    @apply list-disc list-inside space-y-1 mb-4;
-  }
-
-  .prose-nebula ol {
-    @apply list-decimal list-inside space-y-1 mb-4;
-  }
-
-  .prose-nebula blockquote {
-    @apply border-l-4 border-primary-600 pl-4 italic text-space-400;
+    @apply rounded bg-[var(--fs-surface)] px-1.5 py-0.5 font-mono text-sm text-[var(--fs-blue)];
   }
 }
 

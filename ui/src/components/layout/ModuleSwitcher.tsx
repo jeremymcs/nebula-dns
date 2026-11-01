@@ -38,10 +38,50 @@ const modules = [
   },
 ] as const
 
-export function ModuleSwitcher() {
+type ModuleSwitcherProps = {
+  variant?: 'menu' | 'segment'
+}
+
+export function ModuleSwitcher({ variant = 'menu' }: ModuleSwitcherProps) {
   const pathname = usePathname()
   const active =
     modules.find((mod) => mod.available && mod.match(pathname)) ?? modules[0]
+
+  if (variant === 'segment') {
+    return (
+      <div className="flex rounded-lg bg-[#F0F2F7] dark:bg-space-900 p-0.5 text-xs">
+        {modules.map((mod) => {
+          const isActive = mod.id === active.id
+          if (!mod.available) {
+            return (
+              <span
+                key={mod.id}
+                className="flex-1 text-center py-1.5 rounded-md text-mut cursor-not-allowed"
+                title={mod.hint}
+              >
+                {mod.label}
+                <span className="ml-1 text-[10px] text-danger-600">{mod.hint === 'Coming soon' ? 'soon' : ''}</span>
+              </span>
+            )
+          }
+          return (
+            <Link
+              key={mod.id}
+              href={mod.href}
+              className={clsx(
+                'flex-1 text-center py-1.5 rounded-md transition-colors',
+                isActive
+                  ? 'bg-white dark:bg-space-800 text-ink font-medium shadow-[0_0_0_1px_rgba(11,21,48,0.06),0_1px_2px_rgba(11,21,48,0.08)]'
+                  : 'text-mut hover:text-txt',
+              )}
+            >
+              {mod.label}
+            </Link>
+          )
+        })}
+      </div>
+    )
+  }
 
   return (
     <Menu as="div" className="relative hidden md:block shrink-0">

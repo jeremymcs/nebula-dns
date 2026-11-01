@@ -11,7 +11,7 @@ export const DEFAULT_ADMIN_URL = 'https://admin.shield.fluxlabs.net';
 /** Marketing www app docs (not served by the dashboard app). */
 export const DEFAULT_WWW_ORIGIN = 'https://fluxlabs.net';
 export const DEFAULT_DOCS_URL = `${DEFAULT_WWW_ORIGIN}/docs`;
-export const DEFAULT_EMAIL_LOGO_URL = `${DEFAULT_APP_URL}/favicon.svg`;
+export const DEFAULT_EMAIL_LOGO_URL = `${DEFAULT_APP_URL}/flux-shield-logo.png`;
 
 export const BRAND_NAVY = '#1E3B78';
 export const BRAND_BLUE = '#4B7CBB';

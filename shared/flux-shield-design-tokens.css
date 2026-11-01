@@ -1,0 +1,59 @@
+/**
+ * Flux Shield — Design direction C (premium minimal)
+ * Shared CSS custom properties for ui, admin-ui, and www.
+ */
+
+:root {
+  --fs-navy: #1e3b78;
+  --fs-blue: #4b7cbb;
+  --fs-coral: #ff6e62;
+  --fs-ink: #0b1530;
+  --fs-txt: #3b4763;
+  --fs-mut: #7a849b;
+  --fs-line: #e6e9f0;
+  --fs-line-soft: #e9ecf2;
+  --fs-bg: #fbfbfd;
+  --fs-surface: #f7f8fb;
+  --fs-panel: #ffffff;
+  --fs-success: #1f9d67;
+  --fs-success-soft: #e9f7f0;
+  --fs-danger: #d9483c;
+  --fs-danger-soft: #fff0ee;
+  --fs-warning: #a26a00;
+
+  --background: var(--fs-bg);
+  --foreground: var(--fs-ink);
+  --ring: var(--fs-blue);
+
+  letter-spacing: -0.005em;
+}
+
+html.dark {
+  color-scheme: dark;
+  --fs-bg: #0c111d;
+  --fs-surface: #111827;
+  --fs-panel: #151b2b;
+  --fs-ink: #f3f4f6;
+  --fs-txt: #c5cad6;
+  --fs-mut: #8a93a8;
+  --fs-line: #2a3347;
+  --fs-line-soft: #232b3d;
+  --background: var(--fs-bg);
+  --foreground: var(--fs-ink);
+  --ring: #6a9fd4;
+}
+
+.font-serif-accent {
+  font-family: var(--font-instrument-serif), 'Instrument Serif', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+}
+
+.font-mono-detail {
+  font-family: var(--font-geist-mono), var(--font-jetbrains), 'Geist Mono', ui-monospace, monospace;
+}
+
+.heading-tight {
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}

@@ -10,6 +10,8 @@ import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TopNav } from './TopNav'
+import { AppSidebar } from './AppSidebar'
+import { DashboardShellBar } from './DashboardShellBar'
 import { MobileNav } from './MobileNav'
 import { FullPageLoading } from '@/components/LoadingSpinner'
 import { useAuth } from '@/contexts/AuthContext'
@@ -141,7 +143,7 @@ export function DashboardLayout({ children, showBreadcrumbs = true }: DashboardL
   return (
     <ErrorBoundary name="AppLayout" showReload>
       <CommandBarProvider>
-        <div className="min-h-screen bg-space-50 dark:bg-space-950 flex flex-col">
+        <div className="min-h-screen bg-surface dark:bg-space-950 flex flex-col lg:flex-row">
           {/* US-028: Grace Period Warning Banner */}
           {gracePeriodInfo?.subscriptionStatus === 'grace' && gracePeriodInfo.daysRemaining !== null && (
             <GracePeriodBanner
@@ -161,12 +163,24 @@ export function DashboardLayout({ children, showBreadcrumbs = true }: DashboardL
             />
           )}
 
-          <ErrorBoundary name="TopNav">
-            <TopNav />
-          </ErrorBoundary>
+          <AppSidebar />
 
-          <main className="mx-auto max-w-[1600px] w-full flex-1 px-4 sm:px-6 lg:px-8 pt-8 pb-8 lg:pb-6">
-            {showBreadcrumbs && <Breadcrumbs />}
+          <div className="flex min-w-0 flex-1 flex-col">
+            <ErrorBoundary name="TopNav">
+              <div className="lg:hidden">
+                <TopNav />
+              </div>
+              <div className="hidden lg:block">
+                <DashboardShellBar />
+              </div>
+            </ErrorBoundary>
+
+            <main className="mx-auto max-w-[1600px] w-full flex-1 px-4 sm:px-6 lg:px-7 py-5 lg:py-6">
+              {showBreadcrumbs && (
+                <div className="lg:hidden">
+                  <Breadcrumbs />
+                </div>
+              )}
             <AnimatePresence mode="wait">
               <motion.div
                 key={pathname}
@@ -182,16 +196,17 @@ export function DashboardLayout({ children, showBreadcrumbs = true }: DashboardL
             </AnimatePresence>
           </main>
 
-          <ProductFooter variant="dashboard" className="pb-20 lg:pb-6" />
+            <ProductFooter variant="dashboard" className="pb-20 lg:pb-6 hidden lg:flex" />
 
-          <ErrorBoundary name="MobileNav">
-            <MobileNav />
-          </ErrorBoundary>
+            <ErrorBoundary name="MobileNav">
+              <MobileNav />
+            </ErrorBoundary>
 
-          {/* Orion AI Assistant FAB */}
-          <ErrorBoundary name="OrionFAB">
-            <OrionFAB />
-          </ErrorBoundary>
+            {/* Orion AI Assistant FAB */}
+            <ErrorBoundary name="OrionFAB">
+              <OrionFAB />
+            </ErrorBoundary>
+          </div>
         </div>
       </CommandBarProvider>
     </ErrorBoundary>

@@ -6,21 +6,19 @@
  */
 
 import type { Metadata } from 'next'
-import { Inter, JetBrains_Mono } from 'next/font/google'
+import { Instrument_Serif } from 'next/font/google'
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
 import './globals.css'
 import { Providers } from './providers'
 import { PRODUCT_META_DESCRIPTION, PRODUCT_NAME } from '@/lib/branding'
 import { APP_ORIGIN } from '@/lib/public-urls'
 
-const inter = Inter({
+const instrumentSerif = Instrument_Serif({
   subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-})
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-jetbrains',
+  weight: '400',
+  style: ['italic'],
+  variable: '--font-instrument-serif',
   display: 'swap',
 })
 
@@ -52,8 +50,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`h-full ${inter.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
-      <body className="h-full font-sans bg-space-50 dark:bg-space-950 text-space-900 dark:text-space-100 transition-colors" suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`h-full ${GeistSans.variable} ${GeistMono.variable} ${instrumentSerif.variable}`}
+      suppressHydrationWarning
+    >
+      <body className="h-full font-sans bg-canvas dark:bg-space-950 text-ink transition-colors" suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>
