@@ -35,7 +35,6 @@ import {
 } from './block-page-html.util';
 import {
   resolveTenantUploadKey,
-  resolveTenantUploadFile,
   writeValidatedLogoFile,
 } from './block-page-upload.util';
 import { renderSafeMarkdown } from './block-page-markdown.util';

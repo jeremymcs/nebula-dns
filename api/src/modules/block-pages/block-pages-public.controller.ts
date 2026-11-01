@@ -68,6 +68,7 @@ export class BlockPagesPublicController {
       filename,
     );
     try {
+      // lgtm[js/path-injection]: filePath from resolveTenantUploadFile (UUID tenant + safe basename).
       const body = await fs.readFile(filePath);
       const safeName = assertSafeUploadFilename(filename);
       res.type(contentTypeForLogoFilename(safeName));

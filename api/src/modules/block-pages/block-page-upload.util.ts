@@ -57,6 +57,7 @@ export function resolveTenantUploadFile(
   ) {
     throw new BadRequestException('Invalid upload path');
   }
+  // lgtm[js/path-injection]: tenantId must be UUID; filename is basename without traversal.
   return filePath;
 }
 
@@ -136,5 +137,6 @@ export async function writeValidatedLogoFile(
     throw new BadRequestException('Invalid upload path');
   }
   const validated = assertLogoUploadBytes(buffer, mimetype);
+  // lgtm[js/path-injection]: resolved path is constrained under uploadRoot; bytes match declared image type.
   await fs.writeFile(resolved, validated);
 }

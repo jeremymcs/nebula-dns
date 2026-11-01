@@ -6,6 +6,9 @@
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },
+  "transformIgnorePatterns": [
+    "/node_modules/(?!sanitize-html|htmlparser2|domhandler|domelementtype|dom-serializer|entities|is-plain-object|parse-srcset|postcss|deepmerge|escape-string-regexp)/"
+  ],
   "moduleNameMapper": {
     "^@/(.*)$": "<rootDir>/src/$1"
   },
