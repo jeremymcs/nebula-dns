@@ -3,7 +3,6 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -133,10 +132,6 @@ import { AlertingModule } from '../alerting/alerting.module';
     AdminAuthGuard,
     AdminRolesGuard,
     AdminMfaGuard,
-    {
-      provide: APP_GUARD,
-      useClass: AdminMfaGuard,
-    },
   ],
 
   // Export service and guard for use by other modules

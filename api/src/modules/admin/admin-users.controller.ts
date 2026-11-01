@@ -50,6 +50,7 @@ import {
 } from './dto/admin-activity.dto';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { AdminRolesGuard } from './guards/admin-roles.guard';
+import { AdminMfaGuard } from './guards/admin-mfa.guard';
 import { SkipAdminMfa } from './decorators/skip-admin-mfa.decorator';
 import { AdminRoles } from './decorators/admin-roles.decorator';
 import { AdminRole } from './enums/admin-role.enum';
@@ -66,6 +67,7 @@ import { AdminUser } from './dto/admin-jwt-payload.dto';
  */
 @ApiTags('Admin Users')
 @Controller('admin/users')
+@UseGuards(AdminMfaGuard)
 export class AdminUsersController {
   constructor(
     private readonly adminUsersService: AdminUsersService,
