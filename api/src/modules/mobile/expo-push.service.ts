@@ -26,10 +26,7 @@ export class ExpoPushService {
   private readonly logger = new Logger(ExpoPushService.name);
   private readonly accessToken?: string;
 
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly client?: ExpoPushClient,
-  ) {
+  constructor(private readonly configService: ConfigService) {
     this.accessToken = this.configService.get<string>('EXPO_ACCESS_TOKEN');
   }
 
@@ -38,7 +35,7 @@ export class ExpoPushService {
       return [];
     }
 
-    if (!this.accessToken && !this.client) {
+    if (!this.accessToken && !this.clientOverride) {
       this.logger.debug('EXPO_ACCESS_TOKEN not set; skipping push delivery');
       return messages.map(() => ({
         status: 'error' as const,
@@ -46,8 +43,8 @@ export class ExpoPushService {
       }));
     }
 
-    if (this.client) {
-      return this.client.sendPushNotifications(messages);
+    if (this.clientOverride) {
+      return this.clientOverride.sendPushNotifications(messages);
     }
 
     const response = await fetch('https://exp.host/--/api/v2/push/send', {
