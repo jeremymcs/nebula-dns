@@ -2,6 +2,7 @@ import {
   BRAND_BLUE,
   BRAND_CORAL,
   BRAND_NAVY,
+  DEFAULT_APP_URL,
 } from '../../common/product-branding';
 import {
   buildTransactionalEmailHtml,
@@ -527,7 +528,7 @@ export function renderEmailTemplatePreview(
   ctx: EmailContentContext,
 ): RenderedEmail {
   const sampleExpiry = new Date(Date.now() + 7 * 86400000);
-  const appUrl = 'https://shield.fluxlabs.net';
+  const appUrl = DEFAULT_APP_URL;
   switch (templateId) {
     case 'welcome':
       return renderWelcomeEmail(

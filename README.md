@@ -4,7 +4,7 @@
 
 Flux Shield is a product of [Flux Labs](https://fluxlabs.net) (Panama City Beach, FL). © 2026 Flux Labs.
 
-Public URLs are configured via environment variables (defaults: app at `https://shield.fluxlabs.net`, admin at `https://admin.shield.fluxlabs.net`, API at `https://api.shield.fluxlabs.net`).
+Public URLs are configured via environment variables (defaults: marketing www at `https://shield.fluxlabs.net`, tenant app at `https://app.shield.fluxlabs.net`, admin at `https://admin.shield.fluxlabs.net`, API at `https://api.shield.fluxlabs.net`).
 
 ## Features
 
@@ -96,7 +96,8 @@ This will start:
 
 | Service | URL |
 |---------|-----|
-| Dashboard | `NEXT_PUBLIC_APP_URL` (default `https://shield.fluxlabs.net`) |
+| Marketing www | `NEXT_PUBLIC_SITE_URL` (default `https://shield.fluxlabs.net`) |
+| Dashboard | `NEXT_PUBLIC_APP_URL` / `APP_URL` (default `https://app.shield.fluxlabs.net`) |
 | API | `API_URL` / `NEXT_PUBLIC_API_URL` (default `https://api.shield.fluxlabs.net`) |
 | DNS (DoT) | `DNS1_HOST` / `DNS2_HOST` (default `dns1.shield.fluxlabs.net`, `dns2.shield.fluxlabs.net`) |
 | DNS (DoH) | `https://<DNS1_HOST>/dns-query`, `https://<DNS2_HOST>/dns-query` |

@@ -4,6 +4,7 @@ import {
   DEFAULT_APP_URL,
   DEFAULT_DOCS_URL,
   DEFAULT_PRODUCT_NAME,
+  DEFAULT_WWW_ORIGIN,
 } from './product-branding';
 
 function trimTrailingSlash(url: string): string {
@@ -52,4 +53,18 @@ export function defaultTenantDisplayName(): string {
 
 export function defaultAdminInviterName(): string {
   return `${DEFAULT_PRODUCT_NAME} Admin`;
+}
+
+/** Default CORS origins when CORS_ORIGINS is unset (see main.ts). */
+export function defaultCorsOrigins(): string[] {
+  return [
+    'http://localhost:4010',
+    'http://localhost:4011',
+    'http://localhost:4012',
+    'http://localhost:3000',
+    'http://localhost:3001',
+    DEFAULT_WWW_ORIGIN,
+    DEFAULT_APP_URL,
+    DEFAULT_ADMIN_URL,
+  ];
 }

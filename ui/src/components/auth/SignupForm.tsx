@@ -9,6 +9,7 @@ import { signupSchema, type SignupFormData } from '@/lib/validations'
 import { FormField, Input, Select, Checkbox } from '@/components/forms'
 import { useToast } from '@/components/Toast'
 import Link from 'next/link'
+import { MARKETING_SITE_URL } from '@/lib/branding'
 
 interface SignupFormProps {
   onSubmit: (data: SignupFormData) => Promise<void>
@@ -170,11 +171,11 @@ export function SignupForm({
           label={
             <>
               I agree to the{' '}
-              <Link href="/terms" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+              <Link href={`${MARKETING_SITE_URL}/terms`} className="text-indigo-600 dark:text-indigo-400 hover:underline">
                 Terms of Service
               </Link>{' '}
               and{' '}
-              <Link href="/privacy" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+              <Link href={`${MARKETING_SITE_URL}/privacy`} className="text-indigo-600 dark:text-indigo-400 hover:underline">
                 Privacy Policy
               </Link>
             </>

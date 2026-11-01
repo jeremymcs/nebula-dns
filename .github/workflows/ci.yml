@@ -354,6 +354,10 @@ jobs:
         working-directory: ./www
         run: npm ci
 
+      - name: Run redirect unit tests
+        working-directory: ./www
+        run: npm test
+
       - name: Build
         working-directory: ./www
         run: npm run build

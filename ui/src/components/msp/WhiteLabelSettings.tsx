@@ -259,7 +259,7 @@ export function WhiteLabelSettings() {
             className="block w-full rounded-xl border border-space-300 dark:border-space-600 bg-white dark:bg-space-800 px-4 py-2.5 text-space-900 dark:text-white focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
           />
           <p className="text-xs text-space-500 dark:text-space-400 mt-2">
-            Configure DNS CNAME record: portal.yourcompany.com → app.nebuladns.io
+            Configure DNS CNAME record: portal.yourcompany.com → app.shield.fluxlabs.net
           </p>
         </div>
       </div>
