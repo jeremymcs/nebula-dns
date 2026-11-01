@@ -55,6 +55,7 @@ export async function fetchPlatformConnection(): Promise<PlatformConnectionStatu
 export async function savePlatformConnection(input: {
   label: string;
   apiToken: string;
+  accountId?: string;
 }): Promise<PlatformConnectionStatus> {
   const res = await fetch(`${API_URL}/admin/dns-management/connection`, {
     method: 'POST',
@@ -64,6 +65,24 @@ export async function savePlatformConnection(input: {
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
     throw new Error(error.message || 'Failed to save connection');
+  }
+  return res.json();
+}
+
+export async function discoverPlatformAccounts(apiToken: string): Promise<
+  Array<{ id: string; name: string }>
+> {
+  const res = await fetch(
+    `${API_URL}/admin/dns-management/connection/discover-accounts`,
+    {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ apiToken }),
+    },
+  );
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.message || 'Failed to list accounts');
   }
   return res.json();
 }

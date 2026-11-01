@@ -15,6 +15,7 @@ import {
   RecordListQuery,
   TokenVerifyResult,
   UpdateRecordInput,
+  DnsProviderAccount,
 } from './dns-provider.interface';
 import { CfFairQueueService } from '../queue/cf-fair-queue.service';
 
@@ -51,9 +52,37 @@ export class CloudflareDnsProvider implements DnsProvider {
 
     return {
       status: 'active',
-      accountId: data.id,
+      tokenId: data.id,
       scopes: [],
     };
+  }
+
+  async listAccounts(apiToken: string): Promise<DnsProviderAccount[]> {
+    const accounts: DnsProviderAccount[] = [];
+    let page = 1;
+    const perPage = 50;
+
+    while (true) {
+      const result = await this.request<
+        Array<{ id: string; name: string }>
+      >(
+        apiToken,
+        `/accounts?page=${page}&per_page=${perPage}`,
+        { method: 'GET' },
+        'admin',
+      );
+
+      for (const account of result) {
+        accounts.push({ id: account.id, name: account.name });
+      }
+
+      if (result.length < perPage) {
+        break;
+      }
+      page += 1;
+    }
+
+    return accounts;
   }
 
   async listAccountZones(apiToken: string): Promise<DnsProviderZone[]> {

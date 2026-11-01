@@ -8,6 +8,7 @@ import { useToast } from '@/components/Toast'
 import {
   fetchPlatformConnection,
   savePlatformConnection,
+  discoverPlatformAccounts,
   type PlatformConnectionStatus,
 } from '@/lib/dns-platform-api'
 
@@ -19,6 +20,10 @@ export default function DnsPlatformConnectionPage() {
   )
   const [label, setLabel] = useState('Flux Labs production CF')
   const [apiToken, setApiToken] = useState('')
+  const [accountId, setAccountId] = useState('')
+  const [accountOptions, setAccountOptions] = useState<
+    Array<{ id: string; name: string }>
+  >([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -47,6 +52,29 @@ export default function DnsPlatformConnectionPage() {
     }
   }, [hasAccess, load])
 
+  const onDiscoverAccounts = async () => {
+    if (!apiToken.trim()) {
+      showToast('error', 'Token required', 'Paste a token to list accounts.')
+      return
+    }
+    try {
+      const accounts = await discoverPlatformAccounts(apiToken)
+      setAccountOptions(accounts)
+      if (accounts.length === 1) {
+        setAccountId(accounts[0].id)
+      }
+      if (accounts.length === 0) {
+        showToast('warning', 'No accounts', 'This token cannot list accounts.')
+      }
+    } catch (err) {
+      showToast(
+        'error',
+        'Account lookup failed',
+        err instanceof Error ? err.message : 'Unknown error',
+      )
+    }
+  }
+
   const onSave = async () => {
     if (!apiToken.trim()) {
       showToast('error', 'Token required', 'Paste a Cloudflare API token to verify.')
@@ -54,9 +82,14 @@ export default function DnsPlatformConnectionPage() {
     }
     setSaving(true)
     try {
-      const saved = await savePlatformConnection({ label, apiToken })
+      const saved = await savePlatformConnection({
+        label,
+        apiToken,
+        accountId: accountId.trim() || undefined,
+      })
       setConnection(saved)
       setApiToken('')
+      setAccountOptions([])
       showToast('success', 'Connection saved', 'Token verified and stored securely.')
     } catch (err) {
       showToast(
@@ -107,6 +140,12 @@ export default function DnsPlatformConnectionPage() {
               <span className="text-space-500">Fingerprint:</span>{' '}
               <code className="text-xs">{connection.tokenFingerprint}</code>
             </p>
+            {connection.accountId && (
+              <p>
+                <span className="text-space-500">Account ID:</span>{' '}
+                <code className="text-xs">{connection.accountId}</code>
+              </p>
+            )}
             {connection.verifiedAt && (
               <p>
                 <span className="text-space-500">Verified:</span>{' '}
@@ -133,10 +172,38 @@ export default function DnsPlatformConnectionPage() {
           value={apiToken}
           onChange={(e) => setApiToken(e.target.value)}
         />
+        <Input
+          label="Cloudflare account ID (if token has multiple accounts)"
+          placeholder="Optional — use List accounts or paste account id"
+          value={accountId}
+          onChange={(e) => setAccountId(e.target.value)}
+        />
+        {accountOptions.length > 0 && (
+          <div className="text-xs text-space-600 dark:text-space-400 space-y-1">
+            <p className="font-medium">Visible accounts:</p>
+            <ul className="list-disc pl-4">
+              {accountOptions.map((account) => (
+                <li key={account.id}>
+                  {account.name}{' '}
+                  <button
+                    type="button"
+                    className="text-primary-600 hover:underline"
+                    onClick={() => setAccountId(account.id)}
+                  >
+                    ({account.id})
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
-        <div className="flex gap-3 pt-2">
+        <div className="flex gap-3 pt-2 flex-wrap">
           <Button onClick={onSave} disabled={saving}>
             {saving ? 'Verifying…' : connection ? 'Replace token' : 'Connect'}
+          </Button>
+          <Button variant="secondary" onClick={onDiscoverAccounts} disabled={saving}>
+            List accounts
           </Button>
         </div>
 

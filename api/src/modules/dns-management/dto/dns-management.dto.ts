@@ -22,6 +22,30 @@ export class SetPlatformConnectionDto {
   @IsString()
   @MinLength(10)
   apiToken: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Cloudflare account id (required when the token can access multiple accounts)',
+  })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  accountId?: string;
+}
+
+export class DiscoverPlatformAccountsDto {
+  @ApiProperty()
+  @IsString()
+  @MinLength(10)
+  apiToken: string;
+}
+
+export class PlatformAccountOptionDto {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  name: string;
 }
 
 export class RotatePlatformConnectionDto {
@@ -29,6 +53,12 @@ export class RotatePlatformConnectionDto {
   @IsString()
   @MinLength(10)
   apiToken: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  accountId?: string;
 }
 
 export class RevokePlatformConnectionDto {

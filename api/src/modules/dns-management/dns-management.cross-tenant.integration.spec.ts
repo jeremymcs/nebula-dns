@@ -31,6 +31,7 @@ describe('DnsManagement cross-tenant isolation', () => {
 
   const mockProvider = {
     verifyToken: jest.fn(),
+    listAccounts: jest.fn(),
     listAccountZones: jest.fn(),
     createZone: jest.fn(),
     listRecords: jest.fn(),
