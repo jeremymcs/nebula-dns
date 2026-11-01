@@ -28,6 +28,12 @@ export interface TenantSettings {
   mspDisplayName?: string;
   mspSupportUrl?: string;
   mspSupportEmail?: string;
+  /** Flux Shield product module toggles (admin-managed overrides) */
+  productModules?: {
+    dnsFilter?: boolean;
+    dnsManagement?: boolean;
+    dmarc?: boolean;
+  };
 }
 
 // Tenant represents an Organization (sub-client) in the MSP hierarchy

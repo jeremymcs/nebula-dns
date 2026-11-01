@@ -13,7 +13,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { FullPageLoading } from '@/components/LoadingSpinner'
 import { useAuth } from '@/contexts/AuthContext'
-import { Header, SessionWarningModal } from '@/components/layout'
+import { Header, SessionWarningModal, MobileNav } from '@/components/layout'
 import { ProductFooter } from '@/components/ProductFooter'
 
 // Session warning appears 5 minutes before expiry
@@ -142,6 +142,7 @@ export default function AuthenticatedLayout({
 
       {/* Admin Header */}
       <Header />
+      <MobileNav />
 
       {/* Main Content */}
       <main className="flex-1 pb-20 lg:pb-0">

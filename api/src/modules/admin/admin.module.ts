@@ -31,6 +31,11 @@ import { AdminInvitationsService } from './admin-invitations.service';
 import { AdminMfaService } from './admin-mfa.service';
 import { AdminMfaGuard } from './guards/admin-mfa.guard';
 import { AgentInstallation } from '../agents/entities/agent-installation.entity';
+import { AuditLog } from '../audit-logs/entities/audit-log.entity';
+import { AdminTenantsService } from './admin-tenants.service';
+import { AdminTenantsController } from './admin-tenants.controller';
+import { AdminPlatformAuditService } from './admin-platform-audit.service';
+import { AdminPlatformAuditController } from './admin-platform-audit.controller';
 import { AdminController } from './admin.controller';
 import { AdminUsersController } from './admin-users.controller';
 import { RedisModule } from '../redis/redis.module';
@@ -42,6 +47,7 @@ import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 import { TrialsModule } from '../trials/trials.module';
 import { SubscriptionLapseModule } from '../subscription-lapse/subscription-lapse.module';
 import { AlertingModule } from '../alerting/alerting.module';
+import { LimitsModule } from '../limits/limits.module';
 import { AdminRefreshToken } from '../mobile/entities/admin-refresh-token.entity';
 import { AdminRefreshTokenService } from '../mobile/admin-refresh-token.service';
 import { MobileModule } from '../mobile/mobile.module';
@@ -96,7 +102,10 @@ import { MobileModule } from '../mobile/mobile.module';
       Subscription,
       MspInvoice,
       AgentInstallation,
+      AuditLog,
     ]),
+
+    LimitsModule,
 
     // Redis for session management (blacklist, session tracking)
     RedisModule,
@@ -120,7 +129,12 @@ import { MobileModule } from '../mobile/mobile.module';
   ],
 
   // Admin API endpoints
-  controllers: [AdminController, AdminUsersController],
+  controllers: [
+    AdminTenantsController,
+    AdminPlatformAuditController,
+    AdminController,
+    AdminUsersController,
+  ],
 
   // Services and strategy
   providers: [
@@ -134,6 +148,8 @@ import { MobileModule } from '../mobile/mobile.module';
     AdminUsersService,
     AdminInvitationsService,
     AdminMfaService,
+    AdminTenantsService,
+    AdminPlatformAuditService,
     AdminJwtStrategy,
     AdminAuthGuard,
     AdminRolesGuard,
@@ -150,6 +166,8 @@ import { MobileModule } from '../mobile/mobile.module';
     AdminActivityService,
     AdminUsersService,
     AdminInvitationsService,
+    AdminTenantsService,
+    AdminPlatformAuditService,
     AdminAuthGuard,
     AdminRolesGuard,
     JwtModule,

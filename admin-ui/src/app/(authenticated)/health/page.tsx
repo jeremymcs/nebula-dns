@@ -33,6 +33,7 @@ import { Card, Badge, Skeleton } from '@/components/ui'
 import {
   useAdminSystemHealth,
   useAdminRecentErrors,
+  useAdminCertificateExpiry,
   ServiceStatus,
   ServiceHealthStatus,
   RecentError,
@@ -426,6 +427,8 @@ export default function SystemHealthPage() {
   // Fetch recent errors with auto-refresh
   const { data: errors, mutate: mutateErrors } = useAdminRecentErrors(25, 30000, effectivePaused)
 
+  const { data: certData, isLoading: certsLoading } = useAdminCertificateExpiry()
+
   // Update lastUpdated timestamp when health data changes
   useEffect(() => {
     if (health) {
@@ -646,6 +649,68 @@ export default function SystemHealthPage() {
             </>
           ) : null}
         </div>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold text-space-900 dark:text-white mb-4">
+          TLS certificate expiry
+        </h2>
+        <Card variant="glass" padding="md">
+          {certsLoading && (
+            <p className="text-sm text-space-500">Checking public DoT/DoH endpoints…</p>
+          )}
+          {!certsLoading && certData && (
+            <div className="overflow-x-auto">
+              <table className="table text-sm w-full">
+                <thead className="table-header">
+                  <tr>
+                    <th className="table-header-cell">Service</th>
+                    <th className="table-header-cell">Host</th>
+                    <th className="table-header-cell">Expires</th>
+                    <th className="table-header-cell">Days left</th>
+                    <th className="table-header-cell">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="table-body">
+                  {certData.certificates.map((cert) => (
+                    <tr key={`${cert.hostname}-${cert.port}`} className="table-row">
+                      <td className="table-cell">{cert.service}</td>
+                      <td className="table-cell font-mono text-xs">
+                        {cert.hostname}:{cert.port}
+                      </td>
+                      <td className="table-cell text-xs">
+                        {cert.notAfter
+                          ? new Date(cert.notAfter).toLocaleDateString()
+                          : cert.errorMessage || '—'}
+                      </td>
+                      <td className="table-cell">
+                        {cert.daysRemaining != null ? cert.daysRemaining : '—'}
+                      </td>
+                      <td className="table-cell">
+                        <Badge
+                          variant={
+                            cert.status === 'ok'
+                              ? 'success'
+                              : cert.status === 'warning'
+                                ? 'warning'
+                                : 'danger'
+                          }
+                          size="sm"
+                        >
+                          {cert.status}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="text-xs text-space-500 mt-3">
+                Probed at {new Date(certData.checkedAt).toLocaleString()}. Configure targets with{' '}
+                <code className="font-mono">ADMIN_CERT_PROBE_HOSTS</code>.
+              </p>
+            </div>
+          )}
+        </Card>
       </div>
 
       {/* Two-column layout: Error Metrics (left) and Query Volume Chart (right) */}
