@@ -813,3 +813,262 @@ export async function resetAdminMfa(adminId: string): Promise<AdminMessageRespon
 
   return res.json()
 }
+
+// ============================================
+// Admin tenant management
+// ============================================
+
+export interface AdminTenantListItem {
+  id: string
+  name: string
+  slug: string
+  status: 'active' | 'suspended' | 'cancelled'
+  plan: 'free' | 'starter' | 'pro' | 'enterprise'
+  tier: 'home' | 'enterprise' | 'msp'
+  contactEmail: string | null
+  managedByMspId: string | null
+  managedByMspName: string | null
+  createdAt: string
+}
+
+export interface AdminTenantListResponse {
+  data: AdminTenantListItem[]
+  pagination: MspListingPagination
+}
+
+export interface AdminTenantDetail {
+  id: string
+  name: string
+  slug: string
+  status: AdminTenantListItem['status']
+  plan: AdminTenantListItem['plan']
+  tier: AdminTenantListItem['tier']
+  contactEmail: string | null
+  managedByMspId: string | null
+  managedByMspName: string | null
+  createdAt: string
+  limits: {
+    locationLimit: number | null
+    clientLimit: number | null
+    familyMemberLimit: number | null
+    tier: string
+    queriesPerMonth: number | null
+  }
+  modules: {
+    dnsFilter: boolean
+    dnsManagement: boolean
+    dmarc: boolean
+  }
+  userCount: number
+  agentCount: number
+  locationCount: number
+  users: Array<{
+    id: string
+    email: string
+    name: string
+    role: string
+    createdAt: string
+  }>
+  recentUsage: {
+    totalQueries: number
+    blockedQueries: number
+    period: string
+    isMockData: boolean
+    analyticsAvailable: boolean
+  }
+}
+
+export interface UseAdminTenantListParams {
+  q?: string
+  status?: string
+  plan?: string
+  tier?: string
+  mspId?: string
+  limit?: number
+  cursor?: string
+}
+
+export function useAdminTenantList(params?: UseAdminTenantListParams) {
+  const searchParams = new URLSearchParams()
+  if (params?.q) searchParams.set('q', params.q)
+  if (params?.status) searchParams.set('status', params.status)
+  if (params?.plan) searchParams.set('plan', params.plan)
+  if (params?.tier) searchParams.set('tier', params.tier)
+  if (params?.mspId) searchParams.set('mspId', params.mspId)
+  if (params?.limit) searchParams.set('limit', params.limit.toString())
+  if (params?.cursor) searchParams.set('cursor', params.cursor)
+
+  const query = searchParams.toString()
+  const endpoint = `/admin/tenants${query ? `?${query}` : ''}`
+
+  return useSWR<AdminTenantListResponse>(endpoint, adminFetcher, defaultConfig)
+}
+
+export function useAdminTenantDetail(tenantId: string) {
+  return useSWR<AdminTenantDetail>(
+    tenantId ? `/admin/tenants/${tenantId}` : null,
+    adminFetcher,
+    defaultConfig
+  )
+}
+
+export interface MspUsageTimeSeriesResponse {
+  data: Array<{
+    bucket: string
+    queries: number
+    blocked: number
+    allowed: number
+  }>
+  period: string
+  isMockData: boolean
+  analyticsAvailable: boolean
+}
+
+export function useAdminMspUsageTimeSeries(
+  mspId: string,
+  period: '24h' | '7d' | '30d'
+) {
+  return useSWR<MspUsageTimeSeriesResponse>(
+    mspId
+      ? `/admin/msp/tenants/${mspId}/usage-timeseries?period=${period}`
+      : null,
+    adminFetcher,
+    defaultConfig
+  )
+}
+
+async function adminMutation<T>(
+  endpoint: string,
+  method: string,
+  body?: unknown
+): Promise<T> {
+  const token =
+    typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
+  if (!token) throw new Error('Admin authentication required')
+
+  const res = await fetch(`${API_URL}${endpoint}`, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  })
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ message: 'Request failed' }))
+    throw new Error(error.message || `Request failed (${res.status})`)
+  }
+
+  return res.json()
+}
+
+export function suspendTenantAdmin(tenantId: string) {
+  return adminMutation<{ success: boolean; tenant: AdminTenantDetail }>(
+    `/admin/tenants/${tenantId}/suspend`,
+    'POST'
+  )
+}
+
+export function reactivateTenantAdmin(tenantId: string) {
+  return adminMutation<{ success: boolean; tenant: AdminTenantDetail }>(
+    `/admin/tenants/${tenantId}/reactivate`,
+    'POST'
+  )
+}
+
+export function updateTenantLimitsAdmin(
+  tenantId: string,
+  body: {
+    locationLimit?: number | null
+    clientLimit?: number | null
+    plan?: AdminTenantListItem['plan']
+  }
+) {
+  return adminMutation<{ success: boolean; tenant: AdminTenantDetail }>(
+    `/admin/tenants/${tenantId}/limits`,
+    'PATCH',
+    body
+  )
+}
+
+export function updateTenantModulesAdmin(
+  tenantId: string,
+  body: Partial<AdminTenantDetail['modules']>
+) {
+  return adminMutation<{ success: boolean; tenant: AdminTenantDetail }>(
+    `/admin/tenants/${tenantId}/modules`,
+    'PATCH',
+    body
+  )
+}
+
+export interface PlatformAuditEntry {
+  id: string
+  source: 'admin' | 'tenant'
+  action: string
+  tenantId: string | null
+  tenantName: string | null
+  actorId: string | null
+  actorEmail: string | null
+  actorName: string | null
+  resourceType: string | null
+  resourceId: string | null
+  metadata: Record<string, unknown> | null
+  ipAddress: string | null
+  createdAt: string
+}
+
+export interface PlatformAuditResponse {
+  data: PlatformAuditEntry[]
+  pagination: MspListingPagination
+}
+
+export interface UsePlatformAuditParams {
+  source?: 'admin' | 'tenant' | 'all'
+  tenantId?: string
+  actorId?: string
+  action?: string
+  startDate?: string
+  endDate?: string
+  limit?: number
+  cursor?: string
+}
+
+export function usePlatformAuditLogs(params?: UsePlatformAuditParams) {
+  const searchParams = new URLSearchParams()
+  if (params?.source) searchParams.set('source', params.source)
+  if (params?.tenantId) searchParams.set('tenantId', params.tenantId)
+  if (params?.actorId) searchParams.set('actorId', params.actorId)
+  if (params?.action) searchParams.set('action', params.action)
+  if (params?.startDate) searchParams.set('startDate', params.startDate)
+  if (params?.endDate) searchParams.set('endDate', params.endDate)
+  if (params?.limit) searchParams.set('limit', params.limit.toString())
+  if (params?.cursor) searchParams.set('cursor', params.cursor)
+
+  const query = searchParams.toString()
+  const endpoint = `/admin/audit/logs${query ? `?${query}` : ''}`
+
+  return useSWR<PlatformAuditResponse>(endpoint, adminFetcher, defaultConfig)
+}
+
+export interface CertificateExpiryResponse {
+  certificates: Array<{
+    hostname: string
+    service: string
+    port: number
+    notAfter: string | null
+    daysRemaining: number | null
+    status: 'ok' | 'warning' | 'critical' | 'unknown' | 'error'
+    errorMessage: string | null
+  }>
+  checkedAt: string
+}
+
+export function useAdminCertificateExpiry() {
+  return useSWR<CertificateExpiryResponse>(
+    '/admin/system/certificates',
+    adminFetcher,
+    { ...defaultConfig, refreshInterval: 300000 }
+  )
+}

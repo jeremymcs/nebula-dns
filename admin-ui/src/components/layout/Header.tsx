@@ -54,7 +54,9 @@ export function Header() {
   // Define navigation items with role requirements
   const navigationItems = [
     { name: 'Dashboard', href: '/', feature: 'dashboard' as const },
+    { name: 'Tenants', href: '/tenants', feature: 'tenants' as const },
     { name: 'MSPs', href: '/msps', feature: 'msps' as const },
+    { name: 'Audit', href: '/audit', feature: 'audit' as const },
     { name: 'Health', href: '/health', feature: 'health' as const },
     { name: 'Alerting', href: '/settings/alerting', feature: 'alerting-config' as const },
     { name: 'Admin Users', href: '/users', feature: 'admin-users' as const },

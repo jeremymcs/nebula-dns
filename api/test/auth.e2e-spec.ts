@@ -97,10 +97,11 @@ describe('Authentication E2E Tests', () => {
     });
   });
 
+
   describe('MFA Flow', () => {
     it('should reject MFA verification without session', async () => {
       const response = await request(app.getHttpServer())
-        .post('/auth/mfa/verify')
+        .post('/mfa/verify')
         .send({ code: '123456' });
 
       expect([400, 401]).toContain(response.status);

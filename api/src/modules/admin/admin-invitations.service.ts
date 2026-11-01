@@ -183,6 +183,7 @@ export class AdminInvitationsService {
     return {
       invitation: this.toResponseDto(saved, inviter?.email || ''),
       emailSent,
+      ...(emailSent ? {} : { inviteUrl }),
     };
   }
 

@@ -786,6 +786,102 @@ export class ClickHouseService implements OnModuleInit {
     );
   }
 
+  /**
+   * Time-series query volume for one or more tenants (admin MSP usage charts)
+   */
+  async getAggregatedQueryTimeSeries(
+    tenantIds: string[],
+    period: '24h' | '7d' | '30d',
+  ): Promise<{
+    data: Array<{
+      bucket: string;
+      queries: number;
+      blocked: number;
+      allowed: number;
+    }>;
+    isMockData: boolean;
+    analyticsAvailable: boolean;
+  }> {
+    if (tenantIds.length === 0) {
+      return { data: [], isMockData: false, analyticsAvailable: true };
+    }
+
+    const dateFilter = this.getPeriodFilter(period);
+    const bucketExpr =
+      period === '24h'
+        ? 'toStartOfHour(timestamp)'
+        : 'toStartOfDay(timestamp)';
+
+    const mockSeries = () => {
+      const points =
+        period === '24h' ? 24 : period === '7d' ? 7 : 30;
+      const now = Date.now();
+      const stepMs =
+        period === '24h' ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+      return Array.from({ length: points }, (_, i) => {
+        const t = new Date(now - (points - 1 - i) * stepMs);
+        const bucket =
+          period === '24h'
+            ? t.toISOString()
+            : t.toISOString().slice(0, 10);
+        const queries = Math.floor(Math.random() * 500) + 50;
+        const blocked = Math.floor(queries * 0.1);
+        return {
+          bucket,
+          queries,
+          blocked,
+          allowed: queries - blocked,
+        };
+      });
+    };
+
+    const analyticsAvailable = this.isHealthy() && !this.isUsingMockData();
+
+    const result = await this.safeQuery(
+      async () => {
+        const queryResult = await this.client.query({
+          query: `
+            SELECT
+              ${bucketExpr} as bucket,
+              count() as queries,
+              countIf(action = 'block') as blocked
+            FROM query_logs
+            WHERE tenant_id IN {tenantIds:Array(UUID)} AND ${dateFilter}
+            GROUP BY bucket
+            ORDER BY bucket ASC
+          `,
+          query_params: { tenantIds },
+          format: 'JSONEachRow',
+        });
+
+        const rows = (await queryResult.json()) as Array<{
+          bucket: string;
+          queries: string;
+          blocked: string;
+        }>;
+
+        return rows.map((row) => {
+          const queries = Number(row.queries) || 0;
+          const blocked = Number(row.blocked) || 0;
+          return {
+            bucket: String(row.bucket),
+            queries,
+            blocked,
+            allowed: queries - blocked,
+          };
+        });
+      },
+      mockSeries,
+      'getAggregatedQueryTimeSeries',
+    );
+
+    return {
+      data: result,
+      isMockData: this.isUsingMockData() || !analyticsAvailable,
+      analyticsAvailable,
+    };
+  }
+
   private getPeriodFilter(period: string): string {
     switch (period) {
       case '24h':

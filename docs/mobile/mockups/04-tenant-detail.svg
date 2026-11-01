@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844">
+  <rect width="390" height="844" rx="32" fill="#0c111d"/>
+  <rect x="8" y="8" width="374" height="828" rx="26" fill="#ffffff"/>
+  <rect x="8" y="8" width="374" height="52" rx="26" fill="#1E3B78"/>
+  <text x="24" y="42" fill="#fff" font-family="system-ui,sans-serif" font-size="14" font-weight="600">Client · Northwind</text>
+  <text x="330" y="42" fill="#fff" font-family="system-ui,sans-serif" font-size="11" opacity="0.85">9:41</text>
+  <rect x="20" y="72" width="350" height="72" rx="12" fill="#F4F6FB" stroke="#D0D5DD"/>
+  <text x="32" y="96" fill="#1E3B78" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Active · DNS Filter</text>
+  <text x="32" y="116" fill="#667085" font-family="system-ui,sans-serif" font-size="12" font-weight="normal">Last query 2m ago</text>
+  <rect x="20" y="156" width="57" height="28" rx="14" fill="#F4F6FB" stroke="#4B7CBB"/>
+  <text x="30" y="175" fill="#1E3B78" font-family="system-ui,sans-serif" font-size="11">Suspend</text>
+  <rect x="85" y="156" width="85" height="28" rx="14" fill="#F4F6FB" stroke="#4B7CBB"/>
+  <text x="95" y="175" fill="#1E3B78" font-family="system-ui,sans-serif" font-size="11">Impersonate</text>
+  <rect x="178" y="156" width="57" height="28" rx="14" fill="#F4F6FB" stroke="#4B7CBB"/>
+  <text x="188" y="175" fill="#1E3B78" font-family="system-ui,sans-serif" font-size="11">Billing</text>
+  <rect x="20" y="196" width="350" height="56" rx="8" fill="#fff" stroke="#D0D5DD"/>
+  <text x="32" y="218" fill="#1E3B78" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Policies</text>
+  <text x="32" y="238" fill="#667085" font-family="system-ui,sans-serif" font-size="11">Standard + malware block</text>
+  <rect x="20" y="260" width="350" height="56" rx="8" fill="#fff" stroke="#D0D5DD"/>
+  <text x="32" y="282" fill="#1E3B78" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Locations</text>
+  <text x="32" y="302" fill="#667085" font-family="system-ui,sans-serif" font-size="11">HQ, Remote</text>
+  <rect x="20" y="324" width="350" height="56" rx="8" fill="#fff" stroke="#D0D5DD"/>
+  <text x="32" y="346" fill="#1E3B78" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Users</text>
+  <text x="32" y="366" fill="#667085" font-family="system-ui,sans-serif" font-size="11">8 team members</text>
+  <rect x="20" y="388" width="350" height="44" rx="10" fill="#FF6E62"/>
+  <text x="195" y="416" fill="#fff" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" font-weight="600">Block domain now</text>
+  <rect x="8" y="780" width="374" height="56" fill="#fff" stroke="#D0D5DD"/>
+  <circle cx="54.75" cy="798" r="4" fill="#FF6E62"/>
+  <text x="54.75" y="822" fill="#FF6E62" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10">Overview</text>
+  <circle cx="148.25" cy="798" r="4" fill="#667085"/>
+  <text x="148.25" y="822" fill="#667085" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10">Policy</text>
+  <circle cx="241.75" cy="798" r="4" fill="#667085"/>
+  <text x="241.75" y="822" fill="#667085" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10">Devices</text>
+  <circle cx="335.25" cy="798" r="4" fill="#667085"/>
+  <text x="335.25" y="822" fill="#667085" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10">Logs</text>
+  <text x="195" y="768" fill="#667085" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10">Powered by Flux Labs</text>
+</svg>

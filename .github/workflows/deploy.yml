@@ -2,10 +2,13 @@
 # Builds data-plane images to GHCR and rolls the production droplet via SSH.
 # UI and admin-ui deploy on Vercel — not built here.
 #
-# Required secrets: DROPLET_HOST, DROPLET_SSH_KEY
-# Optional: DROPLET_USER (default root), DROPLET_DEPLOY_PATH (default /opt/nebula-dns/deploy/droplet)
+# Repository secrets: see deploy/droplet/README.md §9
 
 name: Deploy
+
+concurrency:
+  group: deploy-production-droplet
+  cancel-in-progress: false
 
 on:
   push:
@@ -17,7 +20,7 @@ permissions:
   packages: write
 
 env:
-  DEPLOY_PATH: /opt/nebula-dns/deploy/droplet
+  DEFAULT_DEPLOY_PATH: /opt/nebula-dns/deploy/droplet
 
 jobs:
   build-api:
@@ -51,37 +54,173 @@ jobs:
 
   deploy-droplet:
     name: Deploy droplet stack
+    if: github.ref == 'refs/heads/main'
     needs: [build-api, build-policy-svc, build-dnsdist, build-unbound]
     runs-on: ubuntu-latest
     environment: production
+    env:
+      DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
+      DROPLET_SSH_KEY: ${{ secrets.DROPLET_SSH_KEY }}
+      DROPLET_USER: ${{ secrets.DROPLET_USER }}
+      DROPLET_DEPLOY_PATH: ${{ secrets.DROPLET_DEPLOY_PATH }}
+      GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
+      GHCR_USER: ${{ github.actor }}
+      IMAGE_TAG: ${{ github.sha }}
     steps:
       - name: Skip when droplet secrets are not configured
-        if: ${{ secrets.DROPLET_HOST == '' || secrets.DROPLET_SSH_KEY == '' }}
+        if: env.DROPLET_HOST == '' || env.DROPLET_SSH_KEY == ''
         run: |
-          echo "::notice title=Droplet deploy skipped::Set repository secrets DROPLET_HOST and DROPLET_SSH_KEY (and optionally DROPLET_USER, DROPLET_DEPLOY_PATH) to enable automatic droplet rollouts."
+          echo "::notice title=Droplet deploy skipped::Set repository secrets DROPLET_HOST and DROPLET_SSH_KEY (and optionally DROPLET_USER, DROPLET_DEPLOY_PATH, GHCR_READ_TOKEN) to enable automatic droplet rollouts."
           echo "## Droplet deployment skipped" >> "$GITHUB_STEP_SUMMARY"
           echo "Configure \`DROPLET_HOST\` and \`DROPLET_SSH_KEY\` repository secrets to enable SSH rollouts." >> "$GITHUB_STEP_SUMMARY"
+          echo "See \`deploy/droplet/README.md\` (section 9) for the full secret list." >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/checkout@v4
+        if: env.DROPLET_HOST != '' && env.DROPLET_SSH_KEY != ''
+
+      - name: Sync droplet config over SSH
+        if: env.DROPLET_HOST != '' && env.DROPLET_SSH_KEY != ''
+        run: |
+          set -euo pipefail
+          DEPLOY_PATH="${DROPLET_DEPLOY_PATH:-${{ env.DEFAULT_DEPLOY_PATH }}}"
+          SSH_USER="${DROPLET_USER:-root}"
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DROPLET_SSH_KEY" > ~/.ssh/droplet_deploy_key
+          chmod 600 ~/.ssh/droplet_deploy_key
+          SSH_BASE=(ssh -i ~/.ssh/droplet_deploy_key -o BatchMode=yes -o StrictHostKeyChecking=accept-new)
+          RSYNC_SSH="ssh -i ~/.ssh/droplet_deploy_key -o BatchMode=yes -o StrictHostKeyChecking=accept-new"
+          REMOTE="${SSH_USER}@${DROPLET_HOST}"
+          DEST="${REMOTE}:${DEPLOY_PATH}/"
+
+          "${SSH_BASE[@]}" "$REMOTE" "mkdir -p '${DEPLOY_PATH}/scripts'"
+
+          CHANGELOG="$(mktemp)"
+          rsync -az --itemize-changes -e "$RSYNC_SSH" \
+            deploy/droplet/docker-compose.yml \
+            deploy/droplet/dnsdist.conf \
+            deploy/droplet/Caddyfile \
+            "$DEST" | tee "$CHANGELOG" || true
+
+          rsync -az --itemize-changes -e "$RSYNC_SSH" \
+            deploy/droplet/scripts/ \
+            "${DEST}scripts/" | tee -a "$CHANGELOG" || true
+
+          printf '%s\n' "$IMAGE_TAG" | "${SSH_BASE[@]}" "$REMOTE" \
+            "mkdir -p /opt/nebula-dns && cat > /opt/nebula-dns/DEPLOYED_COMMIT"
+
+          itemized_changed() {
+            local needle="$1"
+            grep -F "$needle" "$CHANGELOG" | grep -q '^[<>ch]'
+          }
+
+          {
+            echo "DEPLOY_PATH=${DEPLOY_PATH}"
+            echo "CADDYFILE_CHANGED=false"
+            echo "COMPOSE_CHANGED=false"
+          } >> "$GITHUB_ENV"
+          if itemized_changed 'Caddyfile'; then
+            echo "CADDYFILE_CHANGED=true" >> "$GITHUB_ENV"
+          fi
+          if itemized_changed 'docker-compose.yml'; then
+            echo "COMPOSE_CHANGED=true" >> "$GITHUB_ENV"
+          fi
 
       - name: Roll out on droplet
-        if: ${{ secrets.DROPLET_HOST != '' && secrets.DROPLET_SSH_KEY != '' }}
+        if: env.DROPLET_HOST != '' && env.DROPLET_SSH_KEY != ''
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          CADDYFILE_CHANGED: ${{ env.CADDYFILE_CHANGED }}
+          COMPOSE_CHANGED: ${{ env.COMPOSE_CHANGED }}
         with:
-          host: ${{ secrets.DROPLET_HOST }}
-          username: ${{ secrets.DROPLET_USER || 'root' }}
-          key: ${{ secrets.DROPLET_SSH_KEY }}
+          host: ${{ env.DROPLET_HOST }}
+          username: ${{ env.DROPLET_USER != '' && env.DROPLET_USER || 'root' }}
+          key: ${{ env.DROPLET_SSH_KEY }}
+          envs: DEPLOY_PATH,GHCR_READ_TOKEN,GHCR_USER,IMAGE_TAG,CADDYFILE_CHANGED,COMPOSE_CHANGED
           script: |
             set -euo pipefail
-            DEPLOY_PATH="${{ secrets.DROPLET_DEPLOY_PATH || '/opt/nebula-dns/deploy/droplet' }}"
             cd "${DEPLOY_PATH}"
-            export IMAGE_TAG="${{ github.sha }}"
-            docker compose pull
-            docker compose up -d --remove-orphans
+
+            RECREATE=(api policy-svc dnsdist unbound)
+
+            if [ "${CADDYFILE_CHANGED:-false}" = "true" ]; then
+              RECREATE+=(caddy)
+            fi
+            if [ "${COMPOSE_CHANGED:-false}" = "true" ]; then
+              RECREATE+=(caddy clickhouse)
+            fi
+
+            GHCR_LOGIN_OK=0
+            if [ -n "${GHCR_READ_TOKEN:-}" ]; then
+              if printf '%s\n' "$GHCR_READ_TOKEN" | docker login ghcr.io -u "${GHCR_USER}" --password-stdin; then
+                GHCR_LOGIN_OK=1
+                if [ -f docker-compose.override.yml ]; then
+                  backup="docker-compose.override.yml.bak.$(date -u +%Y%m%dT%H%M%SZ)"
+                  cp docker-compose.override.yml "$backup"
+                  rm docker-compose.override.yml
+                  echo "Removed docker-compose.override.yml (backup: ${backup}) so GHCR images are used."
+                fi
+              else
+                echo "::error::docker login to ghcr.io failed — check GHCR_READ_TOKEN (read:packages)."
+                exit 1
+              fi
+            else
+              echo "::warning::GHCR_READ_TOKEN is not set; private image pulls may fail."
+            fi
+
+            export IMAGE_TAG
+
+            ENV_FILE=".env"
+            if [ -f "${ENV_FILE}" ]; then
+              if grep -q '^IMAGE_TAG=' "${ENV_FILE}"; then
+                sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=${IMAGE_TAG}/" "${ENV_FILE}"
+              else
+                echo "IMAGE_TAG=${IMAGE_TAG}" >> "${ENV_FILE}"
+              fi
+            else
+              echo "IMAGE_TAG=${IMAGE_TAG}" > "${ENV_FILE}"
+            fi
+
+            pull_one() {
+              local svc="$1"
+              local log
+              log="$(mktemp)"
+              if docker compose pull "$svc" >"$log" 2>&1; then
+                rm -f "$log"
+                return 0
+              fi
+              if grep -Eqi 'denied|unauthorized|access denied|manifest unknown' "$log"; then
+                echo "::error::docker compose pull ${svc} failed (GHCR access). Set GHCR_READ_TOKEN with read:packages and log in on the droplet, or fix package visibility."
+                cat "$log" | sed 's/\(password\|token\)=[^[:space:]]*/\1=***/g'
+                rm -f "$log"
+                return 1
+              fi
+              cat "$log"
+              rm -f "$log"
+              return 1
+            }
+
+            for svc in api policy-svc dnsdist unbound; do
+              pull_one "$svc"
+            done
+
+            if [ "${GHCR_LOGIN_OK}" -eq 0 ] && [ -f docker-compose.override.yml ]; then
+              echo "::warning::docker-compose.override.yml is still present; local build overrides may prevent GHCR images from being used."
+            fi
+
+            # Deduplicate service names while preserving order
+            mapfile -t UNIQUE_RECREATE < <(printf '%s\n' "${RECREATE[@]}" | awk '!seen[$0]++')
+            echo "Recreating services: ${UNIQUE_RECREATE[*]}"
+            docker compose up -d --remove-orphans "${UNIQUE_RECREATE[@]}"
+            if [ "${CADDYFILE_CHANGED:-false}" = "true" ]; then
+              docker compose restart caddy
+            fi
             docker compose ps
 
       - name: Deployment summary
-        if: ${{ secrets.DROPLET_HOST != '' && secrets.DROPLET_SSH_KEY != '' }}
+        if: env.DROPLET_HOST != '' && env.DROPLET_SSH_KEY != ''
         run: |
           echo "## Droplet deployment" >> "$GITHUB_STEP_SUMMARY"
           echo "**Commit:** \`${{ github.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "**API:** https://api.nebuladns.io/health" >> "$GITHUB_STEP_SUMMARY"
-          echo "**App (Vercel):** https://app.nebuladns.io" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Deploy path:** \`${{ env.DEPLOY_PATH || env.DEFAULT_DEPLOY_PATH }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "**API:** https://api.shield.fluxlabs.net/health" >> "$GITHUB_STEP_SUMMARY"
+          echo "**App (Vercel):** https://shield.fluxlabs.net" >> "$GITHUB_STEP_SUMMARY"

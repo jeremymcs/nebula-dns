@@ -268,7 +268,28 @@ kdig @https://dns1.shield.fluxlabs.net/dns-query google.com +https +tls-host=dns
 
 ## 9. CI deploy
 
-GitHub Actions workflow `.github/workflows/deploy.yml` builds images to GHCR and SSHs to the droplet (`DROPLET_HOST`, `DROPLET_SSH_KEY` secrets) to run `docker compose pull && docker compose up -d` in `/opt/nebula-dns/deploy/droplet`.
+Workflow [`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml) runs on every push to `main` (and on manual dispatch). It builds **api**, **policy-svc**, **dnsdist**, and **unbound** images to GHCR, then — when droplet secrets are configured — syncs deploy config over SSH and rolls the stack.
+
+### Repository secrets (GitHub → Settings → Secrets and variables → Actions)
+
+| Secret | Required | Purpose |
+|--------|----------|---------|
+| `DROPLET_HOST` | **Yes** (for auto-deploy) | Public hostname or IP of the production droplet |
+| `DROPLET_SSH_KEY` | **Yes** (for auto-deploy) | Private key for SSH (PEM). Matching public key must be in `authorized_keys` on the droplet |
+| `DROPLET_USER` | No | SSH user (default **`root`**) |
+| `DROPLET_DEPLOY_PATH` | No | Directory containing `docker-compose.yml` (default **`/opt/nebula-dns/deploy/droplet`**) |
+| `GHCR_READ_TOKEN` | Recommended | GitHub PAT or fine-grained token with **`read:packages`** used during CI to `docker login ghcr.io` on the droplet before `docker compose pull` |
+
+If `DROPLET_HOST` or `DROPLET_SSH_KEY` is missing, the **Deploy droplet stack** job prints a notice and skips rollout (image builds still run). Never commit these values to the repo.
+
+### What CI does on the droplet
+
+1. **Rsync** (never touches `.env` or `certs/`): `docker-compose.yml`, `dnsdist.conf`, `Caddyfile`, and `scripts/`.
+2. Writes **`/opt/nebula-dns/DEPLOYED_COMMIT`** to the deployed Git SHA.
+3. **`docker login ghcr.io`** when `GHCR_READ_TOKEN` is set (username = workflow actor). On success, backs up and removes **`docker-compose.override.yml`** if present so local build overrides do not shadow GHCR images.
+4. **`docker compose pull`** for the four GHCR services, then **`docker compose up -d`** only for services that changed (always the four app images; **caddy** / **clickhouse** when synced config or compose changed).
+
+The droplet does **not** need a git clone; only the compose directory and `.env` (created once on the server) are required.
 
 ---
 

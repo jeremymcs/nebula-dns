@@ -36,6 +36,7 @@ import { Card, Badge, Skeleton, SkeletonTable, EmptyState } from '@/components/u
 import {
   useAdminMspDetail,
   useAdminMspClients,
+  useAdminMspUsageTimeSeries,
   startImpersonation,
   MspDetailResponse,
   MspClient,
@@ -132,6 +133,11 @@ export default function MspDetailPage({ params }: MspDetailPageProps) {
 
   const { data: msp, isLoading, error } = useAdminMspDetail(mspId, { period })
 
+  const { data: usageSeries, isLoading: usageLoading } = useAdminMspUsageTimeSeries(
+    mspId,
+    period
+  )
+
   // Fetch clients with period for query stats
   const { data: clientsData, isLoading: isLoadingClients } = useAdminMspClients(mspId, {
     q: debouncedClientSearch || undefined,
@@ -175,8 +181,8 @@ export default function MspDetailPage({ params }: MspDetailPageProps) {
    * Handle View Client Details - placeholder for future implementation
    */
   const handleViewClientDetails = (clientId: string) => {
-    showToast('info', 'Client detail view coming soon')
     setActiveMenu(null)
+    router.push(`/tenants/${clientId}`)
   }
 
   /**
@@ -209,35 +215,25 @@ export default function MspDetailPage({ params }: MspDetailPageProps) {
     router.push(`/tenants/${clientId}/billing`)
   }
 
-  /**
-   * Generate mock chart data from usage metrics
-   * API returns aggregates, so we create time series with variance
-   */
-  const generateChartData = () => {
-    if (!msp?.usage) return []
-    const days = period === '24h' ? 24 : period === '7d' ? 7 : 30
-    const avgQueries = Math.round(msp.usage.totalQueries / days)
-    const avgBlocked = Math.round(msp.usage.blockedQueries / days)
-
-    return Array.from({ length: days }, (_, i) => {
-      const variance = 0.8 + Math.random() * 0.4 // 80-120% variance
-      const queries = Math.round(avgQueries * variance)
-      const blocked = Math.round(avgBlocked * variance)
-      return {
-        date:
-          period === '24h'
-            ? `${i}:00`
-            : new Date(Date.now() - (days - 1 - i) * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-              }),
-        queries,
-        blocked,
-        allowed: queries - blocked,
-      }
-    })
+  const formatBucketLabel = (bucket: string) => {
+    const d = new Date(bucket)
+    if (Number.isNaN(d.getTime())) return bucket
+    return period === '24h'
+      ? d.toLocaleTimeString('en-US', { hour: 'numeric' })
+      : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
   }
-  const chartData = generateChartData()
+
+  const chartData =
+    usageSeries?.data.map((point) => ({
+      date: formatBucketLabel(point.bucket),
+      queries: point.queries,
+      blocked: point.blocked,
+      allowed: point.allowed,
+    })) ?? []
+
+  const usageUnavailable =
+    !usageLoading &&
+    (!usageSeries?.analyticsAvailable || usageSeries.data.length === 0)
 
   /**
    * Get Badge variant based on client status
@@ -656,7 +652,6 @@ export default function MspDetailPage({ params }: MspDetailPageProps) {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-space-900 dark:text-white">Usage</h2>
-              {/* Period Toggle */}
               <div className="flex gap-1 p-1 bg-space-100 dark:bg-space-800 rounded-lg">
                 {(['24h', '7d', '30d'] as const).map((p) => (
                   <button
@@ -675,6 +670,18 @@ export default function MspDetailPage({ params }: MspDetailPageProps) {
               </div>
             </div>
 
+            {usageSeries?.isMockData && (
+              <p className="text-sm text-warning-700 dark:text-warning-300 rounded-lg bg-warning-50 dark:bg-warning-900/20 px-3 py-2">
+                Analytics unavailable or using mock data — charts may not reflect live ClickHouse query volume.
+              </p>
+            )}
+
+            {usageUnavailable && !usageLoading && (
+              <p className="text-sm text-space-600 dark:text-space-400 rounded-lg border border-space-200 dark:border-space-700 px-3 py-2">
+                No data / analytics unavailable for this period.
+              </p>
+            )}
+
             {/* Query volume chart */}
             <Card variant="glass" padding="md">
               <h3 className="text-sm font-medium text-space-700 dark:text-space-300 mb-4">Query Volume</h3>
@@ -684,8 +691,8 @@ export default function MspDetailPage({ params }: MspDetailPageProps) {
                     <AreaChart data={chartData}>
                       <defs>
                         <linearGradient id="queryGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#9333ea" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="#9333ea" stopOpacity={0} />
+                          <stop offset="5%" stopColor="#4B7CBB" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#4B7CBB" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#374151" opacity={0.3} />
@@ -714,7 +721,7 @@ export default function MspDetailPage({ params }: MspDetailPageProps) {
                       <Area
                         type="monotone"
                         dataKey="queries"
-                        stroke="#9333ea"
+                        stroke="#4B7CBB"
                         strokeWidth={2}
                         fill="url(#queryGradient)"
                       />

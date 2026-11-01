@@ -166,6 +166,12 @@ export class CreateAdminInvitationResponseDto {
     example: true,
   })
   emailSent: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      'Invite accept URL when email was not sent (copy-link fallback for operators)',
+  })
+  inviteUrl?: string;
 }
 
 /**

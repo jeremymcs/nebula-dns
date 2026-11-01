@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"net"
+	"strings"
 	"sync"
 	"time"
 
@@ -100,9 +101,17 @@ func (c *PolicyCache) GetPolicy(ctx context.Context, locationID string) (*models
 	data, err := c.redis.Get(ctx, key).Bytes()
 	if err != nil {
 		if err == redis.Nil {
-			return nil, nil
+			c.requestPolicyCompile(ctx, locationID)
+			data, err = c.redis.Get(ctx, key).Bytes()
+			if err != nil {
+				if err == redis.Nil {
+					return nil, nil
+				}
+				return nil, err
+			}
+		} else {
+			return nil, err
 		}
-		return nil, err
 	}
 
 	var cached models.CompiledPolicy
@@ -210,49 +219,71 @@ func (c *PolicyCache) ValidateToken(ctx context.Context, tokenHash string) (*Tok
 	return info, nil
 }
 
-// CheckThreatDomain checks if a domain is in threat feeds
+// CheckThreatDomain checks if a domain is in threat feeds (Redis sets + parent suffix walk).
 func (c *PolicyCache) CheckThreatDomain(ctx context.Context, domain string) (string, bool) {
-	c.threatMu.RLock()
-	threatType, exists := c.threatDomains[domain]
-	c.threatMu.RUnlock()
-
-	if exists {
-		return threatType, true
+	domain = strings.ToLower(strings.TrimSpace(domain))
+	if domain == "" {
+		return "", false
 	}
 
-	// Check Redis
-	key := "threat:" + domain
-	threatType, err := c.redis.Get(ctx, key).Result()
-	if err == nil {
-		// Cache locally
-		c.threatMu.Lock()
-		c.threatDomains[domain] = threatType
-		c.threatMu.Unlock()
+	c.threatMu.RLock()
+	if threatType, exists := c.threatDomains[domain]; exists {
+		c.threatMu.RUnlock()
 		return threatType, true
+	}
+	c.threatMu.RUnlock()
+
+	suffixes := domainLabelSuffixes(domain)
+	for _, threatCat := range threatCategoryOrder {
+		setKey := threatSetKey(threatCat)
+		for _, suffix := range suffixes {
+			isMember, err := c.redis.SIsMember(ctx, setKey, suffix).Result()
+			if err != nil {
+				c.logger.Debug("Threat set lookup failed", zap.String("key", setKey), zap.Error(err))
+				continue
+			}
+			if isMember {
+				c.threatMu.Lock()
+				c.threatDomains[domain] = threatCat
+				c.threatMu.Unlock()
+				return threatCat, true
+			}
+		}
 	}
 
 	return "", false
 }
 
-// GetDomainCategory returns the category for a domain
+// GetDomainCategory returns the category for a domain (Redis sets + parent suffix walk).
 func (c *PolicyCache) GetDomainCategory(ctx context.Context, domain string) string {
-	c.categoriesMu.RLock()
-	category, exists := c.categories[domain]
-	c.categoriesMu.RUnlock()
-
-	if exists {
-		return category
+	domain = strings.ToLower(strings.TrimSpace(domain))
+	if domain == "" {
+		return ""
 	}
 
-	// Check Redis
-	key := "category:" + domain
-	category, err := c.redis.Get(ctx, key).Result()
-	if err == nil {
-		// Cache locally
-		c.categoriesMu.Lock()
-		c.categories[domain] = category
-		c.categoriesMu.Unlock()
+	c.categoriesMu.RLock()
+	if category, exists := c.categories[domain]; exists {
+		c.categoriesMu.RUnlock()
 		return category
+	}
+	c.categoriesMu.RUnlock()
+
+	suffixes := domainLabelSuffixes(domain)
+	for _, cat := range contentCategoryOrder {
+		setKey := categorySetKey(cat)
+		for _, suffix := range suffixes {
+			isMember, err := c.redis.SIsMember(ctx, setKey, suffix).Result()
+			if err != nil {
+				c.logger.Debug("Category set lookup failed", zap.String("key", setKey), zap.Error(err))
+				continue
+			}
+			if isMember {
+				c.categoriesMu.Lock()
+				c.categories[domain] = cat
+				c.categoriesMu.Unlock()
+				return cat
+			}
+		}
 	}
 
 	return ""
