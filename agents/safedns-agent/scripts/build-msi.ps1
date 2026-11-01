@@ -61,11 +61,35 @@ $parts = $Version.Split(".")
 while ($parts.Count -lt 4) { $parts += "0" }
 $productVersionQuad = ($parts[0..3] -join ".")
 
+$wixRoot = $env:WIX
+if (-not $wixRoot) {
+  $candidates = @(
+    "${env:ProgramFiles(x86)}\WiX Toolset v3.14",
+    "${env:ProgramFiles(x86)}\WiX Toolset v3.11"
+  )
+  foreach ($candidate in $candidates) {
+    if (Test-Path $candidate) {
+      $wixRoot = $candidate
+      break
+    }
+  }
+}
+if (-not $wixRoot) {
+  throw "WiX installation not found (set WIX env var or install WiX Toolset)"
+}
+$wixCAPath = Join-Path $wixRoot "bin\WixCA.dll"
+if (-not (Test-Path $wixCAPath)) {
+  throw "WixCA.dll not found at $wixCAPath"
+}
+# WiX preprocessor prefers forward slashes in paths
+$wixCAPath = $wixCAPath -replace '\\', '/'
+
 $wxiPath = Join-Path $dist "_ProductVersion.wxi"
 @"
 <?xml version="1.0" encoding="UTF-8"?>
 <Include>
   <?define ProductVersion = "$productVersionQuad" ?>
+  <?define WixCAPath = "$wixCAPath" ?>
 </Include>
 "@ | Set-Content -Path $wxiPath -Encoding UTF8
 
@@ -80,7 +104,7 @@ $candleArgs = @(
 if ($LASTEXITCODE -ne 0) { throw "candle failed" }
 
 Write-Host "Linking MSI..."
-$lightArgs = @("-nologo", $obj, "-out", $msi)
+$lightArgs = @("-nologo", "-ext", "WixUtilExtension", $obj, "-out", $msi)
 & light.exe @lightArgs
 if ($LASTEXITCODE -ne 0) { throw "light failed" }
 

@@ -36,6 +36,8 @@
       <ComponentRef Id="AgentExe" />
     </Feature>
 
+    <Binary Id="WixCA" SourceFile="$(var.WixCAPath)" />
+
     <!-- Enroll + install Windows service (deferred, elevated) -->
     <SetProperty Id="EnrollAgent"
                  Before="EnrollAgent"
