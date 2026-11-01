@@ -1,8 +1,18 @@
-import { Injectable, Logger, Inject, Optional } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import * as https from 'https';
 import * as http from 'http';
-import Redis from 'ioredis';
+import { RedisService } from '../redis/redis.service';
+import {
+  THREAT_CATEGORIES,
+  threatSetKey,
+} from './redis-threat-keys';
+import {
+  loadFeedMeta,
+  rebuildThreatCategorySet,
+  storeFeedMeta,
+} from './redis-set-swap';
 
 export interface ThreatFeedSource {
   id: string;
@@ -23,6 +33,7 @@ export interface ThreatFeedSource {
   isEnabled: boolean;
   lastUpdated: Date | null;
   entryCount: number;
+  lastError?: string | null;
   description?: string;
 }
 
@@ -34,70 +45,83 @@ export interface ThreatIndicator {
   severity: 'low' | 'medium' | 'high' | 'critical';
   firstSeen: Date;
   lastSeen: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
-const REDIS_THREAT_PREFIX = 'nebula:threats:';
-const REDIS_THREAT_TTL = 86400; // 24 hours
-
 @Injectable()
-export class ThreatFeedsService {
+export class ThreatFeedsService implements OnModuleInit {
   private readonly logger = new Logger(ThreatFeedsService.name);
   private threatCache: Map<string, ThreatIndicator> = new Map();
-  private redisClient: Redis | null = null;
+  /** Domains contributed by each feed (for atomic per-category Redis rebuild). */
+  private feedDomainIndex: Map<string, string[]> = new Map();
 
-  constructor(@Optional() @Inject('REDIS_CLIENT') redis?: Redis) {
-    this.redisClient = redis || null;
-    if (!this.redisClient) {
-      this.logger.warn(
-        'Redis not available, using in-memory threat cache only',
-      );
+  constructor(
+    private readonly redisService: RedisService,
+    private readonly configService: ConfigService,
+  ) {
+    const phishKey = this.configService.get<string>('PHISHTANK_APP_KEY');
+    const phishFeed = this.defaultFeeds.find((f) => f.id === 'phishtank');
+    if (phishFeed && phishKey?.trim()) {
+      phishFeed.isEnabled = true;
     }
   }
 
-  // Comprehensive threat feed sources - all free and publicly available
+  private get phishTankUrl(): string {
+    const key = this.configService.get<string>('PHISHTANK_APP_KEY');
+    if (key?.trim()) {
+      return `https://data.phishtank.com/data/${encodeURIComponent(key.trim())}/online-valid.csv`;
+    }
+    return 'https://data.phishtank.com/data/online-valid.csv';
+  }
+
+  async onModuleInit(): Promise<void> {
+    setTimeout(() => {
+      this.updateAllFeeds().catch((err) =>
+        this.logger.error(`Initial threat feed sync failed: ${err.message}`),
+      );
+    }, 10_000);
+  }
+
   private readonly defaultFeeds: ThreatFeedSource[] = [
-    // ==================== MALWARE ====================
     {
-      id: 'urlhaus-domains',
-      name: 'URLhaus Malware Domains',
+      id: 'urlhaus-malware-filter',
+      name: 'URLhaus Online (malware-filter)',
       type: 'hostfile',
-      url: 'https://urlhaus.abuse.ch/downloads/hostfile/',
+      url: 'https://malware-filter.gitlab.io/malware-filter/urlhaus-filter-online.txt',
       format: 'hostfile',
       category: 'malware',
       updateFrequency: '1h',
       isEnabled: true,
       lastUpdated: null,
       entryCount: 0,
-      description: 'Abuse.ch URLhaus malware distribution domains',
+      description:
+        'Online malicious URLs/domains (mirrors URLhaus; abuse.ch bulk downloads are 410)',
     },
     {
-      id: 'abuse-ssl-blacklist',
-      name: 'Abuse.ch SSL Blacklist',
+      id: 'disconnect-malware',
+      name: 'Disconnect Simple Malware',
       type: 'domain_list',
-      url: 'https://sslbl.abuse.ch/blacklist/sslblacklist.txt',
+      url: 'https://s3.amazonaws.com/lists.disconnect.me/simple_malware.txt',
       format: 'text',
       category: 'malware',
       updateFrequency: '6h',
       isEnabled: true,
       lastUpdated: null,
       entryCount: 0,
-      description: 'SSL certificates associated with malware',
+      description: 'Disconnect.me simple malware domain list',
     },
-
-    // ==================== PHISHING ====================
     {
-      id: 'phishtank',
-      name: 'PhishTank Verified',
+      id: 'shadowwhisperer-malware',
+      name: 'ShadowWhisperer Malware Domains',
       type: 'domain_list',
-      url: 'https://data.phishtank.com/data/online-valid.csv',
-      format: 'csv',
-      category: 'phishing',
-      updateFrequency: '1h',
+      url: 'https://raw.githubusercontent.com/ShadowWhisperer/BlockLists/master/Lists/Malware',
+      format: 'text',
+      category: 'malware',
+      updateFrequency: '6h',
       isEnabled: true,
       lastUpdated: null,
       entryCount: 0,
-      description: 'Community-verified phishing URLs',
+      description: 'Community malware domain blocklist',
     },
     {
       id: 'openphish',
@@ -112,102 +136,57 @@ export class ThreatFeedsService {
       entryCount: 0,
       description: 'OpenPhish phishing URLs',
     },
-
-    // ==================== C2 / BOTNET ====================
     {
-      id: 'feodotracker',
-      name: 'Feodo Tracker',
+      id: 'phishtank',
+      name: 'PhishTank Verified',
       type: 'domain_list',
-      url: 'https://feodotracker.abuse.ch/downloads/domainblocklist.txt',
+      url: '', // resolved via phishTankUrl
+      format: 'csv',
+      category: 'phishing',
+      updateFrequency: '1h',
+      isEnabled: false,
+      lastUpdated: null,
+      entryCount: 0,
+      description:
+        'PhishTank CSV (enable with optional PHISHTANK_APP_KEY; public endpoint is rate-limited)',
+    },
+    {
+      id: 'phishing-army',
+      name: 'Phishing Army Blocklist',
+      type: 'domain_list',
+      url: 'https://phishing.army/download/phishing_army_blocklist.txt',
       format: 'text',
-      category: 'c2',
-      updateFrequency: '1h',
-      isEnabled: true,
-      lastUpdated: null,
-      entryCount: 0,
-      description: 'Feodo/Emotet/Dridex C2 domains',
-    },
-    {
-      id: 'threatfox-iocs',
-      name: 'ThreatFox IOCs',
-      type: 'domain_list',
-      url: 'https://threatfox.abuse.ch/downloads/hostfile/',
-      format: 'hostfile',
-      category: 'c2',
-      updateFrequency: '1h',
-      isEnabled: true,
-      lastUpdated: null,
-      entryCount: 0,
-      description: 'ThreatFox indicators of compromise',
-    },
-
-    // ==================== RANSOMWARE ====================
-    {
-      id: 'ransomware-live',
-      name: 'Ransomware.live',
-      type: 'domain_list',
-      url: 'https://ransomware.live/api/domains',
-      format: 'json',
-      category: 'ransomware',
+      category: 'phishing',
       updateFrequency: '6h',
       isEnabled: true,
       lastUpdated: null,
       entryCount: 0,
-      description: 'Active ransomware group domains',
+      description: 'Phishing Army domain blocklist',
     },
-
-    // ==================== CRYPTOMINING ====================
     {
-      id: 'cryptomining-hosts',
-      name: 'Cryptomining Blocklist',
-      type: 'hostfile',
-      url: 'https://raw.githubusercontent.com/nickspaargaren/no-google/master/categories/cryptominers.txt',
+      id: 'botvrij-botnet',
+      name: 'Botvrij.eu IOC Domains',
+      type: 'domain_list',
+      url: 'https://www.botvrij.eu/data/ioclist.domain.raw',
       format: 'text',
-      category: 'cryptomining',
-      updateFrequency: '24h',
+      category: 'botnet',
+      updateFrequency: '6h',
       isEnabled: true,
       lastUpdated: null,
       entryCount: 0,
-      description: 'Known cryptomining domains',
-    },
-
-    // ==================== SPAM ====================
-    {
-      id: 'spamhaus-dbl',
-      name: 'Spamhaus DBL',
-      type: 'domain_list',
-      url: 'https://www.spamhaus.org/drop/drop.txt',
-      format: 'text',
-      category: 'spam',
-      updateFrequency: '24h',
-      isEnabled: false, // Requires registration
-      lastUpdated: null,
-      entryCount: 0,
-      description: 'Spamhaus Domain Block List',
-    },
-
-    // ==================== DGA ====================
-    {
-      id: 'dga-feed',
-      name: 'DGA Feed',
-      type: 'domain_list',
-      url: 'https://dgafeed.caad.fkie.fraunhofer.de/today',
-      format: 'text',
-      category: 'dga',
-      updateFrequency: '24h',
-      isEnabled: true,
-      lastUpdated: null,
-      entryCount: 0,
-      description: 'Domain Generation Algorithm detected domains',
+      description: 'Botvrij indicator domains (botnet/C2)',
     },
   ];
 
   async getFeeds(): Promise<ThreatFeedSource[]> {
-    return this.defaultFeeds;
+    return this.defaultFeeds.map((f) =>
+      f.id === 'phishtank' ? { ...f, url: this.phishTankUrl } : { ...f },
+    );
   }
 
   async getFeedsByCategory(category: string): Promise<ThreatFeedSource[]> {
-    return this.defaultFeeds.filter((f) => f.category === category);
+    const feeds = await this.getFeeds();
+    return feeds.filter((f) => f.category === category);
   }
 
   async toggleFeed(
@@ -217,7 +196,10 @@ export class ThreatFeedsService {
     const feed = this.defaultFeeds.find((f) => f.id === feedId);
     if (feed) {
       feed.isEnabled = enabled;
-      return feed;
+      await this.rebuildThreatCategoryInRedis(feed.category);
+      return feed.id === 'phishtank'
+        ? { ...feed, url: this.phishTankUrl }
+        : { ...feed };
     }
     return null;
   }
@@ -234,24 +216,37 @@ export class ThreatFeedsService {
     }
 
     const startTime = Date.now();
+    const url = feed.id === 'phishtank' ? this.phishTankUrl : feed.url;
 
     try {
-      this.logger.log(`Fetching feed: ${feed.name} from ${feed.url}`);
-      const content = await this.fetchFeed(feed.url);
+      this.logger.log(`Fetching feed: ${feed.name} from ${url}`);
+      const content = await this.fetchFeed(url);
       const entries = this.parseFeed(content, feed);
 
-      // Update in-memory cache
       for (const entry of entries) {
         this.threatCache.set(entry.value, entry);
       }
 
-      // Update Redis if available
-      if (this.redisClient) {
-        await this.updateRedisCache(feed.category, entries);
-      }
+      this.feedDomainIndex.set(
+        feed.id,
+        entries.map((e) => e.value),
+      );
+
+      await this.rebuildThreatCategoryInRedis(feed.category);
 
       feed.lastUpdated = new Date();
       feed.entryCount = entries.length;
+      feed.lastError = null;
+
+      const redis = this.redisService.getClient();
+      await storeFeedMeta(redis, {
+        id: feed.id,
+        name: feed.name,
+        entryCount: feed.entryCount,
+        lastUpdated: feed.lastUpdated.toISOString(),
+        lastError: null,
+        isEnabled: feed.isEnabled,
+      });
 
       const duration = Date.now() - startTime;
       this.logger.log(
@@ -259,29 +254,36 @@ export class ThreatFeedsService {
       );
       return { success: true, entryCount: entries.length, duration };
     } catch (error) {
-      this.logger.error(`Failed to update feed ${feed.name}: ${error.message}`);
-      return { success: false, entryCount: 0, error: error.message };
+      const message = error instanceof Error ? error.message : String(error);
+      feed.lastError = message;
+      this.logger.error(`Failed to update feed ${feed.name}: ${message}`);
+
+      const redis = this.redisService.getClient();
+      await storeFeedMeta(redis, {
+        id: feed.id,
+        name: feed.name,
+        entryCount: feed.entryCount,
+        lastUpdated: feed.lastUpdated?.toISOString() ?? null,
+        lastError: message,
+        isEnabled: feed.isEnabled,
+      });
+
+      return { success: false, entryCount: 0, error: message };
     }
   }
 
-  private async updateRedisCache(
-    category: string,
-    entries: ThreatIndicator[],
-  ): Promise<void> {
-    if (!this.redisClient) return;
-
-    const pipeline = this.redisClient.pipeline();
-    const key = `${REDIS_THREAT_PREFIX}${category}`;
-
-    // Add all domains to a Redis set for O(1) lookup
-    for (const entry of entries) {
-      pipeline.sadd(key, entry.value);
+  private async rebuildThreatCategoryInRedis(category: string): Promise<void> {
+    const merged = new Set<string>();
+    for (const feed of this.defaultFeeds) {
+      if (feed.category !== category || !feed.isEnabled) continue;
+      for (const d of this.feedDomainIndex.get(feed.id) ?? []) {
+        merged.add(d);
+      }
     }
-    pipeline.expire(key, REDIS_THREAT_TTL);
-
-    await pipeline.exec();
-    this.logger.debug(
-      `Updated Redis cache for ${category}: ${entries.length} entries`,
+    await rebuildThreatCategorySet(
+      this.redisService.getClient(),
+      category,
+      [...merged],
     );
   }
 
@@ -299,19 +301,14 @@ export class ThreatFeedsService {
     for (const feed of this.defaultFeeds) {
       if (feed.isEnabled) {
         const result = await this.updateFeed(feed.id);
-        if (result.success) {
-          updated++;
-        } else {
-          failed++;
-        }
-        // Small delay between feeds to avoid rate limiting
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        if (result.success) updated++;
+        else failed++;
+        await this.delay(1000);
       }
     }
 
-    // Publish invalidation message
-    if (this.redisClient && updated > 0) {
-      await this.redisClient.publish(
+    if (updated > 0) {
+      await this.redisService.getClient().publish(
         'nebula:invalidate',
         JSON.stringify({ type: 'threats' }),
       );
@@ -325,30 +322,20 @@ export class ThreatFeedsService {
   }
 
   async checkDomain(domain: string): Promise<ThreatIndicator | null> {
-    // Check in-memory cache first
-    const cached = this.threatCache.get(domain);
+    const normalized = domain.toLowerCase().trim();
+    const cached = this.threatCache.get(normalized);
     if (cached) return cached;
 
-    // Check Redis if available
-    if (this.redisClient) {
-      for (const category of [
-        'malware',
-        'phishing',
-        'c2',
-        'ransomware',
-        'cryptomining',
-        'dga',
-      ]) {
-        const isMember = await this.redisClient.sismember(
-          `${REDIS_THREAT_PREFIX}${category}`,
-          domain,
-        );
+    const redis = this.redisService.getClient();
+    for (const suffix of this.domainSuffixes(normalized)) {
+      for (const category of THREAT_CATEGORIES) {
+        const isMember = await redis.sismember(threatSetKey(category), suffix);
         if (isMember) {
           return {
             type: 'domain',
-            value: domain,
+            value: normalized,
             category,
-            source: 'redis-cache',
+            source: 'redis',
             severity: this.getSeverityForCategory(category),
             firstSeen: new Date(),
             lastSeen: new Date(),
@@ -364,14 +351,10 @@ export class ThreatFeedsService {
     domains: string[],
   ): Promise<Map<string, ThreatIndicator>> {
     const results = new Map<string, ThreatIndicator>();
-
     for (const domain of domains) {
       const indicator = await this.checkDomain(domain);
-      if (indicator) {
-        results.set(domain, indicator);
-      }
+      if (indicator) results.set(domain, indicator);
     }
-
     return results;
   }
 
@@ -387,48 +370,47 @@ export class ThreatFeedsService {
       name: string;
       entryCount: number;
       lastUpdated: Date | null;
+      lastError: string | null;
       isEnabled: boolean;
     }>;
   }> {
     const byCategory: Record<string, number> = {};
+    const redis = this.redisService.getClient();
 
-    for (const indicator of this.threatCache.values()) {
-      byCategory[indicator.category] =
-        (byCategory[indicator.category] || 0) + 1;
+    for (const category of THREAT_CATEGORIES) {
+      const count = await redis.scard(threatSetKey(category));
+      if (count > 0) byCategory[category] = count;
     }
 
-    // Also check Redis counts if available
-    if (this.redisClient) {
-      for (const category of [
-        'malware',
-        'phishing',
-        'c2',
-        'ransomware',
-        'cryptomining',
-        'dga',
-        'spam',
-        'botnet',
-      ]) {
-        const count = await this.redisClient.scard(
-          `${REDIS_THREAT_PREFIX}${category}`,
-        );
-        if (count > 0) {
-          byCategory[category] = Math.max(byCategory[category] || 0, count);
-        }
-      }
-    }
+    const feedStats = await Promise.all(
+      this.defaultFeeds.map(async (f) => {
+        const meta = await loadFeedMeta(redis, f.id);
+        return {
+          id: f.id,
+          name: f.name,
+          entryCount: f.entryCount,
+          lastUpdated: f.lastUpdated,
+          lastError: f.lastError ?? meta?.lastError ?? null,
+          isEnabled: f.isEnabled,
+        };
+      }),
+    );
 
     return {
-      totalIndicators: this.threatCache.size,
+      totalIndicators: Object.values(byCategory).reduce((a, b) => a + b, 0),
       byCategory,
-      feedStats: this.defaultFeeds.map((f) => ({
-        id: f.id,
-        name: f.name,
-        entryCount: f.entryCount,
-        lastUpdated: f.lastUpdated,
-        isEnabled: f.isEnabled,
-      })),
+      feedStats,
     };
+  }
+
+  private domainSuffixes(domain: string): string[] {
+    const parts = domain.split('.');
+    if (parts.length < 2) return [domain];
+    const out: string[] = [];
+    for (let i = 0; i < parts.length - 1; i++) {
+      out.push(parts.slice(i).join('.'));
+    }
+    return out;
   }
 
   private getSeverityForCategory(
@@ -457,13 +439,12 @@ export class ThreatFeedsService {
         url,
         {
           headers: {
-            'User-Agent': 'Nebula-DNS-Threat-Loader/1.0',
+            'User-Agent': 'FluxShield-ThreatLoader/1.0',
             Accept: 'text/plain, application/json, text/csv',
           },
-          timeout: 30000,
+          timeout: 120_000,
         },
         (res) => {
-          // Handle redirects
           if (res.statusCode === 301 || res.statusCode === 302) {
             const redirectUrl = res.headers.location;
             if (redirectUrl) {
@@ -496,9 +477,7 @@ export class ThreatFeedsService {
     content: string,
     feed: ThreatFeedSource,
   ): ThreatIndicator[] {
-    const indicators: ThreatIndicator[] = [];
     const now = new Date();
-
     switch (feed.format) {
       case 'text':
         return this.parseTextFeed(content, feed, now);
@@ -526,7 +505,8 @@ export class ThreatFeedsService {
           line.trim() &&
           !line.startsWith('#') &&
           !line.startsWith('//') &&
-          !line.startsWith(';'),
+          !line.startsWith(';') &&
+          !line.startsWith('!'),
       );
 
     for (const line of lines) {
@@ -555,10 +535,12 @@ export class ThreatFeedsService {
     const indicators: ThreatIndicator[] = [];
     const lines = content
       .split('\n')
-      .filter((line) => line.trim() && !line.startsWith('#'));
+      .filter(
+        (line) =>
+          line.trim() && !line.startsWith('#') && !line.startsWith('!'),
+      );
 
     for (const line of lines) {
-      // Hostfile format: "127.0.0.1 domain.com" or "0.0.0.0 domain.com"
       const parts = line.trim().split(/\s+/);
       if (parts.length >= 2) {
         const domain = parts[1].toLowerCase();
@@ -589,10 +571,8 @@ export class ThreatFeedsService {
       .split('\n')
       .filter((line) => line.trim() && !line.startsWith('#'));
 
-    // Skip header row
     for (let i = 1; i < lines.length; i++) {
       const parts = lines[i].split(',');
-      // Try to find URL or domain in the row
       for (const part of parts) {
         const domain = this.extractDomain(part.replace(/"/g, '').trim());
         if (domain && this.isValidDomain(domain)) {
@@ -605,7 +585,7 @@ export class ThreatFeedsService {
             firstSeen: now,
             lastSeen: now,
           });
-          break; // Only take first valid domain per row
+          break;
         }
       }
     }
@@ -632,7 +612,7 @@ export class ThreatFeedsService {
             ? item
             : item.domain || item.url || item.value;
         if (domain) {
-          const extracted = this.extractDomain(domain);
+          const extracted = this.extractDomain(String(domain));
           if (extracted && this.isValidDomain(extracted)) {
             indicators.push({
               type: 'domain',
@@ -647,20 +627,18 @@ export class ThreatFeedsService {
         }
       }
     } catch (e) {
-      this.logger.error(`Failed to parse JSON feed ${feed.id}: ${e.message}`);
+      this.logger.error(
+        `Failed to parse JSON feed ${feed.id}: ${e instanceof Error ? e.message : e}`,
+      );
     }
 
     return indicators;
   }
 
   private extractDomain(input: string): string {
-    // Remove protocol
     let domain = input.replace(/^https?:\/\//, '');
-    // Remove path
     domain = domain.split('/')[0];
-    // Remove port
     domain = domain.split(':')[0];
-    // Remove www prefix
     domain = domain.replace(/^www\./, '');
     return domain.toLowerCase();
   }
@@ -670,11 +648,13 @@ export class ThreatFeedsService {
     if (domain.includes(' ')) return false;
     if (domain.startsWith('.') || domain.endsWith('.')) return false;
     if (domain.startsWith('-') || domain.endsWith('-')) return false;
-    // Must have at least one dot
     if (!domain.includes('.')) return false;
-    // Basic domain pattern check
     const domainPattern =
       /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/;
     return domainPattern.test(domain);
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

@@ -89,12 +89,12 @@ func setupTest(t *testing.T) {
 		testRedisClient.Del(ctx, keys...)
 	}
 
-	keys, err = testRedisClient.Keys(ctx, "threat:*").Result()
+	keys, err = testRedisClient.Keys(ctx, "nebula:threats:*").Result()
 	if err == nil && len(keys) > 0 {
 		testRedisClient.Del(ctx, keys...)
 	}
 
-	keys, err = testRedisClient.Keys(ctx, "category:*").Result()
+	keys, err = testRedisClient.Keys(ctx, "nebula:categories:*").Result()
 	if err == nil && len(keys) > 0 {
 		testRedisClient.Del(ctx, keys...)
 	}
