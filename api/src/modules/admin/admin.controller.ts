@@ -844,6 +844,17 @@ export class AdminController {
     return this.adminHealthService.getQueryVolume(period);
   }
 
+  @Get('system/certificates')
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'TLS certificate expiry for public DoT/DoH hostnames',
+  })
+  async getCertificateExpiry() {
+    return this.adminHealthService.getCertificateExpiry();
+  }
+
   // ===== Billing Endpoints =====
 
   /**

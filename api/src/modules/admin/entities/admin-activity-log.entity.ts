@@ -33,7 +33,11 @@ export type AdminActivityAction =
   | 'admin_mfa_reset'
   | 'admin_deleted'
   | 'admin_password_changed'
-  | 'invite_revoked';
+  | 'invite_revoked'
+  | 'tenant_suspended'
+  | 'tenant_reactivated'
+  | 'tenant_limits_updated'
+  | 'tenant_modules_updated';
 
 /**
  * AdminActivityLog Entity

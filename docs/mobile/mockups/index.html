@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flux Shield Mobile — Low-fi mockups</title>
+  <style>
+    :root {
+      --navy: #1E3B78;
+      --blue: #4B7CBB;
+      --coral: #FF6E62;
+      --bg: #f4f6fb;
+      --text: #101828;
+    }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      background: linear-gradient(135deg, var(--navy), var(--blue));
+      color: #fff;
+      padding: 1.5rem 1.25rem;
+    }
+    header h1 { margin: 0 0 0.25rem; font-size: 1.35rem; }
+    header p { margin: 0; opacity: 0.9; font-size: 0.9rem; }
+    main { padding: 1.25rem; max-width: 1200px; margin: 0 auto; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    a.card {
+      display: block;
+      background: #fff;
+      border-radius: 12px;
+      padding: 0.75rem;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: 0 1px 3px rgba(30, 59, 120, 0.12);
+      border: 1px solid #eaecf0;
+    }
+    a.card:hover { border-color: var(--blue); }
+    a.card img { width: 100%; height: auto; border-radius: 8px; }
+    a.card span { display: block; margin-top: 0.5rem; font-weight: 600; font-size: 0.85rem; }
+    footer { text-align: center; padding: 2rem; font-size: 0.75rem; color: #667085; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Flux Shield Mobile</h1>
+    <p>Low-fi wireframes · navy #1E3B78 · blue #4B7CBB · coral #FF6E62</p>
+  </header>
+  <main>
+    <div class="grid">
+      <a class="card" href="01-login-mfa.svg"><img src="01-login-mfa.svg" alt="" /><span>Login &amp; MFA</span></a>
+      <a class="card" href="02-admin-home.svg"><img src="02-admin-home.svg" alt="" /><span>Platform admin home</span></a>
+      <a class="card" href="03-msp-home.svg"><img src="03-msp-home.svg" alt="" /><span>MSP partner home</span></a>
+      <a class="card" href="04-tenant-detail.svg"><img src="04-tenant-detail.svg" alt="" /><span>Tenant / client detail</span></a>
+      <a class="card" href="05-devices.svg"><img src="05-devices.svg" alt="" /><span>Devices &amp; agents</span></a>
+      <a class="card" href="06-policy-editor.svg"><img src="06-policy-editor.svg" alt="" /><span>Policy editor</span></a>
+      <a class="card" href="07-query-logs.svg"><img src="07-query-logs.svg" alt="" /><span>Query log search</span></a>
+      <a class="card" href="08-alert-inbox.svg"><img src="08-alert-inbox.svg" alt="" /><span>Alert inbox</span></a>
+      <a class="card" href="09-dns-zones.svg"><img src="09-dns-zones.svg" alt="" /><span>DNS zones &amp; records</span></a>
+      <a class="card" href="10-settings.svg"><img src="10-settings.svg" alt="" /><span>Settings &amp; account</span></a>
+    </div>
+  </main>
+  <footer>Powered by Flux Labs · docs/mobile/MOBILE-APP-DESIGN.md</footer>
+</body>
+</html>

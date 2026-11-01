@@ -8,3 +8,4 @@
 export { Header } from './Header'
 export { SessionWarningModal } from './SessionWarningModal'
 export { TenantSearchDropdown } from './TenantSearchDropdown'
+export { MobileNav } from './MobileNav'

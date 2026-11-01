@@ -30,6 +30,12 @@ export interface TenantSettings {
   mspSupportEmail?: string;
   /** When true, Windows agent installs Shield CA into LocalMachine\\Root */
   installShieldCaOnAgent?: boolean;
+  /** Flux Shield product module toggles (admin-managed overrides) */
+  productModules?: {
+    dnsFilter?: boolean;
+    dnsManagement?: boolean;
+    dmarc?: boolean;
+  };
 }
 
 // Tenant represents an Organization (sub-client) in the MSP hierarchy

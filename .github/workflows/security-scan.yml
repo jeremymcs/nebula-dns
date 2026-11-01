@@ -111,7 +111,8 @@ jobs:
     if: |
       github.event_name != 'pull_request' || (
         needs.changes.outputs.ci == 'true' ||
-        needs.changes.outputs.policy-svc == 'true'
+        needs.changes.outputs.policy-svc == 'true' ||
+        needs.changes.outputs.api == 'true'
       )
 
     steps:
