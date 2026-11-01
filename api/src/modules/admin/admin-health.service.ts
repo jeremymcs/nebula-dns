@@ -419,7 +419,7 @@ export class AdminHealthService {
    */
   async getErrorRates(): Promise<ErrorRatesDto> {
     if (!this.clickhouseService.isHealthy()) {
-      return this.getMockErrorRates();
+      return this.getEmptyErrorRates(true);
     }
 
     try {
@@ -428,65 +428,92 @@ export class AdminHealthService {
         this.queryErrorWindow('24 HOUR'),
       ]);
 
+      const isMockData = lastHour === null || last24Hours === null;
+
       return {
-        lastHour,
-        last24Hours,
-        isMockData: false,
+        lastHour: lastHour ?? { errorCount: 0, totalQueries: 0, errorRate: 0 },
+        last24Hours:
+          last24Hours ?? { errorCount: 0, totalQueries: 0, errorRate: 0 },
+        isMockData,
       };
     } catch (error) {
       this.logger.warn(
         `Error rates query failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
-      return this.getMockErrorRates();
+      return this.getEmptyErrorRates(true);
     }
   }
 
   /**
    * Query error counts for a specific time window
    */
-  private async queryErrorWindow(interval: string): Promise<ErrorWindowDto> {
-    // Note: This requires direct access to ClickHouse client
-    // For now, use the connection status as a proxy
-    const status = this.clickhouseService.getConnectionStatus();
+  private async queryErrorWindow(
+    interval: string,
+  ): Promise<ErrorWindowDto | null> {
+    const row = await this.clickhouseService.queryJsonRows<{
+      total: string;
+      errors: string;
+    }>(
+      `
+        SELECT
+          count() AS total,
+          countIf(
+            reason LIKE '%error%'
+            OR reason = 'policy_error'
+            OR action = 'block' AND reason != ''
+          ) AS errors
+        FROM query_logs
+        WHERE timestamp >= now() - INTERVAL ${interval}
+      `,
+    );
 
-    if (!status.connected) {
-      return { errorCount: 0, totalQueries: 0, errorRate: 0 };
+    if (row === null) {
+      return null;
     }
 
-    // Since we don't have direct query access in the service interface,
-    // we'll return mock data for now and mark it accordingly
-    // In production, this would query:
-    // SELECT count() as total, countIf(reason LIKE '%error%' OR reason = 'policy_error') as errors
-    // FROM nebula_dns.query_logs WHERE timestamp >= now() - INTERVAL {interval}
+    const totalQueries = Number(row[0]?.total ?? 0);
+    const errorCount = Number(row[0]?.errors ?? 0);
+    const errorRate =
+      totalQueries > 0 ? errorCount / totalQueries : 0;
 
-    return { errorCount: 0, totalQueries: 0, errorRate: 0 };
+    return { errorCount, totalQueries, errorRate };
   }
 
   /**
    * Get aggregate query volume across all tenants
    */
   async getQueryVolume(period: '1h' | '24h' = '24h'): Promise<QueryVolumeDto> {
+    const interval = period === '1h' ? '1 HOUR' : '24 HOUR';
+
     if (!this.clickhouseService.isHealthy()) {
-      return this.getMockQueryVolume(period);
+      return this.getEmptyQueryVolume(period, true);
     }
 
     try {
-      // Since ClickHouseService doesn't have a global query method,
-      // we return connection-based status for now
-      const status = this.clickhouseService.getConnectionStatus();
+      const rows = await this.clickhouseService.queryJsonRows<{
+        total: string;
+        blocked: string;
+        allowed: string;
+      }>(
+        `
+          SELECT
+            count() AS total,
+            countIf(action = 'block') AS blocked,
+            countIf(action = 'allow') AS allowed
+          FROM query_logs
+          WHERE timestamp >= now() - INTERVAL ${interval}
+        `,
+      );
 
-      if (!status.connected) {
-        return this.getMockQueryVolume(period);
+      if (rows === null) {
+        return this.getEmptyQueryVolume(period, true);
       }
 
-      // In production, this would query:
-      // SELECT count() as total, countIf(action = 'block') as blocked, countIf(action = 'allow') as allowed
-      // FROM nebula_dns.query_logs WHERE timestamp >= now() - INTERVAL {period}
-
+      const row = rows[0] ?? {};
       return {
-        totalQueries: 0,
-        blockedQueries: 0,
-        allowedQueries: 0,
+        totalQueries: Number(row.total ?? 0),
+        blockedQueries: Number(row.blocked ?? 0),
+        allowedQueries: Number(row.allowed ?? 0),
         period,
         isMockData: false,
       };
@@ -494,7 +521,7 @@ export class AdminHealthService {
       this.logger.warn(
         `Query volume failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
-      return this.getMockQueryVolume(period);
+      return this.getEmptyQueryVolume(period, true);
     }
   }
 
@@ -503,28 +530,50 @@ export class AdminHealthService {
    */
   async getRecentErrors(limit: number = 20): Promise<RecentErrorDto[]> {
     if (!this.clickhouseService.isHealthy()) {
-      return this.getMockRecentErrors(limit);
+      return [];
     }
 
     try {
-      const status = this.clickhouseService.getConnectionStatus();
+      const rows = await this.clickhouseService.queryJsonRows<{
+        timestamp: string;
+        domain: string;
+        reason: string;
+        client_ip: string;
+        tenant_id: string;
+      }>(
+        `
+          SELECT
+            timestamp,
+            domain,
+            reason,
+            client_ip,
+            tenant_id
+          FROM query_logs
+          WHERE
+            reason LIKE '%error%'
+            OR reason = 'policy_error'
+          ORDER BY timestamp DESC
+          LIMIT {limit:UInt32}
+        `,
+        { limit },
+      );
 
-      if (!status.connected) {
-        return this.getMockRecentErrors(limit);
+      if (rows === null) {
+        return [];
       }
 
-      // In production, this would query:
-      // SELECT timestamp, domain, reason, client_ip, tenant_id
-      // FROM nebula_dns.query_logs
-      // WHERE reason LIKE '%error%' OR reason = 'policy_error'
-      // ORDER BY timestamp DESC LIMIT {limit}
-
-      return [];
+      return rows.map((row) => ({
+        timestamp: row.timestamp,
+        domain: row.domain,
+        reason: row.reason,
+        clientIp: row.client_ip,
+        tenantId: row.tenant_id,
+      }));
     } catch (error) {
       this.logger.warn(
         `Recent errors query failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
-      return this.getMockRecentErrors(limit);
+      return [];
     }
   }
 
@@ -585,64 +634,31 @@ export class AdminHealthService {
   }
 
   /**
-   * Mock error rates when ClickHouse is unavailable
+   * Zeroed error rates when ClickHouse is unavailable (UI shows no-data note via isMockData)
    */
-  private getMockErrorRates(): ErrorRatesDto {
+  private getEmptyErrorRates(isMockData: boolean): ErrorRatesDto {
+    const emptyWindow = { errorCount: 0, totalQueries: 0, errorRate: 0 };
     return {
-      lastHour: {
-        errorCount: 12,
-        totalQueries: 125000,
-        errorRate: 0.01,
-      },
-      last24Hours: {
-        errorCount: 234,
-        totalQueries: 2547893,
-        errorRate: 0.01,
-      },
-      isMockData: true,
+      lastHour: emptyWindow,
+      last24Hours: emptyWindow,
+      isMockData,
     };
   }
 
   /**
-   * Mock query volume when ClickHouse is unavailable
+   * Zeroed query volume when ClickHouse is unavailable
    */
-  private getMockQueryVolume(period: '1h' | '24h'): QueryVolumeDto {
-    if (period === '1h') {
-      return {
-        totalQueries: 125000,
-        blockedQueries: 6250,
-        allowedQueries: 118750,
-        period,
-        isMockData: true,
-      };
-    }
+  private getEmptyQueryVolume(
+    period: '1h' | '24h',
+    isMockData: boolean,
+  ): QueryVolumeDto {
     return {
-      totalQueries: 2547893,
-      blockedQueries: 127394,
-      allowedQueries: 2420499,
+      totalQueries: 0,
+      blockedQueries: 0,
+      allowedQueries: 0,
       period,
-      isMockData: true,
+      isMockData,
     };
-  }
-
-  /**
-   * Mock recent errors when ClickHouse is unavailable
-   */
-  private getMockRecentErrors(limit: number): RecentErrorDto[] {
-    const errors: RecentErrorDto[] = [];
-    const now = Date.now();
-
-    for (let i = 0; i < Math.min(limit, 5); i++) {
-      errors.push({
-        timestamp: new Date(now - i * 60000).toISOString(),
-        domain: `error-example-${i}.com`,
-        reason: 'policy_error',
-        clientIp: `192.168.1.${100 + i}`,
-        tenantId: '00000000-0000-0000-0000-000000000000',
-      });
-    }
-
-    return errors;
   }
 
   /**

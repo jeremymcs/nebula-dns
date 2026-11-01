@@ -136,6 +136,67 @@ export class ClickHouseService implements OnModuleInit {
     return !this.isConnected;
   }
 
+  /**
+   * Run a read-only analytics query and return the first numeric column of the first row.
+   * Returns null when ClickHouse is unavailable or the query fails.
+   */
+  async queryScalarNumber(
+    query: string,
+    query_params?: Record<string, unknown>,
+  ): Promise<number | null> {
+    if (!this.isConnected) {
+      return null;
+    }
+
+    try {
+      const result = await this.client.query({
+        query,
+        query_params,
+        format: 'JSONEachRow',
+      });
+      const data = (await result.json()) as Record<string, unknown>[];
+      if (!data.length) {
+        return 0;
+      }
+      const firstValue = Object.values(data[0])[0];
+      return Number(firstValue) || 0;
+    } catch (error) {
+      this.consecutiveFailures++;
+      this.logger.warn(
+        `ClickHouse scalar query failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      return null;
+    }
+  }
+
+  /**
+   * Run a read-only analytics query and return all rows as objects.
+   * Returns null when ClickHouse is unavailable or the query fails.
+   */
+  async queryJsonRows<T extends Record<string, unknown>>(
+    query: string,
+    query_params?: Record<string, unknown>,
+  ): Promise<T[] | null> {
+    if (!this.isConnected) {
+      return null;
+    }
+
+    try {
+      const result = await this.client.query({
+        query,
+        query_params,
+        format: 'JSONEachRow',
+      });
+      return (await result.json()) as T[];
+    } catch (error) {
+      this.consecutiveFailures++;
+      this.logger.warn(
+        `ClickHouse row query failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      return null;
+    }
+  }
+
   private scheduleReconnect(): void {
     setTimeout(async () => {
       if (!this.isConnected) {

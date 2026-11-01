@@ -401,6 +401,44 @@ export function useAdminSystemHealth(params?: UseAdminSystemHealthParams) {
   )
 }
 
+export interface DashboardStatNumber {
+  value: number
+  available: boolean
+}
+
+export interface DashboardStatNullableNumber {
+  value: number | null
+  available: boolean
+}
+
+export interface AdminDashboardStatsResponse {
+  mspCount: DashboardStatNumber
+  mspPendingCount: DashboardStatNumber
+  mspByStatus: { active: number; suspended: number; cancelled: number }
+  tenantCount: {
+    total: DashboardStatNumber
+    byTier: { home: number; enterprise: number; msp: number }
+    mspClients: DashboardStatNumber
+  }
+  activeTenants7d: DashboardStatNumber
+  monthlyRevenueCents: DashboardStatNullableNumber
+  prevMonthRevenueCents: DashboardStatNullableNumber
+  billingEnabled: boolean
+  demoTenantCount: DashboardStatNumber
+  timestamp: string
+}
+
+/**
+ * Fetch admin home dashboard aggregate stats
+ */
+export function useAdminDashboardStats() {
+  return useSWR<AdminDashboardStatsResponse>(
+    '/admin/dashboard/stats',
+    adminFetcher,
+    defaultConfig,
+  )
+}
+
 /**
  * Fetch recent errors with auto-refresh support
  * @param limit - Maximum number of errors to fetch (1-100)

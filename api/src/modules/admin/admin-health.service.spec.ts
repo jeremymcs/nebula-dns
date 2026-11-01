@@ -58,6 +58,10 @@ describe('AdminHealthService', () => {
       connected: true,
       consecutiveFailures: 0,
     }),
+    queryJsonRows: jest.fn().mockResolvedValue([
+      { total: '0', errors: '0', blocked: '0', allowed: '0' },
+    ]),
+    queryScalarNumber: jest.fn().mockResolvedValue(0),
   };
 
   const mockRedisClient = {
@@ -378,14 +382,14 @@ describe('AdminHealthService', () => {
   });
 
   describe('getErrorRates', () => {
-    it('should return mock data when ClickHouse disconnected', async () => {
+    it('should return zeroed data when ClickHouse disconnected', async () => {
       mockClickhouseService.isHealthy.mockReturnValue(false);
 
       const result = await service.getErrorRates();
 
       expect(result.isMockData).toBe(true);
-      expect(result.lastHour.errorCount).toBeGreaterThanOrEqual(0);
-      expect(result.last24Hours.errorCount).toBeGreaterThanOrEqual(0);
+      expect(result.lastHour.errorCount).toBe(0);
+      expect(result.last24Hours.totalQueries).toBe(0);
     });
 
     it('should have valid error rate computation', async () => {
@@ -400,49 +404,49 @@ describe('AdminHealthService', () => {
 
     it('should return isMockData false when ClickHouse connected', async () => {
       mockClickhouseService.isHealthy.mockReturnValue(true);
-      mockClickhouseService.getConnectionStatus.mockReturnValue({
-        connected: true,
-        consecutiveFailures: 0,
-      });
+      mockClickhouseService.queryJsonRows.mockResolvedValue([
+        { total: '100', errors: '2' },
+      ]);
 
       const result = await service.getErrorRates();
 
       expect(result.isMockData).toBe(false);
+      expect(result.lastHour.errorRate).toBeCloseTo(0.02);
     });
   });
 
   describe('getQueryVolume', () => {
-    it('should return isMockData true when using fallback', async () => {
+    it('should return zero volume when using fallback', async () => {
       mockClickhouseService.isHealthy.mockReturnValue(false);
 
       const result = await service.getQueryVolume('24h');
 
       expect(result.isMockData).toBe(true);
+      expect(result.totalQueries).toBe(0);
       expect(result.period).toBe('24h');
     });
 
-    it('should return mock data for 1h period', async () => {
+    it('should return zero volume for 1h period when disconnected', async () => {
       mockClickhouseService.isHealthy.mockReturnValue(false);
 
       const result = await service.getQueryVolume('1h');
 
       expect(result.isMockData).toBe(true);
-      expect(result.period).toBe('1h');
-      expect(result.totalQueries).toBeGreaterThan(0);
+      expect(result.totalQueries).toBe(0);
     });
 
     it('should aggregate across all tenants (no tenant filter)', async () => {
       mockClickhouseService.isHealthy.mockReturnValue(true);
-      mockClickhouseService.getConnectionStatus.mockReturnValue({
-        connected: true,
-        consecutiveFailures: 0,
-      });
+      mockClickhouseService.queryJsonRows.mockResolvedValue([
+        { total: '42', blocked: '1', allowed: '41' },
+      ]);
 
       const result = await service.getQueryVolume('24h');
 
       // Result should not be filtered by tenant
       expect(result.period).toBe('24h');
-      expect(result.totalQueries).toBeDefined();
+      expect(result.totalQueries).toBe(42);
+      expect(result.isMockData).toBe(false);
     });
 
     it('should return valid query breakdown', async () => {

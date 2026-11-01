@@ -13,6 +13,7 @@ import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { AdminHealthService } from './admin-health.service';
 import { AdminBillingService } from './admin-billing.service';
+import { AdminDashboardService } from './admin-dashboard.service';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { AdminRolesGuard } from './guards/admin-roles.guard';
 import { ConfigService } from '@nestjs/config';
@@ -99,6 +100,10 @@ describe('AdminController', () => {
     extendGracePeriod: jest.fn(),
   };
 
+  const mockAdminDashboardService = {
+    getStats: jest.fn(),
+  };
+
   // Mock AdminAuthGuard to always pass
   const mockAdminAuthGuard = {
     canActivate: jest.fn().mockReturnValue(true),
@@ -119,6 +124,10 @@ describe('AdminController', () => {
         {
           provide: AdminBillingService,
           useValue: mockAdminBillingService,
+        },
+        {
+          provide: AdminDashboardService,
+          useValue: mockAdminDashboardService,
         },
         {
           provide: ConfigService,

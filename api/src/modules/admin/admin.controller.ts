@@ -35,6 +35,7 @@ import { Request, Response } from 'express';
 import { AdminService, AdminLoginContext } from './admin.service';
 import { AdminHealthService } from './admin-health.service';
 import { AdminBillingService } from './admin-billing.service';
+import { AdminDashboardService } from './admin-dashboard.service';
 import { AdminLoginDto } from './dto/admin-login.dto';
 import {
   AdminLoginResponseDto,
@@ -69,6 +70,7 @@ import {
   QueryVolumeDto,
   RecentErrorDto,
 } from './dto/system-health.dto';
+import { AdminDashboardStatsResponseDto } from './dto/admin-dashboard.dto';
 import {
   SubscriptionStatusResponseDto,
   InvoiceListQueryDto,
@@ -108,6 +110,7 @@ export class AdminController {
     private readonly adminService: AdminService,
     private readonly adminHealthService: AdminHealthService,
     private readonly adminBillingService: AdminBillingService,
+    private readonly adminDashboardService: AdminDashboardService,
   ) {}
 
   /**
@@ -178,6 +181,31 @@ export class AdminController {
     @Query() query: TenantSearchQueryDto,
   ): Promise<TenantSearchResponseDto> {
     return this.adminService.searchTenants(query);
+  }
+
+  /**
+   * Dashboard aggregate stats for the admin home page
+   */
+  @Get('dashboard/stats')
+  @UseGuards(AdminAuthGuard, AdminRolesGuard)
+  @AdminRoles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.VIEWER)
+  @ApiBearerAuth('admin-jwt')
+  @ApiOperation({
+    summary: 'Get admin dashboard stats',
+    description:
+      'Returns MSP/tenant counts, active tenants (7d), revenue, and demo tenant metrics for the admin home dashboard.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Dashboard stats',
+    type: AdminDashboardStatsResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Admin authentication required',
+  })
+  async getDashboardStats(): Promise<AdminDashboardStatsResponseDto> {
+    return this.adminDashboardService.getStats();
   }
 
   /**
@@ -425,7 +453,11 @@ export class AdminController {
   })
   async logout(@Req() req: Request): Promise<AdminMessageResponseDto> {
     const user = req.user as AdminUser;
-    await this.adminService.logout(user.adminId, user.jti);
+    await this.adminService.logout(
+      user.adminId,
+      user.jti,
+      this.getClientIp(req, req.ip || '0.0.0.0'),
+    );
     return { message: 'Logged out successfully' };
   }
 
