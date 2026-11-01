@@ -57,7 +57,6 @@ export function resolveTenantUploadFile(
   ) {
     throw new BadRequestException('Invalid upload path');
   }
-  // lgtm[js/path-injection]: tenantId must be UUID; filename is basename without traversal.
   return filePath;
 }
 
@@ -123,20 +122,18 @@ export function assertLogoUploadBytes(buffer: Buffer, mimetype: string): Buffer 
 }
 
 export async function writeValidatedLogoFile(
-  absolutePath: string,
+  storageKey: string,
   uploadRoot: string,
   buffer: Buffer,
   mimetype: string,
 ): Promise<void> {
-  const rootResolved = path.resolve(uploadRoot);
-  const resolved = path.resolve(absolutePath);
-  if (
-    resolved !== rootResolved &&
-    !resolved.startsWith(`${rootResolved}${path.sep}`)
-  ) {
-    throw new BadRequestException('Invalid upload path');
+  const slash = storageKey.indexOf('/');
+  if (slash <= 0) {
+    throw new BadRequestException('Invalid storage key');
   }
+  const tenantId = storageKey.slice(0, slash);
+  const filename = storageKey.slice(slash + 1);
+  const resolved = resolveTenantUploadFile(uploadRoot, tenantId, filename);
   const validated = assertLogoUploadBytes(buffer, mimetype);
-  // lgtm[js/path-injection]: resolved path is constrained under uploadRoot; bytes match declared image type.
   await fs.writeFile(resolved, validated);
 }

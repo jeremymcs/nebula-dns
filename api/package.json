@@ -132,9 +132,6 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
-    "transformIgnorePatterns": [
-      "/node_modules/(?!sanitize-html|htmlparser2|domhandler|domelementtype|dom-serializer|entities|is-plain-object|parse-srcset|postcss|deepmerge|escape-string-regexp)/"
-    ],
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/$1"
     }

@@ -1,8 +1,8 @@
 import type { IOptions } from 'sanitize-html';
 
-// CommonJS interop for Jest (sanitize-html ships ESM entrypoints).
-// eslint-disable-next-line @typescript-eslint/no-var-requires -- dynamic require for Jest CJS interop
-const sanitizeHtml = require('sanitize-html') as (
+// Load via CJS bridge so Jest/API E2E do not transform sanitize-html ESM.
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const sanitizeHtml = require('./sanitize-html.cjs') as (
   dirty: string,
   options?: IOptions,
 ) => string;

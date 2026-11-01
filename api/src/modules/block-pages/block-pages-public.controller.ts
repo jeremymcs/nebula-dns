@@ -21,7 +21,6 @@ import { BlockPagesService } from './block-pages.service';
 import { CreateAccessRequestDto } from './dto/block-page.dto';
 import {
   assertSafeUploadFilename,
-  resolveTenantUploadFile,
 } from './block-page-upload.util';
 
 function resolveClientIp(req: Request): string {
@@ -62,13 +61,12 @@ export class BlockPagesPublicController {
     @Param('filename') filename: string,
     @Res() res: Response,
   ) {
-    const filePath = resolveTenantUploadFile(
-      this.uploadRoot,
-      tenantId,
-      filename,
-    );
     try {
-      // lgtm[js/path-injection]: filePath from resolveTenantUploadFile (UUID tenant + safe basename).
+      const filePath =
+        await this.blockPagesService.resolvePublicLogoAbsolutePath(
+          tenantId,
+          filename,
+        );
       const body = await fs.readFile(filePath);
       const safeName = assertSafeUploadFilename(filename);
       res.type(contentTypeForLogoFilename(safeName));

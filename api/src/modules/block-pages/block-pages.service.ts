@@ -36,6 +36,9 @@ import {
 import {
   resolveTenantUploadKey,
   writeValidatedLogoFile,
+  resolveTenantUploadFile,
+  assertTenantUploadId,
+  assertSafeUploadFilename,
 } from './block-page-upload.util';
 import { renderSafeMarkdown } from './block-page-markdown.util';
 import { TenantsService } from '../tenants/tenants.service';
@@ -140,6 +143,26 @@ export class BlockPagesService {
     }
 
     return blockPage;
+  }
+
+  async resolvePublicLogoAbsolutePath(
+    tenantId: string,
+    filename: string,
+  ): Promise<string> {
+    assertTenantUploadId(tenantId);
+    const safeName = assertSafeUploadFilename(filename);
+    const expectedKey = `${tenantId}/${safeName}`;
+    const page = await this.blockPageRepository.findOne({
+      where: { tenantId, logoStorageKey: expectedKey },
+    });
+    if (!page?.logoStorageKey) {
+      throw new NotFoundException('Logo not found');
+    }
+    return resolveTenantUploadFile(
+      this.uploadRoot,
+      tenantId,
+      path.basename(page.logoStorageKey),
+    );
   }
 
   async findDefault(tenantId: string): Promise<BlockPage | null> {
@@ -591,7 +614,7 @@ export class BlockPagesService {
     );
     await fs.mkdir(path.dirname(absolutePath), { recursive: true });
     await writeValidatedLogoFile(
-      absolutePath,
+      storageKey,
       this.uploadRoot,
       file.buffer,
       file.mimetype,
