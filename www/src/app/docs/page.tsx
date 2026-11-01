@@ -2,6 +2,9 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import Link from 'next/link'
+import { MarketingPageShell, MarketingCard } from '@/components/marketing/MarketingPageShell'
+import { MarketingPageHero, MarketingSerifAccent } from '@/components/marketing/MarketingPageHero'
+import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
 
 export default function DocsPage() {
   const mainCategories = [
@@ -109,75 +112,58 @@ export default function DocsPage() {
   ]
 
   return (
-    <div className="bg-space-950 min-h-screen">
-      {/* Hero */}
-      <div className="relative overflow-hidden py-24">
-        {/* Nebula orbs */}
-        <div className="absolute top-0 left-1/4 w-[450px] h-[450px] bg-primary-600/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-[350px] h-[350px] bg-accent-600/8 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-4">
-              DOCUMENTATION
-            </p>
-            <h1 className="text-5xl sm:text-6xl font-bold mb-6">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
-                Everything You Need
-              </span>
-              <br />
-              <span className="text-white">to Get Started</span>
-            </h1>
-            <p className="text-xl text-space-400 max-w-3xl mx-auto">
-              Guides, API references, and tutorials to help you configure policies,
-              integrate with your infrastructure, and get the most out of Flux Shield.
-            </p>
-          </div>
-
-          {/* Search Bar */}
-          <div className="max-w-2xl mx-auto">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-space-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                </svg>
-              </div>
-              <input
-                type="text"
-                placeholder="Search documentation..."
-                className="w-full pl-12 pr-4 py-4 rounded-xl bg-space-900 border border-space-700 text-white placeholder-space-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-              />
-              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                <kbd className="hidden sm:inline-flex items-center px-2 py-1 rounded text-xs text-space-600 bg-space-800 border border-space-700 font-mono">
-                  ⌘K
-                </kbd>
-              </div>
+    <MarketingPageShell>
+      <MarketingPageHero
+        eyebrow="Documentation"
+        title={
+          <>
+            <MarketingSerifAccent>Everything</MarketingSerifAccent> You Need to Get Started
+          </>
+        }
+        lede="Guides, API references, and tutorials to help you configure policies, integrate with your infrastructure, and get the most out of Flux Shield."
+      >
+        <div className="mx-auto mt-2 w-full max-w-2xl text-left sm:text-center">
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+              <svg className="h-5 w-5 text-[var(--fs-mut)]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Search documentation..."
+              className="fs-input pl-12 pr-16"
+            />
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+              <kbd className="hidden rounded border border-[var(--fs-line)] bg-[var(--fs-surface)] px-2 py-1 font-mono text-xs text-[var(--fs-mut)] sm:inline-flex">
+                ⌘K
+              </kbd>
             </div>
           </div>
         </div>
-      </div>
+      </MarketingPageHero>
 
       {/* Main Category Cards */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="section-container py-16">
         <div className="grid lg:grid-cols-3 gap-6">
           {mainCategories.map((category, index) => (
             <Link
               key={index}
               href={category.href}
-              className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8 hover:border-primary-700/50 transition-all group flex flex-col"
+              className="fs-card rounded-[14px] p-8 hover:border-primary-700/50 transition-all group flex flex-col"
             >
               <div className={`h-16 w-16 rounded-xl bg-gradient-to-br ${category.accentColor} flex items-center justify-center text-white mb-6 group-hover:scale-105 transition-transform`}>
                 {category.icon}
               </div>
-              <h3 className="text-2xl font-bold text-white mb-3">
+              <h3 className="text-2xl font-bold text-ink mb-3">
                 {category.title}
               </h3>
-              <p className="text-space-400 mb-6 leading-relaxed flex-1">
+              <p className="text-[var(--fs-txt)] mb-6 leading-relaxed flex-1">
                 {category.description}
               </p>
               <ul className="space-y-2 mb-6">
                 {category.topics.map((topic, topicIndex) => (
-                  <li key={topicIndex} className="flex items-center text-sm text-space-400">
+                  <li key={topicIndex} className="flex items-center text-sm text-[var(--fs-txt)]">
                     <span className={`h-1.5 w-1.5 ${category.dotColor} rounded-full mr-3 flex-shrink-0`}></span>
                     {topic}
                   </li>
@@ -196,13 +182,13 @@ export default function DocsPage() {
 
       {/* Quick Links Grid */}
       <div className="border-t border-space-800/50 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="section-container">
           <div className="text-center mb-10">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">QUICK ACCESS</p>
+            <p className="fs-eyebrow mb-3">QUICK ACCESS</p>
             <h2 className="text-3xl font-bold text-white mb-3">
               Popular Topics
             </h2>
-            <p className="text-space-400">
+            <p className="text-[var(--fs-txt)]">
               Jump directly to the most commonly accessed documentation.
             </p>
           </div>
@@ -212,15 +198,15 @@ export default function DocsPage() {
               <Link
                 key={index}
                 href={link.href}
-                className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-xl px-4 py-4 hover:border-primary-700/50 transition-all group flex items-center justify-between"
+                className="fs-card rounded-[14px] px-4 py-4 hover:border-primary-700/50 transition-all group flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-lg" aria-hidden="true">{link.icon}</span>
-                  <span className="text-space-300 text-sm font-medium group-hover:text-white transition-colors">
+                  <span className="text-[var(--fs-txt)] text-sm font-medium group-hover:text-white transition-colors">
                     {link.title}
                   </span>
                 </div>
-                <svg className="h-4 w-4 text-space-600 group-hover:text-primary-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <svg className="h-4 w-4 text-[var(--fs-mut)] group-hover:text-primary-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
               </Link>
@@ -230,17 +216,17 @@ export default function DocsPage() {
       </div>
 
       {/* What's New + Popular Topics */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="section-container py-16">
         <div className="grid lg:grid-cols-2 gap-6">
           {/* What's New */}
-          <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8">
+          <div className="fs-card rounded-[14px] p-8">
             <div className="flex items-center gap-4 mb-8">
               <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-600 to-primary-500 flex items-center justify-center text-white">
                 <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-white">What&apos;s New</h3>
+              <h3 className="text-2xl font-bold text-ink">What&apos;s New</h3>
             </div>
             <ul className="space-y-5">
               {whatsNew.map((item, i) => (
@@ -250,7 +236,7 @@ export default function DocsPage() {
                   </span>
                   <div>
                     <div className="font-medium text-white text-sm">{item.title}</div>
-                    <div className="text-space-500 text-sm mt-0.5">{item.detail}</div>
+                    <div className="text-[var(--fs-mut)] text-sm mt-0.5">{item.detail}</div>
                   </div>
                 </li>
               ))}
@@ -267,14 +253,14 @@ export default function DocsPage() {
           </div>
 
           {/* Popular Topics by Category */}
-          <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8">
+          <div className="fs-card rounded-[14px] p-8">
             <div className="flex items-center gap-4 mb-8">
               <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-accent-600 to-accent-500 flex items-center justify-center text-white">
                 <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-white">Browse by Topic</h3>
+              <h3 className="text-2xl font-bold text-ink">Browse by Topic</h3>
             </div>
             <div className="space-y-6">
               {popularTopics.map((topic, index) => (
@@ -288,7 +274,7 @@ export default function DocsPage() {
                       <li key={linkIndex}>
                         <Link
                           href={link.href}
-                          className="text-space-400 hover:text-primary-400 text-sm flex items-center gap-1.5 group transition-colors"
+                          className="text-[var(--fs-txt)] hover:text-primary-400 text-sm flex items-center gap-1.5 group transition-colors"
                         >
                           <svg className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
@@ -306,31 +292,31 @@ export default function DocsPage() {
       </div>
 
       {/* Help CTA */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-        <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-10 text-center">
-          <h2 className="text-2xl font-bold text-white mb-3">
+      <div className="section-container pb-24">
+        <div className="fs-card rounded-[14px] p-10 text-center">
+          <h2 className="text-2xl font-bold text-ink mb-3">
             Can&apos;t Find What You&apos;re Looking For?
           </h2>
-          <p className="text-space-400 mb-8 max-w-xl mx-auto">
+          <p className="text-[var(--fs-txt)] mb-8 max-w-xl mx-auto">
             Our support team is here to help. Reach out with your questions or browse the
             community forum for answers from other users.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               href="/contact?subject=documentation-help"
-              className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2 justify-center"
+              className="fs-btn fs-btn-primary fs-btn-lg no-underline px-6 py-3 transition-all inline-flex items-center gap-2 justify-center"
             >
               Contact Support
             </Link>
             <Link
               href="/community"
-              className="bg-space-800 border border-space-700 text-white hover:bg-space-700 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2 justify-center"
+              className="fs-btn rounded-[10px] px-6 py-3 transition-all inline-flex items-center gap-2 justify-center"
             >
               Visit Community Forum
             </Link>
           </div>
         </div>
       </div>
-    </div>
+    </MarketingPageShell>
   )
 }

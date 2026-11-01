@@ -13,7 +13,9 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { FullPageLoading } from '@/components/LoadingSpinner'
 import { useAuth } from '@/contexts/AuthContext'
-import { Header, SessionWarningModal, MobileNav } from '@/components/layout'
+import { SessionWarningModal, MobileNav } from '@/components/layout'
+import { AdminAppSidebar } from '@/components/layout/AdminAppSidebar'
+import { AdminShellBar } from '@/components/layout/AdminShellBar'
 import { ProductFooter } from '@/components/ProductFooter'
 
 // Session warning appears 5 minutes before expiry
@@ -130,8 +132,7 @@ export default function AuthenticatedLayout({
   }
 
   return (
-    <div className="min-h-screen bg-space-50 dark:bg-space-950 flex flex-col">
-      {/* Session Warning Modal */}
+    <div className="min-h-screen bg-canvas dark:bg-space-950 flex flex-col lg:flex-row" data-flux-dashboard>
       <SessionWarningModal
         isOpen={showWarningModal}
         onClose={() => setShowWarningModal(false)}
@@ -140,16 +141,18 @@ export default function AuthenticatedLayout({
         onLogout={handleLogout}
       />
 
-      {/* Admin Header */}
-      <Header />
-      <MobileNav />
+      <AdminAppSidebar />
 
-      {/* Main Content */}
-      <main className="flex-1 pb-20 lg:pb-0">
-        {children}
-      </main>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <AdminShellBar />
+        <MobileNav />
 
-      <ProductFooter variant="dashboard" className="pb-6" />
+        <main className="mx-auto max-w-[1600px] w-full flex-1 px-4 sm:px-6 lg:px-7 py-5 lg:py-6">
+          {children}
+        </main>
+
+        <ProductFooter variant="dashboard" className="pb-6 hidden lg:flex" />
+      </div>
     </div>
   )
 }

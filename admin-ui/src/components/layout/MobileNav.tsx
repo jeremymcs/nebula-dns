@@ -32,7 +32,7 @@ export function MobileNav() {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-space-200 dark:border-space-800 bg-white/95 dark:bg-space-900/95 backdrop-blur-lg pb-[env(safe-area-inset-bottom)]"
+      className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t fs-hairline bg-canvas/95 dark:bg-space-950/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)]"
       aria-label="Primary"
     >
       <ul className="flex justify-around items-stretch">
@@ -48,8 +48,8 @@ export function MobileNav() {
                 className={clsx(
                   'flex flex-col items-center justify-center gap-0.5 py-2 px-1 text-[10px] font-medium touch-manipulation',
                   active
-                    ? 'text-primary-600 dark:text-primary-400'
-                    : 'text-space-500 dark:text-space-400'
+                    ? 'text-ink'
+                    : 'text-mut'
                 )}
               >
                 <Icon className="h-5 w-5" aria-hidden />

@@ -7,6 +7,7 @@ import {
   buildTransactionalEmailHtml,
   emailButton,
   emailCallout,
+  emailGettingStartedSteps,
   emailPanel,
   escapeHtml,
 } from './transactional-email-layout';
@@ -53,30 +54,31 @@ export function renderWelcomeEmail(
   ctx: EmailContentContext,
 ): RenderedEmail {
   const subject = `Welcome to ${ctx.productName}, ${data.name}!`;
+  const firstName = escapeHtml(data.name.split(/\s+/)[0] ?? data.name);
   const bodyHtml = `
-    ${p(`Hi ${escapeHtml(data.name)},`)}
+    <div style="font-size:32px;line-height:38px;font-weight:600;letter-spacing:-1.1px;color:#0B1530;margin:0 0 16px 0;">
+      Welcome to ${escapeHtml(ctx.productName)}, <span style="font-family:Georgia,'Instrument Serif',serif;font-style:italic;font-weight:400;font-size:36px;letter-spacing:-0.3px;color:${BRAND_NAVY};">${firstName}.</span>
+    </div>
     ${p(
-      `Thank you for signing up <strong>${escapeHtml(data.companyName)}</strong> for ${escapeHtml(ctx.productName)}. Your account is now active on the <strong>${escapeHtml(data.planName)}</strong> plan.`,
+      `Thank you for signing up <strong style="color:#0B1530;">${escapeHtml(data.companyName)}</strong> for ${escapeHtml(ctx.productName)}. Your account is now active on the <strong style="color:#0B1530;">${escapeHtml(data.planName)}</strong> plan.`,
     )}
-    ${emailPanel(
-      'Getting started',
-      `<ol style="margin: 0; padding-left: 20px; color: #4b5563; font-size: 15px;">
-        <li style="margin-bottom: 8px;">Log in to configure DNS security policies</li>
-        <li style="margin-bottom: 8px;">Set up your first network location and DNS tokens</li>
-        <li style="margin-bottom: 8px;">Point devices to ${escapeHtml(ctx.productName)} resolvers</li>
-        <li>Monitor DNS traffic and security events</li>
-      </ol>`,
-    )}
-    ${emailButton(data.loginUrl, 'Access Your Dashboard')}
+    ${emailButton(data.loginUrl, 'Access your dashboard')}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:40px 0 0 0;"><tr><td style="border-top:1px solid #E9ECF2;font-size:0;line-height:0;">&nbsp;</td></tr></table>
+    <p style="margin:26px 0 6px;font-family:Geist,-apple-system,'Segoe UI',Arial,sans-serif;font-size:12px;font-weight:500;color:#7A849B;letter-spacing:0.2px;">Getting started</p>
+    ${emailGettingStartedSteps([
+      'Log in to configure DNS security policies',
+      'Set up your first network location and DNS tokens',
+      `Point devices to ${ctx.productName} resolvers`,
+      'Monitor DNS traffic and security events',
+    ])}
     ${docsHelpBlock(ctx.docsUrl)}
     ${p(
-      `<span style="font-size: 14px; color: #6b7280;">If you did not sign up for this account, you can ignore this email.</span>`,
+      `<span style="font-size:12.5px;color:#7A849B;">If you did not sign up for this account, you can ignore this email.</span>`,
     )}
   `;
   const html = buildTransactionalEmailHtml({
     title: `Welcome to ${ctx.productName}`,
     preheader: subject,
-    headerTitle: `Welcome to ${ctx.productName}!`,
     productName: ctx.productName,
     bodyHtml,
   });

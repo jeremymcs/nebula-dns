@@ -12,6 +12,6 @@ export const FLUX_CHART_COLORS = [
 
 export const FLUX_CHART = {
   queries: '#4B7CBB',
-  blocked: '#ff4f81',
+  blocked: '#FF6E62',
   success: '#10b981',
 } as const

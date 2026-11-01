@@ -2,11 +2,13 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ShieldCheckIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '@/contexts/AuthContext'
 import { adminMfaVerifyChallenge } from '@/lib/api'
-import { ProductFooter } from '@/components/ProductFooter'
-import { ADMIN_PORTAL_NAME } from '@/lib/branding'
+import {
+  AdminAuthShell,
+  AdminAuthHeadingAccent,
+  AdminAuthErrorBanner,
+} from '@/components/auth/AdminAuthShell'
 
 export default function AdminMfaChallengePage() {
   const router = useRouter()
@@ -35,60 +37,40 @@ export default function AdminMfaChallengePage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-space-50 dark:bg-space-950 px-6">
-      <div className="w-full max-w-md bg-white dark:bg-space-900 rounded-2xl border border-space-200 dark:border-space-800 p-8 shadow-xl">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 rounded-xl bg-primary-100 dark:bg-primary-900/30">
-            <ShieldCheckIcon className="h-7 w-7 text-primary-600 dark:text-primary-400" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-space-900 dark:text-white">
-              Multi-factor authentication
-            </h1>
-            <p className="text-sm text-space-500 dark:text-space-400">
-              Enter the code from your authenticator app
-            </p>
-          </div>
+    <AdminAuthShell
+      eyebrow="Security"
+      title={
+        <>
+          Verify with <AdminAuthHeadingAccent>MFA</AdminAuthHeadingAccent>
+        </>
+      }
+      subtitle="Enter the 6-digit code from your authenticator app."
+    >
+      {error && <AdminAuthErrorBanner message={error} />}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="mfa-code" className="fs-label">
+            Authentication code
+          </label>
+          <input
+            id="mfa-code"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            className="fs-input text-center tracking-[0.3em] text-lg font-semibold"
+            placeholder="000000"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            disabled={loading}
+          />
         </div>
-
-        {error && (
-          <div className="mb-4 p-3 rounded-lg bg-danger-50 dark:bg-danger-900/20 text-sm text-danger-700 dark:text-danger-300">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="mfa-code" className="label">
-              Authentication code
-            </label>
-            <input
-              id="mfa-code"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              className="input text-center tracking-widest text-lg"
-              placeholder="000000"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-          <button type="submit" disabled={loading} className="btn-primary w-full">
-            {loading ? 'Verifying…' : 'Verify and continue'}
-          </button>
-        </form>
-
-        <button
-          type="button"
-          onClick={logout}
-          className="mt-4 w-full text-sm text-space-500 hover:text-primary-600"
-        >
-          Sign out
+        <button type="submit" disabled={loading} className="fs-btn fs-btn-primary w-full fs-btn-lg">
+          {loading ? 'Verifying…' : 'Verify and continue'}
         </button>
-
-        <ProductFooter variant="auth" className="mt-8" />
-        <p className="mt-2 text-xs text-center text-space-400">{ADMIN_PORTAL_NAME}</p>
-      </div>
-    </div>
+        <button type="button" onClick={() => logout()} className="fs-btn w-full">
+          Cancel and sign out
+        </button>
+      </form>
+    </AdminAuthShell>
   )
 }

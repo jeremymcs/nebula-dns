@@ -4,6 +4,9 @@
 'use client'
 
 import Link from 'next/link'
+import { MarketingPageShell, MarketingCard } from '@/components/marketing/MarketingPageShell'
+import { MarketingPageHero, MarketingSerifAccent } from '@/components/marketing/MarketingPageHero'
+import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
 
 const features = [
   {
@@ -131,53 +134,24 @@ const stats = [
 
 export default function FeaturesPage() {
   return (
-    <div className="bg-space-950">
-
-      {/* Hero Section */}
-      <section className="py-24 bg-space-950 relative overflow-hidden">
-        {/* Nebula orbs */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-600/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent-600/15 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-4">
-            Platform Overview
-          </p>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
-            Powerful DNS Security{' '}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
-              Features
-            </span>
-          </h1>
-          <p className="mt-6 text-lg sm:text-xl text-space-400 max-w-3xl mx-auto">
-            Everything you need to protect your organization from malware, phishing, and unwanted content.
-            Enterprise-grade security that&apos;s simple to deploy and manage.
-          </p>
-          <div className="mt-10">
-            <Link
-              href="/signup"
-              className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
-            >
-              Start Free Trial
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Grid */}
-      <section className="py-24 bg-space-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <MarketingPageShell>
+      <MarketingPageHero
+        eyebrow="Platform Overview"
+        title={<>Powerful DNS Security <MarketingSerifAccent>Features</MarketingSerifAccent></>}
+        lede="Everything you need to protect your organization from malware, phishing, and unwanted content. Enterprise-grade security that's simple to deploy and manage."
+      >
+      </MarketingPageHero>
+{/* Features Grid */}
+      <section className="py-16 sm:py-20 border-t border-[var(--fs-line)]">
+        <div className="section-container">
           <div className="text-center mb-16">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">
+            <p className="fs-eyebrow mb-3">
               What We Offer
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink">
               Everything You Need to Stay Protected
             </h2>
-            <p className="mt-4 text-space-400 max-w-2xl mx-auto">
+            <p className="mt-4 text-[var(--fs-txt)] max-w-2xl mx-auto">
               A comprehensive suite of DNS security tools built for organizations of every size.
             </p>
           </div>
@@ -186,7 +160,7 @@ export default function FeaturesPage() {
             {features.map((feature) => (
               <div
                 key={feature.name}
-                className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6 hover:border-primary-700/50 transition-all"
+                className="fs-card rounded-[14px] p-6 hover:border-primary-700/50 transition-all"
               >
                 {feature.accent === 'purple' ? (
                   <div className="h-12 w-12 rounded-xl bg-primary-900/50 border border-primary-800/50 flex items-center justify-center text-primary-400 mb-4">
@@ -197,10 +171,10 @@ export default function FeaturesPage() {
                     {feature.icon}
                   </div>
                 )}
-                <h3 className="text-lg font-semibold text-white mb-3">
+                <h3 className="text-lg font-semibold text-ink mb-3">
                   {feature.name}
                 </h3>
-                <p className="text-space-400 text-sm leading-relaxed">
+                <p className="text-[var(--fs-txt)] text-sm leading-relaxed">
                   {feature.description}
                 </p>
               </div>
@@ -210,16 +184,16 @@ export default function FeaturesPage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-24 bg-space-950">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 sm:py-20">
+        <div className="section-container">
           <div className="text-center mb-16">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">
+            <p className="fs-eyebrow mb-3">
               Simple Setup
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink">
               How It Works
             </h2>
-            <p className="mt-4 text-space-400 max-w-2xl mx-auto">
+            <p className="mt-4 text-[var(--fs-txt)] max-w-2xl mx-auto">
               Get started with Flux Shield in three simple steps. No complex setup required.
             </p>
           </div>
@@ -230,7 +204,7 @@ export default function FeaturesPage() {
                 {index < steps.length - 1 && (
                   <div className="hidden md:block absolute top-10 left-[calc(50%+2rem)] w-[calc(100%-4rem)] h-px bg-gradient-to-r from-primary-700/50 to-accent-700/50" />
                 )}
-                <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8">
+                <div className="fs-card rounded-[14px] p-8">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary-600 to-accent-600 text-white font-bold text-xl mb-6">
                     {step.number}
                   </div>
@@ -240,7 +214,7 @@ export default function FeaturesPage() {
                   <h3 className="text-xl font-bold text-white mb-3">
                     {step.title}
                   </h3>
-                  <p className="text-space-400 leading-relaxed">
+                  <p className="text-[var(--fs-txt)] leading-relaxed">
                     {step.description}
                   </p>
                 </div>
@@ -251,16 +225,16 @@ export default function FeaturesPage() {
       </section>
 
       {/* Performance Stats */}
-      <section className="py-24 bg-space-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 sm:py-20 border-t border-[var(--fs-line)]">
+        <div className="section-container">
           <div className="text-center mb-16">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">
+            <p className="fs-eyebrow mb-3">
               By the Numbers
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink">
               Built for Performance at Scale
             </h2>
-            <p className="mt-4 text-space-400 max-w-2xl mx-auto">
+            <p className="mt-4 text-[var(--fs-txt)] max-w-2xl mx-auto">
               Global anycast infrastructure delivering sub-50ms responses and 99.99% uptime.
             </p>
           </div>
@@ -269,12 +243,12 @@ export default function FeaturesPage() {
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6 text-center"
+                className="fs-card rounded-[14px] p-6 text-center"
               >
                 <div className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400 mb-2">
                   {stat.value}
                 </div>
-                <div className="text-space-400 text-sm">
+                <div className="text-[var(--fs-txt)] text-sm">
                   {stat.label}
                 </div>
               </div>
@@ -282,7 +256,7 @@ export default function FeaturesPage() {
           </div>
 
           {/* Performance feature list */}
-          <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8">
+          <div className="fs-card rounded-[14px] p-8">
             <h3 className="text-xl font-bold text-white mb-6 text-center">
               Enterprise-Grade Infrastructure
             </h3>
@@ -304,7 +278,7 @@ export default function FeaturesPage() {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span className="text-space-400 text-sm">{item}</span>
+                  <span className="text-[var(--fs-txt)] text-sm">{item}</span>
                 </div>
               ))}
             </div>
@@ -313,22 +287,22 @@ export default function FeaturesPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-space-950">
+      <section className="py-16 sm:py-20">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-10 text-center">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-4">
+          <div className="fs-card rounded-[14px] p-10 text-center">
+            <p className="fs-eyebrow mb-4">
               Get Started Today
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink mb-4">
               Ready to secure your network?
             </h2>
-            <p className="text-space-400 mb-8 max-w-xl mx-auto">
+            <p className="text-[var(--fs-txt)] mb-8 max-w-xl mx-auto">
               Try all features free for 14 days. No credit card required. Cancel anytime.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/signup"
-                className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center justify-center gap-2"
+                className="fs-btn fs-btn-primary fs-btn-lg no-underline px-6 py-3 transition-all inline-flex items-center justify-center gap-2"
               >
                 Start Free Trial
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -337,7 +311,7 @@ export default function FeaturesPage() {
               </Link>
               <Link
                 href="/pricing"
-                className="bg-space-800 border border-space-700 text-white hover:bg-space-700 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center justify-center"
+                className="fs-btn rounded-[10px] px-6 py-3 transition-all inline-flex items-center justify-center"
               >
                 View Pricing
               </Link>
@@ -345,7 +319,6 @@ export default function FeaturesPage() {
           </div>
         </div>
       </section>
-
-    </div>
+    </MarketingPageShell>
   )
 }

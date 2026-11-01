@@ -2,6 +2,9 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import Link from 'next/link'
+import { MarketingPageShell, MarketingCard } from '@/components/marketing/MarketingPageShell'
+import { MarketingPageHero, MarketingSerifAccent } from '@/components/marketing/MarketingPageHero'
+import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
 
 const securityFeatures = [
   {
@@ -176,14 +179,21 @@ const complianceItems = [
 
 export default function SecurityPage() {
   return (
-    <div className="bg-space-950">
+    <MarketingPageShell>
+      <MarketingPageHero
+        eyebrow="Security"
+        title={<>How We <MarketingSerifAccent>Protect</MarketingSerifAccent> Your Data</>}
+        lede="Industry-leading security practices, encryption, and compliance built into every layer of Flux Shield."
+      >
+      </MarketingPageHero>
+
 
       {/* Hero */}
-      <div className="relative py-24 bg-space-950 overflow-hidden">
+      <div className="relative py-16 sm:py-20 overflow-hidden">
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary-600/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-accent-600/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="relative section-container text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-900/50 border border-primary-800/50 text-primary-400 text-sm font-medium mb-6">
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
@@ -196,19 +206,19 @@ export default function SecurityPage() {
             </span>{' '}
             Platform
           </h1>
-          <p className="mt-6 text-lg text-space-400 max-w-3xl mx-auto">
+          <p className="mt-6 text-lg text-[var(--fs-txt)] max-w-3xl mx-auto">
             Your trust is our foundation. Every layer of Flux Shield is built with security as a first principle — not an afterthought. We protect your data, preserve your privacy, and maintain the highest standards of operational security.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/contact?subject=security-whitepaper"
-              className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
+              className="fs-btn fs-btn-primary fs-btn-lg no-underline px-6 py-3 transition-all inline-flex items-center gap-2"
             >
               Request Security Whitepaper
             </Link>
             <Link
               href="/contact?subject=security-consultation"
-              className="border border-space-700 text-space-300 hover:text-white hover:border-space-500 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
+              className="border border-space-700 text-[var(--fs-txt)] hover:text-white hover:border-space-500 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
             >
               Talk to Our Security Team
             </Link>
@@ -217,16 +227,16 @@ export default function SecurityPage() {
       </div>
 
       {/* Security Features Grid */}
-      <div className="py-24 bg-space-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="py-16 sm:py-20 border-t border-[var(--fs-line)]">
+        <div className="section-container">
           <div className="text-center mb-16">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">
+            <p className="fs-eyebrow mb-3">
               SECURITY ARCHITECTURE
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink">
               Comprehensive Security at Every Layer
             </h2>
-            <p className="mt-4 text-space-400 max-w-2xl mx-auto">
+            <p className="mt-4 text-[var(--fs-txt)] max-w-2xl mx-auto">
               Multi-layered security controls protecting your DNS infrastructure, your data, and your users.
             </p>
           </div>
@@ -235,7 +245,7 @@ export default function SecurityPage() {
             {securityFeatures.map((feature, index) => (
               <div
                 key={index}
-                className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6 hover:border-primary-700/40 transition-all"
+                className="fs-card rounded-[14px] p-6 hover:border-primary-700/40 transition-all"
               >
                 <div
                   className={
@@ -246,10 +256,10 @@ export default function SecurityPage() {
                 >
                   {feature.icon}
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">
+                <h3 className="text-lg font-semibold text-ink mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-space-400 text-sm leading-relaxed">
+                <p className="text-[var(--fs-txt)] text-sm leading-relaxed">
                   {feature.description}
                 </p>
               </div>
@@ -259,16 +269,16 @@ export default function SecurityPage() {
       </div>
 
       {/* Data Privacy */}
-      <div className="py-24 bg-space-950">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="py-16 sm:py-20">
+        <div className="section-container">
           <div className="text-center mb-16">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">
+            <p className="fs-eyebrow mb-3">
               DATA PRIVACY
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink">
               Your Privacy is Non-Negotiable
             </h2>
-            <p className="mt-4 text-space-400 max-w-2xl mx-auto">
+            <p className="mt-4 text-[var(--fs-txt)] max-w-2xl mx-auto">
               Privacy is built into every layer of our architecture, not added as an afterthought.
             </p>
           </div>
@@ -277,7 +287,7 @@ export default function SecurityPage() {
             {privacyCommitments.map((item, index) => (
               <div
                 key={index}
-                className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6 flex items-start gap-4"
+                className="fs-card rounded-[14px] p-6 flex items-start gap-4"
               >
                 <div className="shrink-0 mt-0.5">
                   <svg className="h-5 w-5 text-success-400" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -286,7 +296,7 @@ export default function SecurityPage() {
                 </div>
                 <div>
                   <h3 className="text-white font-semibold mb-1">{item.title}</h3>
-                  <p className="text-space-400 text-sm leading-relaxed">{item.description}</p>
+                  <p className="text-[var(--fs-txt)] text-sm leading-relaxed">{item.description}</p>
                 </div>
               </div>
             ))}
@@ -295,16 +305,16 @@ export default function SecurityPage() {
       </div>
 
       {/* Compliance Badges */}
-      <div className="py-24 bg-space-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="py-16 sm:py-20 border-t border-[var(--fs-line)]">
+        <div className="section-container">
           <div className="text-center mb-16">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">
+            <p className="fs-eyebrow mb-3">
               COMPLIANCE
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink">
               Meeting the Highest Standards
             </h2>
-            <p className="mt-4 text-space-400 max-w-2xl mx-auto">
+            <p className="mt-4 text-[var(--fs-txt)] max-w-2xl mx-auto">
               Designed to meet and exceed global regulatory requirements and industry certifications.
             </p>
           </div>
@@ -313,18 +323,18 @@ export default function SecurityPage() {
             {complianceItems.map((item, index) => (
               <div
                 key={index}
-                className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6 text-center"
+                className="fs-card rounded-[14px] p-6 text-center"
               >
                 <div className="h-14 w-14 rounded-xl bg-primary-900/50 border border-primary-800/50 flex items-center justify-center text-primary-400 mx-auto mb-4">
                   {item.icon}
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2">
+                <h3 className="text-lg font-bold text-ink mb-2">
                   {item.name}
                 </h3>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold mb-3 ${item.statusColor}`}>
                   {item.status}
                 </span>
-                <p className="text-space-400 text-sm">
+                <p className="text-[var(--fs-txt)] text-sm">
                   {item.description}
                 </p>
               </div>
@@ -334,18 +344,18 @@ export default function SecurityPage() {
       </div>
 
       {/* Bug Bounty */}
-      <div className="py-24 bg-space-950">
+      <div className="py-16 sm:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8 md:p-12">
+          <div className="fs-card rounded-[14px] p-8 md:p-12">
             <div className="grid md:grid-cols-2 gap-10 items-center">
               <div>
-                <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">
+                <p className="fs-eyebrow mb-3">
                   BUG BOUNTY
                 </p>
                 <h2 className="text-3xl font-bold text-white mb-4">
                   We Reward Responsible Disclosure
                 </h2>
-                <p className="text-space-400 mb-6 leading-relaxed">
+                <p className="text-[var(--fs-txt)] mb-6 leading-relaxed">
                   We partner with the security research community to continuously improve our defenses. Report a vulnerability and we'll work with you to fix it — and compensate you for your effort.
                 </p>
                 <div className="space-y-3">
@@ -356,7 +366,7 @@ export default function SecurityPage() {
                     { label: 'Low severity / informational', reward: 'Up to $250' },
                   ].map((tier, i) => (
                     <div key={i} className="flex items-center justify-between text-sm">
-                      <span className="text-space-400">{tier.label}</span>
+                      <span className="text-[var(--fs-txt)]">{tier.label}</span>
                       <span className="text-white font-semibold">{tier.reward}</span>
                     </div>
                   ))}
@@ -364,7 +374,7 @@ export default function SecurityPage() {
                 <div className="mt-8">
                   <Link
                     href="/contact?subject=bug-bounty"
-                    className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
+                    className="fs-btn fs-btn-primary fs-btn-lg no-underline px-6 py-3 transition-all inline-flex items-center gap-2"
                   >
                     Submit a Report
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -382,11 +392,11 @@ export default function SecurityPage() {
                 <div className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400 mb-2">
                   $10,000
                 </div>
-                <p className="text-space-400 text-sm">maximum reward for critical vulnerabilities</p>
+                <p className="text-[var(--fs-txt)] text-sm">maximum reward for critical vulnerabilities</p>
                 <div className="mt-6 pt-6 border-t border-space-700/50 text-left space-y-2">
-                  <p className="text-xs text-space-400 font-semibold uppercase tracking-wider mb-3">In-scope targets</p>
+                  <p className="text-xs text-[var(--fs-txt)] font-semibold uppercase tracking-wider mb-3">In-scope targets</p>
                   {['api.shield.fluxlabs.net', 'app.shield.fluxlabs.net', 'DNS infrastructure', 'Authentication systems'].map((t, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm text-space-400">
+                    <div key={i} className="flex items-center gap-2 text-sm text-[var(--fs-txt)]">
                       <svg className="h-3.5 w-3.5 text-success-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                       </svg>
@@ -401,40 +411,39 @@ export default function SecurityPage() {
       </div>
 
       {/* CTA */}
-      <div className="py-24 bg-space-900 relative overflow-hidden">
+      <div className="py-16 sm:py-20 border-t border-[var(--fs-line)] relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-primary-700/10 rounded-full blur-3xl" />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-4">
+        <div className="relative section-container text-center">
+          <p className="fs-eyebrow mb-4">
             OUR FOUNDATION
           </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-ink mb-4">
             Security is our{' '}
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
               foundation
             </span>
           </h2>
-          <p className="text-space-400 max-w-2xl mx-auto mb-8">
+          <p className="text-[var(--fs-txt)] max-w-2xl mx-auto mb-8">
             Have questions about our security posture, compliance certifications, or want to review our full security documentation? Our security team is ready to help.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/contact?subject=security-whitepaper"
-              className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
+              className="fs-btn fs-btn-primary fs-btn-lg no-underline px-6 py-3 transition-all inline-flex items-center gap-2"
             >
               Request Security Whitepaper
             </Link>
             <Link
               href="/contact?subject=security-consultation"
-              className="border border-space-700 text-space-300 hover:text-white hover:border-space-500 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
+              className="border border-space-700 text-[var(--fs-txt)] hover:text-white hover:border-space-500 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
             >
               Schedule a Security Review
             </Link>
           </div>
         </div>
       </div>
-
-    </div>
+    </MarketingPageShell>
   )
 }

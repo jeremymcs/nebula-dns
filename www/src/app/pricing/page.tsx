@@ -7,6 +7,9 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/solid'
 import { API_URL } from '@/lib/config'
+import { MarketingPageShell, MarketingCard } from '@/components/marketing/MarketingPageShell'
+import { MarketingPageHero, MarketingSerifAccent } from '@/components/marketing/MarketingPageHero'
+import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
 
 interface Plan {
   id: string
@@ -180,61 +183,43 @@ export default function PricingPage() {
   const yearlyDiscount = Math.round((1 - 99.99 / (9.99 * 12)) * 100)
 
   return (
-    <div className="min-h-screen bg-space-950">
-      {/* Atmospheric nebula orbs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary-700/20 rounded-full blur-3xl" />
-        <div className="absolute top-1/3 -right-32 w-80 h-80 bg-accent-700/15 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-primary-800/15 rounded-full blur-3xl" />
-      </div>
+    <MarketingPageShell>
+      <MarketingPageHero
+        eyebrow="Pricing"
+        title={
+          <>
+            Simple, <MarketingSerifAccent>Transparent</MarketingSerifAccent> Pricing
+          </>
+        }
+        lede="Choose the plan that fits your needs. All plans include a 14-day free trial with no credit card required."
+      />
 
-      <div className="relative">
-        {/* Section Header */}
-        <div className="pt-24 pb-16 text-center">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <p className="text-primary-400 text-xs tracking-widest uppercase mb-4 font-medium">
-              PRICING
-            </p>
-            <h1 className="text-4xl sm:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400 mb-4">
-              Simple, Transparent Pricing
-            </h1>
-            <p className="text-space-400 text-lg max-w-2xl mx-auto">
-              Choose the plan that fits your needs. All plans include a 14-day free trial with no credit card required.
-            </p>
-
-            {/* Billing Toggle */}
-            <div className="mt-10 flex items-center justify-center gap-4">
-              <div className="bg-space-800 rounded-full p-1 inline-flex">
-                <button
-                  onClick={() => setBillingCycle('monthly')}
-                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
-                    billingCycle === 'monthly'
-                      ? 'bg-primary-600 text-white'
-                      : 'text-space-400 hover:text-white'
-                  }`}
-                >
-                  Monthly
-                </button>
-                <button
-                  onClick={() => setBillingCycle('yearly')}
-                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
-                    billingCycle === 'yearly'
-                      ? 'bg-primary-600 text-white'
-                      : 'text-space-400 hover:text-white'
-                  }`}
-                >
-                  Yearly
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-success-600/20 text-success-400 border border-success-600/30">
-                    Save {yearlyDiscount}%
-                  </span>
-                </button>
-              </div>
-            </div>
+      <div className="section-container pb-8">
+        <div className="flex items-center justify-center">
+          <div className="fs-segment inline-flex">
+            <button
+              type="button"
+              onClick={() => setBillingCycle('monthly')}
+              className={billingCycle === 'monthly' ? 'fs-segment-item-active' : 'fs-segment-item'}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              onClick={() => setBillingCycle('yearly')}
+              className={`${billingCycle === 'yearly' ? 'fs-segment-item-active' : 'fs-segment-item'} flex items-center gap-2`}
+            >
+              Yearly
+              <span className="rounded-full bg-[var(--fs-success-soft)] px-2 py-0.5 text-xs font-medium text-[var(--fs-success)]">
+                Save {yearlyDiscount}%
+              </span>
+            </button>
           </div>
         </div>
+      </div>
 
         {/* Pricing Cards */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+        <div className="section-container pb-24">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
             {plans.map((plan) => {
               const isPopular = plan.id === 'pro'
@@ -248,53 +233,48 @@ export default function PricingPage() {
               return (
                 <div
                   key={plan.id}
-                  className={`relative flex flex-col rounded-2xl transition-all ${
-                    isPopular
-                      ? 'bg-gradient-to-b from-primary-900/40 to-space-900/60 border border-primary-600/50 shadow-glow'
-                      : 'bg-space-900/60 backdrop-blur-sm border border-space-700/50 hover:border-space-600/70'
+                  className={`relative flex flex-col rounded-[14px] transition-all fs-card ${
+                    isPopular ? 'ring-2 ring-[var(--fs-blue)]/35 shadow-[0_8px_30px_-12px_rgba(30,59,120,0.35)]' : ''
                   }`}
                 >
-                  {/* Most Popular Badge */}
                   {isPopular && (
                     <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                      <span className="bg-gradient-to-r from-primary-600 to-primary-500 text-white text-xs font-semibold px-4 py-1 rounded-full shadow-glow-sm">
+                      <span className="rounded-full bg-[var(--fs-navy)] px-4 py-1 text-xs font-semibold text-white">
                         Most Popular
                       </span>
                     </div>
                   )}
 
                   <div className="p-6 flex flex-col flex-1">
-                    {/* Plan Name & Description */}
                     <div>
-                      <h3 className="text-xl font-bold text-white">{plan.name}</h3>
-                      <p className="mt-2 text-sm text-space-400 min-h-[2.5rem]">{plan.description}</p>
+                      <h3 className="text-xl font-bold text-ink">{plan.name}</h3>
+                      <p className="mt-2 text-sm text-[var(--fs-txt)] min-h-[2.5rem]">{plan.description}</p>
                     </div>
 
-                    {/* Price */}
                     <div className="mt-6">
                       {isEnterprise ? (
                         <div className="flex items-baseline">
-                          <span className="text-4xl font-bold text-white">Custom</span>
+                          <span className="text-4xl font-bold text-ink">Custom</span>
                         </div>
                       ) : (
                         <div className="flex items-baseline gap-1">
-                          <span className={`text-4xl font-bold ${plan.id === 'free' ? 'text-space-400' : 'text-white'}`}>
+                          <span className="text-4xl font-bold text-ink">
                             ${price === 0 ? '0' : price}
                           </span>
                           {price > 0 && (
-                            <span className="text-space-500 text-sm">
+                            <span className="text-[var(--fs-mut)] text-sm">
                               /{billingCycle === 'yearly' ? 'yr' : 'mo'}
                             </span>
                           )}
                         </div>
                       )}
                       {monthlyEquivalent && !isEnterprise && (
-                        <p className="mt-1 text-xs text-space-500">
+                        <p className="mt-1 text-xs text-[var(--fs-mut)]">
                           ${monthlyEquivalent}/month billed annually
                         </p>
                       )}
                       {isEnterprise && (
-                        <p className="mt-1 text-xs text-space-500">Contact us for a quote</p>
+                        <p className="mt-1 text-xs text-[var(--fs-mut)]">Contact us for a quote</p>
                       )}
                     </div>
 
@@ -316,7 +296,7 @@ export default function PricingPage() {
                     ) : plan.id === 'free' ? (
                       <Link
                         href={`/signup?plan=${plan.id}&billing=${billingCycle}`}
-                        className="mt-6 w-full inline-flex justify-center items-center px-4 py-3 rounded-xl font-semibold text-sm transition-all bg-space-800 border border-space-700 text-space-300 hover:bg-space-700 hover:border-space-600 hover:text-white"
+                        className="mt-6 w-full inline-flex justify-center items-center px-4 py-3 rounded-xl font-semibold text-sm transition-all bg-space-800 border border-space-700 text-[var(--fs-txt)] hover:bg-space-700 hover:border-space-600 hover:text-white"
                       >
                         Get Started Free
                       </Link>
@@ -334,7 +314,7 @@ export default function PricingPage() {
                       <ul className="space-y-3">
                         {Object.entries(plan.limits).map(([key, value]) => (
                           <li key={key} className="flex items-center justify-between text-sm">
-                            <span className="text-space-400">{limitLabels[key]}</span>
+                            <span className="text-[var(--fs-txt)]">{limitLabels[key]}</span>
                             <span className="font-semibold text-white">{formatLimit(value)}</span>
                           </li>
                         ))}
@@ -349,9 +329,9 @@ export default function PricingPage() {
                             {enabled ? (
                               <CheckIcon className="h-4 w-4 text-success-400 flex-shrink-0 mt-0.5" />
                             ) : (
-                              <XMarkIcon className="h-4 w-4 text-space-600 flex-shrink-0 mt-0.5" />
+                              <XMarkIcon className="h-4 w-4 text-[var(--fs-mut)] flex-shrink-0 mt-0.5" />
                             )}
-                            <span className={enabled ? 'text-space-300' : 'text-space-600'}>
+                            <span className={enabled ? 'text-[var(--fs-txt)]' : 'text-[var(--fs-mut)]'}>
                               {featureLabels[key] || key}
                             </span>
                           </li>
@@ -379,39 +359,30 @@ export default function PricingPage() {
               {faqs.map((faq, index) => (
                 <div
                   key={index}
-                  className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6"
+                  className="fs-card rounded-[14px] p-6"
                 >
-                  <h3 className="text-base font-semibold text-white mb-2">{faq.q}</h3>
-                  <p className="text-space-400 text-sm leading-relaxed">{faq.a}</p>
+                  <h3 className="text-base font-semibold text-ink mb-2">{faq.q}</h3>
+                  <p className="text-[var(--fs-txt)] text-sm leading-relaxed">{faq.a}</p>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Bottom CTA */}
-        <div className="border-t border-space-800/60 py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div className="relative inline-block">
-              <div className="absolute inset-0 bg-primary-600/20 blur-3xl rounded-full" />
-              <div className="relative bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl px-12 py-10 max-w-2xl mx-auto">
-                <h2 className="text-2xl font-bold text-white mb-3">
-                  Need a custom solution?
-                </h2>
-                <p className="text-space-400 mb-8">
-                  Contact our sales team for custom pricing, volume discounts, and enterprise features tailored to your organization.
-                </p>
-                <Link
-                  href="/contact"
-                  className="inline-flex items-center px-6 py-3 rounded-xl font-semibold transition-all bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg"
-                >
-                  Contact Sales
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+        <section className="section-container pb-16 sm:pb-24">
+        <MarketingCtaBand
+          title={
+            <>
+              Need a custom <MarketingSerifAccent>solution?</MarketingSerifAccent>
+            </>
+          }
+          description="Contact our sales team for custom pricing, volume discounts, and enterprise features tailored to your organization."
+          primaryHref="/contact"
+          primaryLabel="Contact sales"
+          secondaryHref="/enterprise"
+          secondaryLabel="Enterprise overview"
+        />
+        </section>
+    </MarketingPageShell>
   )
 }

@@ -38,6 +38,7 @@ export async function login(page: Page, tier: TenantTier = 'enterprise') {
     const config = tierConfig[tier]
 
     localStorage.setItem('token', 'test-token-for-e2e')
+    localStorage.setItem('refreshToken', 'test-refresh-for-e2e')
     localStorage.setItem('user', JSON.stringify({
       id: `user-${tier}-1`,
       email: config.email,
@@ -55,7 +56,7 @@ export async function login(page: Page, tier: TenantTier = 'enterprise') {
     }))
   }, { tier })
 
-  await page.goto('/login', { waitUntil: 'domcontentloaded' })
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
 }
 
 /**

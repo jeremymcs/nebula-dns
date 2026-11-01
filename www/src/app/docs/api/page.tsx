@@ -2,6 +2,9 @@
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
 import Link from 'next/link'
+import { MarketingPageShell, MarketingCard } from '@/components/marketing/MarketingPageShell'
+import { MarketingPageHero, MarketingSerifAccent } from '@/components/marketing/MarketingPageHero'
+import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
 
 function MethodBadge({ method }: { method: string }) {
   const styles: Record<string, string> = {
@@ -156,43 +159,25 @@ export default function ApiReferencePage() {
   ]
 
   const rateLimits = [
-    { plan: 'Free', badge: 'F', badgeColor: 'bg-space-800 text-space-400 border-space-700', limit: '100 requests/hour' },
+    { plan: 'Free', badge: 'F', badgeColor: 'bg-space-800 text-[var(--fs-txt)] border-space-700', limit: '100 requests/hour' },
     { plan: 'Pro', badge: 'P', badgeColor: 'bg-primary-900/50 text-primary-300 border-primary-800/50', limit: '1,000 requests/hour' },
     { plan: 'Enterprise', badge: 'E', badgeColor: 'bg-accent-900/50 text-accent-300 border-accent-800/50', limit: '10,000 requests/hour' },
   ]
 
   return (
-    <div className="bg-space-950 min-h-screen">
-      {/* Hero */}
-      <div className="relative overflow-hidden py-24">
-        {/* Nebula orbs */}
-        <div className="absolute top-0 right-1/4 w-[450px] h-[450px] bg-accent-600/8 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-[350px] h-[350px] bg-primary-600/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-900/50 text-primary-300 border border-primary-800/50 mb-6">
-            <svg className="h-3.5 w-3.5 mr-1.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
-            </svg>
-            REST API v1
-          </span>
-          <h1 className="text-5xl sm:text-6xl font-bold mb-6">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
-              API Reference
-            </span>
-          </h1>
-          <p className="text-xl text-space-400 max-w-3xl mx-auto">
-            Complete REST API documentation for integrating Flux Shield into your applications,
-            automation workflows, and custom security tools.
-          </p>
-        </div>
-      </div>
+    <MarketingPageShell>
+      <MarketingPageHero
+        eyebrow="REST API v1"
+        title={<><MarketingSerifAccent>API</MarketingSerifAccent> Reference</>}
+        lede="Complete REST API documentation for integrating Flux Shield into your applications, automation workflows, and custom security tools."
+      >
+      </MarketingPageHero>
 
       {/* Info Cards: Base URL + Auth */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="section-container py-16">
         <div className="grid lg:grid-cols-2 gap-6 mb-10">
           {/* Base URL */}
-          <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8">
+          <div className="fs-card rounded-[14px] p-8">
             <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <svg className="h-5 w-5 text-accent-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
@@ -202,13 +187,13 @@ export default function ApiReferencePage() {
             <div className="bg-space-900 border border-space-700 rounded-xl p-4 font-mono text-accent-400 text-sm mb-4 overflow-x-auto">
               https://api.shield.fluxlabs.net/v1
             </div>
-            <p className="text-space-400 text-sm">
+            <p className="text-[var(--fs-txt)] text-sm">
               All API requests should be made to this base URL. All requests must use HTTPS.
             </p>
           </div>
 
           {/* Response Format */}
-          <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8">
+          <div className="fs-card rounded-[14px] p-8">
             <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <svg className="h-5 w-5 text-primary-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M14.25 9.75L16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
@@ -218,7 +203,7 @@ export default function ApiReferencePage() {
             <div className="bg-space-900 border border-space-700 rounded-xl p-4 font-mono text-accent-400 text-sm mb-4">
               Content-Type: application/json
             </div>
-            <p className="text-space-400 text-sm">
+            <p className="text-[var(--fs-txt)] text-sm">
               All responses return JSON with consistent structure, HTTP status codes, and detailed error messages.
             </p>
           </div>
@@ -233,16 +218,16 @@ export default function ApiReferencePage() {
               </svg>
             </div>
             <div className="flex-1">
-              <h2 className="text-2xl font-bold text-white mb-3">Authentication</h2>
-              <p className="text-space-400 mb-5">
+              <h2 className="text-2xl font-bold text-ink mb-3">Authentication</h2>
+              <p className="text-[var(--fs-txt)] mb-5">
                 The Flux Shield API uses Bearer token authentication. Include your API token in the{' '}
                 <code className="bg-space-900 border border-space-700 px-1.5 py-0.5 rounded text-xs text-accent-400 font-mono">Authorization</code>{' '}
                 header of every request.
               </p>
               <div className="bg-space-950 border border-space-800 rounded-xl overflow-hidden">
                 <div className="bg-space-900 px-4 py-2 border-b border-space-800 flex items-center justify-between">
-                  <span className="text-xs text-space-400 font-mono">HTTP Header</span>
-                  <span className="text-xs text-space-600">Required on all requests</span>
+                  <span className="text-xs text-[var(--fs-txt)] font-mono">HTTP Header</span>
+                  <span className="text-xs text-[var(--fs-mut)]">Required on all requests</span>
                 </div>
                 <div className="p-4">
                   <pre className="text-sm text-accent-400 font-mono">
@@ -250,7 +235,7 @@ export default function ApiReferencePage() {
                   </pre>
                 </div>
               </div>
-              <p className="mt-4 text-sm text-space-500">
+              <p className="mt-4 text-sm text-[var(--fs-mut)]">
                 Generate API tokens from your dashboard under{' '}
                 <Link href="/dashboard/settings/api-keys" className="text-primary-400 hover:text-primary-300 underline underline-offset-2">
                   Settings &rsaquo; API Keys
@@ -263,13 +248,13 @@ export default function ApiReferencePage() {
 
       {/* Endpoint Groups */}
       <div className="border-t border-space-800/50 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="section-container">
           <div className="text-center mb-12">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">ENDPOINTS</p>
+            <p className="fs-eyebrow mb-3">ENDPOINTS</p>
             <h2 className="text-3xl font-bold text-white mb-3">
               API Endpoints
             </h2>
-            <p className="text-space-400">
+            <p className="text-[var(--fs-txt)]">
               Organized by resource type for easy navigation.
             </p>
           </div>
@@ -278,15 +263,15 @@ export default function ApiReferencePage() {
             {endpointGroups.map((group, index) => (
               <div
                 key={index}
-                className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6 hover:border-primary-700/50 transition-all"
+                className="fs-card rounded-[14px] p-6 hover:border-primary-700/50 transition-all"
               >
                 <div className="flex items-start gap-4 mb-5">
                   <div className={`h-11 w-11 rounded-xl bg-gradient-to-br ${group.color} flex items-center justify-center text-white flex-shrink-0`}>
                     {group.icon}
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-white mb-0.5">{group.title}</h3>
-                    <p className="text-space-500 text-sm">{group.description}</p>
+                    <h3 className="text-lg font-bold text-ink mb-0.5">{group.title}</h3>
+                    <p className="text-[var(--fs-mut)] text-sm">{group.description}</p>
                   </div>
                 </div>
 
@@ -299,7 +284,7 @@ export default function ApiReferencePage() {
                       <MethodBadge method={endpoint.method} />
                       <div className="flex-1 min-w-0">
                         <span className="font-mono text-sm text-white">{endpoint.path}</span>
-                        <span className="text-space-500 text-xs ml-3 hidden sm:inline">{endpoint.description}</span>
+                        <span className="text-[var(--fs-mut)] text-xs ml-3 hidden sm:inline">{endpoint.description}</span>
                       </div>
                     </div>
                   ))}
@@ -311,11 +296,11 @@ export default function ApiReferencePage() {
       </div>
 
       {/* Example Request + Response */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="section-container py-16">
         <div className="text-center mb-12">
-          <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-3">EXAMPLES</p>
+          <p className="fs-eyebrow mb-3">EXAMPLES</p>
           <h2 className="text-3xl font-bold text-white mb-3">Example Request</h2>
-          <p className="text-space-400">A quick end-to-end example to get you started.</p>
+          <p className="text-[var(--fs-txt)]">A quick end-to-end example to get you started.</p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
@@ -325,18 +310,18 @@ export default function ApiReferencePage() {
               <MethodBadge method="GET" />
               <span className="font-mono text-sm text-white">/policies</span>
             </div>
-            <p className="text-space-400 text-sm mb-4">
+            <p className="text-[var(--fs-txt)] text-sm mb-4">
               Retrieve all DNS filtering policies for your tenant.
             </p>
             <div className="bg-space-950 border border-space-800 rounded-xl overflow-hidden">
               <div className="bg-space-900 px-4 py-2.5 border-b border-space-800 flex items-center justify-between">
-                <span className="text-xs text-space-400 font-mono">curl</span>
+                <span className="text-xs text-[var(--fs-txt)] font-mono">curl</span>
                 <button className="text-xs text-primary-400 hover:text-primary-300 transition-colors">
                   Copy
                 </button>
               </div>
               <div className="p-4 overflow-x-auto">
-                <pre className="text-sm text-space-300 font-mono leading-relaxed">
+                <pre className="text-sm text-[var(--fs-txt)] font-mono leading-relaxed">
                   <code>{`curl -X GET \\
   https://api.shield.fluxlabs.net/v1/policies \\
   -H "Authorization: Bearer YOUR_API_TOKEN" \\
@@ -352,17 +337,17 @@ export default function ApiReferencePage() {
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success-900/50 text-success-300 border border-success-800/50">
                 200 OK
               </span>
-              <span className="text-space-500 text-sm">JSON response</span>
+              <span className="text-[var(--fs-mut)] text-sm">JSON response</span>
             </div>
-            <p className="text-space-400 text-sm mb-4">
+            <p className="text-[var(--fs-txt)] text-sm mb-4">
               Policy array with metadata returned as JSON.
             </p>
             <div className="bg-space-950 border border-space-800 rounded-xl overflow-hidden">
               <div className="bg-space-900 px-4 py-2.5 border-b border-space-800 flex items-center justify-between">
-                <span className="text-xs text-space-400 font-mono">application/json</span>
+                <span className="text-xs text-[var(--fs-txt)] font-mono">application/json</span>
               </div>
               <div className="p-4 overflow-x-auto">
-                <pre className="text-sm text-space-300 font-mono leading-relaxed">
+                <pre className="text-sm text-[var(--fs-txt)] font-mono leading-relaxed">
                   <code>{`{
   "success": true,
   "data": [
@@ -387,12 +372,12 @@ export default function ApiReferencePage() {
 
       {/* Rate Limits + Resources */}
       <div className="border-t border-space-800/50 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="section-container">
           <div className="grid lg:grid-cols-2 gap-6">
             {/* Rate Limits */}
-            <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8">
+            <div className="fs-card rounded-[14px] p-8">
               <h3 className="text-xl font-bold text-white mb-2">Rate Limits</h3>
-              <p className="text-space-400 text-sm mb-6">
+              <p className="text-[var(--fs-txt)] text-sm mb-6">
                 API rate limits are applied per API token based on your subscription plan:
               </p>
               <div className="space-y-4">
@@ -403,20 +388,20 @@ export default function ApiReferencePage() {
                     </span>
                     <div>
                       <span className="text-white font-medium text-sm">{tier.plan}</span>
-                      <span className="text-space-500 text-sm ml-2">&mdash; {tier.limit}</span>
+                      <span className="text-[var(--fs-mut)] text-sm ml-2">&mdash; {tier.limit}</span>
                     </div>
                   </div>
                 ))}
               </div>
-              <p className="mt-5 text-xs text-space-600">
-                Rate limit headers (<code className="text-space-500 font-mono">X-RateLimit-Remaining</code>,{' '}
-                <code className="text-space-500 font-mono">X-RateLimit-Reset</code>) are included in all responses.
+              <p className="mt-5 text-xs text-[var(--fs-mut)]">
+                Rate limit headers (<code className="text-[var(--fs-mut)] font-mono">X-RateLimit-Remaining</code>,{' '}
+                <code className="text-[var(--fs-mut)] font-mono">X-RateLimit-Reset</code>) are included in all responses.
                 Contact sales for custom limits.
               </p>
             </div>
 
             {/* Additional Resources */}
-            <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8">
+            <div className="fs-card rounded-[14px] p-8">
               <h3 className="text-xl font-bold text-white mb-6">Additional Resources</h3>
               <ul className="space-y-4">
                 {[
@@ -466,7 +451,7 @@ export default function ApiReferencePage() {
                             </svg>
                           )}
                         </div>
-                        <div className="text-space-500 text-xs mt-0.5">{resource.description}</div>
+                        <div className="text-[var(--fs-mut)] text-xs mt-0.5">{resource.description}</div>
                       </div>
                     </Link>
                   </li>
@@ -478,20 +463,20 @@ export default function ApiReferencePage() {
       </div>
 
       {/* CTA */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-        <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-12 text-center relative overflow-hidden">
+      <div className="section-container pb-24">
+        <div className="fs-card rounded-[14px] p-12 text-center relative overflow-hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-40 bg-primary-600/10 rounded-full blur-3xl pointer-events-none" />
           <div className="relative">
-            <p className="text-primary-400 text-xs font-semibold tracking-widest uppercase mb-4">START BUILDING</p>
+            <p className="fs-eyebrow mb-4">START BUILDING</p>
             <h2 className="text-3xl font-bold text-white mb-4">Ready to Start Building?</h2>
-            <p className="text-space-400 mb-8 max-w-xl mx-auto">
+            <p className="text-[var(--fs-txt)] mb-8 max-w-xl mx-auto">
               Generate your first API token and start integrating Flux Shield into your
               applications and automation workflows today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/dashboard/settings/api-keys"
-                className="bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow hover:shadow-glow-lg rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2 justify-center"
+                className="fs-btn fs-btn-primary fs-btn-lg no-underline px-6 py-3 transition-all inline-flex items-center gap-2 justify-center"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
@@ -502,7 +487,7 @@ export default function ApiReferencePage() {
                 href="https://api.shield.fluxlabs.net/docs"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-space-800 border border-space-700 text-white hover:bg-space-700 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2 justify-center"
+                className="fs-btn rounded-[10px] px-6 py-3 transition-all inline-flex items-center gap-2 justify-center"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
@@ -513,6 +498,6 @@ export default function ApiReferencePage() {
           </div>
         </div>
       </div>
-    </div>
+    </MarketingPageShell>
   )
 }

@@ -2,20 +2,23 @@
 // Configures MDX support and standalone build output
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
+const path = require('path')
+
 const withMDX = require('@next/mdx')({
   extension: /\.mdx?$/,
   options: {},
 })
 
+const workspaceRoot = path.join(__dirname, '..')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
   pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
   experimental: {
     externalDir: true,
   },
   turbopack: {
-    root: __dirname,
+    root: workspaceRoot,
   },
 };
 

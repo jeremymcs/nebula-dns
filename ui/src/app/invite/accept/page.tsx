@@ -102,7 +102,7 @@ function AcceptInviteContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-canvas dark:bg-space-950 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     );
@@ -110,8 +110,8 @@ function AcceptInviteContent() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+      <div className="min-h-screen bg-canvas dark:bg-space-950 flex items-center justify-center p-4">
+        <div className="fs-card p-8 max-w-md w-full text-center">
           <div className="w-16 h-16 bg-success-100 dark:bg-success-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-success-600 dark:text-success-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -123,7 +123,7 @@ function AcceptInviteContent() {
           </p>
           <Link
             href="/login"
-            className="block w-full px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700"
+            className="block w-full fs-btn fs-btn-primary fs-btn-lg text-center"
           >
             Go to Login
           </Link>
@@ -134,8 +134,8 @@ function AcceptInviteContent() {
 
   if (error && !inviteInfo) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+      <div className="min-h-screen bg-canvas dark:bg-space-950 flex items-center justify-center p-4">
+        <div className="fs-card p-8 max-w-md w-full text-center">
           <div className="w-16 h-16 bg-danger-100 dark:bg-danger-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-danger-600 dark:text-danger-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -156,8 +156,8 @@ function AcceptInviteContent() {
 
   if (inviteInfo?.isExpired) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+      <div className="min-h-screen bg-canvas dark:bg-space-950 flex items-center justify-center p-4">
+        <div className="fs-card p-8 max-w-md w-full text-center">
           <div className="w-16 h-16 bg-warning-100 dark:bg-warning-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-warning-600 dark:text-warning-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -179,8 +179,8 @@ function AcceptInviteContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-8 max-w-md w-full">
+    <div className="min-h-screen bg-canvas dark:bg-space-950 flex items-center justify-center p-4">
+      <div className="fs-card p-8 max-w-md w-full">
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -208,7 +208,7 @@ function AcceptInviteContent() {
               type="email"
               value={inviteInfo?.email || ''}
               disabled
-              className="w-full px-4 py-2 bg-space-100 dark:bg-space-700 border border-space-300 dark:border-space-600 rounded-lg text-space-500 dark:text-space-400"
+            className="w-full fs-input bg-space-50 dark:bg-space-800 text-mut"
             />
           </div>
 
@@ -218,7 +218,7 @@ function AcceptInviteContent() {
               type="text"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full px-4 py-2 border border-space-300 dark:border-space-600 bg-white dark:bg-space-700 text-space-900 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="fs-input"
               placeholder="Enter your full name"
               required
             />
@@ -230,7 +230,7 @@ function AcceptInviteContent() {
               type="password"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full px-4 py-2 border border-space-300 dark:border-space-600 bg-white dark:bg-space-700 text-space-900 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="fs-input"
               placeholder="Create a password"
               required
               minLength={8}
@@ -243,7 +243,7 @@ function AcceptInviteContent() {
               type="password"
               value={form.confirmPassword}
               onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-              className="w-full px-4 py-2 border border-space-300 dark:border-space-600 bg-white dark:bg-space-700 text-space-900 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="fs-input"
               placeholder="Confirm your password"
               required
             />
@@ -258,7 +258,7 @@ function AcceptInviteContent() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="fs-btn fs-btn-primary w-full fs-btn-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? 'Creating Account...' : 'Accept Invitation'}
           </button>
@@ -278,7 +278,7 @@ function AcceptInviteContent() {
 export default function AcceptInvitePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-canvas dark:bg-space-950 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     }>

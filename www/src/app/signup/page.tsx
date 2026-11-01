@@ -9,6 +9,9 @@ import Link from 'next/link'
 import { CheckIcon, CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid'
 import { API_URL, APP_URL } from '@/lib/config'
 import { ProductFooterInline } from '@/components/ProductFooter'
+import { MarketingPageShell, MarketingCard } from '@/components/marketing/MarketingPageShell'
+import { MarketingPageHero, MarketingSerifAccent } from '@/components/marketing/MarketingPageHero'
+import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
 
 interface Plan {
   id: string
@@ -37,9 +40,9 @@ const stepLabels = ['Account Details', 'Company Info', 'Review & Confirm']
 // --- Skeleton ---
 function SignupFormSkeleton() {
   return (
-    <div className="min-h-screen bg-space-950 py-12 px-4">
-      <div className="max-w-5xl mx-auto">
-        <div className="animate-pulse">
+    <MarketingPageShell>
+      <div className="section-container py-12">
+        <div className="mx-auto max-w-5xl animate-pulse">
           <div className="h-8 bg-space-800 rounded-xl w-1/2 mx-auto mb-10" />
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
@@ -61,7 +64,7 @@ function SignupFormSkeleton() {
           </div>
         </div>
       </div>
-    </div>
+    </MarketingPageShell>
   )
 }
 
@@ -214,39 +217,36 @@ function SignupFormContent() {
   // --- Success Screen ---
   if (success) {
     return (
-      <div className="min-h-screen bg-space-950 flex items-center justify-center px-4">
-        {/* Atmospheric orbs */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-success-700/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-primary-700/15 rounded-full blur-3xl" />
-        </div>
-
-        <div className="relative max-w-md w-full text-center">
-          <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-10">
-            <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 bg-gradient-to-br from-success-600 to-success-500 shadow-[0_0_30px_rgba(5,150,105,0.4)]">
-              <CheckCircleIcon className="h-10 w-10 text-white" />
+      <MarketingPageShell>
+        <div className="section-container flex min-h-[70vh] items-center justify-center py-16">
+          <MarketingCard className="max-w-md w-full p-10 text-center">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--fs-success-soft)] text-[var(--fs-success)]">
+              <CheckCircleIcon className="h-10 w-10" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-3">Welcome to Flux Shield!</h2>
-            <p className="text-space-400 mb-6">
+            <h2 className="text-2xl font-semibold text-ink mb-3">Welcome to Flux Shield!</h2>
+            <p className="text-[var(--fs-txt)] mb-6">
               Your account has been created successfully. Check your email for a welcome message with getting started instructions.
             </p>
-            <p className="text-sm text-space-500">Redirecting to your dashboard...</p>
-          </div>
+            <p className="text-sm text-[var(--fs-mut)]">Redirecting to your dashboard...</p>
+          </MarketingCard>
         </div>
-      </div>
+      </MarketingPageShell>
     )
   }
 
   // --- Multi-Step Form ---
   return (
-    <div className="min-h-screen bg-space-950 py-12 px-4">
-      {/* Atmospheric orbs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-32 -left-32 w-80 h-80 bg-primary-700/20 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 -right-24 w-64 h-64 bg-accent-700/15 rounded-full blur-3xl" />
-      </div>
-
-      <div className="relative max-w-5xl mx-auto">
+    <MarketingPageShell>
+      <MarketingPageHero
+        eyebrow="Get started"
+        title={
+          <>
+            Start your <MarketingSerifAccent>free trial</MarketingSerifAccent>
+          </>
+        }
+        lede="Create your account in a few steps. No credit card required for the 14-day trial."
+      />
+      <div className="section-container py-12 pb-16">
         {/* Step Indicator */}
         <div className="mb-10">
           <div className="flex items-center justify-center">
@@ -263,7 +263,7 @@ function SignupFormContent() {
                           ? 'bg-success-600 text-white'
                           : isActive
                           ? 'bg-primary-600 text-white shadow-glow-sm'
-                          : 'bg-space-700 text-space-400'
+                          : 'bg-space-700 text-[var(--fs-txt)]'
                       }`}
                     >
                       {isCompleted ? (
@@ -274,7 +274,7 @@ function SignupFormContent() {
                     </div>
                     <span
                       className={`mt-2 text-xs font-medium hidden sm:block ${
-                        isActive ? 'text-white' : isCompleted ? 'text-success-400' : 'text-space-500'
+                        isActive ? 'text-white' : isCompleted ? 'text-success-400' : 'text-[var(--fs-mut)]'
                       }`}
                     >
                       {label}
@@ -291,7 +291,7 @@ function SignupFormContent() {
               )
             })}
           </div>
-          <p className="text-center text-sm text-space-500 mt-1 sm:hidden">
+          <p className="text-center text-sm text-[var(--fs-mut)] mt-1 sm:hidden">
             Step {step} of 3: {stepLabels[step - 1]}
           </p>
         </div>
@@ -299,7 +299,7 @@ function SignupFormContent() {
         <div className="grid lg:grid-cols-3 gap-8 items-start">
           {/* Form Panel */}
           <div className="lg:col-span-2">
-            <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-8">
+            <div className="fs-card rounded-[14px] p-8">
               <form onSubmit={handleSubmit}>
                 {/* Error Banner */}
                 {error && (
@@ -312,10 +312,10 @@ function SignupFormContent() {
                 {/* Step 1: Account Details */}
                 {step === 1 && (
                   <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-white">Create Your Account</h2>
+                    <h2 className="text-2xl font-bold text-ink">Create Your Account</h2>
 
                     <div>
-                      <label className="block text-sm font-medium text-space-300 mb-2">
+                      <label className="block text-sm font-medium text-[var(--fs-txt)] mb-2">
                         Email Address <span className="text-primary-400">*</span>
                       </label>
                       <input
@@ -323,14 +323,14 @@ function SignupFormContent() {
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full"
+                        className="fs-input"
                         placeholder="you@company.com"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-space-300 mb-2">
+                      <label className="block text-sm font-medium text-[var(--fs-txt)] mb-2">
                         Password <span className="text-primary-400">*</span>
                       </label>
                       <input
@@ -338,14 +338,14 @@ function SignupFormContent() {
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full"
+                        className="fs-input"
                         placeholder="At least 8 characters"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-space-300 mb-2">
+                      <label className="block text-sm font-medium text-[var(--fs-txt)] mb-2">
                         Confirm Password <span className="text-primary-400">*</span>
                       </label>
                       <input
@@ -353,7 +353,7 @@ function SignupFormContent() {
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleChange}
-                        className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full"
+                        className="fs-input"
                         placeholder="Repeat your password"
                         required
                       />
@@ -364,10 +364,10 @@ function SignupFormContent() {
                 {/* Step 2: Company Info */}
                 {step === 2 && (
                   <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-white">Tell Us About Your Organization</h2>
+                    <h2 className="text-2xl font-bold text-ink">Tell Us About Your Organization</h2>
 
                     <div>
-                      <label className="block text-sm font-medium text-space-300 mb-2">
+                      <label className="block text-sm font-medium text-[var(--fs-txt)] mb-2">
                         Full Name <span className="text-primary-400">*</span>
                       </label>
                       <input
@@ -375,14 +375,14 @@ function SignupFormContent() {
                         name="fullName"
                         value={formData.fullName}
                         onChange={handleChange}
-                        className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full"
+                        className="fs-input"
                         placeholder="John Smith"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-space-300 mb-2">
+                      <label className="block text-sm font-medium text-[var(--fs-txt)] mb-2">
                         Company Name <span className="text-primary-400">*</span>
                       </label>
                       <input
@@ -390,7 +390,7 @@ function SignupFormContent() {
                         name="companyName"
                         value={formData.companyName}
                         onChange={handleChange}
-                        className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full"
+                        className="fs-input"
                         placeholder="Acme Corporation"
                         required
                       />
@@ -398,12 +398,12 @@ function SignupFormContent() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-space-300 mb-2">Industry</label>
+                        <label className="block text-sm font-medium text-[var(--fs-txt)] mb-2">Industry</label>
                         <select
                           name="industry"
                           value={formData.industry}
                           onChange={handleChange}
-                          className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full"
+                          className="fs-input"
                         >
                           <option value="">Select...</option>
                           <option value="technology">Technology</option>
@@ -418,12 +418,12 @@ function SignupFormContent() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-space-300 mb-2">Company Size</label>
+                        <label className="block text-sm font-medium text-[var(--fs-txt)] mb-2">Company Size</label>
                         <select
                           name="companySize"
                           value={formData.companySize}
                           onChange={handleChange}
-                          className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full"
+                          className="fs-input"
                         >
                           <option value="">Select...</option>
                           <option value="1-10">1-10 employees</option>
@@ -436,12 +436,12 @@ function SignupFormContent() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-space-300 mb-2">Country</label>
+                      <label className="block text-sm font-medium text-[var(--fs-txt)] mb-2">Country</label>
                       <select
                         name="country"
                         value={formData.country}
                         onChange={handleChange}
-                        className="bg-space-900 border border-space-700 rounded-xl px-4 py-3 text-white placeholder-space-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full"
+                        className="fs-input"
                       >
                         <option value="">Select...</option>
                         <option value="US">United States</option>
@@ -459,7 +459,7 @@ function SignupFormContent() {
                 {/* Step 3: Review & Confirm */}
                 {step === 3 && (
                   <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-white">Review & Confirm</h2>
+                    <h2 className="text-2xl font-bold text-ink">Review & Confirm</h2>
 
                     <div className="bg-space-900 border border-space-700/60 rounded-xl p-5 space-y-3">
                       {[
@@ -470,7 +470,7 @@ function SignupFormContent() {
                         { label: 'Billing', value: formData.billingCycle.charAt(0).toUpperCase() + formData.billingCycle.slice(1) },
                       ].map(({ label, value }) => (
                         <div key={label} className="flex justify-between items-center text-sm">
-                          <span className="text-space-400">{label}</span>
+                          <span className="text-[var(--fs-txt)]">{label}</span>
                           <span className="font-medium text-white">{value || '—'}</span>
                         </div>
                       ))}
@@ -485,7 +485,7 @@ function SignupFormContent() {
                         onChange={handleChange}
                         className="mt-1 h-4 w-4 rounded border-space-600 bg-space-900 text-primary-600 focus:ring-primary-500 focus:ring-offset-0"
                       />
-                      <label htmlFor="agreeTerms" className="text-sm text-space-400">
+                      <label htmlFor="agreeTerms" className="text-sm text-[var(--fs-txt)]">
                         I agree to the{' '}
                         <Link href="/terms" className="text-primary-400 hover:text-primary-300 underline underline-offset-2">
                           Terms of Service
@@ -505,7 +505,7 @@ function SignupFormContent() {
                     <button
                       type="button"
                       onClick={() => { setStep(step - 1); setError('') }}
-                      className="px-6 py-3 rounded-xl border border-space-700 text-space-300 font-semibold text-sm hover:bg-space-800 hover:border-space-600 hover:text-white transition-all"
+                      className="px-6 py-3 rounded-xl border border-space-700 text-[var(--fs-txt)] font-semibold text-sm hover:bg-space-800 hover:border-space-600 hover:text-white transition-all"
                     >
                       Back
                     </button>
@@ -530,7 +530,7 @@ function SignupFormContent() {
               </form>
             </div>
 
-            <p className="text-center mt-6 text-space-500 text-sm">
+            <p className="text-center mt-6 text-[var(--fs-mut)] text-sm">
               Already have an account?{' '}
               <a href={APP_URL} className="text-primary-400 font-medium hover:text-primary-300">
                 Sign in
@@ -540,8 +540,8 @@ function SignupFormContent() {
 
           {/* Order Summary Panel */}
           <div className="lg:col-span-1">
-            <div className="bg-space-900/60 backdrop-blur-sm border border-space-700/50 rounded-2xl p-6 sticky top-24">
-              <h3 className="text-base font-semibold text-white mb-5">Order Summary</h3>
+            <div className="fs-card rounded-[14px] p-6 sticky top-24">
+              <h3 className="text-base font-semibold text-ink mb-5">Order Summary</h3>
 
               {/* Plan Selection */}
               <div className="space-y-2 mb-5">
@@ -564,7 +564,7 @@ function SignupFormContent() {
                     />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-white">{plan.name}</div>
-                      <div className="text-xs text-space-500">
+                      <div className="text-xs text-[var(--fs-mut)]">
                         {plan.priceMonthly === 0
                           ? 'Free'
                           : `$${formData.billingCycle === 'yearly' ? plan.priceYearly : plan.priceMonthly}/${formData.billingCycle === 'yearly' ? 'yr' : 'mo'}`}
@@ -583,7 +583,7 @@ function SignupFormContent() {
                     className={`flex-1 py-1.5 text-xs font-medium rounded-full transition-all ${
                       formData.billingCycle === 'monthly'
                         ? 'bg-primary-600 text-white'
-                        : 'text-space-400 hover:text-white'
+                        : 'text-[var(--fs-txt)] hover:text-white'
                     }`}
                   >
                     Monthly
@@ -594,7 +594,7 @@ function SignupFormContent() {
                     className={`flex-1 py-1.5 text-xs font-medium rounded-full transition-all ${
                       formData.billingCycle === 'yearly'
                         ? 'bg-primary-600 text-white'
-                        : 'text-space-400 hover:text-white'
+                        : 'text-[var(--fs-txt)] hover:text-white'
                     }`}
                   >
                     Yearly
@@ -612,7 +612,7 @@ function SignupFormContent() {
                 <div className="mb-5 pt-4 border-t border-space-700/50">
                   <ul className="space-y-2">
                     {features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-2 text-xs text-space-400">
+                      <li key={i} className="flex items-start gap-2 text-xs text-[var(--fs-txt)]">
                         <CheckIcon className="h-3.5 w-3.5 text-success-400 flex-shrink-0 mt-0.5" />
                         {feature}
                       </li>
@@ -624,7 +624,7 @@ function SignupFormContent() {
               {/* Price Breakdown */}
               <div className="border-t border-space-700/50 pt-4 space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-space-400">Subtotal</span>
+                  <span className="text-[var(--fs-txt)]">Subtotal</span>
                   <span className="text-white font-medium">
                     {price === 0 ? 'Free' : `$${price.toFixed(2)}`}
                   </span>
@@ -642,7 +642,7 @@ function SignupFormContent() {
               </div>
 
               {price > 0 && (
-                <p className="text-xs text-space-500 mt-4 leading-relaxed">
+                <p className="text-xs text-[var(--fs-mut)] mt-4 leading-relaxed">
                   Your card will be charged ${price.toFixed(2)} after your 14-day trial ends. Cancel anytime.
                 </p>
               )}
@@ -651,7 +651,7 @@ function SignupFormContent() {
         </div>
       </div>
       <ProductFooterInline />
-    </div>
+    </MarketingPageShell>
   )
 }
 
