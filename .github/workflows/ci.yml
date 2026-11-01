@@ -160,7 +160,7 @@ jobs:
           JWT_SECRET: test-jwt-secret
           ADMIN_JWT_SECRET: test-admin-jwt-secret
           NODE_ENV: test
-          RATE_LIMIT_ENABLED: 'false'
+          DISABLE_RATE_LIMIT: 'true'
 
       - name: Upload coverage
         uses: codecov/codecov-action@v3
