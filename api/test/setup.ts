@@ -7,6 +7,8 @@
 
 // Set test environment
 process.env.NODE_ENV = 'test';
+// Parallel e2e suites share one Redis; disable distributed rate limits for stability
+process.env.DISABLE_REDIS_RATE_LIMIT = 'true';
 process.env.ADMIN_JWT_SECRET =
   process.env.ADMIN_JWT_SECRET || 'test-admin-jwt-secret-for-e2e';
 
