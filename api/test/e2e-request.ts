@@ -3,7 +3,7 @@
  * Uses a unique client IP per HTTP verb so strict login rate limits do not flake across suites.
  */
 
-import request from 'supertest';
+import * as request from 'supertest';
 
 type HttpMethod = 'get' | 'post' | 'patch' | 'put' | 'delete' | 'options';
 
