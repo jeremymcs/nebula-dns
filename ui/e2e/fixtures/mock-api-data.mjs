@@ -118,11 +118,22 @@ export function getMockResponse(rawUrl, method = 'GET', authHeader = '') {
   }
 
   if (pathname.startsWith('/auth/organizations')) {
+    const sampleOrgs =
+      tier === 'msp'
+        ? [
+            {
+              id: 'client-1',
+              name: 'Acme Corp',
+              slug: 'acme-corp',
+              status: 'active',
+            },
+          ]
+        : []
     return json({
       isMsp: tier === 'msp',
       partnerId: tier === 'msp' ? 'msp-partner-1' : null,
-      currentOrg: null,
-      organizations: [],
+      currentOrg: sampleOrgs[0] ?? null,
+      organizations: sampleOrgs,
     })
   }
 
@@ -232,16 +243,32 @@ export function getMockResponse(rawUrl, method = 'GET', authHeader = '') {
     })
   }
 
-  if (pathname.startsWith('/users') || pathname.startsWith('/team')) {
+  if (pathname.startsWith('/invitations')) {
     if (method === 'POST') {
       return json({
-        id: 'user-invite-e2e',
-        email: 'invited@example.com',
-        role: 'readonly',
+        id: 'invitation-e2e-1',
+        email: 'newmember@example.com',
+        role: 'analyst',
         status: 'pending',
       })
     }
-    return json({ data: [tierUsers[tier]], pagination: { cursor: null, hasMore: false } })
+    return json(emptyPage)
+  }
+
+  if (pathname.startsWith('/users') || pathname.startsWith('/team')) {
+    const member = tierUsers[tier] || tierUsers.enterprise
+    return json({
+      data: [
+        {
+          id: member.id,
+          name: member.name,
+          email: member.email,
+          role: member.role || 'admin',
+          status: 'active',
+        },
+      ],
+      pagination: { cursor: null, hasMore: false },
+    })
   }
 
   if (pathname.startsWith('/scheduled-reports')) {
@@ -253,10 +280,24 @@ export function getMockResponse(rawUrl, method = 'GET', authHeader = '') {
           schedule: '0 9 * * 1',
           format: 'pdf',
           isEnabled: true,
+          nextRunAt: new Date(Date.now() + 86400000).toISOString(),
         },
       })
     }
-    return json(emptyPage)
+    return json({
+      data: [
+        {
+          id: 'sched-1',
+          name: 'Weekly Security Summary',
+          schedule: '0 9 * * 1',
+          format: 'pdf',
+          isEnabled: true,
+          nextRunAt: new Date(Date.now() + 86400000).toISOString(),
+          recipients: ['admin@example.com'],
+        },
+      ],
+      pagination: { cursor: null, hasMore: false },
+    })
   }
 
   if (pathname.startsWith('/reports/dashboard/home')) {
@@ -346,8 +387,12 @@ export function getMockResponse(rawUrl, method = 'GET', authHeader = '') {
     return json({ score: 82, grade: 'B', factors: [] })
   }
 
-  if (pathname.startsWith('/reports/insights') || pathname.startsWith('/reports/')) {
+  if (pathname.startsWith('/reports/insights')) {
     return json({ highlights: [] })
+  }
+
+  if (pathname.startsWith('/reports/export')) {
+    return json({ ok: true, url: '/exports/report-e2e.csv' })
   }
 
   if (pathname.startsWith('/api/v1/limits/usage/export')) {
@@ -466,6 +511,20 @@ export function getMockResponse(rawUrl, method = 'GET', authHeader = '') {
   }
 
   if (pathname.startsWith('/msp/clients')) {
+    if (method === 'POST') {
+      return json({
+        client: {
+          id: `client-${Date.now()}`,
+          name: 'New Test Client',
+          slug: 'new-test-client',
+          status: 'active',
+          plan: 'enterprise',
+          locationCount: 0,
+          userCount: 1,
+          createdAt: new Date().toISOString(),
+        },
+      })
+    }
     return json({
       clients: [
         {

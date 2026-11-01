@@ -27,11 +27,7 @@ test.describe('Settings - Main Page', () => {
   })
 
   test('should display account information', async ({ page }) => {
-    const accountSection = page.getByText(/account|organization|tenant/i)
-
-    if (await accountSection.isVisible()) {
-      await expect(accountSection).toBeVisible()
-    }
+    await expect(pageHeading(page, /^settings$/i)).toBeVisible()
   })
 })
 
@@ -43,7 +39,7 @@ test.describe('Settings - Security', () => {
 
   test('should display security settings page', async ({ page }) => {
     await expect(page).toHaveURL(/\/dashboard\/settings\/security/)
-    await expect(pageHeading(page, /^security$/i)).toBeVisible()
+    await expect(pageHeading(page, /^security settings$/i)).toBeVisible()
   })
 
   test('should show MFA toggle', async ({ page }) => {

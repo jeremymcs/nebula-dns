@@ -1,0 +1,119 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - navigation [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]:
+            - link "Flux Shield" [ref=e8] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e10]
+              - generic [ref=e15]: Flux Shield
+            - button "Switch platform module" [ref=e17] [cursor=pointer]:
+              - text: DNS Filter
+              - img [ref=e18]
+            - generic [ref=e20]:
+              - img [ref=e22]
+              - generic [ref=e24]: Enterprise Corp
+          - generic [ref=e25]:
+            - link "Policies" [ref=e26] [cursor=pointer]:
+              - /url: /dashboard/policies
+              - img [ref=e27]
+              - text: Policies
+            - link "Zones" [ref=e29] [cursor=pointer]:
+              - /url: /dashboard/locations
+              - img [ref=e30]
+              - text: Zones
+            - link "Investigate" [ref=e33] [cursor=pointer]:
+              - /url: /dashboard/investigate
+              - img [ref=e34]
+              - text: Investigate
+            - link "Reports" [ref=e36] [cursor=pointer]:
+              - /url: /dashboard/reports
+              - img [ref=e37]
+              - text: Reports
+            - link "Insights" [ref=e39] [cursor=pointer]:
+              - /url: /dashboard/insights
+              - img [ref=e40]
+              - text: Insights
+            - link "Playbooks" [ref=e42] [cursor=pointer]:
+              - /url: /dashboard/playbooks
+              - img [ref=e43]
+              - text: Playbooks
+          - generic [ref=e45]:
+            - button "Open command bar" [ref=e46] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e49]: ⌘K
+            - button "Toggle theme" [ref=e50] [cursor=pointer]:
+              - img [ref=e51]
+            - button "Account menu" [ref=e53] [cursor=pointer]:
+              - generic [ref=e55]: EU
+              - generic [ref=e56]: Enterprise
+              - img [ref=e57]
+    - main [ref=e59]:
+      - navigation [ref=e60]:
+        - link "Dashboard" [ref=e62] [cursor=pointer]:
+          - /url: /dashboard
+        - generic [ref=e63]:
+          - img [ref=e64]
+          - link "Settings" [ref=e66] [cursor=pointer]:
+            - /url: /dashboard/settings
+        - generic [ref=e67]:
+          - img [ref=e68]
+          - generic [ref=e70]: Team
+      - generic [ref=e72]:
+        - generic [ref=e73]:
+          - generic [ref=e74]:
+            - heading "Team Members" [level=1] [ref=e75]
+            - paragraph [ref=e76]: Manage who has access to your Nebula DNS dashboard
+          - generic [ref=e77]:
+            - button "Bulk Invite" [ref=e78] [cursor=pointer]
+            - button "Invite Member" [ref=e79] [cursor=pointer]
+        - generic [ref=e80]:
+          - generic [ref=e81]:
+            - generic [ref=e82]: Owner
+            - paragraph [ref=e83]: Full access including billing and team management
+          - generic [ref=e84]:
+            - generic [ref=e85]: Admin
+            - paragraph [ref=e86]: Manage policies, locations, and users
+          - generic [ref=e87]:
+            - generic [ref=e88]: Analyst
+            - paragraph [ref=e89]: View reports and analytics, manage lists
+          - generic [ref=e90]:
+            - generic [ref=e91]: Read Only
+            - paragraph [ref=e92]: View-only access to dashboard
+        - table [ref=e95]:
+          - rowgroup [ref=e96]:
+            - row "Member Role Status Last Active Actions" [ref=e97]:
+              - columnheader "Member" [ref=e98]
+              - columnheader "Role" [ref=e99]
+              - columnheader "Status" [ref=e100]
+              - columnheader "Last Active" [ref=e101]
+              - columnheader "Actions" [ref=e102]
+          - rowgroup [ref=e103]:
+            - row "E Pending Invitation enterprise_user@test.com Admin Active - Edit Role Remove" [ref=e104]:
+              - cell "E Pending Invitation enterprise_user@test.com" [ref=e105]:
+                - generic [ref=e106]:
+                  - generic [ref=e107]: E
+                  - generic [ref=e108]:
+                    - generic [ref=e109]: Pending Invitation
+                    - generic [ref=e110]: enterprise_user@test.com
+              - cell "Admin" [ref=e111]
+              - cell "Active" [ref=e112]
+              - cell "-" [ref=e113]
+              - cell "Edit Role Remove" [ref=e114]:
+                - generic [ref=e115]:
+                  - button "Edit Role" [ref=e116] [cursor=pointer]
+                  - button "Remove" [ref=e117] [cursor=pointer]
+    - contentinfo "Site footer" [ref=e118]:
+      - paragraph [ref=e119]:
+        - text: © 2026 · Powered by
+        - link "Flux Labs" [ref=e120] [cursor=pointer]:
+          - /url: https://fluxlabs.net
+    - button [ref=e121] [cursor=pointer]:
+      - img [ref=e124]
+    - generic [ref=e126]: Meet Orion- Your AI Co-Pilot
+```

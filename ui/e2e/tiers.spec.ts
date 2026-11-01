@@ -55,7 +55,7 @@ test.describe('US-037: Home Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/reports/)
-    await expect(pageHeading(page, /^reports$/i)).toBeVisible()
+    await expect(pageHeading(page, /reports & analytics/i)).toBeVisible()
   })
 
   test('should access agents page (roaming protection)', async ({ page }) => {
@@ -63,7 +63,7 @@ test.describe('US-037: Home Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/agents/)
-    await expect(pageHeading(page, /^agents$/i)).toBeVisible()
+    await expect(pageHeading(page, /client agents/i)).toBeVisible()
   })
 
   test('should NOT access SIEM page', async ({ page }) => {
@@ -222,7 +222,7 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/playbooks/)
-    await expect(pageHeading(page, /^playbooks$/i)).toBeVisible()
+    await expect(pageHeading(page, /incident playbooks/i)).toBeVisible()
   })
 
   test('should access Policy Builder page', async ({ page }) => {
@@ -238,7 +238,7 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/templates/)
-    await expect(pageHeading(page, /^templates$/i)).toBeVisible()
+    await expect(pageHeading(page, /policy templates/i)).toBeVisible()
   })
 
   test('should access AI Insights page', async ({ page }) => {
@@ -246,7 +246,7 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
     await waitForPageLoad(page)
 
     await expect(page).toHaveURL(/\/dashboard\/insights/)
-    await expect(pageHeading(page, /^insights$/i)).toBeVisible()
+    await expect(pageHeading(page, /ai insights/i)).toBeVisible()
   })
 
   test('should NOT access MSP Clients page', async ({ page }) => {
@@ -268,15 +268,17 @@ test.describe('US-037: Enterprise Tier Feature Access', () => {
   })
 
   test('navigation should show enterprise features', async ({ page }) => {
-    await page.goto('/dashboard')
+    await page.goto('/dashboard/settings')
     await waitForPageLoad(page)
 
-    // Check that enterprise features are visible in nav
-    const siemNav = page.getByRole('link', { name: /siem/i })
-    const apiKeysNav = page.getByRole('link', { name: /api keys/i })
+    const integrationsLink = page.getByRole('link', { name: /integrations/i })
+    const ssoLink = page.getByRole('link', { name: /sso|single sign-on/i })
+    const apiKeysLink = page.getByRole('link', { name: /api keys/i })
 
-    // At least some enterprise features should be accessible
-    const hasEnterpriseNav = await siemNav.count() > 0 || await apiKeysNav.count() > 0
+    const hasEnterpriseNav =
+      (await integrationsLink.count()) > 0 ||
+      (await ssoLink.count()) > 0 ||
+      (await apiKeysLink.count()) > 0
     expect(hasEnterpriseNav).toBeTruthy()
   })
 
@@ -444,13 +446,13 @@ test.describe('US-037: Tier Navigation Visibility', () => {
 
   test('Enterprise tier navigation shows enterprise features', async ({ page }) => {
     await loginAsEnterprise(page)
-    await page.goto('/dashboard')
+    await page.goto('/dashboard/settings')
     await waitForPageLoad(page)
 
-    // At least some enterprise features should be in nav
     const hasEnterpriseFeatures =
-      await page.getByRole('link', { name: /security/i }).count() > 0 ||
-      await page.getByRole('link', { name: /integrations/i }).count() > 0
+      (await page.getByRole('link', { name: /integrations/i }).count()) > 0 ||
+      (await page.getByRole('link', { name: /api keys/i }).count()) > 0 ||
+      (await page.getByRole('link', { name: /sso/i }).count()) > 0
 
     expect(hasEnterpriseFeatures).toBeTruthy()
   })

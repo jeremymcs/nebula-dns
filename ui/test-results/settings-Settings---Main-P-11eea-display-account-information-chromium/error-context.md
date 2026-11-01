@@ -1,0 +1,152 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - navigation [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]:
+            - link "Flux Shield" [ref=e8] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e10]
+              - generic [ref=e15]: Flux Shield
+            - button "Switch platform module" [ref=e17] [cursor=pointer]:
+              - text: DNS Filter
+              - img [ref=e18]
+            - generic [ref=e20]:
+              - img [ref=e22]
+              - generic [ref=e24]: Enterprise Corp
+          - generic [ref=e25]:
+            - link "Policies" [ref=e26] [cursor=pointer]:
+              - /url: /dashboard/policies
+              - img [ref=e27]
+              - text: Policies
+            - link "Zones" [ref=e29] [cursor=pointer]:
+              - /url: /dashboard/locations
+              - img [ref=e30]
+              - text: Zones
+            - link "Investigate" [ref=e33] [cursor=pointer]:
+              - /url: /dashboard/investigate
+              - img [ref=e34]
+              - text: Investigate
+            - link "Reports" [ref=e36] [cursor=pointer]:
+              - /url: /dashboard/reports
+              - img [ref=e37]
+              - text: Reports
+            - link "Insights" [ref=e39] [cursor=pointer]:
+              - /url: /dashboard/insights
+              - img [ref=e40]
+              - text: Insights
+            - link "Playbooks" [ref=e42] [cursor=pointer]:
+              - /url: /dashboard/playbooks
+              - img [ref=e43]
+              - text: Playbooks
+          - generic [ref=e45]:
+            - button "Open command bar" [ref=e46] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e49]: ⌘K
+            - button "Toggle theme" [ref=e50] [cursor=pointer]:
+              - img [ref=e51]
+            - button "Account menu" [ref=e53] [cursor=pointer]:
+              - generic [ref=e55]: EU
+              - generic [ref=e56]: Enterprise
+              - img [ref=e57]
+    - main [ref=e59]:
+      - navigation [ref=e60]:
+        - link "Dashboard" [ref=e62] [cursor=pointer]:
+          - /url: /dashboard
+        - generic [ref=e63]:
+          - img [ref=e64]
+          - generic [ref=e66]: Settings
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - heading "Settings" [level=1] [ref=e70]
+          - paragraph [ref=e71]: Manage your organization settings and preferences
+        - generic [ref=e72]:
+          - link "Team Members Manage users and invitations" [ref=e73] [cursor=pointer]:
+            - /url: /dashboard/settings/team
+            - generic [ref=e75]:
+              - img [ref=e77]
+              - generic [ref=e79]:
+                - heading "Team Members" [level=3] [ref=e80]
+                - paragraph [ref=e81]: Manage users and invitations
+          - link "API Keys Manage API access tokens" [ref=e82] [cursor=pointer]:
+            - /url: /dashboard/settings/api-keys
+            - generic [ref=e84]:
+              - img [ref=e86]
+              - generic [ref=e88]:
+                - heading "API Keys" [level=3] [ref=e89]
+                - paragraph [ref=e90]: Manage API access tokens
+          - link "Integrations SIEM, webhooks, and third-party apps" [ref=e91] [cursor=pointer]:
+            - /url: /dashboard/settings/integrations
+            - generic [ref=e93]:
+              - img [ref=e95]
+              - generic [ref=e97]:
+                - heading "Integrations" [level=3] [ref=e98]
+                - paragraph [ref=e99]: SIEM, webhooks, and third-party apps
+          - link "Security MFA, sessions, and access control" [ref=e100] [cursor=pointer]:
+            - /url: /dashboard/settings/security
+            - generic [ref=e102]:
+              - img [ref=e104]
+              - generic [ref=e106]:
+                - heading "Security" [level=3] [ref=e107]
+                - paragraph [ref=e108]: MFA, sessions, and access control
+          - link "Single Sign-On Configure SAML and OIDC" [ref=e109] [cursor=pointer]:
+            - /url: /dashboard/settings/sso
+            - generic [ref=e111]:
+              - img [ref=e113]
+              - generic [ref=e115]:
+                - heading "Single Sign-On" [level=3] [ref=e116]
+                - paragraph [ref=e117]: Configure SAML and OIDC
+        - generic [ref=e118]:
+          - navigation [ref=e119]:
+            - generic [ref=e121]:
+              - button "General" [ref=e122] [cursor=pointer]:
+                - img [ref=e123]
+                - text: General
+              - button "Notifications" [ref=e125] [cursor=pointer]:
+                - img [ref=e126]
+                - text: Notifications
+              - button "DNS Settings" [ref=e128] [cursor=pointer]:
+                - img [ref=e129]
+                - text: DNS Settings
+              - button "Billing" [ref=e131] [cursor=pointer]:
+                - img [ref=e132]
+                - text: Billing
+          - generic [ref=e135]:
+            - heading "General Settings" [level=2] [ref=e136]
+            - generic [ref=e137]:
+              - generic [ref=e138]:
+                - generic [ref=e139]: Organization Name
+                - textbox [ref=e141]
+              - generic [ref=e142]:
+                - generic [ref=e143]:
+                  - generic [ref=e144]: Organization Slug
+                  - textbox [disabled] [ref=e146]
+                - paragraph [ref=e147]: Used in URLs and API calls
+              - generic [ref=e148]:
+                - generic [ref=e149]: Contact Email
+                - textbox [ref=e151]
+              - generic [ref=e152]:
+                - generic [ref=e153]: Timezone
+                - combobox [ref=e154]:
+                  - option "UTC" [selected]
+                  - option "America/New_York"
+                  - option "America/Los_Angeles"
+                  - option "America/Chicago"
+                  - option "Europe/London"
+                  - option "Europe/Paris"
+                  - option "Asia/Tokyo"
+                  - option "Australia/Sydney"
+              - button "Save Changes" [ref=e156] [cursor=pointer]
+    - contentinfo "Site footer" [ref=e157]:
+      - paragraph [ref=e158]:
+        - text: © 2026 · Powered by
+        - link "Flux Labs" [ref=e159] [cursor=pointer]:
+          - /url: https://fluxlabs.net
+    - button [ref=e160] [cursor=pointer]:
+      - img [ref=e163]
+    - generic [ref=e165]: Meet Orion- Your AI Co-Pilot
+```

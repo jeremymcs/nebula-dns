@@ -17,12 +17,7 @@ test.describe('Reports - Main Page', () => {
   })
 
   test('should display query metrics', async ({ page }) => {
-    // Look for key metrics
-    const totalQueries = page.getByText(/total queries|query count/i)
-    const blockedQueries = page.getByText(/blocked|threats blocked/i)
-
-    const hasMetrics = await totalQueries.isVisible() || await blockedQueries.isVisible()
-    expect(hasMetrics).toBeTruthy()
+    await expect(page.getByText(/total queries/i).first()).toBeVisible({ timeout: 15000 })
   })
 
   test('should render analytics charts', async ({ page }) => {
@@ -267,24 +262,16 @@ test.describe('Reports - Scheduled Reports', () => {
     await loginAndNavigate(page, '/dashboard/reports/scheduled')
     await waitForPageLoad(page)
 
-    const reportsList = page.getByRole('table').or(page.locator('[data-testid="scheduled-reports"]'))
-    const hasList = await reportsList.isVisible().catch(() => false)
-
-    if (hasList) {
-      await expect(reportsList).toBeVisible()
-    } else {
-      const emptyState = page.getByText(/no scheduled reports|create your first/i)
-      if (await emptyState.isVisible()) {
-        await expect(emptyState).toBeVisible()
-      }
-    }
+    await expect(page.getByText(/weekly security summary|no scheduled reports|schedule report/i).first()).toBeVisible({
+      timeout: 10000,
+    })
   })
 
   test('should have create scheduled report button', async ({ page }) => {
     await loginAndNavigate(page, '/dashboard/reports/scheduled')
     await waitForPageLoad(page)
 
-    const createButton = page.getByRole('button', { name: /create|new|schedule report/i })
+    const createButton = page.getByRole('button', { name: /new scheduled report|create your first report|schedule report/i })
     await expect(createButton).toBeVisible()
   })
 
@@ -292,7 +279,7 @@ test.describe('Reports - Scheduled Reports', () => {
     await loginAndNavigate(page, '/dashboard/reports/scheduled')
     await waitForPageLoad(page)
 
-    const createButton = page.getByRole('button', { name: /create|new|schedule report/i })
+    const createButton = page.getByRole('button', { name: /new scheduled report|create your first report|schedule report/i })
     await createButton.click()
 
     // Should show form with schedule options
@@ -304,7 +291,7 @@ test.describe('Reports - Scheduled Reports', () => {
     await loginAndNavigate(page, '/dashboard/reports/scheduled')
     await waitForPageLoad(page)
 
-    const createButton = page.getByRole('button', { name: /create|new|schedule report/i })
+    const createButton = page.getByRole('button', { name: /new scheduled report|create your first report|schedule report/i })
     await createButton.click()
 
     // Look for frequency selector
@@ -330,7 +317,7 @@ test.describe('Reports - Scheduled Reports', () => {
     await loginAndNavigate(page, '/dashboard/reports/scheduled')
     await waitForPageLoad(page)
 
-    const createButton = page.getByRole('button', { name: /create|new|schedule report/i })
+    const createButton = page.getByRole('button', { name: /new scheduled report|create your first report|schedule report/i })
     await createButton.click()
 
     // Look for email recipients field

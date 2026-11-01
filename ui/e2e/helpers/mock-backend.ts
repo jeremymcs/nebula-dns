@@ -112,8 +112,14 @@ export async function installBackendMocks(
       jsonResponse({
         isMsp: tier === 'msp',
         partnerId: tier === 'msp' ? 'msp-partner-1' : null,
-        currentOrg: null,
-        organizations: [],
+        currentOrg:
+          tier === 'msp'
+            ? { id: 'client-1', name: 'Acme Corp', slug: 'acme-corp', status: 'active' }
+            : null,
+        organizations:
+          tier === 'msp'
+            ? [{ id: 'client-1', name: 'Acme Corp', slug: 'acme-corp', status: 'active' }]
+            : [],
       }),
     )
   })

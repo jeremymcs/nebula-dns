@@ -1,0 +1,143 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - navigation [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]:
+            - link "Flux Shield" [ref=e8] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e10]
+              - generic [ref=e15]: Flux Shield
+            - button "Switch platform module" [ref=e17] [cursor=pointer]:
+              - text: DNS Filter
+              - img [ref=e18]
+            - generic [ref=e20]:
+              - img [ref=e22]
+              - generic [ref=e24]: Enterprise Corp
+          - generic [ref=e25]:
+            - link "Policies" [ref=e26] [cursor=pointer]:
+              - /url: /dashboard/policies
+              - img [ref=e27]
+              - text: Policies
+            - link "Zones" [ref=e29] [cursor=pointer]:
+              - /url: /dashboard/locations
+              - img [ref=e30]
+              - text: Zones
+            - link "Investigate" [ref=e33] [cursor=pointer]:
+              - /url: /dashboard/investigate
+              - img [ref=e34]
+              - text: Investigate
+            - link "Reports" [ref=e36] [cursor=pointer]:
+              - /url: /dashboard/reports
+              - img [ref=e37]
+              - text: Reports
+            - link "Insights" [ref=e39] [cursor=pointer]:
+              - /url: /dashboard/insights
+              - img [ref=e40]
+              - text: Insights
+            - link "Playbooks" [ref=e42] [cursor=pointer]:
+              - /url: /dashboard/playbooks
+              - img [ref=e43]
+              - text: Playbooks
+          - generic [ref=e45]:
+            - button "Open command bar" [ref=e46] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e49]: ⌘K
+            - button "Toggle theme" [ref=e50] [cursor=pointer]:
+              - img [ref=e51]
+            - button "Account menu" [ref=e53] [cursor=pointer]:
+              - generic [ref=e55]: EU
+              - generic [ref=e56]: Enterprise
+              - img [ref=e57]
+    - main [ref=e59]:
+      - navigation [ref=e60]:
+        - link "Dashboard" [ref=e62] [cursor=pointer]:
+          - /url: /dashboard
+        - generic [ref=e63]:
+          - img [ref=e64]
+          - link "Settings" [ref=e66] [cursor=pointer]:
+            - /url: /dashboard/settings
+        - generic [ref=e67]:
+          - img [ref=e68]
+          - generic [ref=e70]: SSO
+      - generic [ref=e72]:
+        - generic [ref=e74]:
+          - heading "Single Sign-On (SSO)" [level=1] [ref=e75]
+          - paragraph [ref=e76]: Configure SAML or OIDC authentication for your organization
+        - generic [ref=e77]:
+          - generic [ref=e79]:
+            - button "SAML 2.0" [ref=e80] [cursor=pointer]:
+              - img [ref=e81]
+              - text: SAML 2.0
+            - button "OpenID Connect" [ref=e83] [cursor=pointer]:
+              - img [ref=e84]
+              - text: OpenID Connect
+          - generic [ref=e86]:
+            - generic [ref=e87]:
+              - generic [ref=e88]:
+                - heading "Service Provider Details" [level=3] [ref=e89]
+                - paragraph [ref=e90]: "Configure these values in your Identity Provider:"
+                - generic [ref=e91]:
+                  - generic [ref=e92]:
+                    - text: "Entity ID:"
+                    - code [ref=e93]: nebuladns-sp
+                  - generic [ref=e94]:
+                    - text: "ACS URL:"
+                    - code [ref=e95]: /backend/sso/saml/callback
+                  - generic [ref=e96]:
+                    - text: "Metadata:"
+                    - link "Download XML" [ref=e97] [cursor=pointer]:
+                      - /url: /backend/sso/saml/metadata
+              - generic [ref=e98]:
+                - generic [ref=e99]: IdP Entity ID *
+                - textbox "https://idp.example.com/..." [ref=e100]
+              - generic [ref=e101]:
+                - generic [ref=e102]: IdP SSO URL *
+                - textbox "https://idp.example.com/sso/saml" [ref=e103]
+              - generic [ref=e104]:
+                - generic [ref=e105]: IdP SLO URL (Optional)
+                - textbox "https://idp.example.com/slo/saml" [ref=e106]
+              - generic [ref=e107]:
+                - generic [ref=e108]: IdP Certificate (X.509) *
+                - textbox "-----BEGIN CERTIFICATE----- ... -----END CERTIFICATE-----" [ref=e109]
+              - generic [ref=e110]:
+                - generic [ref=e111]:
+                  - generic [ref=e112]:
+                    - img [ref=e113]
+                    - heading "SAML Request Signing" [level=3] [ref=e115]
+                  - checkbox [checked] [ref=e117]
+                - paragraph [ref=e119]: When enabled, Nebula DNS will sign SAML AuthnRequest and LogoutRequest messages using XML-DSIG (RSA-SHA256). This provides additional security by verifying the requests originated from Nebula DNS.
+            - generic [ref=e120]:
+              - heading "User Provisioning" [level=3] [ref=e121]
+              - generic [ref=e122]:
+                - generic [ref=e123]:
+                  - generic [ref=e124]:
+                    - text: Auto-provision users
+                    - paragraph [ref=e125]: Automatically create accounts for new SSO users
+                  - checkbox [checked] [ref=e127]
+                - generic [ref=e129]:
+                  - generic [ref=e130]: Default Role for New Users
+                  - combobox [ref=e131]:
+                    - option "Read Only" [selected]
+                    - option "Analyst"
+                    - option "Admin"
+                - generic [ref=e132]:
+                  - generic [ref=e133]: Domain Restriction (Optional)
+                  - textbox "@company.com" [ref=e134]
+                  - paragraph [ref=e135]: Only allow users with emails from this domain
+            - generic [ref=e136]:
+              - button "Test Connection" [ref=e137] [cursor=pointer]
+              - button "Save Configuration" [ref=e138] [cursor=pointer]
+    - contentinfo "Site footer" [ref=e139]:
+      - paragraph [ref=e140]:
+        - text: © 2026 · Powered by
+        - link "Flux Labs" [ref=e141] [cursor=pointer]:
+          - /url: https://fluxlabs.net
+    - button [ref=e142] [cursor=pointer]:
+      - img [ref=e145]
+    - generic [ref=e147]: Meet Orion- Your AI Co-Pilot
+```

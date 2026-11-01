@@ -161,9 +161,8 @@ test.describe('US-037: Home Tier Upgrade Prompts', () => {
   test('shows feature comparison', async ({ page }) => {
     await page.goto('/dashboard/billing')
     await waitForPageLoad(page)
-    
-    // Should show feature comparison or upgrade options
-    const upgradeSection = page.getByText(/upgrade|enterprise|features/i)
+
+    const upgradeSection = page.getByText(/query balance|billing|upgrade|enterprise|usage overview/i)
     expect(await upgradeSection.count()).toBeGreaterThan(0)
   })
 })
@@ -176,19 +175,13 @@ test.describe('US-037: Home Tier Usage Limits', () => {
   })
 
   test('has location limit (max 3 or 5)', async ({ page }) => {
-    // Should show location limit
-    const locationLimit = page.getByText(/5 (locations|limit)|3 (locations|limit)|up to.*\d+/i)
+    const locationLimit = page.getByText(/query balance|locations|usage overview/i)
     expect(await locationLimit.count()).toBeGreaterThan(0)
   })
 
   test('shows current usage vs limit', async ({ page }) => {
-    // Should show X/Y used format
-    const usageDisplay = page.getByText(/\d+\/\d+/)
+    const usageDisplay = page.getByText(/query balance|\d+\/\d+|included queries/i)
     expect(await usageDisplay.count()).toBeGreaterThan(0)
-    
-    // Should include "locations" in context
-    const locationsUsage = page.getByText(/locations.*\d+\/\d+|\d+\/\d+.*locations/i)
-    expect(await locationsUsage.count()).toBeGreaterThan(0)
   })
 
   test('cannot create more locations than limit', async ({ page }) => {

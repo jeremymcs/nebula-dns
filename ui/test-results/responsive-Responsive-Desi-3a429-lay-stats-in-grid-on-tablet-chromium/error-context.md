@@ -1,0 +1,171 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - navigation [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]:
+            - link "Flux Shield" [ref=e8] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e10]
+              - generic [ref=e15]: Flux Shield
+            - button "Switch platform module" [ref=e17] [cursor=pointer]:
+              - text: DNS Filter
+              - img [ref=e18]
+            - generic [ref=e20]:
+              - img [ref=e22]
+              - generic [ref=e24]: Enterprise Corp
+          - generic [ref=e25]:
+            - button "Open command bar" [ref=e26] [cursor=pointer]:
+              - img [ref=e27]
+              - generic [ref=e29]: ⌘K
+            - button "Toggle theme" [ref=e30] [cursor=pointer]:
+              - img [ref=e31]
+            - button "Account menu" [ref=e33] [cursor=pointer]:
+              - generic [ref=e35]: EU
+              - generic [ref=e36]: Enterprise
+              - img [ref=e37]
+            - button "Open navigation menu" [ref=e39] [cursor=pointer]:
+              - img [ref=e40]
+    - main [ref=e42]:
+      - generic [ref=e44]:
+        - generic [ref=e45]:
+          - heading "Dashboard" [level=1] [ref=e46]
+          - paragraph [ref=e47]: Enterprise Corp • DNS security at a glance
+        - generic [ref=e48]:
+          - generic [ref=e52]:
+            - generic [ref=e53]:
+              - paragraph [ref=e54]: Total Queries
+              - paragraph [ref=e55]: 125,000
+              - paragraph [ref=e56]: Last 24 hours
+              - generic [ref=e57]: ↑ 0%
+            - img [ref=e60]
+          - generic [ref=e65]:
+            - generic [ref=e66]:
+              - paragraph [ref=e67]: Threats Blocked
+              - paragraph [ref=e68]: "890"
+              - paragraph [ref=e69]: Last 24 hours
+              - generic [ref=e70]: ↑ 0%
+            - img [ref=e73]
+          - generic [ref=e78]:
+            - generic [ref=e79]:
+              - paragraph [ref=e80]: Policies Active
+              - paragraph [ref=e81]: "0"
+              - paragraph [ref=e82]: Across all locations
+            - img [ref=e85]
+          - generic [ref=e90]:
+            - generic [ref=e91]:
+              - paragraph [ref=e92]: Locations
+              - paragraph [ref=e93]: "0"
+              - paragraph [ref=e94]: Protected networks
+            - img [ref=e97]
+        - generic [ref=e100]:
+          - generic [ref=e101]:
+            - generic [ref=e103]:
+              - heading "Query Trends" [level=3] [ref=e104]
+              - paragraph [ref=e105]: Total queries vs blocked over time
+            - application [ref=e109]:
+              - generic [ref=e126]:
+                - generic [ref=e127]:
+                  - generic [ref=e129]: Sun, Nov 1
+                  - generic [ref=e131]: Sat, Oct 31
+                  - generic [ref=e133]: Fri, Oct 30
+                  - generic [ref=e135]: Thu, Oct 29
+                  - generic [ref=e137]: Wed, Oct 28
+                  - generic [ref=e139]: Tue, Oct 27
+                  - generic [ref=e141]: Mon, Oct 26
+                - generic [ref=e142]:
+                  - generic [ref=e144]: "0"
+                  - generic [ref=e146]: 4k
+                  - generic [ref=e148]: 7k
+                  - generic [ref=e150]: 11k
+                  - generic [ref=e152]: 14k
+          - generic [ref=e153]:
+            - generic [ref=e155]:
+              - heading "Categories Blocked" [level=3] [ref=e156]
+              - paragraph [ref=e157]: Distribution of blocked content
+            - generic [ref=e160]:
+              - generic [ref=e162]:
+                - generic [ref=e165]: malware
+                - generic [ref=e168]: phishing
+              - application [ref=e169]
+        - generic [ref=e177]:
+          - generic [ref=e179]:
+            - generic [ref=e181]:
+              - heading "Top Blocked" [level=3] [ref=e182]
+              - paragraph [ref=e183]: Most frequently blocked domains
+            - generic [ref=e184]:
+              - generic [ref=e185]:
+                - generic [ref=e187]: "1"
+                - generic [ref=e189]:
+                  - generic [ref=e190]: bad.example.com
+                  - generic [ref=e191]: malware
+                - generic [ref=e194]:
+                  - text: "120"
+                  - paragraph [ref=e195]: blocks
+              - generic [ref=e196]:
+                - generic [ref=e198]: "2"
+                - generic [ref=e200]:
+                  - generic [ref=e201]: phish.example.com
+                  - generic [ref=e202]: phishing
+                - generic [ref=e205]:
+                  - text: "80"
+                  - paragraph [ref=e206]: blocks
+          - generic [ref=e208]:
+            - generic [ref=e209]:
+              - generic [ref=e210]:
+                - heading "Live Activity" [level=3] [ref=e211]
+                - paragraph [ref=e212]: Recent DNS queries
+              - generic [ref=e216]: Live
+            - generic [ref=e217]:
+              - generic [ref=e218]:
+                - img [ref=e220]
+                - generic [ref=e222]:
+                  - generic [ref=e223]:
+                    - generic [ref=e224]: bad.example.com
+                    - generic [ref=e225]: Blocked
+                  - generic [ref=e227]: malware
+                - generic [ref=e228]: Just now
+              - generic [ref=e229]:
+                - img [ref=e231]
+                - generic [ref=e233]:
+                  - generic [ref=e234]:
+                    - generic [ref=e235]: phish.example.com
+                    - generic [ref=e236]: Blocked
+                  - generic [ref=e238]: phishing
+                - generic [ref=e239]: Just now
+    - contentinfo "Site footer" [ref=e240]:
+      - paragraph [ref=e241]:
+        - text: © 2026 · Powered by
+        - link "Flux Labs" [ref=e242] [cursor=pointer]:
+          - /url: https://fluxlabs.net
+    - navigation [ref=e243]:
+      - generic [ref=e244]:
+        - link "Home" [ref=e245] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e246]
+          - generic [ref=e249]: Home
+        - link "Policies" [ref=e250] [cursor=pointer]:
+          - /url: /dashboard/policies
+          - img [ref=e251]
+          - generic [ref=e253]: Policies
+        - link "Search" [ref=e254] [cursor=pointer]:
+          - /url: /dashboard/investigate
+          - img [ref=e255]
+          - generic [ref=e257]: Search
+        - link "Reports" [ref=e258] [cursor=pointer]:
+          - /url: /dashboard/reports
+          - img [ref=e259]
+          - generic [ref=e261]: Reports
+        - link "Settings" [ref=e262] [cursor=pointer]:
+          - /url: /dashboard/settings
+          - img [ref=e263]
+          - generic [ref=e266]: Settings
+    - button [ref=e267] [cursor=pointer]:
+      - img [ref=e270]
+    - generic [ref=e272]: Meet Orion- Your AI Co-Pilot
+  - generic [ref=e274]: "0"
+```

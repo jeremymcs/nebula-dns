@@ -1,0 +1,145 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - navigation [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]:
+            - link "Flux Shield" [ref=e8] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e10]
+              - generic [ref=e15]: Flux Shield
+            - button "Switch platform module" [ref=e17] [cursor=pointer]:
+              - text: DNS Filter
+              - img [ref=e18]
+            - generic [ref=e20]:
+              - img [ref=e22]
+              - generic [ref=e24]: Enterprise Corp
+          - generic [ref=e25]:
+            - link "Policies" [ref=e26] [cursor=pointer]:
+              - /url: /dashboard/policies
+              - img [ref=e27]
+              - text: Policies
+            - link "Zones" [ref=e29] [cursor=pointer]:
+              - /url: /dashboard/locations
+              - img [ref=e30]
+              - text: Zones
+            - link "Investigate" [ref=e33] [cursor=pointer]:
+              - /url: /dashboard/investigate
+              - img [ref=e34]
+              - text: Investigate
+            - link "Reports" [ref=e36] [cursor=pointer]:
+              - /url: /dashboard/reports
+              - img [ref=e37]
+              - text: Reports
+            - link "Insights" [ref=e39] [cursor=pointer]:
+              - /url: /dashboard/insights
+              - img [ref=e40]
+              - text: Insights
+            - link "Playbooks" [ref=e42] [cursor=pointer]:
+              - /url: /dashboard/playbooks
+              - img [ref=e43]
+              - text: Playbooks
+          - generic [ref=e45]:
+            - button "Open command bar" [ref=e46] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e49]: ⌘K
+            - button "Toggle theme" [ref=e50] [cursor=pointer]:
+              - img [ref=e51]
+            - button "Account menu" [ref=e53] [cursor=pointer]:
+              - generic [ref=e55]: EU
+              - generic [ref=e56]: Enterprise
+              - img [ref=e57]
+    - main [ref=e59]:
+      - navigation [ref=e60]:
+        - link "Dashboard" [ref=e62] [cursor=pointer]:
+          - /url: /dashboard
+        - generic [ref=e63]:
+          - img [ref=e64]
+          - link "Settings" [ref=e66] [cursor=pointer]:
+            - /url: /dashboard/settings
+        - generic [ref=e67]:
+          - img [ref=e68]
+          - generic [ref=e70]: API Keys
+      - generic [ref=e72]:
+        - generic [ref=e73]:
+          - generic [ref=e74]:
+            - heading "API Keys" [level=1] [ref=e75]
+            - paragraph [ref=e76]: Manage API keys for programmatic access to Nebula DNS
+          - button "Create API Key" [active] [ref=e77] [cursor=pointer]:
+            - img [ref=e78]
+            - text: Create API Key
+        - generic [ref=e81]:
+          - img [ref=e82]
+          - generic [ref=e84]:
+            - heading "Using API Keys" [level=3] [ref=e85]
+            - paragraph [ref=e86]:
+              - text: Include your API key in the
+              - code [ref=e87]: Authorization
+              - text: "header:"
+              - code [ref=e88]: Bearer sk_live_xxx
+        - table [ref=e90]:
+          - rowgroup [ref=e91]:
+            - row "Name Key Scopes Rate Limit Last Used Status Actions" [ref=e92]:
+              - columnheader "Name" [ref=e93]
+              - columnheader "Key" [ref=e94]
+              - columnheader "Scopes" [ref=e95]
+              - columnheader "Rate Limit" [ref=e96]
+              - columnheader "Last Used" [ref=e97]
+              - columnheader "Status" [ref=e98]
+              - columnheader "Actions" [ref=e99]
+          - rowgroup [ref=e100]:
+            - row "No API keys Create your first API key to get started." [ref=e101]:
+              - cell "No API keys Create your first API key to get started." [ref=e102]:
+                - img [ref=e103]
+                - heading "No API keys" [level=3] [ref=e105]
+                - paragraph [ref=e106]: Create your first API key to get started.
+        - generic [ref=e110]:
+          - heading "Create API Key" [level=2] [ref=e111]
+          - generic [ref=e112]:
+            - generic [ref=e113]:
+              - generic [ref=e114]: Name *
+              - textbox "e.g., Production Integration" [ref=e115]
+            - generic [ref=e116]:
+              - generic [ref=e117]: Scopes *
+              - generic [ref=e118]:
+                - generic [ref=e119] [cursor=pointer]:
+                  - checkbox "Read Read-only access to all resources" [checked] [ref=e120]
+                  - generic [ref=e121]:
+                    - generic [ref=e122]: Read
+                    - generic [ref=e123]: Read-only access to all resources
+                - generic [ref=e124] [cursor=pointer]:
+                  - checkbox "Write Create and modify resources" [ref=e125]
+                  - generic [ref=e126]:
+                    - generic [ref=e127]: Write
+                    - generic [ref=e128]: Create and modify resources
+                - generic [ref=e129] [cursor=pointer]:
+                  - checkbox "Admin Full administrative access" [ref=e130]
+                  - generic [ref=e131]:
+                    - generic [ref=e132]: Admin
+                    - generic [ref=e133]: Full administrative access
+            - generic [ref=e134]:
+              - generic [ref=e135]: Rate Limit (requests/minute)
+              - spinbutton [ref=e136]: "1000"
+            - generic [ref=e137]:
+              - generic [ref=e138]: Expiration (optional)
+              - combobox [ref=e139]:
+                - option "Never expires" [selected]
+                - option "30 days"
+                - option "90 days"
+                - option "180 days"
+                - option "1 year"
+          - generic [ref=e140]:
+            - button "Cancel" [ref=e141] [cursor=pointer]
+            - button "Create Key" [ref=e142] [cursor=pointer]
+    - contentinfo "Site footer" [ref=e143]:
+      - paragraph [ref=e144]:
+        - text: © 2026 · Powered by
+        - link "Flux Labs" [ref=e145] [cursor=pointer]:
+          - /url: https://fluxlabs.net
+    - button [ref=e146] [cursor=pointer]:
+      - img [ref=e148]
+```

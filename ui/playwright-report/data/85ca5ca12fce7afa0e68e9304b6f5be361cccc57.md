@@ -1,0 +1,408 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - navigation [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]:
+            - link "Flux Shield" [ref=e8] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e10]
+              - generic [ref=e15]: Flux Shield
+            - button "Switch platform module" [ref=e17] [cursor=pointer]:
+              - text: DNS Filter
+              - img [ref=e18]
+            - generic [ref=e20]:
+              - img [ref=e22]
+              - generic [ref=e24]: Enterprise Corp
+          - generic [ref=e25]:
+            - link "Policies" [ref=e26] [cursor=pointer]:
+              - /url: /dashboard/policies
+              - img [ref=e27]
+              - text: Policies
+            - link "Zones" [ref=e29] [cursor=pointer]:
+              - /url: /dashboard/locations
+              - img [ref=e30]
+              - text: Zones
+            - link "Investigate" [ref=e33] [cursor=pointer]:
+              - /url: /dashboard/investigate
+              - img [ref=e34]
+              - text: Investigate
+            - link "Reports" [ref=e36] [cursor=pointer]:
+              - /url: /dashboard/reports
+              - img [ref=e37]
+              - text: Reports
+            - link "Insights" [ref=e39] [cursor=pointer]:
+              - /url: /dashboard/insights
+              - img [ref=e40]
+              - text: Insights
+            - link "Playbooks" [ref=e42] [cursor=pointer]:
+              - /url: /dashboard/playbooks
+              - img [ref=e43]
+              - text: Playbooks
+          - generic [ref=e45]:
+            - button "Open command bar" [ref=e46] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e49]: ⌘K
+            - button "Toggle theme" [ref=e50] [cursor=pointer]:
+              - img [ref=e51]
+            - button "Account menu" [ref=e53] [cursor=pointer]:
+              - generic [ref=e55]: EU
+              - generic [ref=e56]: Enterprise
+              - img [ref=e57]
+    - main [ref=e59]:
+      - navigation [ref=e60]:
+        - link "Dashboard" [ref=e62] [cursor=pointer]:
+          - /url: /dashboard
+        - generic [ref=e63]:
+          - img [ref=e64]
+          - generic [ref=e66]: Reports
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - generic [ref=e72]:
+            - generic [ref=e73]:
+              - generic [ref=e74]:
+                - img [ref=e76]
+                - heading "Reports & Analytics" [level=1] [ref=e78]
+              - paragraph [ref=e79]: Comprehensive insights into your DNS security posture, traffic patterns, and threat landscape.
+            - generic [ref=e80]:
+              - generic [ref=e81]:
+                - button "24h" [ref=e82] [cursor=pointer]
+                - button "7d" [ref=e83] [cursor=pointer]
+                - button "30d" [ref=e84] [cursor=pointer]
+                - button "90d" [ref=e85] [cursor=pointer]
+              - button "Compare" [ref=e86] [cursor=pointer]:
+                - img [ref=e87]
+                - text: Compare
+              - button "Filters" [ref=e89] [cursor=pointer]:
+                - img [ref=e90]
+                - text: Filters
+              - button "AI Insights 3" [ref=e92] [cursor=pointer]:
+                - img [ref=e93]
+                - text: AI Insights
+                - generic [ref=e95]: "3"
+              - link "Scheduled" [ref=e96] [cursor=pointer]:
+                - /url: /dashboard/reports/scheduled
+                - button "Scheduled" [ref=e97]:
+                  - img [ref=e99]
+                  - text: Scheduled
+              - button "Export Report" [ref=e101] [cursor=pointer]:
+                - img [ref=e103]
+                - text: Export Report
+          - generic [ref=e106]:
+            - img [ref=e107]
+            - generic [ref=e109]:
+              - text: Data updated
+              - strong [ref=e110]: 2 minutes ago
+            - button [ref=e111] [cursor=pointer]:
+              - img [ref=e112]
+          - generic [ref=e114]:
+            - button "Overview" [ref=e115] [cursor=pointer]:
+              - img [ref=e116]
+              - text: Overview
+            - button "Security" [ref=e118] [cursor=pointer]:
+              - img [ref=e119]
+              - text: Security
+            - button "Performance" [ref=e121] [cursor=pointer]:
+              - img [ref=e122]
+              - text: Performance
+            - button "Compliance" [ref=e124] [cursor=pointer]:
+              - img [ref=e125]
+              - text: Compliance
+        - generic [ref=e127]:
+          - generic [ref=e128]:
+            - img [ref=e130]
+            - generic [ref=e132]:
+              - paragraph [ref=e133]: Getting Started
+              - paragraph [ref=e134]: Configure your DNS settings to start seeing insights
+            - button "Configure" [ref=e135] [cursor=pointer]
+          - generic [ref=e136]:
+            - img [ref=e138]
+            - generic [ref=e140]:
+              - paragraph [ref=e141]: Protection Active
+              - paragraph [ref=e142]: Your DNS protection is configured and running
+            - button "View Status" [ref=e143] [cursor=pointer]
+          - generic [ref=e144]:
+            - img [ref=e146]
+            - generic [ref=e148]:
+              - paragraph [ref=e149]: Enable Reports
+              - paragraph [ref=e150]: Schedule automated reports to stay informed
+            - button "Schedule" [ref=e151] [cursor=pointer]
+        - generic [ref=e152]:
+          - generic [ref=e155]:
+            - generic [ref=e156]:
+              - generic [ref=e157]:
+                - heading "Security Score" [level=3] [ref=e158]
+                - paragraph [ref=e159]: Overall protection rating
+              - generic [ref=e161]: Excellent
+            - generic [ref=e162]:
+              - generic [ref=e163]:
+                - img [ref=e164]
+                - generic [ref=e167]:
+                  - generic [ref=e168]: 82%
+                  - generic [ref=e169]: score
+              - generic [ref=e170]:
+                - generic [ref=e171]:
+                  - generic [ref=e172]: Threats Blocked
+                  - generic [ref=e173]:
+                    - img [ref=e174]
+                    - text: 23%
+                - generic [ref=e176]:
+                  - generic [ref=e177]: Policy Coverage
+                  - generic [ref=e178]: 98%
+                - generic [ref=e179]:
+                  - generic [ref=e180]: Response Time
+                  - generic [ref=e181]:
+                    - img [ref=e182]
+                    - text: 12ms
+          - generic [ref=e184]:
+            - generic [ref=e188]:
+              - generic [ref=e189]:
+                - paragraph [ref=e190]: Total Queries
+                - paragraph [ref=e191]: 125.0K
+                - generic [ref=e192]: ↑ 12%
+              - img [ref=e195]
+            - generic [ref=e200]:
+              - generic [ref=e201]:
+                - paragraph [ref=e202]: Blocked
+                - paragraph [ref=e203]: 4.2K
+                - paragraph [ref=e204]: 3.36% of total
+              - img [ref=e207]
+            - generic [ref=e212]:
+              - generic [ref=e213]:
+                - paragraph [ref=e214]: Threats
+                - paragraph [ref=e215]: "889"
+                - generic [ref=e216]: ↓ 15%
+              - img [ref=e219]
+            - generic [ref=e224]:
+              - generic [ref=e225]:
+                - paragraph [ref=e226]: Avg Response
+                - paragraph [ref=e227]: 12ms
+              - img [ref=e230]
+            - generic [ref=e235]:
+              - generic [ref=e236]:
+                - paragraph [ref=e237]: Cache Hit Rate
+                - paragraph [ref=e238]: 88%
+              - img [ref=e241]
+            - generic [ref=e246]:
+              - generic [ref=e247]:
+                - paragraph [ref=e248]: Active Zones
+                - paragraph [ref=e249]: "0"
+              - img [ref=e252]
+        - generic [ref=e254]:
+          - generic [ref=e255]:
+            - generic [ref=e256]:
+              - heading "Query Trends" [level=3] [ref=e257]
+              - generic [ref=e259]: Total Queries
+            - generic [ref=e261]:
+              - img [ref=e262]
+              - generic [ref=e272]:
+                - generic [ref=e273]: Nov 1
+                - generic [ref=e274]: Oct 29
+                - generic [ref=e275]: Oct 26
+          - generic [ref=e276]:
+            - heading "Blocks by Category" [level=3] [ref=e277]
+            - generic [ref=e279]:
+              - img [ref=e280]:
+                - generic [ref=e283]: "700"
+              - generic [ref=e284]:
+                - generic [ref=e285]:
+                  - generic [ref=e287]: malware
+                  - generic [ref=e288]: 57%
+                - generic [ref=e289]:
+                  - generic [ref=e291]: phishing
+                  - generic [ref=e292]: 43%
+        - generic [ref=e293]:
+          - generic [ref=e294]:
+            - heading "Threat Activity" [level=3] [ref=e295]
+            - generic [ref=e296]:
+              - img [ref=e297]:
+                - generic [ref=e300]: "120"
+                - generic [ref=e303]: "145"
+              - generic [ref=e304]:
+                - generic [ref=e305]: Tue
+                - generic [ref=e306]: Wed
+          - generic [ref=e307]:
+            - heading "Block Rate" [level=3] [ref=e308]
+            - generic [ref=e310]:
+              - img [ref=e311]
+              - generic [ref=e314]:
+                - generic [ref=e315]: 3%
+                - generic [ref=e316]: of queries
+            - generic [ref=e317]:
+              - generic [ref=e318]:
+                - paragraph [ref=e319]: 4,200
+                - paragraph [ref=e320]: Blocked
+              - generic [ref=e321]:
+                - paragraph [ref=e322]: 120,800
+                - paragraph [ref=e323]: Allowed
+          - generic [ref=e324]:
+            - heading "Cache Performance" [level=3] [ref=e325]
+            - generic [ref=e327]:
+              - img [ref=e328]
+              - generic [ref=e331]:
+                - generic [ref=e332]: 88%
+                - generic [ref=e333]: hit rate
+        - generic [ref=e334]:
+          - generic [ref=e335]:
+            - heading "Top Blocked Domains" [level=3] [ref=e336]
+            - table [ref=e338]:
+              - rowgroup [ref=e339]:
+                - row "Domain Category Blocks" [ref=e340]:
+                  - columnheader "Domain" [ref=e341]
+                  - columnheader "Category" [ref=e342]
+                  - columnheader "Blocks" [ref=e343]
+              - rowgroup [ref=e344]:
+                - row "bad.example.com malware 120" [ref=e345]:
+                  - cell "bad.example.com" [ref=e346]
+                  - cell "malware" [ref=e347]:
+                    - generic [ref=e348]: malware
+                  - cell "120" [ref=e349]
+                - row "phish.example.com phishing 80" [ref=e350]:
+                  - cell "phish.example.com" [ref=e351]
+                  - cell "phishing" [ref=e352]:
+                    - generic [ref=e353]: phishing
+                  - cell "80" [ref=e354]
+          - generic [ref=e355]:
+            - heading "Location Performance" [level=3] [ref=e356]
+            - table [ref=e358]:
+              - rowgroup [ref=e359]:
+                - row "Location Queries Block Rate" [ref=e360]:
+                  - columnheader "Location" [ref=e361]
+                  - columnheader "Queries" [ref=e362]
+                  - columnheader "Block Rate" [ref=e363]
+              - rowgroup [ref=e364]:
+                - row "%" [ref=e365]:
+                  - cell [ref=e366]
+                  - cell [ref=e367]
+                  - cell "%" [ref=e368]:
+                    - generic [ref=e369]: "%"
+        - generic [ref=e370]:
+          - generic [ref=e371]:
+            - generic [ref=e372]:
+              - heading "Report Templates" [level=3] [ref=e373]
+              - paragraph [ref=e374]: Quick access to pre-built report formats
+            - button "Create Custom" [ref=e375] [cursor=pointer]:
+              - img [ref=e377]
+              - text: Create Custom
+          - generic [ref=e379]:
+            - button "Executive Summary High-level overview for leadership" [ref=e380] [cursor=pointer]:
+              - img [ref=e382]
+              - generic [ref=e384]:
+                - paragraph [ref=e385]: Executive Summary
+                - paragraph [ref=e386]: High-level overview for leadership
+            - button "Threat Analysis Detailed security threat breakdown" [ref=e387] [cursor=pointer]:
+              - img [ref=e389]
+              - generic [ref=e391]:
+                - paragraph [ref=e392]: Threat Analysis
+                - paragraph [ref=e393]: Detailed security threat breakdown
+            - button "Compliance Report Regulatory compliance status" [ref=e394] [cursor=pointer]:
+              - img [ref=e396]
+              - generic [ref=e398]:
+                - paragraph [ref=e399]: Compliance Report
+                - paragraph [ref=e400]: Regulatory compliance status
+            - button "Performance Metrics DNS performance and latency" [ref=e401] [cursor=pointer]:
+              - img [ref=e403]
+              - generic [ref=e405]:
+                - paragraph [ref=e406]: Performance Metrics
+                - paragraph [ref=e407]: DNS performance and latency
+        - generic [ref=e408]:
+          - generic [ref=e409]:
+            - generic [ref=e410]:
+              - generic [ref=e411]:
+                - img [ref=e412]
+                - heading "Recent Exports" [level=3] [ref=e414]
+              - button "View All" [ref=e415] [cursor=pointer]
+            - generic [ref=e416]:
+              - generic [ref=e417]:
+                - img [ref=e419]
+                - generic [ref=e421]:
+                  - paragraph [ref=e422]: Weekly Security Report
+                  - paragraph [ref=e423]: 2024-01-15 09:30 • 2.4 MB
+                - generic [ref=e424]:
+                  - button [ref=e425] [cursor=pointer]:
+                    - img [ref=e426]
+                  - button [ref=e428] [cursor=pointer]:
+                    - img [ref=e429]
+                - generic [ref=e432]: completed
+              - generic [ref=e433]:
+                - img [ref=e435]
+                - generic [ref=e437]:
+                  - paragraph [ref=e438]: Threat Analysis - Q4
+                  - paragraph [ref=e439]: 2024-01-14 16:45 • 5.1 MB
+                - generic [ref=e440]:
+                  - button [ref=e441] [cursor=pointer]:
+                    - img [ref=e442]
+                  - button [ref=e444] [cursor=pointer]:
+                    - img [ref=e445]
+                - generic [ref=e448]: completed
+              - generic [ref=e449]:
+                - img [ref=e451]
+                - generic [ref=e453]:
+                  - paragraph [ref=e454]: Query Logs Export
+                  - paragraph [ref=e455]: 2024-01-14 11:20 • 12.8 MB
+                - generic [ref=e456]:
+                  - button [ref=e457] [cursor=pointer]:
+                    - img [ref=e458]
+                  - button [ref=e460] [cursor=pointer]:
+                    - img [ref=e461]
+                - generic [ref=e464]: completed
+              - generic [ref=e465]:
+                - img [ref=e467]
+                - generic [ref=e469]:
+                  - paragraph [ref=e470]: Compliance Audit Report
+                  - paragraph [ref=e471]: 2024-01-13 14:00 • 1.8 MB
+                - generic [ref=e472]:
+                  - button [ref=e473] [cursor=pointer]:
+                    - img [ref=e474]
+                  - button [ref=e476] [cursor=pointer]:
+                    - img [ref=e477]
+                - generic [ref=e480]: completed
+          - generic [ref=e481]:
+            - generic [ref=e482]:
+              - generic [ref=e483]:
+                - img [ref=e484]
+                - heading "Scheduled Reports" [level=3] [ref=e486]
+              - link "Manage" [ref=e487] [cursor=pointer]:
+                - /url: /dashboard/reports/scheduled
+                - button "Manage" [ref=e488]
+            - generic [ref=e489]:
+              - generic [ref=e490]:
+                - img [ref=e492]
+                - generic [ref=e494]:
+                  - paragraph [ref=e495]: Executive Summary
+                  - paragraph [ref=e496]: Weekly (Mon 9AM) • 3 recipients
+                - generic [ref=e497]:
+                  - paragraph [ref=e498]: Next Run
+                  - paragraph [ref=e499]: Jan 22, 2024
+                - generic [ref=e500]: Active
+              - generic [ref=e501]:
+                - img [ref=e503]
+                - generic [ref=e505]:
+                  - paragraph [ref=e506]: Security Digest
+                  - paragraph [ref=e507]: Daily (8AM) • 5 recipients
+                - generic [ref=e508]:
+                  - paragraph [ref=e509]: Next Run
+                  - paragraph [ref=e510]: Tomorrow
+                - generic [ref=e511]: Active
+              - generic [ref=e512]:
+                - img [ref=e514]
+                - generic [ref=e516]:
+                  - paragraph [ref=e517]: Compliance Report
+                  - paragraph [ref=e518]: Monthly (1st) • 2 recipients
+                - generic [ref=e519]:
+                  - paragraph [ref=e520]: Next Run
+                  - paragraph [ref=e521]: Feb 1, 2024
+                - generic [ref=e522]: Paused
+    - contentinfo "Site footer" [ref=e523]:
+      - paragraph [ref=e524]:
+        - text: © 2026 · Powered by
+        - link "Flux Labs" [ref=e525] [cursor=pointer]:
+          - /url: https://fluxlabs.net
+    - button [ref=e526] [cursor=pointer]:
+      - img [ref=e529]
+    - generic [ref=e531]: Meet Orion- Your AI Co-Pilot
+```

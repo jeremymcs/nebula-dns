@@ -1,0 +1,116 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - navigation [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]:
+            - link "Flux Shield" [ref=e8] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e10]
+              - generic [ref=e15]: Flux Shield
+            - button "Switch platform module" [ref=e17] [cursor=pointer]:
+              - text: DNS Filter
+              - img [ref=e18]
+            - generic [ref=e20]:
+              - img [ref=e22]
+              - generic [ref=e24]: Enterprise Corp
+          - generic [ref=e25]:
+            - link "Policies" [ref=e26] [cursor=pointer]:
+              - /url: /dashboard/policies
+              - img [ref=e27]
+              - text: Policies
+            - link "Zones" [ref=e29] [cursor=pointer]:
+              - /url: /dashboard/locations
+              - img [ref=e30]
+              - text: Zones
+            - link "Investigate" [ref=e33] [cursor=pointer]:
+              - /url: /dashboard/investigate
+              - img [ref=e34]
+              - text: Investigate
+            - link "Reports" [ref=e36] [cursor=pointer]:
+              - /url: /dashboard/reports
+              - img [ref=e37]
+              - text: Reports
+            - link "Insights" [ref=e39] [cursor=pointer]:
+              - /url: /dashboard/insights
+              - img [ref=e40]
+              - text: Insights
+            - link "Playbooks" [ref=e42] [cursor=pointer]:
+              - /url: /dashboard/playbooks
+              - img [ref=e43]
+              - text: Playbooks
+          - generic [ref=e45]:
+            - button "Open command bar" [ref=e46] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e49]: ⌘K
+            - button "Toggle theme" [ref=e50] [cursor=pointer]:
+              - img [ref=e51]
+            - button "Account menu" [ref=e53] [cursor=pointer]:
+              - generic [ref=e55]: EU
+              - generic [ref=e56]: Enterprise
+              - img [ref=e57]
+    - main [ref=e59]:
+      - navigation [ref=e60]:
+        - link "Dashboard" [ref=e62] [cursor=pointer]:
+          - /url: /dashboard
+        - generic [ref=e63]:
+          - img [ref=e64]
+          - generic [ref=e66]: Templates
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - img [ref=e71]
+          - generic [ref=e73]:
+            - heading "Policy Templates" [level=1] [ref=e74]
+            - paragraph [ref=e75]: Browse and use community policy templates
+        - generic [ref=e76]:
+          - generic [ref=e77]:
+            - generic [ref=e78]:
+              - img [ref=e79]
+              - textbox "Search templates..." [ref=e81]
+            - combobox [ref=e82]:
+              - option "Most Popular" [selected]
+              - option "Highest Rated"
+              - option "Recently Updated"
+          - generic [ref=e83]:
+            - button "All" [ref=e84] [cursor=pointer]
+            - button "🎓 Education" [ref=e85] [cursor=pointer]:
+              - generic [ref=e86]: 🎓
+              - text: Education
+            - button "🏥 Healthcare" [ref=e87] [cursor=pointer]:
+              - generic [ref=e88]: 🏥
+              - text: Healthcare
+            - button "🏢 Enterprise" [ref=e89] [cursor=pointer]:
+              - generic [ref=e90]: 🏢
+              - text: Enterprise
+            - button "👨‍👩‍👧‍👦 Family" [ref=e91] [cursor=pointer]:
+              - generic [ref=e92]: 👨‍👩‍👧‍👦
+              - text: Family
+            - button "🎮 Gaming" [ref=e93] [cursor=pointer]:
+              - generic [ref=e94]: 🎮
+              - text: Gaming
+            - button "⚡ Minimal" [ref=e95] [cursor=pointer]:
+              - generic [ref=e96]: ⚡
+              - text: Minimal
+            - button "🛡️ Security" [ref=e97] [cursor=pointer]:
+              - generic [ref=e98]: 🛡️
+              - text: Security
+            - button "📋 Compliance" [ref=e99] [cursor=pointer]:
+              - generic [ref=e100]: 📋
+              - text: Compliance
+          - generic [ref=e101]:
+            - heading "All Templates(0)" [level=3] [ref=e102]:
+              - text: All Templates
+              - generic [ref=e103]: (0)
+            - generic [ref=e104]: No templates found matching your criteria
+    - contentinfo "Site footer" [ref=e105]:
+      - paragraph [ref=e106]:
+        - text: © 2026 · Powered by
+        - link "Flux Labs" [ref=e107] [cursor=pointer]:
+          - /url: https://fluxlabs.net
+    - button [ref=e108] [cursor=pointer]:
+      - img [ref=e110]
+```

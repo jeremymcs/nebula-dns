@@ -19,11 +19,9 @@ test.describe('US-037: MSP Client List Page', () => {
   })
 
   test('should display client list table with columns', async ({ page }) => {
-    // Check for table headers
-    await expect(page.getByText(/client name|name/i)).toBeVisible()
-    await expect(page.getByText(/locations/i)).toBeVisible()
-    await expect(page.getByText(/status/i)).toBeVisible()
-    await expect(page.getByText(/created/i)).toBeVisible()
+    await expect(page.getByText(/acme corp/i)).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/^locations$/i).first()).toBeVisible()
+    await expect(page.getByText(/^created$/i).first()).toBeVisible()
   })
 
   test('should show Add Client button', async ({ page }) => {

@@ -7,34 +7,23 @@ import { loginAndNavigate, waitForPageLoad } from '../helpers/auth'
 test.describe('Webhooks - List Page', () => {
   test.beforeEach(async ({ page }) => {
     // Mock webhooks API
-    await page.route('**/backend/webhooks', (route) => {
+    await page.route('**/backend/webhooks**', (route) => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          webhooks: [
+          data: [
             {
               id: 'webhook-1',
               name: 'Security Alerts',
               url: 'https://hooks.example.com/security',
-              events: ['threat.detected', 'policy.violated'],
-              enabled: true,
-              createdAt: '2026-01-01T00:00:00Z',
-              lastDelivery: '2026-02-14T10:30:00Z',
-              deliveryStatus: 'success'
+              events: ['threat.detected', 'policy.updated'],
+              isEnabled: true,
+              failureCount: 0,
             },
-            {
-              id: 'webhook-2',
-              name: 'Usage Reports',
-              url: 'https://hooks.example.com/reports',
-              events: ['report.generated'],
-              enabled: false,
-              createdAt: '2026-01-15T00:00:00Z',
-              lastDelivery: null,
-              deliveryStatus: null
-            }
-          ]
-        })
+          ],
+          pagination: { cursor: null, hasMore: false },
+        }),
       })
     })
 

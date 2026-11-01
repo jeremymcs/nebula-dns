@@ -1,0 +1,146 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - navigation [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]:
+            - link "Flux Shield" [ref=e8] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e10]
+              - generic [ref=e15]: Flux Shield
+            - button "Switch platform module" [ref=e17] [cursor=pointer]:
+              - text: DNS Filter
+              - img [ref=e18]
+            - generic [ref=e20]:
+              - img [ref=e22]
+              - generic [ref=e24]: Enterprise Corp
+          - generic [ref=e25]:
+            - link "Policies" [ref=e26] [cursor=pointer]:
+              - /url: /dashboard/policies
+              - img [ref=e27]
+              - text: Policies
+            - link "Zones" [ref=e29] [cursor=pointer]:
+              - /url: /dashboard/locations
+              - img [ref=e30]
+              - text: Zones
+            - link "Investigate" [ref=e33] [cursor=pointer]:
+              - /url: /dashboard/investigate
+              - img [ref=e34]
+              - text: Investigate
+            - link "Reports" [ref=e36] [cursor=pointer]:
+              - /url: /dashboard/reports
+              - img [ref=e37]
+              - text: Reports
+            - link "Insights" [ref=e39] [cursor=pointer]:
+              - /url: /dashboard/insights
+              - img [ref=e40]
+              - text: Insights
+            - link "Playbooks" [ref=e42] [cursor=pointer]:
+              - /url: /dashboard/playbooks
+              - img [ref=e43]
+              - text: Playbooks
+          - generic [ref=e45]:
+            - button "Open command bar" [ref=e46] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e49]: ⌘K
+            - button "Toggle theme" [ref=e50] [cursor=pointer]:
+              - img [ref=e51]
+            - button "Account menu" [ref=e53] [cursor=pointer]:
+              - generic [ref=e55]: EU
+              - generic [ref=e56]: Enterprise
+              - img [ref=e57]
+    - main [ref=e59]:
+      - navigation [ref=e60]:
+        - link "Dashboard" [ref=e62] [cursor=pointer]:
+          - /url: /dashboard
+        - generic [ref=e63]:
+          - img [ref=e64]
+          - link "Settings" [ref=e66] [cursor=pointer]:
+            - /url: /dashboard/settings
+        - generic [ref=e67]:
+          - img [ref=e68]
+          - generic [ref=e70]: Integrations
+      - generic [ref=e72]:
+        - generic [ref=e73]:
+          - heading "Integrations" [level=1] [ref=e74]
+          - paragraph [ref=e75]: Connect Nebula DNS with your security tools and workflows
+        - generic [ref=e76]:
+          - generic [ref=e77]:
+            - generic [ref=e78]:
+              - heading "SIEM Integrations" [level=2] [ref=e79]
+              - paragraph [ref=e80]: Forward DNS logs to your security platform
+            - button "Add SIEM" [ref=e81] [cursor=pointer]
+          - generic [ref=e83]:
+            - generic [ref=e84]:
+              - generic [ref=e85]: 🔶
+              - generic [ref=e86]:
+                - generic [ref=e87]: Splunk SIEM
+                - generic [ref=e88]: Splunk
+            - generic [ref=e89]:
+              - generic [ref=e90]: Disabled
+              - generic [ref=e91]:
+                - button "Test" [ref=e92] [cursor=pointer]
+                - button "Edit" [ref=e93] [cursor=pointer]
+                - button "Delete" [ref=e94] [cursor=pointer]
+        - generic [ref=e95]:
+          - generic [ref=e96]:
+            - generic [ref=e97]:
+              - heading "Webhooks" [level=2] [ref=e98]
+              - paragraph [ref=e99]: Send real-time notifications to external services
+            - button "Add Webhook" [active] [ref=e100] [cursor=pointer]
+          - generic [ref=e101]: No webhooks configured
+        - generic [ref=e103]:
+          - heading "Add Webhook" [level=2] [ref=e105]
+          - generic [ref=e106]:
+            - generic [ref=e107]:
+              - generic [ref=e108]: Name
+              - textbox "e.g., Slack Notifications" [ref=e109]
+            - generic [ref=e110]:
+              - generic [ref=e111]: Webhook URL
+              - textbox "https://api.example.com/webhook" [ref=e112]
+            - generic [ref=e113]:
+              - generic [ref=e114]: Secret (optional)
+              - textbox "Used for HMAC signature verification" [ref=e115]
+              - paragraph [ref=e116]: We'll sign payloads with this secret so you can verify they came from Nebula DNS
+            - generic [ref=e117]:
+              - generic [ref=e118]: Events
+              - generic [ref=e119]:
+                - generic [ref=e120] [cursor=pointer]:
+                  - checkbox "Policy Created" [ref=e121]
+                  - generic [ref=e122]: Policy Created
+                - generic [ref=e123] [cursor=pointer]:
+                  - checkbox "Policy Updated" [ref=e124]
+                  - generic [ref=e125]: Policy Updated
+                - generic [ref=e126] [cursor=pointer]:
+                  - checkbox "Policy Deleted" [ref=e127]
+                  - generic [ref=e128]: Policy Deleted
+                - generic [ref=e129] [cursor=pointer]:
+                  - checkbox "Location Created" [ref=e130]
+                  - generic [ref=e131]: Location Created
+                - generic [ref=e132] [cursor=pointer]:
+                  - checkbox "Location Updated" [ref=e133]
+                  - generic [ref=e134]: Location Updated
+                - generic [ref=e135] [cursor=pointer]:
+                  - checkbox "User Invited" [ref=e136]
+                  - generic [ref=e137]: User Invited
+                - generic [ref=e138] [cursor=pointer]:
+                  - checkbox "Threat Detected" [ref=e139]
+                  - generic [ref=e140]: Threat Detected
+                - generic [ref=e141] [cursor=pointer]:
+                  - checkbox "Report Generated" [ref=e142]
+                  - generic [ref=e143]: Report Generated
+          - generic [ref=e144]:
+            - button "Cancel" [ref=e145] [cursor=pointer]
+            - button "Add Webhook" [ref=e146] [cursor=pointer]
+    - contentinfo "Site footer" [ref=e147]:
+      - paragraph [ref=e148]:
+        - text: © 2026 · Powered by
+        - link "Flux Labs" [ref=e149] [cursor=pointer]:
+          - /url: https://fluxlabs.net
+    - button [ref=e150] [cursor=pointer]:
+      - img [ref=e152]
+```

@@ -1,0 +1,171 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - navigation [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]:
+            - link "Flux Shield" [ref=e8] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e10]
+              - generic [ref=e15]: Flux Shield
+            - button "Switch platform module" [ref=e17] [cursor=pointer]:
+              - text: DNS Filter
+              - img [ref=e18]
+            - generic [ref=e20]:
+              - img [ref=e22]
+              - generic [ref=e24]: Enterprise Corp
+          - generic [ref=e25]:
+            - link "Policies" [ref=e26] [cursor=pointer]:
+              - /url: /dashboard/policies
+              - img [ref=e27]
+              - text: Policies
+            - link "Zones" [ref=e29] [cursor=pointer]:
+              - /url: /dashboard/locations
+              - img [ref=e30]
+              - text: Zones
+            - link "Investigate" [ref=e33] [cursor=pointer]:
+              - /url: /dashboard/investigate
+              - img [ref=e34]
+              - text: Investigate
+            - link "Reports" [ref=e36] [cursor=pointer]:
+              - /url: /dashboard/reports
+              - img [ref=e37]
+              - text: Reports
+            - link "Insights" [ref=e39] [cursor=pointer]:
+              - /url: /dashboard/insights
+              - img [ref=e40]
+              - text: Insights
+            - link "Playbooks" [ref=e42] [cursor=pointer]:
+              - /url: /dashboard/playbooks
+              - img [ref=e43]
+              - text: Playbooks
+          - generic [ref=e45]:
+            - button "Open command bar" [ref=e46] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e49]: ⌘K
+            - button "Toggle theme" [ref=e50] [cursor=pointer]:
+              - img [ref=e51]
+            - button "Account menu" [ref=e53] [cursor=pointer]:
+              - generic [ref=e55]: EU
+              - generic [ref=e56]: Enterprise
+              - img [ref=e57]
+    - main [ref=e59]:
+      - generic [ref=e61]:
+        - generic [ref=e62]:
+          - heading "Dashboard" [level=1] [ref=e63]
+          - paragraph [ref=e64]: Enterprise Corp • DNS security at a glance
+        - generic [ref=e65]:
+          - generic [ref=e69]:
+            - generic [ref=e70]:
+              - paragraph [ref=e71]: Total Queries
+              - paragraph [ref=e72]: 125,000
+              - paragraph [ref=e73]: Last 24 hours
+              - generic [ref=e74]: ↑ 0%
+            - img [ref=e77]
+          - generic [ref=e82]:
+            - generic [ref=e83]:
+              - paragraph [ref=e84]: Threats Blocked
+              - paragraph [ref=e85]: "890"
+              - paragraph [ref=e86]: Last 24 hours
+              - generic [ref=e87]: ↑ 0%
+            - img [ref=e90]
+          - generic [ref=e95]:
+            - generic [ref=e96]:
+              - paragraph [ref=e97]: Policies Active
+              - paragraph [ref=e98]: "0"
+              - paragraph [ref=e99]: Across all locations
+            - img [ref=e102]
+          - generic [ref=e107]:
+            - generic [ref=e108]:
+              - paragraph [ref=e109]: Locations
+              - paragraph [ref=e110]: "0"
+              - paragraph [ref=e111]: Protected networks
+            - img [ref=e114]
+        - generic [ref=e117]:
+          - generic [ref=e118]:
+            - generic [ref=e120]:
+              - heading "Query Trends" [level=3] [ref=e121]
+              - paragraph [ref=e122]: Total queries vs blocked over time
+            - application [ref=e126]:
+              - generic [ref=e143]:
+                - generic [ref=e144]:
+                  - generic [ref=e146]: Sun, Nov 1
+                  - generic [ref=e148]: Sat, Oct 31
+                  - generic [ref=e150]: Fri, Oct 30
+                  - generic [ref=e152]: Thu, Oct 29
+                  - generic [ref=e154]: Wed, Oct 28
+                  - generic [ref=e156]: Mon, Oct 26
+                - generic [ref=e157]:
+                  - generic [ref=e159]: "0"
+                  - generic [ref=e161]: 4k
+                  - generic [ref=e163]: 7k
+                  - generic [ref=e165]: 11k
+                  - generic [ref=e167]: 14k
+          - generic [ref=e168]:
+            - generic [ref=e170]:
+              - heading "Categories Blocked" [level=3] [ref=e171]
+              - paragraph [ref=e172]: Distribution of blocked content
+            - generic [ref=e175]:
+              - generic [ref=e177]:
+                - generic [ref=e180]: malware
+                - generic [ref=e183]: phishing
+              - application [ref=e184]
+        - generic [ref=e192]:
+          - generic [ref=e194]:
+            - generic [ref=e196]:
+              - heading "Top Blocked" [level=3] [ref=e197]
+              - paragraph [ref=e198]: Most frequently blocked domains
+            - generic [ref=e199]:
+              - generic [ref=e200]:
+                - generic [ref=e202]: "1"
+                - generic [ref=e204]:
+                  - generic [ref=e205]: bad.example.com
+                  - generic [ref=e206]: malware
+                - generic [ref=e209]:
+                  - text: "120"
+                  - paragraph [ref=e210]: blocks
+              - generic [ref=e211]:
+                - generic [ref=e213]: "2"
+                - generic [ref=e215]:
+                  - generic [ref=e216]: phish.example.com
+                  - generic [ref=e217]: phishing
+                - generic [ref=e220]:
+                  - text: "80"
+                  - paragraph [ref=e221]: blocks
+          - generic [ref=e223]:
+            - generic [ref=e224]:
+              - generic [ref=e225]:
+                - heading "Live Activity" [level=3] [ref=e226]
+                - paragraph [ref=e227]: Recent DNS queries
+              - generic [ref=e231]: Live
+            - generic [ref=e232]:
+              - generic [ref=e233]:
+                - img [ref=e235]
+                - generic [ref=e237]:
+                  - generic [ref=e238]:
+                    - generic [ref=e239]: bad.example.com
+                    - generic [ref=e240]: Blocked
+                  - generic [ref=e242]: malware
+                - generic [ref=e243]: Just now
+              - generic [ref=e244]:
+                - img [ref=e246]
+                - generic [ref=e248]:
+                  - generic [ref=e249]:
+                    - generic [ref=e250]: phish.example.com
+                    - generic [ref=e251]: Blocked
+                  - generic [ref=e253]: phishing
+                - generic [ref=e254]: Just now
+    - contentinfo "Site footer" [ref=e255]:
+      - paragraph [ref=e256]:
+        - text: © 2026 · Powered by
+        - link "Flux Labs" [ref=e257] [cursor=pointer]:
+          - /url: https://fluxlabs.net
+    - button [ref=e258] [cursor=pointer]:
+      - img [ref=e261]
+    - generic [ref=e263]: Meet Orion- Your AI Co-Pilot
+  - generic [ref=e265]: "0"
+```

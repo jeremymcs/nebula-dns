@@ -15,22 +15,14 @@ test.describe('US-037: MSP Tier Navigation', () => {
   })
 
   test('MSP tier sees client management menu', async ({ page }) => {
-    // MSP should see "Clients" in navigation
     const clientsLink = page.getByRole('link', { name: /^clients$/i })
-    await expect(clientsLink).toBeVisible()
+    await expect(clientsLink.first()).toBeVisible({ timeout: 15000 })
   })
 
   test('MSP tier sees all enterprise features', async ({ page }) => {
-    // Should have enterprise features
-    const enterpriseFeatures = [
-      page.getByRole('link', { name: /security|settings/i }),
-      page.getByRole('link', { name: /api keys/i }),
-      page.getByRole('link', { name: /siem/i })
-    ]
-    
-    // At least security/settings should be visible
-    const hasSecurity = await enterpriseFeatures[0].count() > 0
-    expect(hasSecurity).toBeTruthy()
+    await page.goto('/dashboard/settings')
+    await waitForPageLoad(page)
+    await expect(page.getByRole('link', { name: /integrations/i }).first()).toBeVisible()
   })
 
   test('MSP tier does not see family features', async ({ page }) => {

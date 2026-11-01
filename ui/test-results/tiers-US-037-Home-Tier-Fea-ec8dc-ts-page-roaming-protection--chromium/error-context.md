@@ -1,0 +1,73 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - navigation [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]:
+            - link "Flux Shield" [ref=e8] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e10]
+              - generic [ref=e15]: Flux Shield
+            - button "Switch platform module" [ref=e17] [cursor=pointer]:
+              - text: DNS Filter
+              - img [ref=e18]
+            - generic [ref=e20]:
+              - img [ref=e22]
+              - generic [ref=e24]: Home Family
+          - generic [ref=e25]:
+            - link "Policies" [ref=e26] [cursor=pointer]:
+              - /url: /dashboard/policies
+              - img [ref=e27]
+              - text: Policies
+            - link "Networks" [ref=e29] [cursor=pointer]:
+              - /url: /dashboard/locations
+              - img [ref=e30]
+              - text: Networks
+            - link "Investigate" [ref=e32] [cursor=pointer]:
+              - /url: /dashboard/investigate
+              - img [ref=e33]
+              - text: Investigate
+            - link "Reports" [ref=e35] [cursor=pointer]:
+              - /url: /dashboard/reports
+              - img [ref=e36]
+              - text: Reports
+          - generic [ref=e38]:
+            - button "Open command bar" [ref=e39] [cursor=pointer]:
+              - img [ref=e40]
+              - generic [ref=e42]: ⌘K
+            - button "Toggle theme" [ref=e43] [cursor=pointer]:
+              - img [ref=e44]
+            - button "Account menu" [ref=e46] [cursor=pointer]:
+              - generic [ref=e48]: HU
+              - generic [ref=e49]: Home
+              - img [ref=e50]
+    - main [ref=e52]:
+      - navigation [ref=e53]:
+        - link "Dashboard" [ref=e55] [cursor=pointer]:
+          - /url: /dashboard
+        - generic [ref=e56]:
+          - img [ref=e57]
+          - generic [ref=e59]: Agents
+      - generic [ref=e61]:
+        - generic [ref=e62]:
+          - heading "Client Agents" [level=1] [ref=e63]
+          - paragraph [ref=e64]: Download and manage Nebula DNS client agents for your devices
+        - heading "Download Agents" [level=2] [ref=e66]
+        - generic [ref=e67]:
+          - heading "Installed Agents" [level=2] [ref=e69]
+          - generic [ref=e70]:
+            - img [ref=e72]
+            - heading "No agents installed yet" [level=3] [ref=e74]
+            - paragraph [ref=e75]: Download and install an agent to get started
+    - contentinfo "Site footer" [ref=e76]:
+      - paragraph [ref=e77]:
+        - text: © 2026 · Powered by
+        - link "Flux Labs" [ref=e78] [cursor=pointer]:
+          - /url: https://fluxlabs.net
+    - button [ref=e79] [cursor=pointer]:
+      - img [ref=e81]
+```

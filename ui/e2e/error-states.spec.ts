@@ -453,8 +453,7 @@ test.describe('Error States - Session Expiry', () => {
       localStorage.removeItem('user')
     })
 
-    // Navigate to another page
-    await page.goto('/dashboard/policies')
+    await page.reload()
 
     // Should redirect to login
     const loginPage = loginHeading(page)

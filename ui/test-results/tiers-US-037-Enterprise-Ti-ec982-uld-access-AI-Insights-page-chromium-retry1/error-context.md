@@ -1,0 +1,206 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - navigation [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]:
+            - link "Flux Shield" [ref=e8] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e10]
+              - generic [ref=e15]: Flux Shield
+            - button "Switch platform module" [ref=e17] [cursor=pointer]:
+              - text: DNS Filter
+              - img [ref=e18]
+            - generic [ref=e20]:
+              - img [ref=e22]
+              - generic [ref=e24]: Enterprise Corp
+          - generic [ref=e25]:
+            - link "Policies" [ref=e26] [cursor=pointer]:
+              - /url: /dashboard/policies
+              - img [ref=e27]
+              - text: Policies
+            - link "Zones" [ref=e29] [cursor=pointer]:
+              - /url: /dashboard/locations
+              - img [ref=e30]
+              - text: Zones
+            - link "Investigate" [ref=e33] [cursor=pointer]:
+              - /url: /dashboard/investigate
+              - img [ref=e34]
+              - text: Investigate
+            - link "Reports" [ref=e36] [cursor=pointer]:
+              - /url: /dashboard/reports
+              - img [ref=e37]
+              - text: Reports
+            - link "Insights" [ref=e39] [cursor=pointer]:
+              - /url: /dashboard/insights
+              - img [ref=e40]
+              - text: Insights
+            - link "Playbooks" [ref=e42] [cursor=pointer]:
+              - /url: /dashboard/playbooks
+              - img [ref=e43]
+              - text: Playbooks
+          - generic [ref=e45]:
+            - button "Open command bar" [ref=e46] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e49]: ⌘K
+            - button "Toggle theme" [ref=e50] [cursor=pointer]:
+              - img [ref=e51]
+            - button "Account menu" [ref=e53] [cursor=pointer]:
+              - generic [ref=e55]: EU
+              - generic [ref=e56]: Enterprise
+              - img [ref=e57]
+    - main [ref=e59]:
+      - navigation [ref=e60]:
+        - link "Dashboard" [ref=e62] [cursor=pointer]:
+          - /url: /dashboard
+        - generic [ref=e63]:
+          - img [ref=e64]
+          - generic [ref=e66]: AI Insights
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - generic [ref=e70]:
+            - img [ref=e72]
+            - generic [ref=e74]:
+              - heading "AI Insights" [level=1] [ref=e75]
+              - paragraph [ref=e76]: AI-powered weekly security analysis
+          - generic [ref=e77]:
+            - generic [ref=e78]:
+              - img [ref=e79]
+              - text: Generated 11/1/2026
+            - button "Regenerate" [ref=e81] [cursor=pointer]:
+              - img [ref=e82]
+              - text: Regenerate
+        - generic [ref=e84]:
+          - generic [ref=e85]:
+            - generic [ref=e87]:
+              - img [ref=e89]
+              - generic [ref=e91]:
+                - heading "Weekly Insights" [level=3] [ref=e92]
+                - paragraph [ref=e93]: Oct 25 - Nov 1
+            - paragraph [ref=e95]: This week saw a 15% decrease in blocked threats compared to last week, with your network maintaining excellent protection. The Guest WiFi zone showed unusual activity on Tuesday that was automatically contained.
+            - generic [ref=e96]:
+              - heading "Key Highlights" [level=4] [ref=e97]
+              - generic [ref=e98]:
+                - generic [ref=e100]:
+                  - img [ref=e101]
+                  - generic [ref=e103]:
+                    - paragraph [ref=e104]: Threat Reduction
+                    - paragraph [ref=e105]: Blocked threats decreased by 15% this week
+                  - generic [ref=e106]:
+                    - paragraph [ref=e107]: "847"
+                    - paragraph [ref=e108]:
+                      - img [ref=e109]
+                      - text: 15%
+                - generic [ref=e112]:
+                  - img [ref=e113]
+                  - generic [ref=e115]:
+                    - paragraph [ref=e116]: Unusual Activity Detected
+                    - paragraph [ref=e117]: Guest WiFi zone had a spike in blocked queries on Tuesday
+                  - generic [ref=e118]:
+                    - paragraph [ref=e119]: 2,340
+                    - paragraph [ref=e120]:
+                      - img [ref=e121]
+                      - text: 340%
+                - generic [ref=e124]:
+                  - img [ref=e125]
+                  - generic [ref=e127]:
+                    - paragraph [ref=e128]: New Devices
+                    - paragraph [ref=e129]: 12 new devices joined your network this week
+                  - generic [ref=e130]:
+                    - paragraph [ref=e131]: "12"
+                    - paragraph [ref=e132]:
+                      - img [ref=e133]
+                      - text: 0%
+            - generic [ref=e135]:
+              - heading "Recommendations" [level=4] [ref=e136]
+              - generic [ref=e137]:
+                - generic [ref=e138]:
+                  - generic [ref=e141]: Enable NRD Blocking
+                  - link "Enable Now" [ref=e142] [cursor=pointer]:
+                    - /url: /settings/security
+                    - text: Enable Now
+                    - img [ref=e143]
+                - generic [ref=e145]:
+                  - generic [ref=e148]: Review Guest WiFi Policy
+                  - link "Edit Policy" [ref=e149] [cursor=pointer]:
+                    - /url: /policies/guest-wifi
+                    - text: Edit Policy
+                    - img [ref=e150]
+                - generic [ref=e152]:
+                  - generic [ref=e155]: Schedule Weekly Reports
+                  - link "Configure" [ref=e156] [cursor=pointer]:
+                    - /url: /settings/reports
+                    - text: Configure
+                    - img [ref=e157]
+          - generic [ref=e159]:
+            - heading "Weekly Trends" [level=3] [ref=e160]
+            - generic [ref=e161]:
+              - generic [ref=e162]:
+                - paragraph [ref=e163]: Total Queries
+                - generic [ref=e164]:
+                  - paragraph [ref=e165]: 8.5M
+                  - generic [ref=e166]:
+                    - img [ref=e167]
+                    - generic [ref=e169]: 5.2%
+                - generic [ref=e173]: This week
+                - generic [ref=e177]: Last week
+              - generic [ref=e178]:
+                - paragraph [ref=e179]: Block Rate
+                - generic [ref=e180]:
+                  - paragraph [ref=e181]: 1%
+                  - generic [ref=e182]:
+                    - img [ref=e183]
+                    - generic [ref=e185]: 16.7%
+                - generic [ref=e189]: This week
+                - generic [ref=e193]: Last week
+              - generic [ref=e194]:
+                - paragraph [ref=e195]: Threats
+                - generic [ref=e196]:
+                  - paragraph [ref=e197]: "847"
+                  - generic [ref=e198]:
+                    - img [ref=e199]
+                    - generic [ref=e201]: 15.0%
+                - generic [ref=e205]: This week
+                - generic [ref=e209]: Last week
+              - generic [ref=e210]:
+                - paragraph [ref=e211]: Response Time
+                - generic [ref=e212]:
+                  - paragraph [ref=e213]: 12ms
+                  - generic [ref=e214]:
+                    - img [ref=e215]
+                    - generic [ref=e217]: 14.3%
+                - generic [ref=e221]: This week
+                - generic [ref=e225]: Last week
+        - generic [ref=e226]:
+          - heading "Weekly Metrics" [level=3] [ref=e227]
+          - generic [ref=e228]:
+            - generic [ref=e229]:
+              - paragraph [ref=e230]: 8,547,000
+              - paragraph [ref=e231]: Total Queries
+            - generic [ref=e232]:
+              - paragraph [ref=e233]: 85,470
+              - paragraph [ref=e234]: Blocked
+            - generic [ref=e235]:
+              - paragraph [ref=e236]: "847"
+              - paragraph [ref=e237]: Threats
+            - generic [ref=e238]:
+              - paragraph [ref=e239]: "456"
+              - paragraph [ref=e240]: Clients
+            - generic [ref=e241]:
+              - paragraph [ref=e242]: 12ms
+              - paragraph [ref=e243]: Avg Response
+            - generic [ref=e244]:
+              - paragraph [ref=e245]: 99.99%
+              - paragraph [ref=e246]: Uptime
+    - contentinfo "Site footer" [ref=e247]:
+      - paragraph [ref=e248]:
+        - text: © 2026 · Powered by
+        - link "Flux Labs" [ref=e249] [cursor=pointer]:
+          - /url: https://fluxlabs.net
+    - button [ref=e250] [cursor=pointer]:
+      - img [ref=e252]
+```

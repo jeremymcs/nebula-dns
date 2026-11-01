@@ -1,0 +1,111 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - navigation [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]:
+            - link "Flux Shield" [ref=e8] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e10]
+              - generic [ref=e15]: Flux Shield
+            - button "Switch platform module" [ref=e17] [cursor=pointer]:
+              - text: DNS Filter
+              - img [ref=e18]
+            - generic [ref=e20]:
+              - img [ref=e22]
+              - generic [ref=e24]: Enterprise Corp
+          - generic [ref=e25]:
+            - link "Policies" [ref=e26] [cursor=pointer]:
+              - /url: /dashboard/policies
+              - img [ref=e27]
+              - text: Policies
+            - link "Zones" [ref=e29] [cursor=pointer]:
+              - /url: /dashboard/locations
+              - img [ref=e30]
+              - text: Zones
+            - link "Investigate" [ref=e33] [cursor=pointer]:
+              - /url: /dashboard/investigate
+              - img [ref=e34]
+              - text: Investigate
+            - link "Reports" [ref=e36] [cursor=pointer]:
+              - /url: /dashboard/reports
+              - img [ref=e37]
+              - text: Reports
+            - link "Insights" [ref=e39] [cursor=pointer]:
+              - /url: /dashboard/insights
+              - img [ref=e40]
+              - text: Insights
+            - link "Playbooks" [ref=e42] [cursor=pointer]:
+              - /url: /dashboard/playbooks
+              - img [ref=e43]
+              - text: Playbooks
+          - generic [ref=e45]:
+            - button "Open command bar" [ref=e46] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e49]: ⌘K
+            - button "Toggle theme" [ref=e50] [cursor=pointer]:
+              - img [ref=e51]
+            - button "Account menu" [ref=e53] [cursor=pointer]:
+              - generic [ref=e55]: EU
+              - generic [ref=e56]: Enterprise
+              - img [ref=e57]
+    - main [ref=e59]:
+      - navigation [ref=e60]:
+        - link "Dashboard" [ref=e62] [cursor=pointer]:
+          - /url: /dashboard
+        - generic [ref=e63]:
+          - img [ref=e64]
+          - link "Settings" [ref=e66] [cursor=pointer]:
+            - /url: /dashboard/settings
+        - generic [ref=e67]:
+          - img [ref=e68]
+          - generic [ref=e70]: Security
+      - generic [ref=e72]:
+        - generic [ref=e73]:
+          - heading "Security Settings" [level=1] [ref=e74]:
+            - img [ref=e76]
+            - text: Security Settings
+          - paragraph [ref=e78]: Manage your account security, authentication methods, and access controls
+        - generic [ref=e79]:
+          - button "Two-Factor Auth" [ref=e80] [cursor=pointer]:
+            - img [ref=e81]
+            - text: Two-Factor Auth
+          - button "Password" [ref=e83] [cursor=pointer]:
+            - img [ref=e84]
+            - text: Password
+          - button "Sessions" [ref=e86] [cursor=pointer]:
+            - img [ref=e87]
+            - text: Sessions
+          - button "Alerts" [ref=e89] [cursor=pointer]:
+            - img [ref=e90]
+            - text: Alerts
+          - button "Audit Log" [ref=e92] [cursor=pointer]:
+            - img [ref=e93]
+            - text: Audit Log
+        - generic [ref=e95]:
+          - generic [ref=e96]:
+            - generic [ref=e97]:
+              - img [ref=e99]
+              - generic [ref=e101]:
+                - heading "Two-Factor Authentication" [level=2] [ref=e102]
+                - paragraph [ref=e103]: Add an extra layer of security by requiring a verification code in addition to your password.
+            - button "Enable MFA" [ref=e105] [cursor=pointer]
+          - generic [ref=e106]:
+            - heading "Security Tips" [level=3] [ref=e107]
+            - list [ref=e108]:
+              - listitem [ref=e109]: • Use an authenticator app like Google Authenticator, Authy, or 1Password
+              - listitem [ref=e110]: • Store your backup codes in a secure location
+              - listitem [ref=e111]: • Never share your authentication codes with anyone
+    - contentinfo "Site footer" [ref=e112]:
+      - paragraph [ref=e113]:
+        - text: © 2026 · Powered by
+        - link "Flux Labs" [ref=e114] [cursor=pointer]:
+          - /url: https://fluxlabs.net
+    - button [ref=e115] [cursor=pointer]:
+      - img [ref=e118]
+    - generic [ref=e120]: Meet Orion- Your AI Co-Pilot
+```

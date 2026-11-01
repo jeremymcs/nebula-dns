@@ -1,0 +1,101 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - navigation [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]:
+            - link [ref=e8] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e10]
+            - generic [ref=e14]:
+              - img [ref=e16]
+              - generic [ref=e18]: Enterprise Corp
+          - generic [ref=e19]:
+            - button "Toggle theme" [ref=e20] [cursor=pointer]:
+              - img [ref=e21]
+            - button "Account menu" [ref=e23] [cursor=pointer]:
+              - generic [ref=e25]: EU
+              - img [ref=e26]
+            - button "Open navigation menu" [ref=e28] [cursor=pointer]:
+              - img [ref=e29]
+    - main [ref=e31]:
+      - navigation [ref=e32]:
+        - link "Dashboard" [ref=e34] [cursor=pointer]:
+          - /url: /dashboard
+        - generic [ref=e35]:
+          - img [ref=e36]
+          - generic [ref=e38]: Locations
+      - generic [ref=e40]:
+        - generic [ref=e41]:
+          - generic [ref=e42]:
+            - heading "Protection Zones" [level=1] [ref=e43]
+            - paragraph [ref=e44]: Manage network locations and their DNS filtering settings
+          - button "Add Zone" [ref=e46] [cursor=pointer]:
+            - img [ref=e48]
+            - text: Add Zone
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - img [ref=e52]
+            - textbox "Search zones by name or description..." [ref=e54]
+          - generic [ref=e55]:
+            - generic [ref=e56]:
+              - combobox [ref=e57] [cursor=pointer]:
+                - option "All Status" [selected]
+                - option "Active"
+                - option "Inactive"
+              - img
+            - generic [ref=e58]:
+              - combobox [ref=e59] [cursor=pointer]:
+                - option "All Policies" [selected]
+              - img
+            - generic [ref=e60]:
+              - combobox [ref=e61] [cursor=pointer]:
+                - option "Name A-Z" [selected]
+                - option "Name Z-A"
+                - option "Status A-Z"
+                - option "Status Z-A"
+                - option "Newest First"
+                - option "Oldest First"
+              - img
+        - generic [ref=e63]:
+          - img [ref=e65]
+          - heading "No locations yet" [level=3] [ref=e67]
+          - paragraph [ref=e68]: Add your first location to start filtering DNS traffic for your network.
+          - button "Add Location" [ref=e69] [cursor=pointer]:
+            - img [ref=e71]
+            - text: Add Location
+    - contentinfo "Site footer" [ref=e73]:
+      - paragraph [ref=e74]:
+        - text: © 2026 · Powered by
+        - link "Flux Labs" [ref=e75] [cursor=pointer]:
+          - /url: https://fluxlabs.net
+    - navigation [ref=e76]:
+      - generic [ref=e77]:
+        - link "Home" [ref=e78] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e79]
+          - generic [ref=e81]: Home
+        - link "Policies" [ref=e82] [cursor=pointer]:
+          - /url: /dashboard/policies
+          - img [ref=e83]
+          - generic [ref=e85]: Policies
+        - link "Search" [ref=e86] [cursor=pointer]:
+          - /url: /dashboard/investigate
+          - img [ref=e87]
+          - generic [ref=e89]: Search
+        - link "Reports" [ref=e90] [cursor=pointer]:
+          - /url: /dashboard/reports
+          - img [ref=e91]
+          - generic [ref=e93]: Reports
+        - link "Settings" [ref=e94] [cursor=pointer]:
+          - /url: /dashboard/settings
+          - img [ref=e95]
+          - generic [ref=e98]: Settings
+    - button [ref=e99] [cursor=pointer]:
+      - img [ref=e102]
+    - generic [ref=e104]: Meet Orion- Your AI Co-Pilot
+```

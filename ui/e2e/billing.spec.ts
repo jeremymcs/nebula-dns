@@ -60,6 +60,6 @@ test.describe('Upgrade prompts (tier gating)', () => {
     await loginAsHome(page)
     await page.goto('/dashboard/settings/integrations')
     await waitForPageLoad(page)
-    await expect(page.getByText(/siem|splunk|sentinel/i).first()).toBeVisible()
+    await expect(page.getByRole('heading', { name: /upgrade required/i })).toBeVisible()
   })
 })
