@@ -53,7 +53,7 @@ describe('copyUpstreamResponseHeaders', () => {
 describe('buildUpstreamRequestHeaders', () => {
   it('removes host and connection from the outbound proxy request', () => {
     const incoming = new Headers({
-      host: 'app.nebuladns.io',
+      host: 'app.shield.fluxlabs.net',
       connection: 'close',
       'content-type': 'application/json',
     })

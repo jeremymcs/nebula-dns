@@ -8,7 +8,8 @@
     "dev": "next dev -p 4012",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint src --ext .ts,.tsx"
+    "lint": "eslint src --ext .ts,.tsx",
+    "test": "node --test ../shared/www-legacy-app-redirects.test.js"
   },
   "dependencies": {
     "@heroicons/react": "^2.1.1",

@@ -256,7 +256,7 @@ Legend: **Ready** = API usable from mobile with standard JWT; **Tweak** = exists
 | URL scheme | Example |
 |------------|---------|
 | Custom | `fluxshield://admin/msp/{id}`, `fluxshield://msp/client/{id}/devices` |
-| Universal | `https://shield.fluxlabs.net/app/...` → app link (apple-app-site-association / assetlinks) |
+| Universal | `https://app.shield.fluxlabs.net/app/...` → app link (apple-app-site-association / assetlinks on the tenant app host) |
 
 Expo Router file routes mirror paths under `apps/mobile/app/(admin)/` and `(msp)/`.
 

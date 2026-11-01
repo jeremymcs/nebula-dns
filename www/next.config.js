@@ -10,6 +10,11 @@ const withMDX = require('@next/mdx')({
 })
 
 const workspaceRoot = path.join(__dirname, '..')
+const {
+  buildWwwLegacyAppRedirects,
+  buildLegacyMarketingHostRedirects,
+  resolveAppOrigin,
+} = require('../shared/www-legacy-app-redirects.js')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -19,6 +24,13 @@ const nextConfig = {
   },
   turbopack: {
     root: workspaceRoot,
+  },
+  async redirects() {
+    const appOrigin = resolveAppOrigin()
+    return [
+      ...buildLegacyMarketingHostRedirects(),
+      ...buildWwwLegacyAppRedirects(appOrigin),
+    ]
   },
 };
 

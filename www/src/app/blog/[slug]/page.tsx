@@ -9,6 +9,7 @@ import { notFound } from 'next/navigation'
 import { MarketingPageShell, MarketingCard } from '@/components/marketing/MarketingPageShell'
 import { MarketingPageHero, MarketingSerifAccent } from '@/components/marketing/MarketingPageHero'
 import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
+import { SITE_URL } from '@/lib/config'
 
 interface BlogPostFrontmatter {
   title: string
@@ -124,8 +125,8 @@ export default async function BlogPostPage({ params }: PageProps) {
   const htmlContent = parseMarkdownContent(content)
   const readTime = frontmatter.readTime || '5 min read'
 
-  const twitterShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(frontmatter.title)}&url=${encodeURIComponent(`https://shield.fluxlabs.net/blog/${slug}`)}`
-  const linkedinShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://shield.fluxlabs.net/blog/${slug}`)}`
+  const twitterShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(frontmatter.title)}&url=${encodeURIComponent(`${SITE_URL}/blog/${slug}`)}`
+  const linkedinShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`${SITE_URL}/blog/${slug}`)}`
 
   return (
     <MarketingPageShell>
