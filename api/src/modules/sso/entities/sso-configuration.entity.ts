@@ -1,7 +1,14 @@
 // Nebula DNS - SSO Configuration Entity
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
-import { Entity, Column, OneToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  OneToOne,
+  JoinColumn,
+  BeforeInsert,
+  BeforeUpdate,
+} from 'typeorm';
 import { BaseEntity } from '@/common/entities/base.entity';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 
@@ -152,4 +159,22 @@ export class SsoConfiguration extends BaseEntity {
 
   @Column({ name: 'attribute_mapping', type: 'jsonb', default: '{}' })
   attributeMapping: Record<string, string>;
+
+  /** Legacy InitialSchema columns kept NOT NULL in older migrations */
+  @Column({ name: 'type', type: 'varchar', length: 20, nullable: true, select: false })
+  legacyType?: string;
+
+  @Column({ name: 'config', type: 'jsonb', nullable: true, select: false })
+  legacyConfig?: Record<string, unknown>;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  syncLegacySsoColumns(): void {
+    if (this.providerType) {
+      this.legacyType = this.providerType;
+    }
+    if (this.legacyConfig === undefined || this.legacyConfig === null) {
+      this.legacyConfig = {};
+    }
+  }
 }
