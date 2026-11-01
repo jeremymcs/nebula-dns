@@ -28,6 +28,7 @@ const (
 type CacheInterface interface {
 	GetPolicy(ctx context.Context, locationID string) (*models.CompiledPolicy, error)
 	CheckThreatDomain(ctx context.Context, domain string) (string, bool)
+	FindDomainCategory(ctx context.Context, domain string, candidateCategories []string) string
 	GetDomainCategory(ctx context.Context, domain string) string
 	ValidateToken(ctx context.Context, tokenHash string) (*cache.TokenInfo, error)
 }
@@ -164,14 +165,18 @@ func (s *Service) evaluateDomain(ctx context.Context, policy *models.CompiledPol
 	// ============================================
 	// PRIORITY 5: Category Blocking (with schedules)
 	// ============================================
-	category := s.cache.GetDomainCategory(ctx, domain)
-	if category == "" {
-		// Try parent domain matching for subdomains
-		category = s.findCategoryByParent(ctx, domain)
+	blockedCategories := s.getActiveBlockedCategories(policy, now)
+	candidateCats := make([]string, 0, len(blockedCategories))
+	for cat := range blockedCategories {
+		candidateCats = append(candidateCats, cat)
+	}
+
+	var category string
+	if len(candidateCats) > 0 {
+		category = s.cache.FindDomainCategory(ctx, domain, candidateCats)
 	}
 
 	if category != "" {
-		blockedCategories := s.getActiveBlockedCategories(policy, now)
 		if blockedCategories[category] {
 			return &models.EvaluateResponse{
 				Decision:  DecisionBlock,
@@ -181,6 +186,10 @@ func (s *Service) evaluateDomain(ctx context.Context, policy *models.CompiledPol
 				TTL:       60,
 			}
 		}
+	}
+
+	if category == "" {
+		category = s.cache.GetDomainCategory(ctx, domain)
 	}
 
 	// ============================================

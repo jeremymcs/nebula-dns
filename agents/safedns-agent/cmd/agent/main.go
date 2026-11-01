@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/fluxlabs/dns-filter/agents/safedns-agent/internal/config"
 	"github.com/fluxlabs/dns-filter/agents/safedns-agent/internal/dns"
@@ -30,6 +31,12 @@ type agent struct {
 	forwarder  *forwarder.Forwarder
 	ctx        context.Context
 	cancel     context.CancelFunc
+
+	tamperMu        sync.Mutex
+	tamperDetected  bool
+	tamperDetail    string
+	enforceMu       sync.Mutex
+	dnsEnforced     bool
 }
 
 func (a *agent) Start(s service.Service) error {
@@ -38,68 +45,56 @@ func (a *agent) Start(s service.Service) error {
 }
 
 func (a *agent) Stop(s service.Service) error {
-	a.logger.Info("Stopping Nebula DNS Agent")
-	a.cancel()
-
-	if err := shieldca.Remove(a.config); err != nil {
+	if a.logger != nil {
+		a.logger.Info("Stopping Flux Shield Agent")
+	}
+	if a.cancel != nil {
+		a.cancel()
+	}
+	if err := shieldca.Remove(a.config); err != nil && a.logger != nil {
 		a.logger.Warn("Failed to remove Shield CA", zap.Error(err))
 	}
-
-	// Stop forwarder if running
 	if a.forwarder != nil && a.forwarder.IsRunning() {
-		if err := a.forwarder.Stop(); err != nil {
+		if err := a.forwarder.Stop(); err != nil && a.logger != nil {
 			a.logger.Error("Failed to stop forwarder", zap.Error(err))
 		}
 	}
-
-	// Restore original DNS settings
-	if err := a.dnsManager.Restore(); err != nil {
-		a.logger.Error("Failed to restore DNS settings", zap.Error(err))
-	}
-
+	a.shutdownDNS()
 	return nil
 }
 
 func (a *agent) run() {
-	a.logger.Info("Starting Nebula DNS Agent",
+	defer func() {
+		if r := recover(); r != nil {
+			if a.logger != nil {
+				a.logger.Error("Agent panic — restoring DNS")
+			}
+			a.shutdownDNS()
+		}
+	}()
+
+	a.logger.Info("Starting Flux Shield Agent",
 		zap.String("version", Version),
 		zap.String("build_time", BuildTime))
 
-	// Check if forwarder mode is enabled
-	if a.config.Forwarder.Enabled {
-		a.logger.Info("Forwarder mode enabled",
-			zap.String("listen_address", a.config.Forwarder.ListenAddress),
-			zap.Int("internal_domains", len(a.config.Forwarder.InternalDomains)))
-
-		// Create and start the forwarder
-		a.forwarder = forwarder.New(a.config, a.logger)
-		if err := a.forwarder.Start(); err != nil {
-			a.logger.Error("Failed to start forwarder", zap.Error(err))
-		} else {
-			a.logger.Info("DNS forwarder started")
-			// In forwarder mode, point DNS to localhost
-			if err := a.dnsManager.SaveOriginal(); err != nil {
-				a.logger.Warn("Failed to save original DNS configuration", zap.Error(err))
-			}
-			if err := a.dnsManager.Configure([]string{"127.0.0.1"}); err != nil {
-				a.logger.Error("Failed to configure DNS to use local forwarder", zap.Error(err))
-			}
+	useForwarder := a.config.Forwarder.Enabled || a.configHasRole("dns-enforce")
+	if useForwarder {
+		a.config.Forwarder.Enabled = true
+		if !a.startEnforcement() {
+			a.logger.Warn("DNS enforcement disabled because stub resolver is unavailable")
 		}
+	} else if a.configHasRole("site-updater") {
+		a.logger.Info("Site updater role only — skipping DNS enforcement")
 	} else {
-		// Standard mode: point DNS directly to Nebula DNS servers
 		if err := a.dnsManager.SaveOriginal(); err != nil {
 			a.logger.Warn("Failed to save original DNS configuration", zap.Error(err))
 		}
-
 		servers := a.config.GetDNSServers()
 		if err := a.dnsManager.Configure(servers); err != nil {
 			a.logger.Error("Failed to configure DNS", zap.Error(err))
-		} else {
-			a.logger.Info("DNS configured", zap.Strings("servers", servers))
 		}
 	}
 
-	// Start heartbeat service
 	hostname, _ := os.Hostname()
 	if a.config.GetDeviceID() == "" {
 		a.config.DeviceID = hostname
@@ -108,25 +103,30 @@ func (a *agent) run() {
 		a.logger.Warn("Shield CA synchronization failed", zap.Error(err))
 	}
 	a.heartbeat = heartbeat.NewService(a.config, a.logger, Version, hostname)
+	a.heartbeat.SetStatusProvider(func() (bool, bool, string) {
+		detected, detail := a.tamperSnapshot()
+		return a.dnsEnforcedSnapshot(), detected, detail
+	})
 	go a.heartbeat.Start(a.ctx)
 
-	// Wait for shutdown
 	<-a.ctx.Done()
 	a.heartbeat.Stop()
+	a.shutdownDNS()
+}
 
-	// Stop forwarder if running
-	if a.forwarder != nil && a.forwarder.IsRunning() {
-		if err := a.forwarder.Stop(); err != nil {
-			a.logger.Error("Failed to stop forwarder", zap.Error(err))
+func (a *agent) configHasRole(role string) bool {
+	for _, r := range a.config.Roles {
+		if r == role {
+			return true
 		}
 	}
+	return false
 }
 
 func main() {
 	rootCmd := &cobra.Command{
-		Use:   "nebuladns-agent",
-		Short: "Nebula DNS Agent - DNS security for your devices",
-		Long:  `Nebula DNS Agent configures your device to use Nebula DNS for secure DNS resolution.`,
+		Use:   "fluxshield-agent",
+		Short: "Flux Shield Agent for Windows endpoints",
 	}
 
 	rootCmd.AddCommand(
@@ -135,6 +135,7 @@ func main() {
 		uninstallCmd(),
 		statusCmd(),
 		versionCmd(),
+		recoverDNSCmd(),
 		configCmd(),
 	)
 
@@ -155,29 +156,69 @@ func runCmd() *cobra.Command {
 }
 
 func installCmd() *cobra.Command {
-	return &cobra.Command{
+	var token, apiURL, roles string
+	cmd := &cobra.Command{
 		Use:   "install",
 		Short: "Install the agent as a system service",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			cfg := config.DefaultConfig()
+			_ = cfg.Load()
+			if token == "" {
+				return fmt.Errorf("--token is required")
+			}
+			base := apiURL
+			if base == "" {
+				base = cfg.APIEndpoint
+			}
+			if err := enrollAndSave(cfg, base, token, Version, parseRoles(roles)); err != nil {
+				return err
+			}
 			svc, err := createService(nil)
 			if err != nil {
 				return err
 			}
-			return service.Control(svc, "install")
+			if err := service.Control(svc, "install"); err != nil {
+				return err
+			}
+			configureServiceRecovery()
+			return service.Control(svc, "start")
 		},
 	}
+	cmd.Flags().StringVar(&token, "token", "", "Installation token from Flux Shield app")
+	cmd.Flags().StringVar(&apiURL, "api", "", "API base URL (default from config)")
+	cmd.Flags().StringVar(&roles, "roles", "dns-enforce,site-updater", "Comma-separated roles")
+	return cmd
 }
 
 func uninstallCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "uninstall",
-		Short: "Uninstall the agent service",
+		Short: "Uninstall the agent service and restore DNS",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			cfg := config.DefaultConfig()
+			_ = cfg.Load()
+			mgr := dns.NewManager()
+			restoreDNSWithRetry(zap.NewNop(), mgr)
+			_ = cfg.ClearCredentials()
 			svc, err := createService(nil)
 			if err != nil {
 				return err
 			}
+			_ = service.Control(svc, "stop")
 			return service.Control(svc, "uninstall")
+		},
+	}
+}
+
+func recoverDNSCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "recover-dns",
+		Short: "Emergency restore of adapter DNS from backup",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			mgr := dns.NewManager()
+			restoreDNSWithRetry(zap.NewNop(), mgr)
+			fmt.Println("DNS restore attempted from FluxShield backup.")
+			return nil
 		},
 	}
 }

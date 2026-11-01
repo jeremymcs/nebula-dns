@@ -26,13 +26,19 @@ export class Location extends TenantScopedEntity {
   ipRange: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  dyndns: string;
+  dyndns: string | null;
 
   @Column({ name: 'rate_limit', type: 'int', default: 1000 })
   rateLimit: number;
 
   @Column({ type: 'jsonb', nullable: true })
   settings: Record<string, any>;
+
+  @Column({ name: 'site_ip_updated_at', type: 'timestamptz', nullable: true })
+  siteIpUpdatedAt: Date | null;
+
+  @Column({ name: 'site_ip_updated_by_agent_id', type: 'uuid', nullable: true })
+  siteIpUpdatedByAgentId: string | null;
 
   @ManyToOne(() => Tenant, (tenant) => tenant.locations)
   @JoinColumn({ name: 'tenant_id' })

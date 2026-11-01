@@ -2,6 +2,8 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -9,15 +11,25 @@ import * as crypto from 'crypto';
 import {
   AgentInstallation,
   AgentPlatform,
+  AgentRole,
 } from './entities/agent-installation.entity';
+import { AgentInstallToken } from './entities/agent-install-token.entity';
 import { Tenant } from '../tenants/entities/tenant.entity';
+import { Location } from '../locations/entities/location.entity';
 import {
   CreateDownloadLinkDto,
   RegisterAgentDto,
   AgentHeartbeatDto,
   UpdateAgentDto,
+  AgentSiteIpUpdateDto,
+  AgentRegistrationResult,
+  AgentRuntimeConfig,
 } from './dto/agent.dto';
 import { ShieldCaService } from '../shield-ca/shield-ca.service';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { RedisService } from '../redis/redis.service';
+import { AgentBrandingConfig } from './agent-branding.config';
+import { AgentAuthContext } from './agent-auth.guard';
 
 export interface AgentVersion {
   version: string;
@@ -29,58 +41,60 @@ export interface AgentVersion {
 
 @Injectable()
 export class AgentsService {
-  // Agent versions (in production, this would come from a database or config)
+  private readonly logger = new Logger(AgentsService.name);
+
   private readonly agentVersions: Record<AgentPlatform, AgentVersion> = {
     windows: {
-      version: '1.2.0',
-      releaseDate: '2024-01-15',
-      downloadUrl: '/downloads/NebulaDNS-Agent-1.2.0.msi',
-      sha256: 'abc123...',
-      releaseNotes: 'Improved DNS-over-HTTPS performance, bug fixes',
+      version: '1.0.0',
+      releaseDate: '2026-10-31',
+      downloadUrl: '/downloads/FluxShield-Agent-1.0.0-windows-amd64.exe',
+      sha256: '',
+      releaseNotes:
+        'Flux Shield Agent v1: site IP updater and endpoint DNS enforcement',
     },
     macos: {
-      version: '1.2.0',
-      releaseDate: '2024-01-15',
-      downloadUrl: '/downloads/NebulaDNS-Agent-1.2.0.pkg',
-      sha256: 'def456...',
-      releaseNotes: 'Native Apple Silicon support, improved stability',
+      version: '0.0.0',
+      releaseDate: '2026-10-31',
+      downloadUrl: '/downloads/FluxShield-Agent-macos.pkg',
+      sha256: '',
+      releaseNotes: 'Coming soon',
     },
     linux: {
-      version: '1.1.0',
-      releaseDate: '2024-01-10',
-      downloadUrl: '/downloads/nebuladns-agent-1.1.0.deb',
-      sha256: 'ghi789...',
-      releaseNotes: 'Support for Ubuntu 22.04, Debian 12',
+      version: '0.0.0',
+      releaseDate: '2026-10-31',
+      downloadUrl: '/downloads/fluxshield-agent-linux-amd64',
+      sha256: '',
+      releaseNotes: 'Coming soon',
     },
     ios: {
-      version: '1.0.5',
-      releaseDate: '2024-01-12',
-      downloadUrl: 'https://apps.apple.com/app/nebuladns/id123456789',
+      version: '0.0.0',
+      releaseDate: '2026-10-31',
+      downloadUrl: 'https://shield.fluxlabs.net/agents/ios',
       sha256: '',
-      releaseNotes: 'iOS 17 support, improved battery life',
+      releaseNotes: 'Mobile profile coming soon',
     },
     android: {
-      version: '1.0.5',
-      releaseDate: '2024-01-12',
-      downloadUrl:
-        'https://play.google.com/store/apps/details?id=io.nebuladns.agent',
+      version: '0.0.0',
+      releaseDate: '2026-10-31',
+      downloadUrl: 'https://shield.fluxlabs.net/agents/android',
       sha256: '',
-      releaseNotes: 'Android 14 support, Private DNS configuration',
+      releaseNotes: 'Private DNS profile coming soon',
     },
   };
-
-  // Installation tokens (short-lived, tenant-specific)
-  private installationTokens: Map<
-    string,
-    { tenantId: string; locationId?: string; expires: Date }
-  > = new Map();
 
   constructor(
     @InjectRepository(AgentInstallation)
     private agentRepository: Repository<AgentInstallation>,
+    @InjectRepository(AgentInstallToken)
+    private installTokenRepository: Repository<AgentInstallToken>,
     @InjectRepository(Tenant)
     private tenantRepository: Repository<Tenant>,
+    @InjectRepository(Location)
+    private locationRepository: Repository<Location>,
     private readonly shieldCaService: ShieldCaService,
+    private readonly auditLogsService: AuditLogsService,
+    private readonly redisService: RedisService,
+    private readonly branding: AgentBrandingConfig,
   ) {}
 
   async getAgentVersions(): Promise<Record<AgentPlatform, AgentVersion>> {
@@ -105,58 +119,96 @@ export class AgentsService {
     installationToken: string;
     expiresAt: Date;
     version: AgentVersion;
+    roles: AgentRole[];
   }> {
     const version = await this.getLatestVersion(dto.platform);
+    const roles = this.normalizeRoles(dto.roles, dto.locationId);
 
-    // Generate installation token (valid for 24 hours)
+    if (roles.includes('site-updater') && !dto.locationId) {
+      throw new BadRequestException(
+        'locationId is required when site-updater role is enabled',
+      );
+    }
+
+    if (dto.locationId) {
+      const location = await this.locationRepository.findOne({
+        where: { id: dto.locationId, tenantId },
+      });
+      if (!location) {
+        throw new NotFoundException('Location not found');
+      }
+    }
+
     const token = crypto.randomBytes(32).toString('hex');
+    const tokenHash = this.hashSecret(token);
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    this.installationTokens.set(token, {
+    const record = this.installTokenRepository.create({
       tenantId,
-      locationId: dto.locationId,
-      expires: expiresAt,
+      locationId: dto.locationId ?? null,
+      tokenHash,
+      tokenPrefix: token.slice(0, 12),
+      roles,
+      expiresAt,
     });
-
-    // Clean up expired tokens periodically
-    this.cleanupExpiredTokens();
+    await this.installTokenRepository.save(record);
 
     return {
       downloadUrl: version.downloadUrl,
       installationToken: token,
       expiresAt,
       version,
+      roles,
     };
   }
 
-  async registerAgent(dto: RegisterAgentDto): Promise<AgentInstallation> {
-    // Validate installation token
-    const tokenData = this.installationTokens.get(dto.installationToken);
-    if (!tokenData) {
+  async registerAgent(dto: RegisterAgentDto): Promise<AgentRegistrationResult> {
+    const tokenRecord = await this.installTokenRepository.findOne({
+      where: { tokenHash: this.hashSecret(dto.installationToken) },
+    });
+
+    if (!tokenRecord) {
       throw new BadRequestException('Invalid installation token');
     }
-    if (tokenData.expires < new Date()) {
-      this.installationTokens.delete(dto.installationToken);
+    if (tokenRecord.usedAt) {
+      throw new BadRequestException('Installation token has already been used');
+    }
+    if (tokenRecord.expiresAt < new Date()) {
       throw new BadRequestException('Installation token has expired');
     }
 
-    // Check if device already registered
+    const roles = this.normalizeRoles(dto.roles, tokenRecord.locationId);
+    for (const role of roles) {
+      if (!tokenRecord.roles.includes(role)) {
+        throw new BadRequestException(`Role not permitted: ${role}`);
+      }
+    }
+
+    if (roles.includes('site-updater') && !tokenRecord.locationId) {
+      throw new BadRequestException('Site updater requires a location');
+    }
+
+    const deviceSecret = crypto.randomBytes(32).toString('hex');
+    const dohToken = crypto.randomBytes(24).toString('base64url');
+
     let agent = await this.agentRepository.findOne({
-      where: { tenantId: tokenData.tenantId, deviceId: dto.deviceId },
+      where: { tenantId: tokenRecord.tenantId, deviceId: dto.deviceId },
     });
 
     if (agent) {
-      // Update existing registration
       agent.agentVersion = dto.agentVersion;
       agent.osVersion = dto.osVersion || null;
       agent.status = 'active';
       agent.lastSeenAt = new Date();
       agent.errorMessage = null;
+      agent.roles = roles;
+      agent.locationId = tokenRecord.locationId ?? agent.locationId;
+      agent.deviceSecretHash = this.hashSecret(deviceSecret);
+      agent.dohTokenHash = this.hashSecret(dohToken);
     } else {
-      // Create new registration
       agent = this.agentRepository.create({
-        tenantId: tokenData.tenantId,
-        locationId: tokenData.locationId,
+        tenantId: tokenRecord.tenantId,
+        locationId: tokenRecord.locationId,
         deviceId: dto.deviceId,
         deviceName:
           dto.deviceName || `${dto.platform}-${dto.deviceId.substring(0, 8)}`,
@@ -165,13 +217,28 @@ export class AgentsService {
         agentVersion: dto.agentVersion,
         status: 'active',
         lastSeenAt: new Date(),
+        roles,
+        deviceSecretHash: this.hashSecret(deviceSecret),
+        dohTokenHash: this.hashSecret(dohToken),
       });
     }
 
-    // Invalidate the token after successful registration
-    this.installationTokens.delete(dto.installationToken);
+    agent = await this.agentRepository.save(agent);
 
-    return this.agentRepository.save(agent);
+    tokenRecord.usedAt = new Date();
+    await this.installTokenRepository.save(tokenRecord);
+
+    return {
+      agent: {
+        id: agent.id,
+        deviceName: agent.deviceName,
+        locationId: agent.locationId,
+        roles: agent.roles,
+      },
+      deviceSecret,
+      dohToken,
+      config: await this.buildRuntimeConfig(agent),
+    };
   }
 
   async handleHeartbeat(
@@ -181,6 +248,7 @@ export class AgentsService {
     configUpdated: boolean;
     updateAvailable: boolean;
     latestVersion?: string;
+    config?: AgentRuntimeConfig;
   }> {
     const agent = await this.agentRepository.findOne({
       where: { tenantId, deviceId: dto.deviceId },
@@ -190,24 +258,20 @@ export class AgentsService {
       throw new NotFoundException('Agent not found');
     }
 
-    // Update agent status
-    agent.lastSeenAt = new Date();
-    agent.agentVersion = dto.agentVersion;
-    if (dto.ipAddress) agent.ipAddress = dto.ipAddress;
-    if (dto.status) agent.status = dto.status;
-    if (dto.errorMessage) agent.errorMessage = dto.errorMessage;
+    await this.applyHeartbeatFields(agent, dto);
 
-    await this.agentRepository.save(agent);
+    const runtimeConfig = await this.buildRuntimeConfig(agent);
 
-    // Check if update is available
     const latestVersion = this.agentVersions[agent.platform];
     const updateAvailable =
-      latestVersion && latestVersion.version !== dto.agentVersion;
+      latestVersion &&
+      this.isNewerVersion(latestVersion.version, dto.agentVersion);
 
     return {
-      configUpdated: false, // Would check if policy changed
+      configUpdated: false,
       updateAvailable,
       latestVersion: updateAvailable ? latestVersion.version : undefined,
+      config: runtimeConfig,
     };
   }
 
@@ -216,30 +280,23 @@ export class AgentsService {
     updateAvailable: boolean;
     latestVersion?: string;
     downloadUrl?: string;
+    config?: AgentRuntimeConfig;
   }> {
-    // Find agent by device ID (public endpoint, no tenant context)
     const agent = await this.agentRepository.findOne({
       where: { deviceId: dto.deviceId },
     });
 
     if (!agent) {
-      // Agent not registered, return basic response
       return {
         configUpdated: false,
         updateAvailable: false,
       };
     }
 
-    // Update agent status
-    agent.lastSeenAt = new Date();
-    agent.agentVersion = dto.agentVersion;
-    if (dto.ipAddress) agent.ipAddress = dto.ipAddress;
-    if (dto.status) agent.status = dto.status;
-    if (dto.errorMessage) agent.errorMessage = dto.errorMessage;
+    await this.applyHeartbeatFields(agent, dto);
 
-    await this.agentRepository.save(agent);
+    const runtimeConfig = await this.buildRuntimeConfig(agent);
 
-    // Check if update is available
     const latestVersion = this.agentVersions[agent.platform];
     const updateAvailable =
       latestVersion &&
@@ -250,6 +307,7 @@ export class AgentsService {
       updateAvailable,
       latestVersion: updateAvailable ? latestVersion.version : undefined,
       downloadUrl: updateAvailable ? latestVersion.downloadUrl : undefined,
+      config: runtimeConfig,
     };
   }
 
@@ -269,21 +327,93 @@ export class AgentsService {
     return this.shieldCaService.getCertificatePem(agent.tenantId);
   }
 
-  private isNewerVersion(latest: string, current: string): boolean {
-    const latestParts = latest.split('.').map(Number);
-    const currentParts = current.split('.').map(Number);
+  async updateSitePublicIp(
+    auth: AgentAuthContext,
+    dto: AgentSiteIpUpdateDto,
+    clientIp?: string,
+  ): Promise<{ updated: boolean; ipRange: string | null }> {
+    const { agent } = auth;
 
-    for (
-      let i = 0;
-      i < Math.max(latestParts.length, currentParts.length);
-      i++
-    ) {
-      const l = latestParts[i] || 0;
-      const c = currentParts[i] || 0;
-      if (l > c) return true;
-      if (l < c) return false;
+    if (!agent.roles.includes('site-updater')) {
+      throw new ForbiddenException('Agent is not authorized for site IP updates');
     }
-    return false;
+    if (!agent.locationId) {
+      throw new BadRequestException('Agent is not linked to a location');
+    }
+    if (!dto.publicIpv4 && !dto.publicIpv6) {
+      throw new BadRequestException('At least one public IP must be provided');
+    }
+
+    const location = await this.locationRepository.findOne({
+      where: { id: agent.locationId, tenantId: agent.tenantId },
+    });
+    if (!location) {
+      throw new NotFoundException('Location not found');
+    }
+
+    const nextRange = this.buildIpRange(dto.publicIpv4, dto.publicIpv6);
+    if (location.ipRange === nextRange) {
+      return { updated: false, ipRange: location.ipRange };
+    }
+
+    const oldRange = location.ipRange;
+    const oldDyndns = location.dyndns;
+    location.ipRange = nextRange;
+    location.dyndns = null;
+    location.siteIpUpdatedAt = new Date();
+    location.siteIpUpdatedByAgentId = agent.id;
+    await this.locationRepository.save(location);
+
+    await this.redisService.storeIPRange(location.id, {
+      tenant_id: location.tenantId,
+      location_id: location.id,
+      ip_range: location.ipRange,
+      rate_limit: location.rateLimit,
+    });
+    await this.redisService.invalidatePolicy(location.id);
+
+    await this.auditLogsService.log({
+      tenantId: agent.tenantId,
+      action: 'update',
+      resourceType: 'location',
+      resourceId: location.id,
+      resourceName: location.name,
+      oldValue: { ipRange: oldRange, dyndns: oldDyndns },
+      newValue: {
+        ipRange: nextRange,
+        source: dto.source ?? 'flux-shield-agent',
+        agentId: agent.id,
+      },
+      ipAddress: clientIp ?? dto.publicIpv4 ?? dto.publicIpv6 ?? null,
+      metadata: {
+        publicIpv4: dto.publicIpv4,
+        publicIpv6: dto.publicIpv6,
+      },
+    });
+
+    this.logger.log(
+      `Site IP updated for location ${location.id} by agent ${agent.id}`,
+    );
+
+    return { updated: true, ipRange: nextRange };
+  }
+
+  async validateAgentDohToken(
+    tenantId: string,
+    deviceId: string,
+    token: string,
+  ): Promise<AgentInstallation | null> {
+    const agent = await this.agentRepository.findOne({
+      where: { tenantId, deviceId },
+    });
+    if (!agent?.dohTokenHash) {
+      return null;
+    }
+    const hash = this.hashSecret(token);
+    if (hash !== agent.dohTokenHash) {
+      return null;
+    }
+    return agent;
   }
 
   async getAgents(tenantId: string): Promise<AgentInstallation[]> {
@@ -351,12 +481,96 @@ export class AgentsService {
     };
   }
 
-  private cleanupExpiredTokens(): void {
-    const now = new Date();
-    for (const [token, data] of this.installationTokens.entries()) {
-      if (data.expires < now) {
-        this.installationTokens.delete(token);
+  private async applyHeartbeatFields(
+    agent: AgentInstallation,
+    dto: AgentHeartbeatDto,
+  ): Promise<void> {
+    agent.lastSeenAt = new Date();
+    agent.agentVersion = dto.agentVersion;
+    if (dto.ipAddress) agent.ipAddress = dto.ipAddress;
+    if (dto.status) agent.status = dto.status;
+    if (dto.errorMessage) agent.errorMessage = dto.errorMessage;
+    if (typeof dto.dnsEnforced === 'boolean') {
+      agent.dnsEnforced = dto.dnsEnforced;
+    }
+    if (dto.roles?.length) {
+      agent.roles = dto.roles;
+    }
+    if (dto.tamperDetected) {
+      agent.tamperCount += 1;
+      agent.lastTamperAt = new Date();
+      if (dto.tamperDetail) {
+        agent.errorMessage = dto.tamperDetail;
       }
     }
+
+    await this.agentRepository.save(agent);
+  }
+
+  private async buildRuntimeConfig(agent: AgentInstallation): Promise<AgentRuntimeConfig> {
+    const [dns1, dns2] = this.branding.dnsServerHosts;
+    let internalDnsZones: string[] | undefined;
+    if (agent.locationId) {
+      const location = await this.locationRepository.findOne({
+        where: { id: agent.locationId, tenantId: agent.tenantId },
+      });
+      const zones = location?.settings?.internalDnsZones;
+      if (Array.isArray(zones)) {
+        internalDnsZones = zones.filter((z) => typeof z === 'string');
+      }
+    }
+    return {
+      apiEndpoint: this.branding.apiEndpoint,
+      dohEndpoint: this.branding.dohEndpoint,
+      dnsServers: [dns1, dns2],
+      roles: agent.roles,
+      tenantId: agent.tenantId,
+      locationId: agent.locationId,
+      internalDnsZones,
+    };
+  }
+
+  private normalizeRoles(
+    requested: AgentRole[] | undefined,
+    locationId?: string | null,
+  ): AgentRole[] {
+    const roles = requested?.length
+      ? [...new Set(requested)]
+      : locationId
+        ? (['site-updater', 'dns-enforce'] as AgentRole[])
+        : (['dns-enforce'] as AgentRole[]);
+    return roles;
+  }
+
+  private buildIpRange(ipv4?: string, ipv6?: string): string {
+    const parts: string[] = [];
+    if (ipv4) {
+      parts.push(ipv4.includes('/') ? ipv4 : `${ipv4}/32`);
+    }
+    if (ipv6) {
+      parts.push(ipv6.includes('/') ? ipv6 : `${ipv6}/128`);
+    }
+    return parts.join(', ');
+  }
+
+  private hashSecret(value: string): string {
+    return crypto.createHash('sha256').update(value).digest('hex');
+  }
+
+  private isNewerVersion(latest: string, current: string): boolean {
+    const latestParts = latest.split('.').map(Number);
+    const currentParts = current.split('.').map(Number);
+
+    for (
+      let i = 0;
+      i < Math.max(latestParts.length, currentParts.length);
+      i++
+    ) {
+      const l = latestParts[i] || 0;
+      const c = currentParts[i] || 0;
+      if (l > c) return true;
+      if (l < c) return false;
+    }
+    return false;
   }
 }

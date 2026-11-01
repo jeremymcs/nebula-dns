@@ -54,7 +54,10 @@ export type AuditAction =
   | 'billing_payment_method_deleted'
   | 'admin_role_changed'
   | 'rbac_denied'
-  | 'rbac_shadow_denied';
+  | 'rbac_shadow_denied'
+  | 'dns_zone_assigned'
+  | 'dns_zone_unassigned'
+  | 'dns_zone_created';
 
 export type AuditResourceType =
   | 'user'
@@ -71,7 +74,11 @@ export type AuditResourceType =
   | 'block_page'
   | 'access_request'
   | 'template'
-  | 'admin';
+  | 'admin'
+  | 'dns_platform_connection'
+  | 'dns_zone_assignment'
+  | 'dns_record'
+  | 'dns_tenant_connection';
 
 @Entity('audit_logs')
 export class AuditLog {

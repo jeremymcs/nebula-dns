@@ -13,6 +13,8 @@ import { AlertConfig } from '../src/modules/alerting/entities/alert-config.entit
 import { ApiKey } from '../src/modules/api-keys/entities/api-key.entity';
 import { ApiKeyUsage } from '../src/modules/api-keys/entities/api-key-usage.entity';
 import { AuditLog } from '../src/modules/audit-logs/entities/audit-log.entity';
+import { DnsPlatformConnection } from '../src/modules/dns-management/entities/dns-platform-connection.entity';
+import { DnsZoneAssignment } from '../src/modules/dns-management/entities/dns-zone-assignment.entity';
 import { AccessRequest } from '../src/modules/block-pages/entities/access-request.entity';
 import { BlockPage } from '../src/modules/block-pages/entities/block-page.entity';
 import { FamilyInvitation } from '../src/modules/family/entities/family-invitation.entity';
@@ -67,6 +69,8 @@ export const ALL_TEST_ENTITIES = [
   ApiKey,
   ApiKeyUsage,
   AuditLog,
+  DnsPlatformConnection,
+  DnsZoneAssignment,
   AccessRequest,
   BlockPage,
   FamilyInvitation,

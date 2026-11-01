@@ -5,19 +5,23 @@
 | Key pattern | Type | Purpose |
 |-------------|------|---------|
 | `nebula:threats:{category}` | SET | Domains for threat type (`malware`, `phishing`, `botnet`, …). Atomic refresh via `{category}:staging` + `RENAME`. TTL 48h. |
-| `nebula:categories:{category}` | SET | Domains for content categories (`adult`, `gambling`, `social_media`, …). TTL 7d. |
+| `nebula:categories:{category}:{shard}` | SET | Sharded content categories (`0..N-1`). Domain → shard via FNV-1a (same in API + policy-svc). TTL 7d. |
 | `nebula:feeds:meta:{feedId}` | STRING (JSON) | Last update time, entry count, last error (admin stats). |
 
-Lookups walk parent domain labels (e.g. `sub.evil.com` → `evil.com`) using `SISMEMBER` on each suffix.
+Legacy unsharded `nebula:categories:{category}` keys are deleted after a successful sharded load; readers do not use them.
+
+Lookups walk parent domain labels (e.g. `sub.evil.com` → `evil.com`). For each suffix, policy-svc pipelines one `SISMEMBER` per **enabled blocked category** on the matching shard only.
+
+Default shard count: **16** (`CATEGORY_SHARD_COUNT`, 1–256). Upstash Fixed 1GB caps **200 MB per key**; sharding keeps each SET under that limit.
 
 ### Estimated Redis memory (order of magnitude)
 
-Assuming ~500k unique threat domains and ~2M categorized domains (typical UT1 subset):
+- Threat SETs: ~500k domains × ~44 B → **~25 MB** total (single key per type).
+- UT1 **adult** (~4.6M domains): ~44 B/member → **~202 MB** if stored as one SET (exceeds per-key limit). With **16 shards**: **~287k domains/shard → ~12.6 MB/shard**, **~202 MB** live total.
+- Refresh peak (shard-by-shard `RENAME`): roughly **live + one staging shard** (~12.6 MB extra per large category), not 2× full category size.
+- API loader peak target: **<500 MB** RAM (stream parse + batched `SADD`, no full-domain array).
 
-- SET members: ~40–60 bytes per domain (overhead included) → **~25–35 MB** threats + **~80–120 MB** categories
-- Meta keys: negligible
-
-Upstash: prefer batched `SADD` (5k per batch) and single-key `RENAME` per category to stay within command limits during refresh.
+Smaller default UT1 subset (no full `adult`): **~60–120 MB** categories total.
 
 ## Sources
 
@@ -40,6 +44,8 @@ Upstash: prefer batched `SADD` (5k per batch) and single-key `RENAME` per catego
 
 **UT1 blacklists** — Université Toulouse Capitole, [https://dsi.ut-capitole.fr/blacklists/](https://dsi.ut-capitole.fr/blacklists/), **CC BY-SA 4.0**. Loaded daily by `CategoryFeedsService`; UT1 category names are mapped to Flux Shield category IDs (`social_networks` → `social_media`, `audio-video` → `streaming`, etc.).
 
+Tarball is **stream-parsed** (no full in-memory domain list). If the tarball source fails, the loader falls back to the [olbat/ut1-blacklists](https://github.com/olbat/ut1-blacklists) mirror (`domains`, `domains.0`, `domains.1`, …). If a load would shrink an existing category below **50%** of the current live member count (sum of shard `SCARD`s), the swap is skipped, live keys are kept, and `lastError` is recorded.
+
 **Attribution:** Domain categorization data includes UT1 Blacklists © Université Toulouse 1 Capitole, licensed under CC BY-SA.
 
 ## Owner setup (optional)
@@ -47,7 +53,8 @@ Upstash: prefer batched `SADD` (5k per batch) and single-key `RENAME` per catego
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `PHISHTANK_APP_KEY` | No | Enables PhishTank CSV feed with your registered app key |
-| `CATEGORY_FEEDS_ENABLED` | No | Comma-separated UT1 folder names. Default modest set (~60MB Redis est.). |
+| `CATEGORY_FEEDS_ENABLED` | No | Comma-separated UT1 folder names. Default modest set (~60MB Redis est.). **Full `adult` list (~4.6M domains) is not loaded unless this env explicitly includes `adult`.** |
+| `CATEGORY_SHARD_COUNT` | No | Shards per Flux category (default `16`). Must match policy-svc if overridden. |
 | `INTERNAL_API_SECRET` | No | Enables `/internal/v1/policy/locations/:id/compile` for policy-svc compile-on-miss |
 | `POLICY_COMPILE_API_URL` | No | API base URL from policy-svc (e.g. `http://api:3000`) |
 | `REDIS_URL` | Yes in production | Same Upstash/`rediss://` URL as the rest of the API (already required) |

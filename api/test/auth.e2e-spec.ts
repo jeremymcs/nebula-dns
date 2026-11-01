@@ -7,6 +7,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { e2eRequest } from './e2e-request';
 
 describe('Authentication E2E Tests', () => {
   let app: INestApplication;
@@ -31,7 +32,7 @@ describe('Authentication E2E Tests', () => {
 
   describe('Login Flow', () => {
     it('should reject login with missing email', async () => {
-      const response = await request(app.getHttpServer())
+      const response = await e2eRequest(app.getHttpServer())
         .post('/auth/login')
         .send({ password: 'password123' });
 
@@ -39,7 +40,7 @@ describe('Authentication E2E Tests', () => {
     });
 
     it('should reject login with missing password', async () => {
-      const response = await request(app.getHttpServer())
+      const response = await e2eRequest(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'test@example.com' });
 
@@ -47,7 +48,7 @@ describe('Authentication E2E Tests', () => {
     });
 
     it('should reject login with invalid email format', async () => {
-      const response = await request(app.getHttpServer())
+      const response = await e2eRequest(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'not-an-email', password: 'password123' });
 
@@ -55,7 +56,7 @@ describe('Authentication E2E Tests', () => {
     });
 
     it('should reject login with non-existent user', async () => {
-      const response = await request(app.getHttpServer())
+      const response = await e2eRequest(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'nonexistent@example.com', password: 'password123' });
 
@@ -63,7 +64,7 @@ describe('Authentication E2E Tests', () => {
     });
 
     it('should reject login with wrong password', async () => {
-      const response = await request(app.getHttpServer())
+      const response = await e2eRequest(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'admin@example.com', password: 'wrongpassword' });
 
@@ -99,7 +100,7 @@ describe('Authentication E2E Tests', () => {
 
   describe('MFA Flow', () => {
     it('should reject MFA verification without session', async () => {
-      const response = await request(app.getHttpServer())
+      const response = await e2eRequest(app.getHttpServer())
         .post('/mfa/verify')
         .send({ code: '123456' });
 
@@ -115,7 +116,7 @@ describe('Authentication E2E Tests', () => {
 
   describe('Successful Login', () => {
     it('should return tokens on successful login with valid credentials', async () => {
-      const response = await request(app.getHttpServer())
+      const response = await e2eRequest(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'admin@example.com', password: 'AdminPassword123!' });
 
@@ -135,7 +136,7 @@ describe('Authentication E2E Tests', () => {
   describe('Session Token Refresh', () => {
     it('should refresh token with valid refresh token', async () => {
       // First login to get a refresh token
-      const loginResponse = await request(app.getHttpServer())
+      const loginResponse = await e2eRequest(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'admin@example.com', password: 'AdminPassword123!' });
 
@@ -161,7 +162,7 @@ describe('Authentication E2E Tests', () => {
   describe('Logout Flow', () => {
     it('should invalidate session on logout', async () => {
       // First login to get a token
-      const loginResponse = await request(app.getHttpServer())
+      const loginResponse = await e2eRequest(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'admin@example.com', password: 'AdminPassword123!' });
 
@@ -198,7 +199,7 @@ describe('Authentication E2E Tests', () => {
     });
 
     it('should reject password change with invalid current password', async () => {
-      const loginResponse = await request(app.getHttpServer())
+      const loginResponse = await e2eRequest(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'admin@example.com', password: 'AdminPassword123!' });
 
@@ -218,7 +219,7 @@ describe('Authentication E2E Tests', () => {
     });
 
     it('should reject password change with missing fields', async () => {
-      const loginResponse = await request(app.getHttpServer())
+      const loginResponse = await e2eRequest(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'admin@example.com', password: 'AdminPassword123!' });
 
@@ -249,13 +250,13 @@ describe('Authentication E2E Tests', () => {
       // Attempt multiple failed logins
       const attempts = 5;
       for (let i = 0; i < attempts; i++) {
-        await request(app.getHttpServer())
+        await e2eRequest(app.getHttpServer())
           .post('/auth/login')
           .send({ email: 'admin@example.com', password: 'WrongPassword123!' });
       }
 
       // After multiple failed attempts, account should be locked
-      const response = await request(app.getHttpServer())
+      const response = await e2eRequest(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'admin@example.com', password: 'AdminPassword123!' });
 
@@ -264,7 +265,7 @@ describe('Authentication E2E Tests', () => {
     });
 
     it('should reject login to locked account', async () => {
-      const response = await request(app.getHttpServer())
+      const response = await e2eRequest(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'admin@example.com', password: 'AdminPassword123!' });
 

@@ -24,6 +24,7 @@ export const PRODUCT_MARKETING_TAGLINE =
 
 /** Platform modules (nav / IA). */
 export const PRODUCT_MODULE_DNS_FILTER = 'DNS Filter' as const
+export const PRODUCT_MODULE_DNS_MANAGEMENT = 'DNS Management' as const
 export const PRODUCT_MODULE_DMARC = 'DMARC' as const
 
 export const ADMIN_PORTAL_NAME = 'Admin Console' as const

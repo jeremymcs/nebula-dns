@@ -66,6 +66,7 @@ export const ADMIN_PERMISSIONS = {
   'tenant-billing-write': ['super_admin', 'admin'] as AdminRole[],
   'admin-users': ['super_admin'] as AdminRole[],
   'alerting-config': ['super_admin', 'admin'] as AdminRole[],
+  'dns-platform': ['super_admin', 'admin'] as AdminRole[],
 } as const
 
 /**

@@ -103,3 +103,48 @@ func copyFile(src, dst string) error {
 	}
 	return os.WriteFile(dst, data, 0644)
 }
+
+func (m *Manager) SaveOriginal() error {
+	servers, err := m.GetCurrentServers()
+	if err != nil {
+		return err
+	}
+	m.backup = &AdapterBackup{Adapters: []AdapterDNS{{Name: "system", Servers: servers}}}
+	return saveBackupToDisk(m.backup)
+}
+
+func (m *Manager) Restore() error {
+	if m.backup == nil {
+		b, err := loadBackupFromDisk()
+		if err != nil {
+			return nil
+		}
+		m.backup = b
+	}
+	if m.backup == nil || len(m.backup.Adapters) == 0 {
+		return nil
+	}
+	return m.Configure(m.backup.Adapters[0].Servers)
+}
+
+func (m *Manager) RestoreFromDisk() error {
+	b, err := loadBackupFromDisk()
+	if err != nil {
+		return err
+	}
+	m.backup = b
+	return m.Restore()
+}
+
+func (m *Manager) CheckEnforcement() (bool, string, error) {
+	current, err := m.GetCurrentServers()
+	if err != nil {
+		return false, "", err
+	}
+	for _, s := range current {
+		if s != "127.0.0.1" {
+			return false, s, nil
+		}
+	}
+	return true, "", nil
+}
