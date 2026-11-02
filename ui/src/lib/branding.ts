@@ -27,7 +27,7 @@ export const FLUX_LABS_URL = 'https://fluxlabs.net' as const
 
 /** Flux Shield marketing site (pricing, docs, legal pages). */
 export { WWW_ORIGIN as MARKETING_SITE_URL } from '@/lib/public-urls'
-export const FLUX_LABS_LOCATION = 'Panama City Beach, FL' as const
+export const FLUX_LABS_LOCATION = 'Panama City, FL' as const
 
 export function currentCopyrightYear(): number {
   return new Date().getFullYear()
