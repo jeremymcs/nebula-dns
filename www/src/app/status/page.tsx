@@ -85,24 +85,16 @@ export default function StatusPage() {
 
       {/* Hero */}
       <div className="relative py-16 sm:py-20 overflow-hidden">
-        <div className="absolute top-0 left-1/3 w-96 h-96 bg-success-600/8 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-1/3 w-80 h-80 bg-accent-600/8 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="fs-eyebrow mb-4">
-            STATUS
-          </p>
-          <h1 className="text-4xl sm:text-5xl font-bold text-ink mb-8">
-            System Status
-          </h1>
 
           {/* Overall status badge */}
           <div className="inline-flex flex-col items-center">
             <div
               className={`inline-flex items-center gap-3 px-6 py-3 rounded-2xl border text-lg font-semibold ${
                 allOperational
-                  ? 'bg-success-900/40 border-success-800/50 text-success-300'
-                  : 'bg-warning-900/40 border-warning-800/50 text-warning-300'
+                  ? 'bg-[var(--fs-success-soft)] border-transparent text-[var(--fs-success)]'
+                  : 'bg-[var(--fs-warning-soft)] border-transparent text-[var(--fs-warning)]'
               }`}
             >
               <span
@@ -216,7 +208,7 @@ export default function StatusPage() {
           </h2>
 
           <div className="fs-card rounded-[14px] p-12 text-center">
-            <div className="h-14 w-14 rounded-xl bg-success-900/50 border border-success-800/50 flex items-center justify-center text-[var(--fs-success)] mx-auto mb-4">
+            <div className="h-14 w-14 rounded-xl bg-[var(--fs-success-soft)] border border-transparent flex items-center justify-center text-[var(--fs-success)] mx-auto mb-4">
               <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -235,7 +227,7 @@ export default function StatusPage() {
       <div className="py-16 bg-canvas">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="fs-card rounded-[14px] p-8 text-center">
-            <div className="h-12 w-12 rounded-xl bg-accent-900/50 border border-accent-800/50 flex items-center justify-center text-accent-400 mx-auto mb-5">
+            <div className="h-12 w-12 rounded-xl bg-[var(--fs-danger-soft)] border border-transparent flex items-center justify-center text-[var(--fx-coral)] mx-auto mb-5">
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
@@ -248,7 +240,7 @@ export default function StatusPage() {
             </p>
 
             {subscribed ? (
-              <div className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-success-900/40 border border-success-800/50 text-success-300 font-semibold">
+              <div className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[var(--fs-success-soft)] border border-transparent text-[var(--fs-success)] font-semibold">
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                 </svg>
@@ -283,7 +275,6 @@ export default function StatusPage() {
       {/* CTA */}
       <div className="py-16 sm:py-20 border-t border-[var(--fs-line)] relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[250px] bg-primary-700/10 rounded-full blur-3xl" />
         </div>
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-ink mb-4">

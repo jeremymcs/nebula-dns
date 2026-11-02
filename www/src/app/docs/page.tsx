@@ -34,7 +34,7 @@ export default function DocsPage() {
       topics: ['Authentication', 'Policies API', 'Reports API', 'Webhooks', 'Rate Limits'],
       accentColor: 'from-accent-600 to-accent-500',
       dotColor: 'bg-accent-500',
-      linkColor: 'text-accent-400 hover:text-accent-300',
+      linkColor: 'text-[var(--fx-coral)] hover:text-[var(--fx-coral)]',
     },
     {
       title: 'Guides & Articles',
@@ -80,7 +80,7 @@ export default function DocsPage() {
     {
       category: 'Advanced',
       icon: (
-        <svg className="h-5 w-5 text-accent-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="h-5 w-5 text-[var(--fx-coral)]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
         </svg>
       ),
@@ -231,7 +231,7 @@ export default function DocsPage() {
             <ul className="space-y-5">
               {whatsNew.map((item, i) => (
                 <li key={i} className="flex items-start gap-4">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success-900/50 text-success-300 border border-success-800/50 flex-shrink-0 mt-0.5">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--fs-success-soft)] text-[var(--fs-success)] border border-transparent flex-shrink-0 mt-0.5">
                     {item.version}
                   </span>
                   <div>

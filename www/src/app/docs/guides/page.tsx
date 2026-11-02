@@ -80,9 +80,9 @@ const guides = [
 ]
 
 const difficultyColors = {
-  Beginner: 'bg-success-900/50 text-success-300',
-  Intermediate: 'bg-warning-900/50 text-warning-300',
-  Advanced: 'bg-danger-900/50 text-danger-300',
+  Beginner: 'bg-[var(--fs-success-soft)] text-[var(--fs-success)]',
+  Intermediate: 'bg-[var(--fs-warning-soft)] text-[var(--fs-warning)]',
+  Advanced: 'bg-[var(--fs-danger-soft)] text-[var(--fs-danger)]',
 }
 
 export default function GuidesPage() {

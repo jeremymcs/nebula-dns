@@ -8,10 +8,10 @@ import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
 
 function MethodBadge({ method }: { method: string }) {
   const styles: Record<string, string> = {
-    GET: 'bg-success-900/50 text-success-300 border border-success-800/50',
+    GET: 'bg-[var(--fs-success-soft)] text-[var(--fs-success)] border border-transparent',
     POST: 'bg-primary-500/10 text-brand border border-primary-500/30',
-    PATCH: 'bg-warning-900/50 text-warning-300 border border-warning-800/50',
-    DELETE: 'bg-danger-900/50 text-danger-300 border border-danger-800/50',
+    PATCH: 'bg-[var(--fs-warning-soft)] text-[var(--fs-warning)] border border-transparent',
+    DELETE: 'bg-[var(--fs-danger-soft)] text-[var(--fs-danger)] border border-transparent',
   }
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold font-mono flex-shrink-0 ${styles[method] || styles.GET}`}>
@@ -161,7 +161,7 @@ export default function ApiReferencePage() {
   const rateLimits = [
     { plan: 'Free', badge: 'F', badgeColor: 'bg-panel text-[var(--fs-txt)] border-line', limit: '100 requests/hour' },
     { plan: 'Pro', badge: 'P', badgeColor: 'bg-primary-500/10 text-brand border-primary-500/30', limit: '1,000 requests/hour' },
-    { plan: 'Enterprise', badge: 'E', badgeColor: 'bg-accent-900/50 text-accent-300 border-accent-800/50', limit: '10,000 requests/hour' },
+    { plan: 'Enterprise', badge: 'E', badgeColor: 'bg-[var(--fs-danger-soft)] text-[var(--fx-coral)] border-transparent', limit: '10,000 requests/hour' },
   ]
 
   return (
@@ -179,12 +179,12 @@ export default function ApiReferencePage() {
           {/* Base URL */}
           <div className="fs-card rounded-[14px] p-8">
             <h2 className="text-xl font-bold text-ink mb-4 flex items-center gap-2">
-              <svg className="h-5 w-5 text-accent-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <svg className="h-5 w-5 text-[var(--fx-coral)]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
               </svg>
               Base URL
             </h2>
-            <div className="bg-canvas border border-line rounded-xl p-4 font-mono text-accent-400 text-sm mb-4 overflow-x-auto">
+            <div className="bg-canvas border border-line rounded-xl p-4 font-mono text-[var(--fx-coral)] text-sm mb-4 overflow-x-auto">
               https://api.shield.fluxlabs.net/v1
             </div>
             <p className="text-[var(--fs-txt)] text-sm">
@@ -200,7 +200,7 @@ export default function ApiReferencePage() {
               </svg>
               Response Format
             </h2>
-            <div className="bg-canvas border border-line rounded-xl p-4 font-mono text-accent-400 text-sm mb-4">
+            <div className="bg-canvas border border-line rounded-xl p-4 font-mono text-[var(--fx-coral)] text-sm mb-4">
               Content-Type: application/json
             </div>
             <p className="text-[var(--fs-txt)] text-sm">
@@ -221,7 +221,7 @@ export default function ApiReferencePage() {
               <h2 className="text-2xl font-bold text-ink mb-3">Authentication</h2>
               <p className="text-[var(--fs-txt)] mb-5">
                 The Flux Shield API uses Bearer token authentication. Include your API token in the{' '}
-                <code className="bg-canvas border border-line px-1.5 py-0.5 rounded text-xs text-accent-400 font-mono">Authorization</code>{' '}
+                <code className="bg-canvas border border-line px-1.5 py-0.5 rounded text-xs text-[var(--fx-coral)] font-mono">Authorization</code>{' '}
                 header of every request.
               </p>
               <div className="bg-canvas border border-line rounded-xl overflow-hidden">
@@ -230,7 +230,7 @@ export default function ApiReferencePage() {
                   <span className="text-xs text-[var(--fs-mut)]">Required on all requests</span>
                 </div>
                 <div className="p-4">
-                  <pre className="text-sm text-accent-400 font-mono">
+                  <pre className="text-sm text-[var(--fx-coral)] font-mono">
                     <code>Authorization: Bearer YOUR_API_TOKEN</code>
                   </pre>
                 </div>
@@ -334,7 +334,7 @@ export default function ApiReferencePage() {
           {/* Response */}
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success-900/50 text-success-300 border border-success-800/50">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--fs-success-soft)] text-[var(--fs-success)] border border-transparent">
                 200 OK
               </span>
               <span className="text-[var(--fs-mut)] text-sm">JSON response</span>
@@ -465,7 +465,6 @@ export default function ApiReferencePage() {
       {/* CTA */}
       <div className="section-container pb-24">
         <div className="fs-card rounded-[14px] p-12 text-center relative overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-40 bg-primary-600/10 rounded-full blur-3xl pointer-events-none" />
           <div className="relative">
             <p className="fs-eyebrow mb-4">START BUILDING</p>
             <h2 className="text-3xl font-bold text-ink mb-4">Ready to Start Building?</h2>

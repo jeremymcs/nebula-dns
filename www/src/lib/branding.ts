@@ -12,6 +12,8 @@ export { PRODUCT_MARKETING_TAGLINE, PRODUCT_META_DESCRIPTION, PRODUCT_NAME, PROD
 export const FLUX_LABS_NAME = 'Flux Labs' as const
 export const FLUX_LABS_URL = 'https://fluxlabs.net' as const
 export const FLUX_LABS_LOCATION = 'Panama City, FL' as const
+export const FLUX_LABS_PHONE = '(850) 250-5590' as const
+export const FLUX_LABS_PHONE_HREF = 'tel:+18502505590' as const
 
 export function currentCopyrightYear(): number {
   return new Date().getFullYear()

@@ -53,14 +53,14 @@ const openings = [
   {
     title: 'Senior Backend Engineer',
     department: 'Engineering',
-    deptColor: 'text-accent-400 bg-accent-900/40 border border-accent-800/50',
+    deptColor: 'text-[var(--fx-coral)] bg-[var(--fs-danger-soft)] border border-transparent',
     location: 'Remote',
     description: 'Build scalable DNS infrastructure handling billions of queries. Work with Go, PostgreSQL, Redis, and ClickHouse to power real-time threat intelligence at global scale.',
   },
   {
     title: 'Frontend Engineer',
     department: 'Engineering',
-    deptColor: 'text-accent-400 bg-accent-900/40 border border-accent-800/50',
+    deptColor: 'text-[var(--fx-coral)] bg-[var(--fs-danger-soft)] border border-transparent',
     location: 'Remote',
     description: 'Create beautiful, responsive dashboards with React, Next.js, and TypeScript. Build the interfaces that give security teams visibility and control over their DNS environment.',
   },
@@ -74,7 +74,7 @@ const openings = [
   {
     title: 'Customer Success Manager',
     department: 'Success',
-    deptColor: 'text-[var(--fs-success)] bg-success-900/40 border border-success-800/50',
+    deptColor: 'text-[var(--fs-success)] bg-[var(--fs-success-soft)] border border-transparent',
     location: 'Remote',
     description: 'Guide enterprise customers through onboarding, help them get maximum value from Flux Shield, and serve as their advocate as we build the product they need.',
   },
@@ -88,45 +88,14 @@ export default function CareersPage() {
         title={<><MarketingSerifAccent>Join</MarketingSerifAccent> the Team Building the Future of DNS</>}
         lede="Our mission is to make the internet safer for everyone. We're a team of engineers, researchers, and security experts who believe DNS is the most under-leveraged layer of network defense."
       >
+        <a href="#openings" className="fs-btn fs-btn-primary fs-btn-lg no-underline">
+          View open positions
+        </a>
+        <Link href="/about" className="fs-btn fs-btn-lg no-underline">
+          About Flux Labs
+        </Link>
       </MarketingPageHero>
 
-
-      {/* Hero Section */}
-      <div className="relative py-16 sm:py-20 overflow-hidden">
-<div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent-600/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative section-container text-center">
-          <p className="fs-eyebrow mb-4">
-            CAREERS
-          </p>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-ink leading-tight">
-            <span className="text-brand">
-              Join the Team
-            </span>{' '}
-            Building the Future of DNS
-          </h1>
-          <p className="mt-6 text-lg text-[var(--fs-txt)] max-w-2xl mx-auto">
-            Our mission is to make the internet safer for everyone. We're a team of engineers, researchers, and security experts who believe DNS is the most under-leveraged layer of network defense.
-          </p>
-          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="#openings"
-              className="fs-btn fs-btn-primary fs-btn-lg no-underline px-6 py-3 transition-all inline-flex items-center gap-2"
-            >
-              View Open Positions
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </a>
-            <Link
-              href="/about"
-              className="border border-line text-[var(--fs-txt)] hover:text-ink hover:border-line rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
-            >
-              Learn About Us
-            </Link>
-          </div>
-        </div>
-      </div>
 
       {/* Core Values */}
       <div className="py-16 sm:py-20 border-t border-[var(--fs-line)]">
@@ -153,7 +122,7 @@ export default function CareersPage() {
                   className={
                     value.variant === 'purple'
                       ? 'h-12 w-12 rounded-xl bg-primary-500/10 border border-primary-500/30 flex items-center justify-center text-brand mb-4'
-                      : 'h-12 w-12 rounded-xl bg-accent-900/50 border border-accent-800/50 flex items-center justify-center text-accent-400 mb-4'
+                      : 'h-12 w-12 rounded-xl bg-[var(--fs-danger-soft)] border border-transparent flex items-center justify-center text-[var(--fx-coral)] mb-4'
                   }
                 >
                   {value.icon}
@@ -260,7 +229,6 @@ export default function CareersPage() {
       {/* Bottom CTA */}
       <div className="py-16 sm:py-20 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-primary-700/10 rounded-full blur-3xl" />
         </div>
         <div className="relative section-container text-center">
           <p className="fs-eyebrow mb-4">
