@@ -184,6 +184,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   Sign in
                 </a>
                 <ThemeToggle />
+                <details className="group relative lg:hidden">
+                  <summary
+                    className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-full border border-line [&::-webkit-details-marker]:hidden"
+                    aria-label="Menu"
+                  >
+                    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
+                      <path d="M3 6h14M3 10h14M3 14h14" strokeLinecap="round" />
+                    </svg>
+                  </summary>
+                  <div className="absolute right-0 top-11 w-56 rounded-2xl border border-line bg-panel p-2 shadow-[0_20px_40px_-20px_rgba(15,31,66,0.35)]">
+                    {navLinks.map(({ href, label }) => (
+                      <Link key={href} href={href} className="block rounded-xl px-3 py-2.5 text-[15px] text-ink no-underline hover:bg-surface">
+                        {label}
+                      </Link>
+                    ))}
+                  </div>
+                </details>
               </div>
             </nav>
           </header>

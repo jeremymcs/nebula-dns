@@ -303,9 +303,9 @@ function SignupFormContent() {
               <form onSubmit={handleSubmit}>
                 {/* Error Banner */}
                 {error && (
-                  <div className="mb-6 p-4 rounded-xl bg-danger-900/30 border border-danger-700/40 flex items-start gap-3">
+                  <div className="mb-6 p-4 rounded-xl bg-[var(--fs-danger-soft)] border border-transparent flex items-start gap-3">
                     <ExclamationCircleIcon className="h-5 w-5 text-[var(--fs-danger)] flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-danger-300">{error}</span>
+                    <span className="text-sm text-[var(--fs-danger)]">{error}</span>
                   </div>
                 )}
 

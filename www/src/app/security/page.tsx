@@ -134,7 +134,7 @@ const complianceItems = [
   {
     name: 'SOC 2 Type II',
     status: 'In Progress',
-    statusColor: 'text-[var(--fs-warning)] bg-warning-900/40 border border-warning-800/50',
+    statusColor: 'text-[var(--fs-warning)] bg-[var(--fs-warning-soft)] border border-transparent',
     description: 'Expected certification Q2 2026',
     icon: (
       <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -145,7 +145,7 @@ const complianceItems = [
   {
     name: 'GDPR',
     status: 'Compliant',
-    statusColor: 'text-[var(--fs-success)] bg-success-900/40 border border-success-800/50',
+    statusColor: 'text-[var(--fs-success)] bg-[var(--fs-success-soft)] border border-transparent',
     description: 'Full compliance with EU data regulations',
     icon: (
       <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -156,7 +156,7 @@ const complianceItems = [
   {
     name: 'ISO 27001',
     status: 'In Progress',
-    statusColor: 'text-[var(--fs-warning)] bg-warning-900/40 border border-warning-800/50',
+    statusColor: 'text-[var(--fs-warning)] bg-[var(--fs-warning-soft)] border border-transparent',
     description: 'Information security management certification',
     icon: (
       <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -167,7 +167,7 @@ const complianceItems = [
   {
     name: 'CCPA',
     status: 'Compliant',
-    statusColor: 'text-[var(--fs-success)] bg-success-900/40 border border-success-800/50',
+    statusColor: 'text-[var(--fs-success)] bg-[var(--fs-success-soft)] border border-transparent',
     description: 'California Consumer Privacy Act compliance',
     icon: (
       <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -185,46 +185,11 @@ export default function SecurityPage() {
         title={<>How We <MarketingSerifAccent>Protect</MarketingSerifAccent> Your Data</>}
         lede="Industry-leading security practices, encryption, and compliance built into every layer of Flux Shield."
       >
+        <Link href="/contact" className="fs-btn fs-btn-primary fs-btn-lg no-underline">
+          Talk to our security team
+        </Link>
       </MarketingPageHero>
 
-
-      {/* Hero */}
-      <div className="relative py-16 sm:py-20 overflow-hidden">
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary-600/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-accent-600/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative section-container text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/10 border border-primary-500/30 text-brand text-sm font-medium mb-6">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-            </svg>
-            Enterprise-Grade Security
-          </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-ink leading-tight">
-            <span className="text-brand">
-              Security-First
-            </span>{' '}
-            Platform
-          </h1>
-          <p className="mt-6 text-lg text-[var(--fs-txt)] max-w-3xl mx-auto">
-            Your trust is our foundation. Every layer of Flux Shield is built with security as a first principle — not an afterthought. We protect your data, preserve your privacy, and maintain the highest standards of operational security.
-          </p>
-          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/contact?subject=security-whitepaper"
-              className="fs-btn fs-btn-primary fs-btn-lg no-underline px-6 py-3 transition-all inline-flex items-center gap-2"
-            >
-              Request Security Whitepaper
-            </Link>
-            <Link
-              href="/contact?subject=security-consultation"
-              className="border border-line text-[var(--fs-txt)] hover:text-ink hover:border-line rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
-            >
-              Talk to Our Security Team
-            </Link>
-          </div>
-        </div>
-      </div>
 
       {/* Security Features Grid */}
       <div className="py-16 sm:py-20 border-t border-[var(--fs-line)]">
@@ -251,7 +216,7 @@ export default function SecurityPage() {
                   className={
                     feature.variant === 'purple'
                       ? 'h-12 w-12 rounded-xl bg-primary-500/10 border border-primary-500/30 flex items-center justify-center text-brand mb-4'
-                      : 'h-12 w-12 rounded-xl bg-accent-900/50 border border-accent-800/50 flex items-center justify-center text-accent-400 mb-4'
+                      : 'h-12 w-12 rounded-xl bg-[var(--fs-danger-soft)] border border-transparent flex items-center justify-center text-[var(--fx-coral)] mb-4'
                   }
                 >
                   {feature.icon}
@@ -413,7 +378,6 @@ export default function SecurityPage() {
       {/* CTA */}
       <div className="py-16 sm:py-20 border-t border-[var(--fs-line)] relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-primary-700/10 rounded-full blur-3xl" />
         </div>
         <div className="relative section-container text-center">
           <p className="fs-eyebrow mb-4">

@@ -26,11 +26,11 @@ interface PageProps {
 
 function getCategoryBadge(category: string): string {
   const badges: Record<string, string> = {
-    'Security': 'bg-danger-900/50 text-danger-300 border border-danger-800/50',
-    'DNS': 'bg-accent-900/50 text-accent-300 border border-accent-800/50',
-    'Product': 'bg-success-900/50 text-success-300 border border-success-800/50',
+    'Security': 'bg-[var(--fs-danger-soft)] text-[var(--fs-danger)] border border-transparent',
+    'DNS': 'bg-[var(--fs-danger-soft)] text-[var(--fx-coral)] border border-transparent',
+    'Product': 'bg-[var(--fs-success-soft)] text-[var(--fs-success)] border border-transparent',
     'Tutorial': 'bg-primary-500/10 text-brand border border-primary-500/30',
-    'Guide': 'bg-accent-900/50 text-accent-300 border border-accent-800/50',
+    'Guide': 'bg-[var(--fs-danger-soft)] text-[var(--fx-coral)] border border-transparent',
   }
   return badges[category] || 'bg-primary-500/10 text-brand border border-primary-500/30'
 }

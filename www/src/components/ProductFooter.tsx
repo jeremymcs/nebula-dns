@@ -14,7 +14,7 @@ export function ProductFooterInline({ className = '' }: { className?: string }) 
         © {year} · Powered by{' '}
         <Link
           href={FLUX_LABS_URL}
-          className="font-medium text-accent-500 hover:text-accent-400 transition-colors underline-offset-2 hover:underline"
+          className="font-medium text-accent-500 hover:text-[var(--fx-coral)] transition-colors underline-offset-2 hover:underline"
           target="_blank"
           rel="noopener noreferrer"
         >
