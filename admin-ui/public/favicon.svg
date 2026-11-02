@@ -1,12 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Flux Shield">
-  <defs>
-    <linearGradient id="shield-bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1E3B78"/>
-      <stop offset="100%" stop-color="#4B7CBB"/>
-    </linearGradient>
-  </defs>
-  <rect width="32" height="32" rx="8" fill="url(#shield-bg)"/>
-  <path d="M16 5.5L8 9v8.2c0 5.2 3.4 9.9 8 11.3 4.6-1.4 8-6.1 8-11.3V9l-8-3.5z" fill="#ffffff" fill-opacity="0.95"/>
-  <path d="M16 8.2l-4.5 2v5.8c0 3.1 2 5.9 4.5 6.7 2.5-.8 4.5-3.6 4.5-6.7v-5.8L16 8.2z" fill="#4B7CBB" fill-opacity="0.35"/>
-  <circle cx="22" cy="10" r="2.25" fill="#FF6E62"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Flux Shield">
+  <path d="M32 4L54 12V30C54 44 44.5 54.5 32 60C19.5 54.5 10 44 10 30V12Z" fill="#1E3B78"/>
+  <path d="M32 4L54 12V30C54 44 44.5 54.5 32 60Z" fill="#4B7CBB"/>
+  <path d="M32 18L42 22V31C42 38 37.5 43 32 45.5C26.5 43 22 38 22 31V22Z" fill="#FFFFFF"/>
+  <circle cx="50" cy="12" r="6.5" fill="#FF6E62" stroke="#FFFFFF" stroke-width="3"/>
 </svg>

@@ -22,6 +22,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { CheckCircleIcon as CheckCircleSolidIcon } from '@heroicons/react/24/solid'
 import { Button, Card, Badge } from '@/components/ui'
+import { ShieldMark } from '@/components/ui/ShieldMark'
 import { useOnboardingProgress, useLocations, usePolicies } from '@/hooks/useApi'
 import { api } from '@/lib/api'
 
@@ -616,9 +617,7 @@ export default function OnboardingPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-2">
-            <div className="h-9 w-9 rounded-xl bg-primary-600 flex items-center justify-center">
-              <ShieldCheckIcon className="h-6 w-6 text-white" />
-            </div>
+            <ShieldMark className="h-9 w-9" />
             <span className="text-xl font-bold text-space-900 dark:text-white">Flux Shield Setup</span>
           </div>
           <button
