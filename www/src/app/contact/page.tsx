@@ -7,15 +7,16 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { MarketingPageShell, MarketingCard } from '@/components/marketing/MarketingPageShell'
 import { MarketingPageHero, MarketingSerifAccent } from '@/components/marketing/MarketingPageHero'
-import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
+// Matches the addresses shown on this page and the legal pages.
+const SALES_EMAIL = 'sales@shield.fluxlabs.net'
+const SUPPORT_EMAIL = 'support@shield.fluxlabs.net'
 
 const subjects = [
-  'Sales Inquiry',
-  'Technical Support',
-  'Enterprise Pricing',
-  'Partnership',
-  'Press / Media',
-  'General Question',
+  'Protect my business',
+  'I’m already a Flux Labs client',
+  'Larger organization',
+  'MSP partnership',
+  'Something else',
 ]
 
 export default function ContactPage() {
@@ -32,7 +33,10 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    // No backend endpoint yet: hand the message to the visitor's mail app so it actually reaches us.
+    const subject = `${formState.subject || 'Flux Shield inquiry'}${formState.company ? ` · ${formState.company}` : ''}`
+    const body = `${formState.message}\n\n${formState.name}\n${formState.email}${formState.company ? `\n${formState.company}` : ''}`
+    window.location.href = `mailto:${SALES_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
     setSubmitted(true)
     setIsSubmitting(false)
   }
@@ -59,7 +63,7 @@ export default function ContactPage() {
               </div>
               <h2 className="text-3xl font-semibold text-ink mb-4">Message Sent!</h2>
               <p className="text-[var(--fs-txt)] text-lg mb-8">
-                We&apos;ve received your message and will get back to you within 24 hours.
+                Your email app should have opened with your message. Send it and the Flux Labs team will get back to you.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/pricing" className="fs-btn fs-btn-primary fs-btn-lg no-underline">
@@ -85,7 +89,7 @@ export default function ContactPage() {
             Get in <MarketingSerifAccent>Touch</MarketingSerifAccent>
           </>
         }
-        lede="Have questions about Flux Shield? We're here to help. Send us a message and our team will get back to you shortly."
+        lede="Tell us about your business: how many offices, how many people, and what worries you. A real person at Flux Labs will get back to you."
       />
       <section className="py-16 sm:py-20 border-t border-[var(--fs-line)]">
         <div className="section-container">
@@ -235,10 +239,10 @@ export default function ContactPage() {
                       Questions about plans, pricing, or enterprise options?
                     </p>
                     <a
-                      href="mailto:sales@shield.fluxlabs.net"
+                      href={`mailto:${SALES_EMAIL}`}
                       className="text-brand text-sm hover:text-brand transition-colors"
                     >
-                      sales@shield.fluxlabs.net
+                      {SALES_EMAIL}
                     </a>
                   </div>
                 </div>
@@ -258,10 +262,10 @@ export default function ContactPage() {
                       Technical issues or account help?
                     </p>
                     <a
-                      href="mailto:support@shield.fluxlabs.net"
+                      href={`mailto:${SUPPORT_EMAIL}`}
                       className="text-accent-400 text-sm hover:text-accent-300 transition-colors"
                     >
-                      support@shield.fluxlabs.net
+                      {SUPPORT_EMAIL}
                     </a>
                   </div>
                 </div>
