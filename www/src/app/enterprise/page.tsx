@@ -1,423 +1,148 @@
 // Flux Shield - Enterprise Offering Page
 // Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
 
+import type { Metadata } from 'next'
 import Link from 'next/link'
-import { MarketingPageShell, MarketingCard } from '@/components/marketing/MarketingPageShell'
+import { MarketingPageShell } from '@/components/marketing/MarketingPageShell'
 import { MarketingPageHero, MarketingSerifAccent } from '@/components/marketing/MarketingPageHero'
 import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
 
+export const metadata: Metadata = {
+  title: 'Enterprise',
+  description:
+    'Flux Shield for larger organizations: SSO, role-based access, audit logs, SIEM streaming, an API, custom terms and hands-on rollout help.',
+}
+
+const controls = [
+  {
+    title: 'Single sign-on',
+    body: 'Sign in through your identity provider with SAML or OIDC, including Microsoft Entra ID, Okta and Google Workspace.',
+  },
+  {
+    title: 'Roles and MFA',
+    body: 'Owner, admin, analyst and read-only roles, with multi-factor authentication for every account.',
+  },
+  {
+    title: 'Audit log',
+    body: 'A record of every change to policies, lists, users and settings, with who made it and when.',
+  },
+  {
+    title: 'SIEM streaming',
+    body: 'Send DNS query logs to Splunk, Elastic, Microsoft Sentinel or syslog, next to the rest of your security data.',
+  },
+  {
+    title: 'API and webhooks',
+    body: 'A REST API with scoped keys, plus webhooks for threats and policy events, so DNS fits into your automation.',
+  },
+  {
+    title: 'Scheduled reporting',
+    body: 'PDF, CSV or HTML reports delivered on a schedule to security, IT leadership or auditors.',
+  },
+] as const
+
+const services = [
+  {
+    title: 'Custom terms',
+    body: 'Volume pricing, annual agreements and service levels written around your environment.',
+  },
+  {
+    title: 'Rollout help',
+    body: 'We help plan locations and policies, deploy the agent through your RMM or MDM, and roll out the Shield certificate.',
+  },
+  {
+    title: 'A direct line',
+    body: 'Talk to the people who build Flux Shield, not a ticket queue.',
+  },
+] as const
+
+const rollout = [
+  { step: 'Plan', body: 'Map your locations, networks and existing block lists, and agree on a baseline policy.' },
+  { step: 'Pilot', body: 'Point one site at Flux Shield, review Query Logs together and tune the policy.' },
+  { step: 'Roll out', body: 'Move the remaining sites, deploy the agent to laptops, and connect SSO and your SIEM.' },
+  { step: 'Report', body: 'Turn on scheduled reports and use the security score to track progress.' },
+] as const
+
 export default function EnterprisePage() {
-  const enterpriseFeatures = [
-    {
-      title: 'Dedicated Support',
-      description: 'Assigned customer success manager with direct contact. Priority support with guaranteed response times and 24/7 emergency assistance.',
-      icon: (
-        <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-        </svg>
-      ),
-      color: 'from-primary-600 to-primary-500',
-    },
-    {
-      title: 'Custom SLAs',
-      description: 'Tailored service level agreements with 99.99% uptime guarantee, defined response times, and financial credits for downtime.',
-      icon: (
-        <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
-        </svg>
-      ),
-      color: 'from-accent-600 to-accent-500',
-    },
-    {
-      title: 'SSO & SAML Integration',
-      description: 'Enterprise identity provider integration with Okta, Azure AD, Google Workspace, and custom SAML/OIDC providers.',
-      icon: (
-        <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
-        </svg>
-      ),
-      color: 'from-primary-600 to-primary-500',
-    },
-    {
-      title: 'Volume Licensing',
-      description: 'Flexible licensing models with unlimited users, locations, and queries. Multi-year contracts with discounted pricing available.',
-      icon: (
-        <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
-        </svg>
-      ),
-      color: 'from-accent-600 to-accent-500',
-    },
-    {
-      title: 'Custom Branding',
-      description: 'White-label options with custom block pages, branded portals, and personalized DNS resolver hostnames for your organization.',
-      icon: (
-        <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42" />
-        </svg>
-      ),
-      color: 'from-primary-600 to-primary-500',
-    },
-    {
-      title: 'Priority Onboarding',
-      description: 'Dedicated onboarding team to migrate your existing infrastructure, train your team, and ensure smooth deployment at scale.',
-      icon: (
-        <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-        </svg>
-      ),
-      color: 'from-accent-600 to-accent-500',
-    },
-    {
-      title: 'Advanced API Access',
-      description: 'Full REST API access with higher rate limits, webhook integrations, and SIEM connectors for centralized security monitoring.',
-      icon: (
-        <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
-        </svg>
-      ),
-      color: 'from-primary-600 to-primary-500',
-    },
-    {
-      title: 'Compliance Support',
-      description: 'Assistance with HIPAA, PCI-DSS, SOC 2, and other compliance requirements. Regular compliance reports and audit support.',
-      icon: (
-        <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-        </svg>
-      ),
-      color: 'from-accent-600 to-accent-500',
-    },
-  ]
-
-  const testimonials = [
-    {
-      quote: "Flux Shield has transformed our security posture. The enterprise support team is phenomenal and the platform scales effortlessly across our global infrastructure.",
-      author: "Sarah Chen",
-      role: "CISO",
-      company: "TechCorp Global",
-      initials: "SC",
-    },
-    {
-      quote: "We migrated from our legacy DNS security solution in under 48 hours. The custom SLA and dedicated support gave us confidence to make the switch.",
-      author: "Michael Rodriguez",
-      role: "VP of Infrastructure",
-      company: "FinanceHub",
-      initials: "MR",
-    },
-    {
-      quote: "The SSO integration and compliance support were game-changers. Flux Shield understood our regulatory requirements and delivered exactly what we needed.",
-      author: "Dr. Emily Watson",
-      role: "Head of IT Security",
-      company: "HealthFirst Medical",
-      initials: "EW",
-    },
-  ]
-
-  const comparisonItems = [
-    { feature: 'Locations', pro: '10', enterprise: 'Unlimited' },
-    { feature: 'DNS Queries/Month', pro: '5M', enterprise: 'Unlimited' },
-    { feature: 'Team Members', pro: '25', enterprise: 'Unlimited' },
-    { feature: 'Support Response Time', pro: '24 hours', enterprise: '1 hour (critical)' },
-    { feature: 'Uptime SLA', pro: '99.9%', enterprise: '99.99%' },
-    { feature: 'SSO/SAML', pro: false, enterprise: true },
-    { feature: 'Custom Branding', pro: false, enterprise: true },
-    { feature: 'Dedicated Account Manager', pro: false, enterprise: true },
-  ]
-
-  const migrationPhases = [
-    { week: 'Week 1', task: 'Discovery & Planning', description: 'Assess current setup and plan migration strategy' },
-    { week: 'Week 2', task: 'Policy Import & Testing', description: 'Import policies and validate in staging environment' },
-    { week: 'Week 3', task: 'Phased Rollout', description: 'Deploy to pilot locations and monitor performance' },
-    { week: 'Week 4', task: 'Full Production', description: 'Complete rollout and decommission legacy systems' },
-  ]
-
   return (
     <MarketingPageShell>
       <MarketingPageHero
         eyebrow="Enterprise"
         title={
           <>
-            <MarketingSerifAccent>Enterprise</MarketingSerifAccent> DNS Security
+            DNS security <MarketingSerifAccent>at your scale.</MarketingSerifAccent>
           </>
         }
-        lede="Dedicated support, custom SLAs, and identity integrations for organizations that need more than a standard plan."
+        lede="Everything in Flux Shield, plus the identity, logging and support that larger teams need to run it with confidence."
       >
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-6 text-sm text-[var(--fs-mut)]">
-          <span className="flex items-center gap-2">
-            <svg className="h-4 w-4 text-[var(--fs-success)]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            99.99% SLA uptime
-          </span>
-          <span className="flex items-center gap-2">
-            <svg className="h-4 w-4 text-[var(--fs-success)]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            SOC 2 Type II certified
-          </span>
-          <span className="flex items-center gap-2">
-            <svg className="h-4 w-4 text-[var(--fs-success)]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            1-hour critical response
-          </span>
-          <span className="flex items-center gap-2">
-            <svg className="h-4 w-4 text-[var(--fs-success)]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            HIPAA &amp; PCI-DSS ready
-          </span>
-        </div>
+        <Link href="/contact" className="fs-btn fs-btn-primary fs-btn-lg no-underline">
+          Talk to us <span className="opacity-70">→</span>
+        </Link>
+        <Link href="/features" className="fs-btn fs-btn-lg no-underline">
+          See all features
+        </Link>
       </MarketingPageHero>
 
-      {/* Enterprise Features Grid */}
-      <div className="section-container py-20">
-        <div className="text-center mb-14">
-          <p className="fs-eyebrow mb-3">CAPABILITIES</p>
-          <h2 className="text-4xl font-bold text-ink mb-4">
-            Everything You Need at Enterprise Scale
+      <div className="section-container">
+        <section className="py-[96px]">
+          <div className="fs-eyebrow">Control</div>
+          <h2 className="fs-section-title text-balance">
+            Fits how <MarketingSerifAccent>your team already works.</MarketingSerifAccent>
           </h2>
-          <p className="text-[var(--fs-txt)] text-lg max-w-2xl mx-auto">
-            Built for organizations that require maximum reliability, security, and customization.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          {enterpriseFeatures.map((feature, index) => (
-            <div
-              key={index}
-              className="fs-card rounded-[14px] p-6 flex gap-5 hover:border-primary-500/50 transition-all"
-            >
-              <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center text-white flex-shrink-0`}>
-                {feature.icon}
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-ink mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-[var(--fs-txt)] text-sm leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Testimonials */}
-      <div className="border-t border-line py-20">
-        <div className="section-container">
-          <div className="text-center mb-14">
-            <p className="fs-eyebrow mb-3">TESTIMONIALS</p>
-            <h2 className="text-4xl font-bold text-ink mb-4">
-              Trusted by Enterprise Teams Worldwide
-            </h2>
-            <p className="text-[var(--fs-txt)] text-lg">
-              See what our enterprise customers have to say.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map((testimonial, index) => (
-              <div
-                key={index}
-                className="fs-card rounded-[14px] p-8 flex flex-col"
-              >
-                {/* Large quote mark */}
-                <div className="text-6xl font-serif text-primary-800 leading-none mb-4 select-none">&ldquo;</div>
-                <p className="text-[var(--fs-txt)] leading-relaxed flex-1 mb-6">
-                  {testimonial.quote}
-                </p>
-                <div className="flex items-center gap-3 pt-4 border-t border-line">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                    {testimonial.initials}
-                  </div>
-                  <div>
-                    <div className="font-semibold text-ink text-sm">{testimonial.author}</div>
-                    <div className="text-[var(--fs-mut)] text-xs">{testimonial.role} &middot; {testimonial.company}</div>
-                  </div>
-                </div>
+          <div className="mt-[52px] grid grid-cols-1 border-l border-t border-line sm:grid-cols-2 lg:grid-cols-3">
+            {controls.map((item) => (
+              <div key={item.title} className="border-b border-r border-line bg-panel p-[30px]">
+                <h3 className="text-[17px] font-semibold tracking-[-0.02em] text-ink">{item.title}</h3>
+                <p className="mt-2 text-[14.5px] leading-relaxed text-txt">{item.body}</p>
               </div>
             ))}
           </div>
-        </div>
-      </div>
+        </section>
 
-      {/* Pro vs Enterprise Comparison */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="text-center mb-14">
-          <p className="fs-eyebrow mb-3">COMPARISON</p>
-          <h2 className="text-4xl font-bold text-ink mb-4">
-            Professional vs Enterprise
+        <section className="pb-[96px]">
+          <div className="fs-eyebrow">Service</div>
+          <h2 className="fs-section-title text-balance">
+            People behind <MarketingSerifAccent>the platform.</MarketingSerifAccent>
           </h2>
-          <p className="text-[var(--fs-txt)] text-lg">
-            See how Enterprise compares to our Professional plan.
-          </p>
-        </div>
-
-        <div className="fs-card rounded-[14px] overflow-hidden">
-          {/* Table Header */}
-          <div className="grid grid-cols-3 border-b border-line">
-            <div className="p-5">
-              <span className="text-[var(--fs-txt)] text-sm font-medium">Feature</span>
-            </div>
-            <div className="p-5 text-center border-l border-line">
-              <span className="text-ink font-semibold">Professional</span>
-            </div>
-            <div className="p-5 text-center border-l border-line bg-primary-500/10">
-              <span className="text-ink font-semibold">Enterprise</span>
-            </div>
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            {services.map((item) => (
+              <div key={item.title} className="fs-card rounded-[14px] p-7">
+                <h3 className="text-lg font-semibold tracking-[-0.02em] text-ink">{item.title}</h3>
+                <p className="mt-2 text-[15px] leading-relaxed text-txt">{item.body}</p>
+              </div>
+            ))}
           </div>
+        </section>
 
-          {comparisonItems.map((item, index) => (
-            <div
-              key={index}
-              className={`grid grid-cols-3 border-b border-line last:border-b-0 ${index % 2 === 1 ? 'bg-canvas' : ''}`}
-            >
-              <div className="p-4 flex items-center">
-                <span className="text-[var(--fs-txt)] text-sm">{item.feature}</span>
+        <section className="pb-[96px]">
+          <div className="fs-eyebrow">Rollout</div>
+          <h2 className="fs-section-title text-balance">
+            A calm switch, <MarketingSerifAccent>site by site.</MarketingSerifAccent>
+          </h2>
+          <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {rollout.map((phase, i) => (
+              <div key={phase.step} className="border-t border-ink pt-[22px]">
+                <div className="font-mono text-xs text-mut">0{i + 1}</div>
+                <h3 className="mb-2 mt-[18px] text-xl font-semibold tracking-[-0.025em] text-ink">{phase.step}</h3>
+                <p className="text-[15px] leading-relaxed text-txt">{phase.body}</p>
               </div>
-              <div className="p-4 text-center border-l border-line flex items-center justify-center">
-                {typeof item.pro === 'boolean' ? (
-                  item.pro ? (
-                    <svg className="h-5 w-5 text-[var(--fs-success)]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : (
-                    <span className="text-space-700 text-lg">—</span>
-                  )
-                ) : (
-                  <span className="text-[var(--fs-txt)] text-sm">{item.pro}</span>
-                )}
-              </div>
-              <div className="p-4 text-center border-l border-line bg-primary-500/10 flex items-center justify-center">
-                {typeof item.enterprise === 'boolean' ? (
-                  item.enterprise ? (
-                    <svg className="h-5 w-5 text-[var(--fs-success)]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : (
-                    <span className="text-space-700 text-lg">—</span>
-                  )
-                ) : (
-                  <span className="text-brand text-sm font-medium">{item.enterprise}</span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-6 text-center">
-          <Link
-            href="/pricing"
-            className="inline-flex items-center gap-1 text-brand hover:text-brand font-medium transition-colors"
-          >
-            See full feature comparison
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-            </svg>
-          </Link>
-        </div>
-      </div>
-
-      {/* Migration Timeline */}
-      <div className="border-t border-line py-20">
-        <div className="section-container">
-          <div className="grid lg:grid-cols-2 gap-12 items-start">
-            {/* Migration benefits */}
-            <div>
-              <p className="fs-eyebrow mb-3">MIGRATION</p>
-              <h2 className="text-4xl font-bold text-ink mb-6">
-                Seamless Migration from Legacy Solutions
-              </h2>
-              <p className="text-[var(--fs-txt)] mb-8 leading-relaxed">
-                Our enterprise onboarding team has migrated hundreds of organizations from legacy DNS security
-                providers. We handle the complexity so your team can focus on what matters.
-              </p>
-              <ul className="space-y-5">
-                {[
-                  { label: 'Policy Migration', detail: 'Automated import of existing policies and block lists' },
-                  { label: 'Zero Downtime', detail: 'Phased rollout with parallel operation during transition' },
-                  { label: 'Team Training', detail: 'Comprehensive onboarding sessions for your security team' },
-                  { label: 'Post-Migration Support', detail: '90-day enhanced support period after go-live' },
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <div className="h-6 w-6 rounded-full bg-success-900/50 border border-success-700/50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <svg className="h-3.5 w-3.5 text-[var(--fs-success)]" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <div>
-                      <span className="text-ink font-medium">{item.label}:</span>
-                      <span className="text-[var(--fs-txt)]"> {item.detail}</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Migration timeline card */}
-            <div className="fs-card rounded-[14px] p-8">
-              <h3 className="text-xl font-bold text-ink mb-8 text-center">
-                Migration Timeline
-              </h3>
-              <div className="space-y-0">
-                {migrationPhases.map((phase, index) => (
-                  <div key={index} className="flex items-start gap-4 relative">
-                    {/* Connector line */}
-                    {index < migrationPhases.length - 1 && (
-                      <div className="absolute left-5 top-10 bottom-0 w-px bg-surface" />
-                    )}
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-600 to-primary-500 text-white flex items-center justify-center font-bold text-sm flex-shrink-0 relative z-10">
-                      {index + 1}
-                    </div>
-                    <div className="pb-8">
-                      <div className="font-semibold text-ink text-sm">
-                        {phase.week}: {phase.task}
-                      </div>
-                      <div className="text-[var(--fs-txt)] text-sm mt-1">
-                        {phase.description}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
-        </div>
-      </div>
+        </section>
 
-      {/* Final CTA */}
-      <div className="section-container py-12 pb-24">
-        <div className="fs-card rounded-[14px] p-12 text-center relative overflow-hidden">
-          {/* Orb */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-40 bg-primary-600/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="relative">
-            <p className="fs-eyebrow mb-4">GET STARTED</p>
-            <h2 className="text-4xl font-bold text-ink mb-4">
-              Ready to Secure Your Enterprise?
-            </h2>
-            <p className="text-[var(--fs-txt)] text-lg mb-8 max-w-2xl mx-auto">
-              Talk to our enterprise sales team to discuss your requirements, get a custom quote,
-              and schedule a personalized demo.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/contact?subject=enterprise-demo"
-                className="fs-btn fs-btn-primary fs-btn-lg no-underline px-6 py-3 transition-all inline-flex items-center gap-2 justify-center"
-              >
-                Schedule a Demo
-              </Link>
-              <Link
-                href="/contact?subject=enterprise-quote"
-                className="fs-btn rounded-[10px] px-6 py-3 transition-all inline-flex items-center gap-2 justify-center"
-              >
-                Request a Quote
-              </Link>
-            </div>
-          </div>
-        </div>
+        <MarketingCtaBand
+          className="mb-[120px]"
+          title={
+            <>
+              Let&apos;s plan <span className="font-serif-accent">your rollout.</span>
+            </>
+          }
+          description="Tell us about your sites and tools, and we'll set up a trial that matches them."
+          primaryHref="/contact"
+          primaryLabel="Talk to us"
+          secondaryHref="/pricing"
+          secondaryLabel="View pricing"
+          finePrint=""
+        />
       </div>
     </MarketingPageShell>
   )

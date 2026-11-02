@@ -18,12 +18,12 @@ export interface MarketingCtaBandProps {
 
 export function MarketingCtaBand({
   title,
-  description = 'Deploy in minutes, not days. Change two resolver addresses and every device is protected.',
-  primaryHref = '/signup',
-  primaryLabel = 'Start free trial',
-  secondaryHref = '/pricing',
-  secondaryLabel = 'View pricing',
-  finePrint = 'No credit card required · 14-day free trial · Cancel anytime',
+  description = 'Tell us about your offices and how your team works. We will show you what Flux Shield would have caught last week.',
+  primaryHref = '/contact',
+  primaryLabel = 'Talk to Flux Labs',
+  secondaryHref = '/features',
+  secondaryLabel = 'What’s included',
+  finePrint = 'Flux Labs · Managed IT from Panama City, Florida',
   className = '',
 }: MarketingCtaBandProps) {
   return (
