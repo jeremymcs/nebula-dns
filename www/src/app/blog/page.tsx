@@ -4,10 +4,10 @@
 import fs from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
-import Link from 'next/link'
 import { MarketingPageShell, MarketingCard } from '@/components/marketing/MarketingPageShell'
 import { MarketingPageHero, MarketingSerifAccent } from '@/components/marketing/MarketingPageHero'
 import { MarketingCtaBand } from '@/components/marketing/MarketingCtaBand'
+import { BlogPostGrid } from '@/components/marketing/BlogPostGrid'
 
 interface BlogPost {
   slug: string
@@ -121,8 +121,6 @@ export default function BlogPage() {
   const mdxPosts = getBlogPosts()
   const posts = mdxPosts.length > 0 ? mdxPosts : fallbackPosts
 
-  const categories = ['all', 'security', 'dns', 'product', 'guide']
-
   return (
     <MarketingPageShell>
       <MarketingPageHero
@@ -132,86 +130,9 @@ export default function BlogPage() {
       >
       </MarketingPageHero>
 
-      {/* Category Filter Tabs */}
-      <div className="section-container pb-8">
-        <div className="flex flex-wrap gap-2 justify-center">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all capitalize ${
-                cat === 'all'
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-panel text-[var(--fs-txt)] hover:text-ink hover:bg-surface'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Blog Posts Grid */}
-      <div className="section-container py-8 pb-20">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {posts.map((post) => (
-            <article
-              key={post.slug}
-              className="fs-card rounded-[14px] p-6 flex flex-col hover:border-primary-500/50 transition-all group"
-            >
-              {/* Category Badge */}
-              <div className="mb-4">
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryBadge(post.category)}`}>
-                  {post.category}
-                </span>
-              </div>
-
-              {/* Title */}
-              <h2 className="text-lg font-bold text-ink mb-3 group-hover:text-primary-300 transition-colors leading-snug">
-                <Link href={`/blog/${post.slug}`}>
-                  {post.title}
-                </Link>
-              </h2>
-
-              {/* Excerpt */}
-              <p className="text-[var(--fs-txt)] text-sm mb-5 line-clamp-3 flex-1">
-                {post.excerpt}
-              </p>
-
-              {/* Meta Info */}
-              <div className="flex items-center justify-between text-xs text-[var(--fs-mut)] mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="h-6 w-6 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
-                    {post.author.split(' ').map(n => n[0]).join('')}
-                  </div>
-                  <span>{post.author}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <time dateTime={post.date}>
-                    {new Date(post.date).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
-                  </time>
-                  <span className="text-space-700">·</span>
-                  <span>{post.readTime}</span>
-                </div>
-              </div>
-
-              {/* Read More */}
-              <Link
-                href={`/blog/${post.slug}`}
-                className="inline-flex items-center gap-1 text-brand text-sm font-medium hover:text-brand transition-colors group-hover:translate-x-0.5 transform"
-              >
-                Read More
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </Link>
-            </article>
-          ))}
-        </div>
-      </div>
+      <BlogPostGrid
+        posts={posts.map((post) => ({ ...post, badgeClass: getCategoryBadge(post.category) }))}
+      />
 
       {/* Newsletter CTA */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
