@@ -21,7 +21,7 @@ const config: Config = {
     extend: {
       ...fluxLabsThemeExtend,
       fontFamily: {
-        sans: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-poppins)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-geist-mono)', 'Menlo', 'monospace'],
         serif: ['var(--font-instrument-serif)', 'Instrument Serif', 'Georgia', 'serif'],
       },

@@ -1,5 +1,6 @@
 /**
- * Design C marketing page hero (light canvas + optional grid)
+ * Marketing page hero — navy band in the fluxlabs.net style:
+ * amber tagline, white heading, light body text, left aligned.
  */
 
 import type { ReactNode } from 'react'
@@ -10,51 +11,29 @@ export interface MarketingPageHeroProps {
   title: ReactNode
   lede?: string
   children?: ReactNode
+  /** Kept for older call sites; heroes are left aligned now. */
   centered?: boolean
   className?: string
 }
 
-export function MarketingPageHero({
-  eyebrow,
-  title,
-  lede,
-  children,
-  centered = true,
-  className,
-}: MarketingPageHeroProps) {
+export function MarketingPageHero({ eyebrow, title, lede, children, className }: MarketingPageHeroProps) {
   return (
-    <section
-      className={clsx(
-        'relative overflow-hidden border-b border-[var(--fs-line)] bg-canvas',
-        className,
-      )}
-    >
-      <div className="pointer-events-none absolute inset-0 fs-hero-backdrop fs-hero-grid opacity-80" aria-hidden />
-      <div
-        className={clsx(
-          'section-container relative z-[1] py-16 sm:py-20 lg:py-24',
-          centered && 'text-center',
-        )}
-      >
-        {eyebrow && <div className="fs-eyebrow">{eyebrow}</div>}
-        <h1 className={clsx('fs-section-title mt-3', centered && 'mx-auto')}>{title}</h1>
-        {lede && (
-          <p
-            className={clsx(
-              'mt-5 max-w-[640px] text-[17px] leading-relaxed text-[var(--fs-txt)]',
-              centered && 'mx-auto',
-            )}
-          >
-            {lede}
-          </p>
-        )}
-        {children && <div className={clsx('mt-8', centered && 'flex flex-wrap justify-center gap-3')}>{children}</div>}
+    <section className={clsx('fx-band relative overflow-hidden', className)}>
+      <div className="section-container relative z-[1] py-16 sm:py-20">
+        <div className="max-w-[780px]">
+          {eyebrow && <div className="fx-tagline text-[17px] sm:text-[19px]">{eyebrow}</div>}
+          <h1 className="mt-3 text-balance text-[clamp(2.25rem,5vw,3.5rem)] font-semibold leading-[1.08] tracking-[-1.4px] text-white">
+            {title}
+          </h1>
+          {lede && <p className="mt-5 max-w-[640px] text-[17px] leading-relaxed text-[var(--fx-navy-text)] sm:text-lg">{lede}</p>}
+          {children && <div className="fx-hero-actions mt-8 flex flex-wrap gap-3">{children}</div>}
+        </div>
       </div>
     </section>
   )
 }
 
-/** Serif accent span for marketing headings */
+/** Heading accent span (kept for older call sites; renders in the heading font). */
 export function MarketingSerifAccent({ children }: { children: ReactNode }) {
   return <span className="font-serif-accent">{children}</span>
 }

@@ -1,0 +1,267 @@
+/**
+ * Flux Shield marketing site — fluxlabs.net look.
+ *
+ * The shared token and component files are also used by the app, so the
+ * marketing-only overrides live here and load after them. Values match the
+ * fluxlabs.net stylesheet: Poppins, navy #0F1F42, coral #FF6E61, amber #FFB84D,
+ * pill buttons with a coral-to-amber fill, 16px/24px radii.
+ */
+
+:root {
+  --fs-c-canvas: 255 255 255;   /* #FFFFFF */
+  --fs-c-surface: 245 247 251;  /* #F5F7FB  tint */
+  --fs-c-panel: 255 255 255;    /* #FFFFFF */
+  --fs-c-line: 230 232 236;     /* #E6E8EC */
+  --fs-c-ink: 15 31 66;         /* #0F1F42  headings */
+  --fs-c-txt: 74 80 88;         /* #4A5058  body */
+  --fs-c-mut: 95 101 109;       /* #5F656D */
+  --fs-c-brand: 30 58 118;      /* #1E3A76 */
+  --fs-c-action: 30 58 118;
+  --fs-c-coral: 255 110 97;
+
+  --fx-navy-900: #0f1f42;
+  --fx-navy-800: #142a57;
+  --fx-navy-700: #1e3a76;
+  --fx-navy-line: #2e4677;
+  --fx-navy-text: #c9d3e6;
+  --fx-coral: #ff6e61;
+  --fx-amber: #ffb84d;
+  --fx-grad: linear-gradient(90deg, var(--fx-coral), var(--fx-amber));
+  --fx-on-grad: #171717;
+  --fx-gray-bg: #f8f8f8;
+  --fx-accent: #1e3a76;          /* eyebrows, links */
+  --fx-band: #0f1f42;            /* navy bands */
+  --fx-band-card: #142a57;
+
+  letter-spacing: normal;
+}
+
+html.dark {
+  --fs-c-canvas: 10 20 48;      /* #0A1430 */
+  --fs-c-surface: 14 27 60;     /* #0E1B3C */
+  --fs-c-panel: 16 29 64;       /* #101D40 */
+  --fs-c-line: 36 54 95;        /* #24365F */
+  --fs-c-ink: 255 255 255;
+  --fs-c-txt: 201 211 230;      /* #C9D3E6 */
+  --fs-c-mut: 167 178 199;      /* #A7B2C7 */
+  --fs-c-brand: 125 200 229;    /* #7DC8E5 */
+  --fs-c-action: 125 200 229;
+
+  --fx-gray-bg: #0d1937;
+  --fx-accent: #7dc8e5;
+  --fx-band: #0f1f42;
+  --fx-band-card: #182f63;
+  --fx-navy-line: #2a4170;
+}
+
+@layer components {
+body {
+  font-family: var(--font-poppins), system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 600;
+}
+
+/* The serif accent is retired: accents now read as part of the heading. */
+.font-serif-accent,
+.fs-section-title .font-serif-accent,
+.fs-cta-band-title .font-serif-accent {
+  font-family: inherit !important;
+  font-style: normal !important;
+  font-weight: inherit !important;
+  font-size: 1em !important;
+  letter-spacing: inherit !important;
+}
+
+.fs-hero-title-accent {
+  font-family: inherit;
+  font-style: normal;
+  font-size: 1em;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--fx-accent);
+}
+
+/* No blurred blobs or ruled grid behind heroes. */
+.fs-hero-backdrop::before,
+.fs-hero-grid::after {
+  display: none !important;
+}
+
+/* Eyebrow: Poppins, uppercase, tracked, navy (light blue in dark). */
+.fs-eyebrow {
+  font-family: inherit !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase;
+  color: var(--fx-accent) !important;
+}
+
+.font-mono-detail {
+  font-family: inherit;
+}
+
+.fs-section-title {
+  font-size: clamp(1.875rem, 3.4vw, 2.5rem) !important;
+  line-height: 1.15 !important;
+  letter-spacing: -1px !important;
+}
+
+/* Buttons: pills. Primary = coral→amber fill with dark text. */
+.fs-btn,
+.btn,
+.btn-primary,
+.btn-secondary {
+  border-radius: 999px !important;
+  font-weight: 600 !important;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.fs-btn {
+  background: transparent;
+  color: rgb(var(--fs-c-ink));
+  box-shadow: inset 0 0 0 1px rgb(var(--fs-c-ink) / 0.9);
+}
+
+html.dark .fs-btn {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.9);
+}
+
+.fs-btn:hover {
+  background: rgb(var(--fs-c-ink) / 0.04);
+}
+
+.fs-btn.fs-btn-primary,
+.fs-btn-primary,
+.btn-primary,
+html.dark .fs-btn.fs-btn-primary,
+.fs-cta-band .fs-btn.fs-btn-primary,
+.fs-cta-band-action-primary,
+.fx-btn-grad {
+  background: var(--fx-grad) !important;
+  color: var(--fx-on-grad) !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+
+.fs-btn.fs-btn-primary:hover,
+.fs-btn-primary:hover,
+.btn-primary:hover,
+.fs-cta-band-action-primary:hover,
+.fx-btn-grad:hover {
+  filter: brightness(1.04) saturate(1.05);
+  color: var(--fx-on-grad) !important;
+}
+
+.fs-btn-lg {
+  height: 3rem;
+  padding: 0 1.625rem;
+  font-size: 0.9375rem;
+}
+
+.fs-cta-band-action-primary,
+.fs-cta-band-action-secondary {
+  border-radius: 999px;
+  font-weight: 600;
+  height: 3rem;
+  min-height: 3rem;
+  padding: 0 1.625rem;
+}
+
+.fs-cta-band-action-secondary,
+.fs-btn-ghost-on-dark,
+.fx-btn-outline-light {
+  background: transparent !important;
+  color: #fff !important;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.9) !important;
+  border-radius: 999px !important;
+}
+
+.fs-cta-band-action-secondary:hover,
+.fx-btn-outline-light:hover {
+  background: rgb(255 255 255 / 0.08) !important;
+}
+
+/* Cards: 16px radius, hairline border, no heavy shadow. */
+.fs-card {
+  border-radius: 16px !important;
+  box-shadow: 0 0 0 1px rgb(var(--fs-c-line)) !important;
+}
+
+.fs-input {
+  border-radius: 12px;
+}
+
+/* Navy CTA band: flat navy, 24px radius, no glow. */
+.fs-cta-band {
+  background: var(--fx-band) !important;
+  border-radius: 24px !important;
+}
+
+html.dark .fs-cta-band {
+  box-shadow: 0 0 0 1px var(--fx-navy-line);
+}
+
+.fs-cta-band::before,
+.fs-cta-band::after {
+  display: none !important;
+}
+
+.fs-cta-band-title {
+  font-size: clamp(1.875rem, 3.4vw, 2.5rem) !important;
+  letter-spacing: -1px !important;
+  line-height: 1.15;
+}
+
+.fs-cta-band-title .font-serif-accent {
+  color: var(--fx-amber) !important;
+}
+
+/* Shared helpers for the new layout. */
+.fx-band {
+  background: var(--fx-band);
+  color: #fff;
+}
+
+.fx-band-card {
+  background: var(--fx-band-card);
+  border-radius: 16px;
+}
+
+.fx-tagline {
+  color: var(--fx-amber);
+  font-weight: 600;
+}
+
+.fx-gray {
+  background: var(--fx-gray-bg);
+}
+
+.fx-num {
+  color: var(--fx-coral);
+  font-weight: 600;
+}
+}
+
+@layer components {
+  /* Secondary buttons inside the navy hero read as white outline pills. */
+  .fx-band .fs-btn:not(.fs-btn-primary) {
+    color: #fff;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.9);
+  }
+
+  .fx-band .fs-btn:not(.fs-btn-primary):hover {
+    background: rgb(255 255 255 / 0.08);
+  }
+
+  .fx-band .fs-eyebrow {
+    color: var(--fx-amber) !important;
+  }
+}

@@ -34,7 +34,7 @@ export function MarketingCtaBand({
       <div className="relative z-[1] min-w-0">
         <h2 className="fs-cta-band-title">{title}</h2>
         {description && (
-          <p className="relative mt-4 max-w-[520px] text-[17px] leading-relaxed text-[#AEB9D3]">
+          <p className="relative mt-4 max-w-[520px] text-[17px] leading-relaxed text-[var(--fx-navy-text)]">
             {description}
           </p>
         )}
@@ -42,13 +42,13 @@ export function MarketingCtaBand({
       <div className="relative z-[1] flex w-full flex-col items-stretch gap-3 sm:w-auto sm:items-end">
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
           <Link href={primaryHref} className="fs-cta-band-action-primary w-full sm:w-auto">
-            {primaryLabel} <span className="opacity-80">→</span>
+            {primaryLabel}
           </Link>
           <Link href={secondaryHref} className="fs-cta-band-action-secondary w-full sm:w-auto">
             {secondaryLabel}
           </Link>
         </div>
-        {finePrint && <span className="text-[13px] text-[#8590AB]">{finePrint}</span>}
+        {finePrint && <span className="text-[13px] text-[#A7B2C7]">{finePrint}</span>}
       </div>
     </div>
   )

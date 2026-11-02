@@ -8,6 +8,7 @@
 @import '../styles/flux-shield-design-tokens.css';
 /* postcss-import only inlines @import at the top of the file */
 @import '../styles/flux-shield-components.css';
+@import '../styles/flux-marketing-theme.css';
 
 @tailwind base;
 @tailwind components;
