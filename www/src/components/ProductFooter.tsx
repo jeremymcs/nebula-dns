@@ -10,7 +10,7 @@ export function ProductFooterInline({ className = '' }: { className?: string }) 
       className={`text-center pt-8 ${className}`.trim()}
       aria-label="Site footer"
     >
-      <p className="text-xs text-space-500">
+      <p className="text-xs text-mut">
         © {year} · Powered by{' '}
         <Link
           href={FLUX_LABS_URL}

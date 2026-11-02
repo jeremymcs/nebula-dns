@@ -73,7 +73,7 @@ export function TemplateBrowser({ templates, onSelectTemplate, className }: Temp
             placeholder="Search templates..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-lg border border-space-200 dark:border-space-700 bg-white dark:bg-space-800 text-space-900 dark:text-white focus:ring-2 focus:ring-nebula-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 rounded-lg border border-space-200 dark:border-space-700 bg-white dark:bg-space-800 text-space-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
         </div>
         <select
@@ -94,7 +94,7 @@ export function TemplateBrowser({ templates, onSelectTemplate, className }: Temp
           className={clsx(
             'px-4 py-2 rounded-full text-sm font-medium transition-colors',
             selectedCategory === 'all'
-              ? 'bg-nebula-500 text-white'
+              ? 'bg-primary-500 text-white'
               : 'bg-space-100 dark:bg-space-700 text-space-600 dark:text-space-300 hover:bg-space-200 dark:hover:bg-space-600'
           )}
         >
@@ -107,7 +107,7 @@ export function TemplateBrowser({ templates, onSelectTemplate, className }: Temp
             className={clsx(
               'px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2',
               selectedCategory === cat.id
-                ? 'bg-nebula-500 text-white'
+                ? 'bg-primary-500 text-white'
                 : 'bg-space-100 dark:bg-space-700 text-space-600 dark:text-space-300 hover:bg-space-200 dark:hover:bg-space-600'
             )}
           >

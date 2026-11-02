@@ -93,7 +93,7 @@ function ThreatCheckConfig({ data, onUpdate }: { data: Record<string, unknown>; 
                 const updated = e.target.checked ? [...categories, cat.id] : categories.filter((c) => c !== cat.id)
                 onUpdate({ ...data, categories: updated })
               }}
-              className="rounded border-space-300 text-nebula-500 focus:ring-nebula-500"
+              className="rounded border-space-300 text-primary-500 focus:ring-primary-500"
             />
             <span className="text-sm text-space-600 dark:text-space-400">{cat.label}</span>
           </label>
@@ -114,7 +114,7 @@ function CategoryFilterConfig({ data, onUpdate }: { data: Record<string, unknown
             <input type="checkbox" checked={categories.includes(cat.id)} onChange={(e) => {
               const updated = e.target.checked ? [...categories, cat.id] : categories.filter((c) => c !== cat.id)
               onUpdate({ ...data, categories: updated })
-            }} className="rounded border-space-300 text-nebula-500 focus:ring-nebula-500" />
+            }} className="rounded border-space-300 text-primary-500 focus:ring-primary-500" />
             <span className="text-sm text-space-600 dark:text-space-400">{cat.label}</span>
           </label>
         ))}
@@ -148,7 +148,7 @@ function ScheduleConfig({ data, onUpdate }: { data: Record<string, unknown>; onU
     <div className="space-y-4">
       <label className="block text-sm font-medium text-space-700 dark:text-space-300">Days</label>
       <div className="flex gap-1">{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-        <button key={day} onClick={() => { const d = day.toLowerCase(); const updated = days.includes(d) ? days.filter((x) => x !== d) : [...days, d]; onUpdate({ ...data, days: updated }) }} className={clsx('px-2 py-1 text-xs rounded', days.includes(day.toLowerCase()) ? 'bg-nebula-500 text-white' : 'bg-space-100 dark:bg-space-700 text-space-600 dark:text-space-400')}>{day[0]}</button>
+        <button key={day} onClick={() => { const d = day.toLowerCase(); const updated = days.includes(d) ? days.filter((x) => x !== d) : [...days, d]; onUpdate({ ...data, days: updated }) }} className={clsx('px-2 py-1 text-xs rounded', days.includes(day.toLowerCase()) ? 'bg-primary-500 text-white' : 'bg-space-100 dark:bg-space-700 text-space-600 dark:text-space-400')}>{day[0]}</button>
       ))}</div>
       <div className="grid grid-cols-2 gap-4">
         <div><label className="block text-xs text-space-500 mb-1">Start Time</label><input type="time" value={(data.startTime as string) || '09:00'} onChange={(e) => onUpdate({ ...data, startTime: e.target.value })} className="w-full rounded-lg border-space-300 dark:border-space-600 dark:bg-space-700" /></div>

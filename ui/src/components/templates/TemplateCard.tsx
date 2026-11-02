@@ -32,7 +32,7 @@ export function TemplateCard({ template, onClick, index = 0 }: TemplateCardProps
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
       onClick={onClick}
-      className="w-full text-left bg-white dark:bg-space-800 rounded-xl border border-space-200 dark:border-space-700 p-4 hover:shadow-lg hover:border-nebula-300 dark:hover:border-nebula-700 transition-all"
+      className="w-full text-left bg-white dark:bg-space-800 rounded-xl border border-space-200 dark:border-space-700 p-4 hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-700 transition-all"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
@@ -42,7 +42,7 @@ export function TemplateCard({ template, onClick, index = 0 }: TemplateCardProps
             <div className="flex items-center gap-2">
               <h4 className="font-semibold text-space-900 dark:text-white">{template.name}</h4>
               {template.isOfficial && (
-                <CheckBadgeIcon className="h-4 w-4 text-nebula-500" title="Official Template" />
+                <CheckBadgeIcon className="h-4 w-4 text-primary-500" title="Official Template" />
               )}
             </div>
             <p className="text-xs text-space-500">{template.author.name}</p>

@@ -88,7 +88,7 @@ export function PlaybookList({ playbooks, onToggle, onEdit, onRun, runningIds, c
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold text-space-900 dark:text-white">{playbook.name}</h3>
                   {playbook.isBuiltIn && (
-                    <CheckBadgeIcon className="h-4 w-4 text-nebula-500" title="Built-in Playbook" />
+                    <CheckBadgeIcon className="h-4 w-4 text-primary-500" title="Built-in Playbook" />
                   )}
                   <span
                     className={clsx(
@@ -136,13 +136,13 @@ export function PlaybookList({ playbooks, onToggle, onEdit, onRun, runningIds, c
             {/* Actions */}
             <div className="flex items-center gap-2">
               {runningIds?.has(playbook.id) ? (
-                <div className="p-2 rounded-lg bg-nebula-100 dark:bg-nebula-900/30" title="Running...">
-                  <ArrowPathIcon className="h-5 w-5 text-nebula-500 animate-spin" />
+                <div className="p-2 rounded-lg bg-primary-100 dark:bg-primary-900/30" title="Running...">
+                  <ArrowPathIcon className="h-5 w-5 text-primary-500 animate-spin" />
                 </div>
               ) : (
                 <button
                   onClick={() => onRun(playbook)}
-                  className="p-2 hover:bg-space-100 dark:hover:bg-space-700 rounded-lg text-space-500 hover:text-nebula-500"
+                  className="p-2 hover:bg-space-100 dark:hover:bg-space-700 rounded-lg text-space-500 hover:text-primary-500"
                   title="Run manually"
                 >
                   <PlayIcon className="h-5 w-5" />
@@ -150,7 +150,7 @@ export function PlaybookList({ playbooks, onToggle, onEdit, onRun, runningIds, c
               )}
               <button
                 onClick={() => onEdit(playbook)}
-                className="p-2 hover:bg-space-100 dark:hover:bg-space-700 rounded-lg text-space-500 hover:text-nebula-500"
+                className="p-2 hover:bg-space-100 dark:hover:bg-space-700 rounded-lg text-space-500 hover:text-primary-500"
                 title="Edit"
               >
                 <PencilIcon className="h-5 w-5" />

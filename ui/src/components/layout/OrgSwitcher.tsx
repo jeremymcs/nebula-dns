@@ -30,7 +30,7 @@ export function OrgSwitcher() {
   if (!hasMultipleOrgs) {
     return (
       <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-space-100 dark:bg-space-800 border border-space-200 dark:border-space-700">
-        <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+        <div className="h-6 w-6 rounded-lg bg-success-600 flex items-center justify-center flex-shrink-0">
           <BuildingOffice2Icon className="h-4 w-4 text-white" />
         </div>
         <span className="text-sm font-medium text-space-700 dark:text-space-200 max-w-[150px] truncate">
@@ -68,7 +68,7 @@ export function OrgSwitcher() {
         )}
         disabled={switching}
       >
-        <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+        <div className="h-6 w-6 rounded-lg bg-success-600 flex items-center justify-center flex-shrink-0">
           <BuildingOffice2Icon className="h-4 w-4 text-white" />
         </div>
         <span className="text-sm font-medium text-space-700 dark:text-space-200 max-w-[150px] truncate">
@@ -125,7 +125,7 @@ export function OrgSwitcher() {
                       <div className={clsx(
                         'h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0',
                         org.id === currentOrg?.id
-                          ? 'bg-gradient-to-br from-primary-500 to-accent-500'
+                          ? 'bg-primary-600'
                           : 'bg-space-200 dark:bg-space-600'
                       )}>
                         <BuildingOffice2Icon className={clsx(

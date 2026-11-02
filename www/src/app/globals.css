@@ -6,16 +6,16 @@
  */
 
 @import '../styles/flux-shield-design-tokens.css';
+/* postcss-import only inlines @import at the top of the file */
+@import '../styles/flux-shield-components.css';
 
 @tailwind base;
 @tailwind components;
-@import '../styles/flux-shield-components.css';
 @tailwind utilities;
 
 @layer base {
   html {
     @apply scroll-smooth antialiased;
-    color-scheme: light;
   }
 
   body {
@@ -58,7 +58,7 @@
   }
 
   .fs-section-title .font-serif-accent {
-    @apply text-[clamp(2.25rem,4.5vw,3.625rem)] text-[var(--fs-navy)];
+    @apply text-[clamp(2.25rem,4.5vw,3.625rem)] text-brand;
   }
 
   .fs-feature-art-line {
@@ -66,7 +66,7 @@
   }
 
   .fs-tag {
-    @apply mb-1.5 mr-1 inline-block rounded-md bg-white px-2 py-0.5 text-[11px] shadow-[0_0_0_1px_var(--fs-line)];
+    @apply mb-1.5 mr-1 inline-block rounded-md bg-panel px-2 py-0.5 text-[11px] shadow-[0_0_0_1px_var(--fs-line)];
   }
 
   .fs-tag-on {
@@ -199,11 +199,11 @@
   }
 
   .btn-primary {
-    @apply btn bg-gradient-to-r from-primary-700 to-primary-500 text-white shadow-lg shadow-primary-700/25 hover:from-primary-600 hover:to-primary-400 active:scale-[0.98];
+    @apply btn bg-action text-action-fg shadow-sm hover:brightness-110 active:scale-[0.98];
   }
 
   .btn-secondary {
-    @apply btn bg-white text-space-700 shadow-sm ring-1 ring-space-200 hover:bg-space-50 active:scale-[0.98];
+    @apply btn bg-panel text-txt shadow-sm ring-1 ring-line hover:bg-surface active:scale-[0.98];
   }
 
   .section-container {

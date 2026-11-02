@@ -32,7 +32,7 @@ export function OrionMessageBubble({ message, onAction }: OrionMessageBubbleProp
           'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
           isUser
             ? 'bg-space-200 dark:bg-space-700'
-            : 'bg-gradient-to-br from-nebula-500 to-nebula-600'
+            : 'bg-primary-600'
         )}
       >
         {isUser ? (
@@ -48,7 +48,7 @@ export function OrionMessageBubble({ message, onAction }: OrionMessageBubbleProp
           className={clsx(
             'px-4 py-2 rounded-2xl',
             isUser
-              ? 'bg-nebula-500 text-white rounded-tr-sm'
+              ? 'bg-primary-500 text-white rounded-tr-sm'
               : 'bg-space-100 dark:bg-space-800 text-space-900 dark:text-white rounded-tl-sm'
           )}
         >
@@ -62,7 +62,7 @@ export function OrionMessageBubble({ message, onAction }: OrionMessageBubbleProp
               <button
                 key={action.id}
                 onClick={() => onAction?.(action)}
-                className="px-3 py-1.5 text-xs font-medium rounded-lg bg-nebula-500/10 text-nebula-600 dark:text-nebula-400 hover:bg-nebula-500/20 transition-colors border border-nebula-500/20"
+                className="px-3 py-1.5 text-xs font-medium rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400 hover:bg-primary-500/20 transition-colors border border-primary-500/20"
               >
                 {action.label}
               </button>

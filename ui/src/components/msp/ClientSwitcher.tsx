@@ -85,7 +85,7 @@ export function ClientSwitcher() {
         >
           <div className="p-3">
             <div className="flex items-center gap-3 mb-2">
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-warning-500 to-warning-600 flex items-center justify-center">
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-warning-600 flex items-center justify-center">
                 <BuildingOffice2Icon className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1 min-w-0">

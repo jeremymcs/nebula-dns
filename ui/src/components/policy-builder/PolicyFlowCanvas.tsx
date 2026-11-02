@@ -136,7 +136,7 @@ export function PolicyFlowCanvas({
       <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
         <button
           onClick={() => setShowPalette(!showPalette)}
-          className="flex items-center gap-2 px-3 py-2 bg-nebula-500 text-white rounded-lg shadow-lg hover:bg-nebula-600 transition-colors"
+          className="flex items-center gap-2 px-3 py-2 bg-primary-500 text-white rounded-lg shadow-lg hover:bg-primary-600 transition-colors"
         >
           <PlusIcon className="h-4 w-4" />
           Add Node
@@ -159,7 +159,7 @@ export function PolicyFlowCanvas({
 
       {/* Connection Mode Indicator */}
       {connectingFrom && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-4 py-2 bg-nebula-500 text-white rounded-lg shadow-lg animate-pulse">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-4 py-2 bg-primary-500 text-white rounded-lg shadow-lg animate-pulse">
           Click on a target node to connect
           <button
             onClick={() => setConnectingFrom(null)}
@@ -231,7 +231,7 @@ export function PolicyFlowCanvas({
                   stroke="currentColor"
                   strokeWidth="2"
                   strokeDasharray="5,5"
-                  className="text-nebula-500"
+                  className="text-primary-500"
                 />
               )
             })()}

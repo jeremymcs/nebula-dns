@@ -282,7 +282,7 @@ export default function PricingPage() {
                     {isEnterprise ? (
                       <Link
                         href="/contact"
-                        className="mt-6 w-full inline-flex justify-center items-center px-4 py-3 rounded-xl font-semibold text-sm transition-all bg-space-800 border border-space-700 text-white hover:bg-space-700 hover:border-space-600"
+                        className="mt-6 w-full inline-flex justify-center items-center px-4 py-3 rounded-xl font-semibold text-sm transition-all bg-panel border border-line text-ink hover:bg-surface hover:border-line"
                       >
                         Contact Sales
                       </Link>
@@ -296,38 +296,38 @@ export default function PricingPage() {
                     ) : plan.id === 'free' ? (
                       <Link
                         href={`/signup?plan=${plan.id}&billing=${billingCycle}`}
-                        className="mt-6 w-full inline-flex justify-center items-center px-4 py-3 rounded-xl font-semibold text-sm transition-all bg-space-800 border border-space-700 text-[var(--fs-txt)] hover:bg-space-700 hover:border-space-600 hover:text-white"
+                        className="mt-6 w-full inline-flex justify-center items-center px-4 py-3 rounded-xl font-semibold text-sm transition-all bg-panel border border-line text-[var(--fs-txt)] hover:bg-surface hover:border-line hover:text-ink"
                       >
                         Get Started Free
                       </Link>
                     ) : (
                       <Link
                         href={`/signup?plan=${plan.id}&billing=${billingCycle}`}
-                        className="mt-6 w-full inline-flex justify-center items-center px-4 py-3 rounded-xl font-semibold text-sm transition-all bg-primary-900/40 border border-primary-700/50 text-primary-300 hover:bg-primary-900/60 hover:border-primary-600/60 hover:text-white"
+                        className="mt-6 w-full inline-flex justify-center items-center px-4 py-3 rounded-xl font-semibold text-sm transition-all bg-primary-500/10 border border-primary-500/30 text-brand hover:bg-primary-500/15 hover:border-primary-500/50 hover:text-ink"
                       >
                         Start Free Trial
                       </Link>
                     )}
 
                     {/* Limits */}
-                    <div className="mt-6 pt-6 border-t border-space-700/50">
+                    <div className="mt-6 pt-6 border-t border-line">
                       <ul className="space-y-3">
                         {Object.entries(plan.limits).map(([key, value]) => (
                           <li key={key} className="flex items-center justify-between text-sm">
                             <span className="text-[var(--fs-txt)]">{limitLabels[key]}</span>
-                            <span className="font-semibold text-white">{formatLimit(value)}</span>
+                            <span className="font-semibold text-ink">{formatLimit(value)}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
 
                     {/* Features */}
-                    <div className="mt-6 pt-6 border-t border-space-700/50 flex-1">
+                    <div className="mt-6 pt-6 border-t border-line flex-1">
                       <ul className="space-y-3">
                         {Object.entries(plan.features).map(([key, enabled]) => (
                           <li key={key} className="flex items-start text-sm gap-2">
                             {enabled ? (
-                              <CheckIcon className="h-4 w-4 text-success-400 flex-shrink-0 mt-0.5" />
+                              <CheckIcon className="h-4 w-4 text-[var(--fs-success)] flex-shrink-0 mt-0.5" />
                             ) : (
                               <XMarkIcon className="h-4 w-4 text-[var(--fs-mut)] flex-shrink-0 mt-0.5" />
                             )}
@@ -346,11 +346,11 @@ export default function PricingPage() {
         </div>
 
         {/* FAQ Section */}
-        <div className="border-t border-space-800/60 py-24">
+        <div className="border-t border-line py-24">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-14">
-              <p className="text-primary-400 text-xs tracking-widest uppercase mb-3 font-medium">FAQ</p>
-              <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
+              <p className="text-brand text-xs tracking-widest uppercase mb-3 font-medium">FAQ</p>
+              <h2 className="text-3xl font-bold text-ink">
                 Frequently Asked Questions
               </h2>
             </div>

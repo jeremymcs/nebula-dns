@@ -194,7 +194,7 @@ export default function PolicyBuilderPage() {
               <h1 className="text-xl font-bold text-space-900 dark:text-white">
                 Visual Policy Builder
                 {selectedTemplateName && (
-                  <span className="ml-2 text-sm font-normal text-nebula-500">
+                  <span className="ml-2 text-sm font-normal text-primary-500">
                     ({selectedTemplateName} template)
                   </span>
                 )}
@@ -218,7 +218,7 @@ export default function PolicyBuilderPage() {
             </Link>
             <button
               onClick={() => setShowSaveModal(true)}
-              className="px-4 py-2 bg-nebula-500 text-white rounded-lg hover:bg-nebula-600"
+              className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
             >
               Save Policy
             </button>
@@ -264,7 +264,7 @@ export default function PolicyBuilderPage() {
                   value={policyName}
                   onChange={(e) => setPolicyName(e.target.value)}
                   placeholder="e.g., Corporate Security Policy"
-                  className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-900 text-space-900 dark:text-white focus:ring-2 focus:ring-nebula-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-900 text-space-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
               <div>
@@ -276,7 +276,7 @@ export default function PolicyBuilderPage() {
                   onChange={(e) => setPolicyDescription(e.target.value)}
                   placeholder="Describe what this policy does..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-900 text-space-900 dark:text-white focus:ring-2 focus:ring-nebula-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-900 text-space-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -290,7 +290,7 @@ export default function PolicyBuilderPage() {
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="px-4 py-2 bg-nebula-500 text-white rounded-lg hover:bg-nebula-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSaving ? 'Saving...' : 'Save Policy'}
               </button>

@@ -36,7 +36,7 @@ export default function TemplateVersionHistory({
     return (
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
         </div>
       </div>
     )
@@ -80,14 +80,14 @@ export default function TemplateVersionHistory({
                       <div
                         className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${
                           isCurrentVersion
-                            ? 'bg-indigo-100 dark:bg-indigo-900'
+                            ? 'bg-primary-100 dark:bg-primary-900'
                             : 'bg-gray-100 dark:bg-gray-700'
                         }`}
                       >
                         <span
                           className={`text-sm font-medium ${
                             isCurrentVersion
-                              ? 'text-indigo-600 dark:text-indigo-400'
+                              ? 'text-primary-600 dark:text-primary-400'
                               : 'text-gray-600 dark:text-gray-300'
                           }`}
                         >
@@ -144,7 +144,7 @@ export default function TemplateVersionHistory({
                       {!isCurrentVersion && (
                         <button
                           onClick={() => onRollback(version.id, version.version)}
-                          className="inline-flex items-center px-3 py-1.5 border border-indigo-300 dark:border-indigo-600 rounded-md text-xs font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50"
+                          className="inline-flex items-center px-3 py-1.5 border border-primary-300 dark:border-primary-600 rounded-md text-xs font-medium text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30 hover:bg-primary-100 dark:hover:bg-primary-900/50"
                         >
                           <ArrowPathIcon className="h-4 w-4 mr-1" />
                           Rollback

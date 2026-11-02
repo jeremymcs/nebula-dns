@@ -48,8 +48,8 @@ export function ActivitySummary({ members, threatsBlocked = 0, categoriesBlocked
       label: 'Avg per Person',
       value: formatTime(avgScreenTime),
       icon: ChartBarIcon,
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-100 dark:bg-purple-900/30',
+      color: 'text-primary-500',
+      bgColor: 'bg-primary-100 dark:bg-primary-900/30',
     },
     {
       label: 'Threats Blocked',

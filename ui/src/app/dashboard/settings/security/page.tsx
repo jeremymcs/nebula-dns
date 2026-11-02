@@ -363,7 +363,7 @@ export default function SecuritySettingsPage() {
       {/* Page Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-space-900 dark:text-white flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-nebula-500 to-cosmic-500">
+          <div className="p-2 rounded-xl bg-primary-600">
             <ShieldCheckIcon className="h-6 w-6 text-white" />
           </div>
           Security Settings
@@ -403,7 +403,7 @@ export default function SecuritySettingsPage() {
             className={clsx(
               'flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all whitespace-nowrap',
               activeTab === tab.id
-                ? 'bg-nebula-500 text-white shadow-lg shadow-nebula-500/25'
+                ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/25'
                 : 'bg-white dark:bg-space-800 text-space-600 dark:text-space-400 hover:bg-space-50 dark:hover:bg-space-700 ring-1 ring-space-200 dark:ring-space-700'
             )}
           >
@@ -486,9 +486,9 @@ export default function SecuritySettingsPage() {
           )}
 
           {/* Security Tips */}
-          <div className="mt-6 p-4 rounded-xl bg-nebula-50 dark:bg-nebula-900/20 ring-1 ring-nebula-200 dark:ring-nebula-800">
-            <h3 className="font-medium text-nebula-900 dark:text-nebula-100 mb-2">Security Tips</h3>
-            <ul className="text-sm text-nebula-700 dark:text-nebula-300 space-y-1">
+          <div className="mt-6 p-4 rounded-xl bg-primary-50 dark:bg-primary-900/20 ring-1 ring-primary-200 dark:ring-primary-800">
+            <h3 className="font-medium text-primary-900 dark:text-primary-100 mb-2">Security Tips</h3>
+            <ul className="text-sm text-primary-700 dark:text-primary-300 space-y-1">
               <li>• Use an authenticator app like Google Authenticator, Authy, or 1Password</li>
               <li>• Store your backup codes in a secure location</li>
               <li>• Never share your authentication codes with anyone</li>
@@ -505,7 +505,7 @@ export default function SecuritySettingsPage() {
           <div className="space-y-8">
             {/* Step 1: Scan QR Code */}
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-nebula-500 to-cosmic-500 text-white flex items-center justify-center font-bold text-lg">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-lg">
                 1
               </div>
               <div className="flex-1">
@@ -513,7 +513,7 @@ export default function SecuritySettingsPage() {
                 <p className="text-sm text-space-600 dark:text-space-400 mb-4">
                   Open your authenticator app and scan this QR code:
                 </p>
-                <div className="bg-white p-4 rounded-xl inline-block shadow-lg ring-1 ring-space-200">
+                <div className="bg-panel p-4 rounded-xl inline-block shadow-lg ring-1 ring-space-200">
                   <QRCodeSVG
                     value={setupData.qrCodeUrl}
                     size={180}
@@ -534,7 +534,7 @@ export default function SecuritySettingsPage() {
 
             {/* Step 2: Enter Code */}
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-nebula-500 to-cosmic-500 text-white flex items-center justify-center font-bold text-lg">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-lg">
                 2
               </div>
               <div className="flex-1">
@@ -548,7 +548,7 @@ export default function SecuritySettingsPage() {
                     maxLength={6}
                     value={verificationCode}
                     onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
-                    className="w-44 px-4 py-3 text-2xl tracking-[0.5em] text-center rounded-xl bg-white dark:bg-space-800 text-space-900 dark:text-white ring-1 ring-space-300 dark:ring-space-600 focus:ring-2 focus:ring-nebula-500 focus:outline-none"
+                    className="w-44 px-4 py-3 text-2xl tracking-[0.5em] text-center rounded-xl bg-white dark:bg-space-800 text-space-900 dark:text-white ring-1 ring-space-300 dark:ring-space-600 focus:ring-2 focus:ring-primary-500 focus:outline-none"
                     placeholder="000000"
                   />
                   <Button
@@ -564,7 +564,7 @@ export default function SecuritySettingsPage() {
 
             {/* Step 3: Save Backup Codes */}
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-nebula-500 to-cosmic-500 text-white flex items-center justify-center font-bold text-lg">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-lg">
                 3
               </div>
               <div className="flex-1">
@@ -706,7 +706,7 @@ export default function SecuritySettingsPage() {
               <select
                 value={securitySettings.passwordExpiry}
                 onChange={(e) => setSecuritySettings({ ...securitySettings, passwordExpiry: e.target.value })}
-                className="px-4 py-2 rounded-xl bg-white dark:bg-space-800 text-space-900 dark:text-white ring-1 ring-space-200 dark:ring-space-700 focus:ring-2 focus:ring-nebula-500"
+                className="px-4 py-2 rounded-xl bg-white dark:bg-space-800 text-space-900 dark:text-white ring-1 ring-space-200 dark:ring-space-700 focus:ring-2 focus:ring-primary-500"
               >
                 <option value="never">Never</option>
                 <option value="30">30 days</option>
@@ -738,7 +738,7 @@ export default function SecuritySettingsPage() {
 
             {sessionsLoading && (
               <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-nebula-500"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
               </div>
             )}
 
@@ -766,7 +766,7 @@ export default function SecuritySettingsPage() {
                   className={clsx(
                     'flex items-center justify-between p-4 rounded-xl ring-1',
                     session.isCurrent
-                      ? 'bg-nebula-50 dark:bg-nebula-900/20 ring-nebula-200 dark:ring-nebula-800'
+                      ? 'bg-primary-50 dark:bg-primary-900/20 ring-primary-200 dark:ring-primary-800'
                       : 'bg-space-50 dark:bg-space-800/50 ring-space-200 dark:ring-space-700'
                   )}
                 >
@@ -774,11 +774,11 @@ export default function SecuritySettingsPage() {
                     <div className={clsx(
                       'p-2.5 rounded-xl',
                       session.device.includes('iPhone') || session.device.includes('Android')
-                        ? 'bg-cosmic-100 dark:bg-cosmic-900/30'
+                        ? 'bg-primary-100 dark:bg-primary-900/30'
                         : 'bg-space-100 dark:bg-space-700'
                     )}>
                       {session.device.includes('iPhone') || session.device.includes('Android') ? (
-                        <DevicePhoneMobileIcon className="h-5 w-5 text-cosmic-600 dark:text-cosmic-400" />
+                        <DevicePhoneMobileIcon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
                       ) : (
                         <ComputerDesktopIcon className="h-5 w-5 text-space-600 dark:text-space-400" />
                       )}
@@ -835,7 +835,7 @@ export default function SecuritySettingsPage() {
               <select
                 value={securitySettings.sessionTimeout}
                 onChange={(e) => setSecuritySettings({ ...securitySettings, sessionTimeout: e.target.value })}
-                className="px-4 py-2 rounded-xl bg-white dark:bg-space-800 text-space-900 dark:text-white ring-1 ring-space-200 dark:ring-space-700 focus:ring-2 focus:ring-nebula-500"
+                className="px-4 py-2 rounded-xl bg-white dark:bg-space-800 text-space-900 dark:text-white ring-1 ring-space-200 dark:ring-space-700 focus:ring-2 focus:ring-primary-500"
               >
                 <option value="30">30 minutes</option>
                 <option value="60">1 hour</option>
@@ -898,7 +898,7 @@ export default function SecuritySettingsPage() {
                         [setting.id]: e.target.checked
                       })}
                     />
-                    <div className="w-11 h-6 bg-space-200 dark:bg-space-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-nebula-300 dark:peer-focus:ring-nebula-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-space-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-nebula-500"></div>
+                    <div className="w-11 h-6 bg-space-200 dark:bg-space-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-space-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
                   </label>
                 </div>
               ))}
@@ -921,7 +921,7 @@ export default function SecuritySettingsPage() {
                       type="checkbox"
                       checked={securitySettings.ipWhitelistEnabled}
                       onChange={(e) => setSecuritySettings({ ...securitySettings, ipWhitelistEnabled: e.target.checked })}
-                      className="w-4 h-4 rounded border-space-300 text-nebula-500 focus:ring-nebula-500"
+                      className="w-4 h-4 rounded border-space-300 text-primary-500 focus:ring-primary-500"
                     />
                     <span className="text-sm font-medium text-space-700 dark:text-space-300">
                       Enable IP whitelist (advanced)
@@ -962,7 +962,7 @@ export default function SecuritySettingsPage() {
               <select
                 value={auditActionFilter}
                 onChange={(e) => setAuditActionFilter(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white dark:bg-space-700 text-space-900 dark:text-white text-sm ring-1 ring-space-200 dark:ring-space-600 focus:ring-2 focus:ring-nebula-500 focus:outline-none"
+                className="w-full px-3 py-2 rounded-lg bg-white dark:bg-space-700 text-space-900 dark:text-white text-sm ring-1 ring-space-200 dark:ring-space-600 focus:ring-2 focus:ring-primary-500 focus:outline-none"
               >
                 <option value="">All Actions</option>
                 {uniqueActions.map((action) => (
@@ -975,7 +975,7 @@ export default function SecuritySettingsPage() {
               <select
                 value={auditDateFilter}
                 onChange={(e) => setAuditDateFilter(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white dark:bg-space-700 text-space-900 dark:text-white text-sm ring-1 ring-space-200 dark:ring-space-600 focus:ring-2 focus:ring-nebula-500 focus:outline-none"
+                className="w-full px-3 py-2 rounded-lg bg-white dark:bg-space-700 text-space-900 dark:text-white text-sm ring-1 ring-space-200 dark:ring-space-600 focus:ring-2 focus:ring-primary-500 focus:outline-none"
               >
                 <option value="all">All Time</option>
                 <option value="today">Today</option>
@@ -990,7 +990,7 @@ export default function SecuritySettingsPage() {
                     setAuditActionFilter('')
                     setAuditDateFilter('all')
                   }}
-                  className="px-3 py-2 text-sm text-nebula-600 dark:text-nebula-400 hover:underline"
+                  className="px-3 py-2 text-sm text-primary-600 dark:text-primary-400 hover:underline"
                 >
                   Clear Filters
                 </button>
@@ -1007,7 +1007,7 @@ export default function SecuritySettingsPage() {
 
           {auditLogsLoading && (
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-nebula-500"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
             </div>
           )}
 

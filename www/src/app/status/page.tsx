@@ -42,17 +42,17 @@ const services: { name: string; status: ServiceStatus; description: string }[] =
 const statusConfig: Record<ServiceStatus, { dot: string; text: string; label: string }> = {
   operational: {
     dot: 'bg-success-500',
-    text: 'text-success-400',
+    text: 'text-[var(--fs-success)]',
     label: 'Operational',
   },
   degraded: {
     dot: 'bg-warning-500',
-    text: 'text-warning-400',
+    text: 'text-[var(--fs-warning)]',
     label: 'Degraded',
   },
   outage: {
     dot: 'bg-danger-500',
-    text: 'text-danger-400',
+    text: 'text-[var(--fs-danger)]',
     label: 'Outage',
   },
 }
@@ -92,7 +92,7 @@ export default function StatusPage() {
           <p className="fs-eyebrow mb-4">
             STATUS
           </p>
-          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-8">
+          <h1 className="text-4xl sm:text-5xl font-bold text-ink mb-8">
             System Status
           </h1>
 
@@ -128,9 +128,9 @@ export default function StatusPage() {
       </div>
 
       {/* Service Cards */}
-      <div className="py-16 bg-space-900">
+      <div className="py-16 bg-canvas">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-white mb-8">
+          <h2 className="text-3xl font-bold text-ink mb-8">
             Service Status
           </h2>
 
@@ -164,13 +164,13 @@ export default function StatusPage() {
       </div>
 
       {/* Uptime */}
-      <div className="py-16 bg-space-950">
+      <div className="py-16 bg-canvas">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="fs-card rounded-[14px] p-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <div>
-                <h3 className="text-3xl font-bold text-white mb-1">
-                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
+                <h3 className="text-3xl font-bold text-ink mb-1">
+                  <span className="text-brand">
                     99.99%
                   </span>
                 </h3>
@@ -209,14 +209,14 @@ export default function StatusPage() {
       </div>
 
       {/* Recent Incidents */}
-      <div className="py-16 bg-space-900">
+      <div className="py-16 bg-canvas">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-white mb-8">
+          <h2 className="text-3xl font-bold text-ink mb-8">
             Recent Incidents
           </h2>
 
           <div className="fs-card rounded-[14px] p-12 text-center">
-            <div className="h-14 w-14 rounded-xl bg-success-900/50 border border-success-800/50 flex items-center justify-center text-success-400 mx-auto mb-4">
+            <div className="h-14 w-14 rounded-xl bg-success-900/50 border border-success-800/50 flex items-center justify-center text-[var(--fs-success)] mx-auto mb-4">
               <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -232,7 +232,7 @@ export default function StatusPage() {
       </div>
 
       {/* Subscribe */}
-      <div className="py-16 bg-space-950">
+      <div className="py-16 bg-canvas">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="fs-card rounded-[14px] p-8 text-center">
             <div className="h-12 w-12 rounded-xl bg-accent-900/50 border border-accent-800/50 flex items-center justify-center text-accent-400 mx-auto mb-5">
@@ -262,7 +262,7 @@ export default function StatusPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
                   required
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-space-700/50 bg-space-950 text-white placeholder-space-500 focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent text-sm"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-line bg-canvas text-ink placeholder-space-500 focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent text-sm"
                 />
                 <button
                   type="submit"

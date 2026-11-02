@@ -225,7 +225,7 @@ export function WhiteLabelSettings() {
               className="h-4 w-4 rounded border-space-300 text-primary-600 focus:ring-primary-500"
             />
             <label htmlFor="hideNebulaBranding" className="text-sm text-space-700 dark:text-space-300">
-              Hide Nebula DNS branding (show only your branding)
+              Hide Flux Shield branding (show only your branding)
             </label>
           </div>
         </div>
@@ -267,8 +267,8 @@ export function WhiteLabelSettings() {
       {/* Support & Legal Links Section */}
       <div className="bg-white dark:bg-space-800 rounded-xl border border-space-200 dark:border-space-700 p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-            <PhotoIcon className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+          <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
+            <PhotoIcon className="h-6 w-6 text-primary-600 dark:text-primary-400" />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-space-900 dark:text-white">

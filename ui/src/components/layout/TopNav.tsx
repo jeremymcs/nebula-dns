@@ -157,7 +157,7 @@ export function TopNav() {
                     className={clsx(
                       'flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl transition-all',
                       mspNavigation.some(item => isActive(item.href))
-                        ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+                        ? 'bg-success-50 dark:bg-success-900/30 text-success-700 dark:text-success-300'
                         : 'text-space-600 dark:text-space-400 hover:text-space-900 dark:hover:text-white hover:bg-space-100 dark:hover:bg-space-800'
                     )}
                   >
@@ -183,9 +183,9 @@ export function TopNav() {
                               href={item.href}
                               className={clsx(
                                 'flex items-center gap-2 px-3 py-2 text-sm rounded-lg',
-                                active ? 'bg-emerald-50 dark:bg-emerald-900/30' : '',
+                                active ? 'bg-success-50 dark:bg-success-900/30' : '',
                                 isActive(item.href)
-                                  ? 'text-emerald-700 dark:text-emerald-300 font-medium'
+                                  ? 'text-success-700 dark:text-success-300 font-medium'
                                   : 'text-space-700 dark:text-space-300'
                               )}
                             >
@@ -301,7 +301,7 @@ export function TopNav() {
                           className={clsx(
                             'flex items-center gap-3 px-3 py-3 text-sm font-medium rounded-xl',
                             isActive(item.href)
-                              ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+                              ? 'bg-success-50 dark:bg-success-900/30 text-success-700 dark:text-success-300'
                               : 'text-space-700 dark:text-space-300 hover:bg-space-100 dark:hover:bg-space-800',
                           )}
                         >

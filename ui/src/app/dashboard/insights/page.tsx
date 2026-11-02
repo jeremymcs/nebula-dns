@@ -35,7 +35,7 @@ export default function InsightsPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
           <p className="text-space-500">Loading insights...</p>
         </div>
       </div>
@@ -49,7 +49,7 @@ export default function InsightsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500">
+          <div className="p-3 rounded-xl bg-primary-600">
             <SparklesIcon className="h-8 w-8 text-white" />
           </div>
           <div>

@@ -54,7 +54,7 @@ export function TemplateDetail({ template, isOpen, onClose, onUseTemplate }: Tem
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-bold text-space-900 dark:text-white">{template.name}</h2>
-                {template.isOfficial && <CheckBadgeIcon className="h-5 w-5 text-nebula-500" />}
+                {template.isOfficial && <CheckBadgeIcon className="h-5 w-5 text-primary-500" />}
               </div>
               <p className="text-sm text-space-500">by {template.author.name}</p>
             </div>
@@ -121,7 +121,7 @@ export function TemplateDetail({ template, isOpen, onClose, onUseTemplate }: Tem
         <div className="px-6 py-4 border-t border-space-200 dark:border-space-700 bg-space-50 dark:bg-space-900 flex gap-3">
           <button
             onClick={() => onUseTemplate(template)}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-nebula-500 text-white rounded-lg hover:bg-nebula-600 transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
           >
             <ArrowDownTrayIcon className="h-4 w-4" />
             Use This Template

@@ -55,10 +55,10 @@ export function WeeklyInsights({ insight, className }: WeeklyInsightsProps) {
   return (
     <div className={clsx('bg-white dark:bg-space-800 rounded-xl border border-space-200 dark:border-space-700 overflow-hidden', className)}>
       {/* Header */}
-      <div className="px-6 py-4 border-b border-space-200 dark:border-space-700 bg-gradient-to-r from-nebula-500/10 to-purple-500/10">
+      <div className="px-6 py-4 border-b border-space-200 dark:border-space-700 bg-primary-600">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-nebula-500/20">
-            <SparklesIcon className="h-5 w-5 text-nebula-500" />
+          <div className="p-2 rounded-lg bg-primary-500/20">
+            <SparklesIcon className="h-5 w-5 text-primary-500" />
           </div>
           <div>
             <h3 className="font-semibold text-space-900 dark:text-white">Weekly Insights</h3>
@@ -123,7 +123,7 @@ export function WeeklyInsights({ insight, className }: WeeklyInsightsProps) {
                 <span className="text-sm text-space-700 dark:text-space-300">{rec.title}</span>
               </div>
               {rec.action && (
-                <a href={rec.action.href} className="text-sm text-nebula-500 hover:text-nebula-600 flex items-center gap-1">
+                <a href={rec.action.href} className="text-sm text-primary-500 hover:text-primary-600 flex items-center gap-1">
                   {rec.action.label}
                   <ArrowRightIcon className="h-3 w-3" />
                 </a>

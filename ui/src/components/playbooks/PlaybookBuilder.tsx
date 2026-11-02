@@ -217,7 +217,7 @@ export function PlaybookBuilder({ playbook, onSave, onCancel }: PlaybookBuilderP
               <label className="block text-sm font-medium text-space-700 dark:text-space-300">Trigger</label>
               <button
                 onClick={() => setShowTriggerConfig(!showTriggerConfig)}
-                className="text-xs text-nebula-500 hover:text-nebula-600"
+                className="text-xs text-primary-500 hover:text-primary-600"
               >
                 {showTriggerConfig ? 'Hide Details' : 'Configure'}
               </button>
@@ -226,7 +226,7 @@ export function PlaybookBuilder({ playbook, onSave, onCancel }: PlaybookBuilderP
               onClick={() => setShowTriggerConfig(!showTriggerConfig)}
               className="flex items-center gap-3 p-3 bg-space-50 dark:bg-space-900 rounded-lg cursor-pointer hover:bg-space-100 dark:hover:bg-space-800"
             >
-              {selectedTriggerType && <selectedTriggerType.icon className="h-5 w-5 text-nebula-500" />}
+              {selectedTriggerType && <selectedTriggerType.icon className="h-5 w-5 text-primary-500" />}
               <div className="flex-1">
                 <p className="text-sm font-medium text-space-900 dark:text-white">{selectedTriggerType?.name}</p>
                 <p className="text-xs text-space-500">{selectedTriggerType?.description}</p>
@@ -253,7 +253,7 @@ export function PlaybookBuilder({ playbook, onSave, onCancel }: PlaybookBuilderP
                             className={clsx(
                               'p-2 rounded-lg text-left text-sm flex items-center gap-2',
                               trigger.type === t.type
-                                ? 'bg-nebula-500 text-white'
+                                ? 'bg-primary-500 text-white'
                                 : 'bg-white dark:bg-space-800 text-space-700 dark:text-space-300 hover:bg-space-100 dark:hover:bg-space-700'
                             )}
                           >
@@ -305,7 +305,7 @@ export function PlaybookBuilder({ playbook, onSave, onCancel }: PlaybookBuilderP
                           ))}
                           <button
                             onClick={addTriggerCondition}
-                            className="w-full p-2 border border-dashed border-space-300 dark:border-space-600 rounded text-sm text-space-500 hover:border-nebula-500 hover:text-nebula-500"
+                            className="w-full p-2 border border-dashed border-space-300 dark:border-space-600 rounded text-sm text-space-500 hover:border-primary-500 hover:text-primary-500"
                           >
                             + Add Condition
                           </button>
@@ -335,11 +335,11 @@ export function PlaybookBuilder({ playbook, onSave, onCancel }: PlaybookBuilderP
                     className={clsx(
                       'flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all',
                       isSelected
-                        ? 'bg-nebula-50 dark:bg-nebula-900/20 border-2 border-nebula-500'
+                        ? 'bg-primary-50 dark:bg-primary-900/20 border-2 border-primary-500'
                         : 'bg-space-50 dark:bg-space-900 border-2 border-transparent hover:border-space-200 dark:hover:border-space-700'
                     )}
                   >
-                    <span className="w-6 h-6 rounded-full bg-nebula-500 text-white text-xs flex items-center justify-center">
+                    <span className="w-6 h-6 rounded-full bg-primary-500 text-white text-xs flex items-center justify-center">
                       {index + 1}
                     </span>
                     <Icon className="h-5 w-5 text-space-500" />
@@ -381,7 +381,7 @@ export function PlaybookBuilder({ playbook, onSave, onCancel }: PlaybookBuilderP
             {/* Add step button */}
             <button
               onClick={() => setShowActionPicker(!showActionPicker)}
-              className="mt-3 w-full p-3 border-2 border-dashed border-space-300 dark:border-space-600 rounded-lg text-space-500 hover:border-nebula-500 hover:text-nebula-500 transition-colors flex items-center justify-center gap-2"
+              className="mt-3 w-full p-3 border-2 border-dashed border-space-300 dark:border-space-600 rounded-lg text-space-500 hover:border-primary-500 hover:text-primary-500 transition-colors flex items-center justify-center gap-2"
             >
               <PlusIcon className="h-5 w-5" />
               Add Step
@@ -394,9 +394,9 @@ export function PlaybookBuilder({ playbook, onSave, onCancel }: PlaybookBuilderP
                   <button
                     key={action.type}
                     onClick={() => addStep(action.type)}
-                    className="p-3 bg-space-50 dark:bg-space-900 rounded-lg hover:bg-nebula-50 dark:hover:bg-nebula-900/20 text-left"
+                    className="p-3 bg-space-50 dark:bg-space-900 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 text-left"
                   >
-                    <action.icon className="h-5 w-5 text-nebula-500 mb-1" />
+                    <action.icon className="h-5 w-5 text-primary-500 mb-1" />
                     <p className="text-sm font-medium text-space-900 dark:text-white">{action.name}</p>
                     <p className="text-xs text-space-500">{action.description}</p>
                   </button>
@@ -453,7 +453,7 @@ export function PlaybookBuilder({ playbook, onSave, onCancel }: PlaybookBuilderP
         <button onClick={onCancel} className="px-4 py-2 text-space-600 dark:text-space-400 hover:bg-space-100 dark:hover:bg-space-800 rounded-lg">
           Cancel
         </button>
-        <button onClick={handleSave} disabled={!name || steps.length === 0} className="px-4 py-2 bg-nebula-500 text-white rounded-lg hover:bg-nebula-600 disabled:opacity-50">
+        <button onClick={handleSave} disabled={!name || steps.length === 0} className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50">
           Save Playbook
         </button>
       </div>

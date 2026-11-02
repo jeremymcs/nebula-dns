@@ -76,7 +76,7 @@ export function Sidebar() {
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'owner':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300'
+        return 'bg-primary-100 text-primary-800 dark:bg-primary-900/50 dark:text-primary-300'
       case 'admin':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300'
       case 'analyst':
@@ -97,7 +97,7 @@ export function Sidebar() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
         </div>
-        <span className="ml-3 text-lg font-semibold text-space-900 dark:text-white">Nebula DNS</span>
+        <span className="ml-3 text-lg font-semibold text-space-900 dark:text-white">Flux Shield</span>
       </div>
 
       {/* Navigation */}

@@ -47,7 +47,7 @@ export function QueryTraceHero() {
             <stop offset="1" stopColor="#2FB67C" />
           </linearGradient>
           <pattern id={dots} width="16" height="16" patternUnits="userSpaceOnUse">
-            <circle cx="1" cy="1" r="1" fill="#E3E7EF" />
+            <circle cx="1" cy="1" r="1" style={{ fill: 'var(--fs-line)' }} />
           </pattern>
           <filter id={bl}>
             <feGaussianBlur stdDeviation="6" />
@@ -90,8 +90,8 @@ export function QueryTraceHero() {
         <circle cx="660" cy="207" r="3" fill="#4B7CBB" />
         <circle cx="330" cy="150" r="2.5" fill="#4B7CBB" />
         <g transform="translate(770,207)">
-          <circle r="74" fill="none" stroke="#E6E9F0" />
-          <circle r="52" fill="#fff" stroke="#DCE6F3" />
+          <circle r="74" fill="none" style={{ stroke: 'var(--fs-line)' }} />
+          <circle r="52" style={{ fill: 'var(--fs-panel)', stroke: 'var(--fs-line)' }} />
           <circle
             r="74"
             fill="none"
@@ -102,14 +102,14 @@ export function QueryTraceHero() {
           />
           <path
             d="M0 -26 L-20 -17.5 V-2 C-20 11 -11 22 0 25 C11 22 20 11 20 -2 V-17.5 Z"
-            fill="#1E3B78"
+            style={{ fill: 'rgb(var(--fs-c-action))' }}
           />
-          <circle cx="13" cy="-16" r="4" fill="#FF6E62" stroke="#fff" strokeWidth="1.5" />
+          <circle cx="13" cy="-16" r="4" fill="#FF6E62" strokeWidth="1.5" style={{ stroke: 'var(--fs-panel)' }} />
         </g>
       </svg>
 
       <div
-        className="absolute rounded-xl bg-white p-3 px-3.5 text-[13px] shadow-[0_0_0_1px_rgba(11,21,48,0.08),0_8px_20px_-8px_rgba(11,21,48,0.18)]"
+        className="absolute rounded-xl bg-panel p-3 px-3.5 text-[13px] shadow-[0_0_0_1px_rgba(11,21,48,0.08),0_8px_20px_-8px_rgba(11,21,48,0.18)]"
         style={{ left: 56, top: 110, width: 176 }}
       >
         <div className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-[var(--fs-mut)]">
@@ -120,7 +120,7 @@ export function QueryTraceHero() {
       </div>
 
       <div
-        className="absolute rounded-xl bg-white p-3 px-3.5 text-[13px] shadow-[0_0_0_1px_rgba(11,21,48,0.08),0_8px_20px_-8px_rgba(11,21,48,0.18)]"
+        className="absolute rounded-xl bg-panel p-3 px-3.5 text-[13px] shadow-[0_0_0_1px_rgba(11,21,48,0.08),0_8px_20px_-8px_rgba(11,21,48,0.18)]"
         style={{ left: 56, top: 222, width: 176 }}
       >
         <div className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-[var(--fs-mut)]">
@@ -131,7 +131,7 @@ export function QueryTraceHero() {
       </div>
 
       <div
-        className="absolute rounded-xl bg-white p-3 px-3.5 text-[13px] shadow-[0_0_0_1px_rgba(11,21,48,0.08),0_8px_20px_-8px_rgba(11,21,48,0.18)]"
+        className="absolute rounded-xl bg-panel p-3 px-3.5 text-[13px] shadow-[0_0_0_1px_rgba(11,21,48,0.08),0_8px_20px_-8px_rgba(11,21,48,0.18)]"
         style={{ left: 56, top: 334, width: 176 }}
       >
         <div className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-[var(--fs-mut)]">
@@ -142,7 +142,7 @@ export function QueryTraceHero() {
       </div>
 
       <div
-        className="absolute rounded-xl bg-white p-3 px-3.5 text-[13px] shadow-[0_0_0_1px_rgba(11,21,48,0.08),0_8px_20px_-8px_rgba(11,21,48,0.18)]"
+        className="absolute rounded-xl bg-panel p-3 px-3.5 text-[13px] shadow-[0_0_0_1px_rgba(11,21,48,0.08),0_8px_20px_-8px_rgba(11,21,48,0.18)]"
         style={{ left: 432, top: 206, width: 178 }}
       >
         <div className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-[var(--fs-mut)]">
@@ -153,7 +153,7 @@ export function QueryTraceHero() {
       </div>
 
       <div
-        className="absolute rounded-xl bg-white p-3 px-3.5 text-center text-[13px] shadow-[0_0_0_1px_rgba(11,21,48,0.08),0_8px_20px_-8px_rgba(11,21,48,0.18)]"
+        className="absolute rounded-xl bg-panel p-3 px-3.5 text-center text-[13px] shadow-[0_0_0_1px_rgba(11,21,48,0.08),0_8px_20px_-8px_rgba(11,21,48,0.18)]"
         style={{ left: 700, top: 338, width: 150 }}
       >
         <div className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-[var(--fs-mut)]">
@@ -163,7 +163,7 @@ export function QueryTraceHero() {
       </div>
 
       <div
-        className="absolute rounded-xl bg-white p-3 px-3.5 text-[13px] shadow-[0_0_0_1px_rgba(11,21,48,0.08),0_8px_20px_-8px_rgba(11,21,48,0.18)]"
+        className="absolute rounded-xl bg-panel p-3 px-3.5 text-[13px] shadow-[0_0_0_1px_rgba(11,21,48,0.08),0_8px_20px_-8px_rgba(11,21,48,0.18)]"
         style={{ left: 990, top: 118, width: 180 }}
       >
         <div className="font-mono text-[10.5px] text-[var(--fs-success)]">● Resolved</div>
@@ -172,7 +172,7 @@ export function QueryTraceHero() {
       </div>
 
       <div
-        className="absolute rounded-xl bg-white p-3 px-3.5 text-[13px] shadow-[0_0_0_1px_#FFD9D4,0_12px_28px_-10px_rgba(255,110,98,0.45)]"
+        className="absolute rounded-xl bg-panel p-3 px-3.5 text-[13px] shadow-[0_0_0_1px_#FFD9D4,0_12px_28px_-10px_rgba(255,110,98,0.45)]"
         style={{ left: 990, top: 306, width: 180 }}
       >
         <div className="font-mono text-[10.5px] text-[var(--fs-danger)]">● Blocked · phishing</div>

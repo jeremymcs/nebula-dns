@@ -201,7 +201,7 @@ export default function ScheduledReportsPage() {
             setEditingReport(null)
             setShowModal(true)
           }}
-          className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700"
+          className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700"
         >
           <PlusIcon className="h-5 w-5 mr-2" />
           New Scheduled Report
@@ -215,7 +215,7 @@ export default function ScheduledReportsPage() {
           <p className="text-space-600 dark:text-space-400 mb-6">Create a scheduled report to automatically receive insights via email.</p>
           <button
             onClick={() => setShowModal(true)}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700"
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700"
           >
             Create Your First Report
           </button>
@@ -333,7 +333,7 @@ export default function ScheduledReportsPage() {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Weekly Security Summary"
                 />
               </div>
@@ -347,7 +347,7 @@ export default function ScheduledReportsPage() {
                   value={formData.description}
                   onChange={handleChange}
                   rows={2}
-                  className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Optional description..."
                 />
               </div>
@@ -360,7 +360,7 @@ export default function ScheduledReportsPage() {
                   name="reportType"
                   value={formData.reportType}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
                   {Object.entries(reportTypeLabels).map(([value, label]) => (
                     <option key={value} value={value}>{label}</option>
@@ -377,7 +377,7 @@ export default function ScheduledReportsPage() {
                     name="scheduleType"
                     value={formData.scheduleType}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
@@ -394,7 +394,7 @@ export default function ScheduledReportsPage() {
                       name="scheduleDay"
                       value={formData.scheduleDay}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     >
                       {dayNames.map((day, index) => (
                         <option key={index} value={index}>{day}</option>
@@ -412,7 +412,7 @@ export default function ScheduledReportsPage() {
                       name="scheduleDay"
                       value={formData.scheduleDay}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     >
                       {Array.from({ length: 28 }, (_, i) => (
                         <option key={i + 1} value={i + 1}>{i + 1}</option>
@@ -432,7 +432,7 @@ export default function ScheduledReportsPage() {
                     name="scheduleTime"
                     value={formData.scheduleTime}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
 
@@ -444,7 +444,7 @@ export default function ScheduledReportsPage() {
                     name="format"
                     value={formData.format}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="pdf">PDF</option>
                     <option value="csv">CSV</option>
@@ -463,7 +463,7 @@ export default function ScheduledReportsPage() {
                   value={formData.recipients}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="email1@example.com, email2@example.com"
                 />
                 <p className="text-xs text-space-500 dark:text-space-400 mt-1">Separate multiple emails with commas</p>
@@ -472,7 +472,7 @@ export default function ScheduledReportsPage() {
               <div className="flex space-x-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700"
+                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700"
                 >
                   {editingReport ? 'Save Changes' : 'Create Report'}
                 </button>

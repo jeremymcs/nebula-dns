@@ -91,7 +91,7 @@ export default function ClientUsersPage() {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'admin': return 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+      case 'admin': return 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
       case 'manager': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
       default: return 'bg-space-100 dark:bg-space-700 text-space-600 dark:text-space-400'
     }
@@ -125,7 +125,7 @@ export default function ClientUsersPage() {
         </div>
         <button
           onClick={() => setShowInviteModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl font-medium hover:from-primary-600 hover:to-accent-600 transition-all shadow-lg shadow-primary-500/25"
+          className="flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-xl font-medium hover:from-primary-600 hover:to-accent-600 transition-all shadow-lg shadow-primary-500/25"
         >
           <PlusIcon className="h-5 w-5" />
           Invite User
@@ -173,7 +173,7 @@ export default function ClientUsersPage() {
                 idx !== filteredUsers.length - 1 ? 'border-b border-space-100 dark:border-space-700' : ''
               }`}
             >
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white font-semibold">
+              <div className="h-10 w-10 rounded-full bg-primary-600 flex items-center justify-center text-white font-semibold">
                 {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || '?'}
               </div>
               <div className="flex-1 min-w-0">

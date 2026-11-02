@@ -77,10 +77,10 @@ export function PolicyTemplates({ onSelect, className }: PolicyTemplatesProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}
           onClick={() => onSelect(template)}
-          className="p-4 bg-white dark:bg-space-800 rounded-xl border border-space-200 dark:border-space-700 text-left hover:border-nebula-500 hover:shadow-lg transition-all group"
+          className="p-4 bg-white dark:bg-space-800 rounded-xl border border-space-200 dark:border-space-700 text-left hover:border-primary-500 hover:shadow-lg transition-all group"
         >
           <div className="flex items-start gap-4">
-            <div className="p-3 rounded-lg bg-nebula-500/10 text-nebula-500 group-hover:bg-nebula-500 group-hover:text-white transition-colors">
+            <div className="p-3 rounded-lg bg-primary-500/10 text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-colors">
               <template.icon className="h-6 w-6" />
             </div>
             <div className="flex-1">
@@ -90,7 +90,7 @@ export function PolicyTemplates({ onSelect, className }: PolicyTemplatesProps) {
                 <span className="text-xs px-2 py-1 rounded-full bg-space-100 dark:bg-space-700 text-space-600 dark:text-space-400">
                   {template.flow.nodes.length - 1} rules
                 </span>
-                <span className="text-xs text-nebula-500 group-hover:underline">Use template →</span>
+                <span className="text-xs text-primary-500 group-hover:underline">Use template →</span>
               </div>
             </div>
           </div>
@@ -110,11 +110,11 @@ export function PolicyTemplates({ onSelect, className }: PolicyTemplatesProps) {
           category: 'custom',
           flow: createBlankFlow(),
         })}
-        className="p-4 bg-space-50 dark:bg-space-900 rounded-xl border-2 border-dashed border-space-300 dark:border-space-700 text-left hover:border-nebula-500 transition-all group"
+        className="p-4 bg-space-50 dark:bg-space-900 rounded-xl border-2 border-dashed border-space-300 dark:border-space-700 text-left hover:border-primary-500 transition-all group"
       >
         <div className="flex items-center justify-center gap-3 py-4">
-          <SparklesIcon className="h-6 w-6 text-space-400 group-hover:text-nebula-500" />
-          <span className="font-medium text-space-600 dark:text-space-400 group-hover:text-nebula-500">
+          <SparklesIcon className="h-6 w-6 text-space-400 group-hover:text-primary-500" />
+          <span className="font-medium text-space-600 dark:text-space-400 group-hover:text-primary-500">
             Start from scratch
           </span>
         </div>

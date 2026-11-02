@@ -96,7 +96,7 @@ export function PendingInvitations({
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-medium">
+                <div className="w-10 h-10 rounded-full bg-orange-400 flex items-center justify-center text-white font-medium">
                   {invitation.email.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -135,7 +135,7 @@ export function PendingInvitations({
                   <button
                     onClick={() => handleResend(invitation.id)}
                     disabled={isResending}
-                    className="flex items-center gap-1 px-3 py-1.5 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors disabled:opacity-50"
+                    className="flex items-center gap-1 px-3 py-1.5 text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg transition-colors disabled:opacity-50"
                   >
                     <ArrowPathIcon className={`w-4 h-4 ${isResending ? 'animate-spin' : ''}`} />
                     {isResending ? 'Sending...' : 'Resend'}

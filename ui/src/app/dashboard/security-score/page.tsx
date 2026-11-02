@@ -46,7 +46,7 @@ export default function SecurityScorePage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nebula-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
           <p className="text-space-500">Loading security score...</p>
         </div>
       </div>
@@ -67,7 +67,7 @@ export default function SecurityScorePage() {
           </p>
           <button
             onClick={() => mutate()}
-            className="flex items-center gap-2 px-4 py-2 bg-nebula-500 text-white rounded-lg hover:bg-nebula-600"
+            className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
           >
             <ArrowPathIcon className="h-4 w-4" />
             Retry
@@ -81,7 +81,7 @@ export default function SecurityScorePage() {
     <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <div className="p-3 rounded-xl bg-gradient-to-br from-nebula-500 to-purple-500">
+        <div className="p-3 rounded-xl bg-primary-600">
           <ShieldCheckIcon className="h-8 w-8 text-white" />
         </div>
         <div>

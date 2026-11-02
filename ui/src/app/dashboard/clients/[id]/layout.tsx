@@ -70,7 +70,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         >
           <ArrowLeftIcon className="h-5 w-5 text-space-600 dark:text-space-400" />
         </Link>
-        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+        <div className="h-12 w-12 rounded-xl bg-success-600 flex items-center justify-center flex-shrink-0">
           <BuildingOffice2Icon className="h-6 w-6 text-white" />
         </div>
         <div className="flex-1 min-w-0">

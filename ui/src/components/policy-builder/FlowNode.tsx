@@ -130,7 +130,7 @@ export function FlowNode({
         'bg-white dark:bg-space-800',
         isSelected ? `${colorClasses.border} ring-2 ring-offset-2` : 'border-space-200 dark:border-space-700',
         isDragging && 'shadow-2xl z-50',
-        isConnectTarget && 'ring-4 ring-nebula-500/50 cursor-pointer'
+        isConnectTarget && 'ring-4 ring-primary-500/50 cursor-pointer'
       )}
       style={{ left: node.x, top: node.y }}
       onMouseDown={handleMouseDown}
@@ -158,8 +158,8 @@ export function FlowNode({
           className={clsx(
             'absolute -left-3 top-1/2 -translate-y-1/2 rounded-full border-2 border-white dark:border-space-800 cursor-pointer transition-all z-10',
             isConnectTarget
-              ? 'w-8 h-8 bg-nebula-500 animate-pulse shadow-lg shadow-nebula-500/50 -left-4'
-              : 'w-5 h-5 bg-space-300 dark:bg-space-600 hover:bg-nebula-500 hover:scale-125'
+              ? 'w-8 h-8 bg-primary-500 animate-pulse shadow-lg shadow-primary-500/50 -left-4'
+              : 'w-5 h-5 bg-space-300 dark:bg-space-600 hover:bg-primary-500 hover:scale-125'
           )}
           onClick={(e) => { e.stopPropagation(); onEndConnect() }}
         />
@@ -169,8 +169,8 @@ export function FlowNode({
           className={clsx(
             'absolute -right-3 top-1/2 -translate-y-1/2 rounded-full border-2 border-white dark:border-space-800 cursor-pointer transition-all z-10',
             isConnecting
-              ? 'w-5 h-5 bg-nebula-400 dark:bg-nebula-500'
-              : 'w-5 h-5 bg-space-300 dark:bg-space-600 hover:bg-nebula-500 hover:scale-125'
+              ? 'w-5 h-5 bg-primary-400 dark:bg-primary-500'
+              : 'w-5 h-5 bg-space-300 dark:bg-space-600 hover:bg-primary-500 hover:scale-125'
           )}
           onClick={(e) => {
             e.stopPropagation()

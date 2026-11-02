@@ -31,8 +31,8 @@ export function DomainHeader({ domain, intel, className }: DomainHeaderProps) {
     <div className={clsx('bg-space-50 dark:bg-space-800 rounded-xl p-4', className)}>
       {/* Domain name */}
       <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 rounded-lg bg-nebula-500/10">
-          <GlobeAltIcon className="h-6 w-6 text-nebula-500" />
+        <div className="p-2 rounded-lg bg-primary-500/10">
+          <GlobeAltIcon className="h-6 w-6 text-primary-500" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">

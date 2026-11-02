@@ -88,7 +88,7 @@ export function TrendChart({ trends, className }: TrendChartProps) {
                     initial={{ width: 0 }}
                     animate={{ width: '100%' }}
                     transition={{ delay: 0.5 + index * 0.1, duration: 0.5 }}
-                    className="h-full bg-nebula-500 rounded-full"
+                    className="h-full bg-primary-500 rounded-full"
                   />
                 </div>
                 <span className="text-xs text-space-400">This week</span>

@@ -117,7 +117,7 @@ export function SecurityScore({ score, data, showDetails = true, size = 'lg', cl
                     initial={{ width: 0 }}
                     animate={{ width: `${(factor.score / factor.maxScore) * 100}%` }}
                     transition={{ delay: 1 + index * 0.1, duration: 0.5 }}
-                    className={clsx('h-full rounded-full', factor.score === factor.maxScore ? 'bg-success-500' : 'bg-nebula-500')}
+                    className={clsx('h-full rounded-full', factor.score === factor.maxScore ? 'bg-success-500' : 'bg-primary-500')}
                   />
                 </div>
               </div>

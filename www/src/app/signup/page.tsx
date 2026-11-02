@@ -43,22 +43,22 @@ function SignupFormSkeleton() {
     <MarketingPageShell>
       <div className="section-container py-12">
         <div className="mx-auto max-w-5xl animate-pulse">
-          <div className="h-8 bg-space-800 rounded-xl w-1/2 mx-auto mb-10" />
+          <div className="h-8 bg-panel rounded-xl w-1/2 mx-auto mb-10" />
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <div className="bg-space-900/60 border border-space-700/50 rounded-2xl p-8 space-y-6">
-                <div className="h-7 bg-space-800 rounded-xl w-2/3" />
-                <div className="h-12 bg-space-800 rounded-xl" />
-                <div className="h-12 bg-space-800 rounded-xl" />
-                <div className="h-12 bg-space-800 rounded-xl" />
+              <div className="bg-canvas border border-line rounded-2xl p-8 space-y-6">
+                <div className="h-7 bg-panel rounded-xl w-2/3" />
+                <div className="h-12 bg-panel rounded-xl" />
+                <div className="h-12 bg-panel rounded-xl" />
+                <div className="h-12 bg-panel rounded-xl" />
               </div>
             </div>
             <div className="lg:col-span-1">
-              <div className="bg-space-900/60 border border-space-700/50 rounded-2xl p-6 space-y-4">
-                <div className="h-5 bg-space-800 rounded-xl w-1/2" />
-                <div className="h-16 bg-space-800 rounded-xl" />
-                <div className="h-16 bg-space-800 rounded-xl" />
-                <div className="h-16 bg-space-800 rounded-xl" />
+              <div className="bg-canvas border border-line rounded-2xl p-6 space-y-4">
+                <div className="h-5 bg-panel rounded-xl w-1/2" />
+                <div className="h-16 bg-panel rounded-xl" />
+                <div className="h-16 bg-panel rounded-xl" />
+                <div className="h-16 bg-panel rounded-xl" />
               </div>
             </div>
           </div>
@@ -263,7 +263,7 @@ function SignupFormContent() {
                           ? 'bg-success-600 text-white'
                           : isActive
                           ? 'bg-primary-600 text-white shadow-glow-sm'
-                          : 'bg-space-700 text-[var(--fs-txt)]'
+                          : 'bg-surface text-[var(--fs-txt)]'
                       }`}
                     >
                       {isCompleted ? (
@@ -274,7 +274,7 @@ function SignupFormContent() {
                     </div>
                     <span
                       className={`mt-2 text-xs font-medium hidden sm:block ${
-                        isActive ? 'text-white' : isCompleted ? 'text-success-400' : 'text-[var(--fs-mut)]'
+                        isActive ? 'text-ink' : isCompleted ? 'text-[var(--fs-success)]' : 'text-[var(--fs-mut)]'
                       }`}
                     >
                       {label}
@@ -283,7 +283,7 @@ function SignupFormContent() {
                   {s < 3 && (
                     <div
                       className={`w-16 sm:w-24 h-px mx-2 mb-5 transition-all ${
-                        s < step ? 'bg-success-600' : 'bg-space-700'
+                        s < step ? 'bg-success-600' : 'bg-surface'
                       }`}
                     />
                   )}
@@ -304,7 +304,7 @@ function SignupFormContent() {
                 {/* Error Banner */}
                 {error && (
                   <div className="mb-6 p-4 rounded-xl bg-danger-900/30 border border-danger-700/40 flex items-start gap-3">
-                    <ExclamationCircleIcon className="h-5 w-5 text-danger-400 flex-shrink-0 mt-0.5" />
+                    <ExclamationCircleIcon className="h-5 w-5 text-[var(--fs-danger)] flex-shrink-0 mt-0.5" />
                     <span className="text-sm text-danger-300">{error}</span>
                   </div>
                 )}
@@ -316,7 +316,7 @@ function SignupFormContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-[var(--fs-txt)] mb-2">
-                        Email Address <span className="text-primary-400">*</span>
+                        Email Address <span className="text-brand">*</span>
                       </label>
                       <input
                         type="email"
@@ -331,7 +331,7 @@ function SignupFormContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-[var(--fs-txt)] mb-2">
-                        Password <span className="text-primary-400">*</span>
+                        Password <span className="text-brand">*</span>
                       </label>
                       <input
                         type="password"
@@ -346,7 +346,7 @@ function SignupFormContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-[var(--fs-txt)] mb-2">
-                        Confirm Password <span className="text-primary-400">*</span>
+                        Confirm Password <span className="text-brand">*</span>
                       </label>
                       <input
                         type="password"
@@ -368,7 +368,7 @@ function SignupFormContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-[var(--fs-txt)] mb-2">
-                        Full Name <span className="text-primary-400">*</span>
+                        Full Name <span className="text-brand">*</span>
                       </label>
                       <input
                         type="text"
@@ -383,7 +383,7 @@ function SignupFormContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-[var(--fs-txt)] mb-2">
-                        Company Name <span className="text-primary-400">*</span>
+                        Company Name <span className="text-brand">*</span>
                       </label>
                       <input
                         type="text"
@@ -461,7 +461,7 @@ function SignupFormContent() {
                   <div className="space-y-6">
                     <h2 className="text-2xl font-bold text-ink">Review & Confirm</h2>
 
-                    <div className="bg-space-900 border border-space-700/60 rounded-xl p-5 space-y-3">
+                    <div className="bg-canvas border border-line rounded-xl p-5 space-y-3">
                       {[
                         { label: 'Email', value: formData.email },
                         { label: 'Name', value: formData.fullName },
@@ -471,7 +471,7 @@ function SignupFormContent() {
                       ].map(({ label, value }) => (
                         <div key={label} className="flex justify-between items-center text-sm">
                           <span className="text-[var(--fs-txt)]">{label}</span>
-                          <span className="font-medium text-white">{value || '—'}</span>
+                          <span className="font-medium text-ink">{value || '—'}</span>
                         </div>
                       ))}
                     </div>
@@ -483,15 +483,15 @@ function SignupFormContent() {
                         id="agreeTerms"
                         checked={formData.agreeTerms}
                         onChange={handleChange}
-                        className="mt-1 h-4 w-4 rounded border-space-600 bg-space-900 text-primary-600 focus:ring-primary-500 focus:ring-offset-0"
+                        className="mt-1 h-4 w-4 rounded border-line bg-canvas text-primary-600 focus:ring-primary-500 focus:ring-offset-0"
                       />
                       <label htmlFor="agreeTerms" className="text-sm text-[var(--fs-txt)]">
                         I agree to the{' '}
-                        <Link href="/terms" className="text-primary-400 hover:text-primary-300 underline underline-offset-2">
+                        <Link href="/terms" className="text-brand hover:text-brand underline underline-offset-2">
                           Terms of Service
                         </Link>{' '}
                         and{' '}
-                        <Link href="/privacy" className="text-primary-400 hover:text-primary-300 underline underline-offset-2">
+                        <Link href="/privacy" className="text-brand hover:text-brand underline underline-offset-2">
                           Privacy Policy
                         </Link>
                       </label>
@@ -505,7 +505,7 @@ function SignupFormContent() {
                     <button
                       type="button"
                       onClick={() => { setStep(step - 1); setError('') }}
-                      className="px-6 py-3 rounded-xl border border-space-700 text-[var(--fs-txt)] font-semibold text-sm hover:bg-space-800 hover:border-space-600 hover:text-white transition-all"
+                      className="px-6 py-3 rounded-xl border border-line text-[var(--fs-txt)] font-semibold text-sm hover:bg-space-800 hover:border-line hover:text-ink transition-all"
                     >
                       Back
                     </button>
@@ -532,7 +532,7 @@ function SignupFormContent() {
 
             <p className="text-center mt-6 text-[var(--fs-mut)] text-sm">
               Already have an account?{' '}
-              <a href={APP_URL} className="text-primary-400 font-medium hover:text-primary-300">
+              <a href={APP_URL} className="text-brand font-medium hover:text-brand">
                 Sign in
               </a>
             </p>
@@ -550,8 +550,8 @@ function SignupFormContent() {
                     key={plan.id}
                     className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
                       formData.planId === plan.id
-                        ? 'border-primary-600/60 bg-primary-900/20'
-                        : 'border-space-700/50 hover:border-space-600/60 hover:bg-space-800/30'
+                        ? 'border-primary-500/30 bg-primary-500/10'
+                        : 'border-line hover:border-line hover:bg-space-800/30'
                     }`}
                   >
                     <input
@@ -560,10 +560,10 @@ function SignupFormContent() {
                       value={plan.id}
                       checked={formData.planId === plan.id}
                       onChange={handleChange}
-                      className="h-4 w-4 text-primary-600 border-space-600 bg-space-900 focus:ring-primary-500 focus:ring-offset-0"
+                      className="h-4 w-4 text-primary-600 border-line bg-canvas focus:ring-primary-500 focus:ring-offset-0"
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-white">{plan.name}</div>
+                      <div className="text-sm font-medium text-ink">{plan.name}</div>
                       <div className="text-xs text-[var(--fs-mut)]">
                         {plan.priceMonthly === 0
                           ? 'Free'
@@ -576,14 +576,14 @@ function SignupFormContent() {
 
               {/* Billing Cycle Toggle */}
               <div className="mb-5">
-                <div className="bg-space-800 rounded-full p-1 flex">
+                <div className="bg-panel rounded-full p-1 flex">
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, billingCycle: 'monthly' }))}
                     className={`flex-1 py-1.5 text-xs font-medium rounded-full transition-all ${
                       formData.billingCycle === 'monthly'
                         ? 'bg-primary-600 text-white'
-                        : 'text-[var(--fs-txt)] hover:text-white'
+                        : 'text-[var(--fs-txt)] hover:text-ink'
                     }`}
                   >
                     Monthly
@@ -594,14 +594,14 @@ function SignupFormContent() {
                     className={`flex-1 py-1.5 text-xs font-medium rounded-full transition-all ${
                       formData.billingCycle === 'yearly'
                         ? 'bg-primary-600 text-white'
-                        : 'text-[var(--fs-txt)] hover:text-white'
+                        : 'text-[var(--fs-txt)] hover:text-ink'
                     }`}
                   >
                     Yearly
                   </button>
                 </div>
                 {formData.billingCycle === 'yearly' && (
-                  <p className="text-xs text-success-400 mt-2 text-center">
+                  <p className="text-xs text-[var(--fs-success)] mt-2 text-center">
                     Save up to 17% with yearly billing
                   </p>
                 )}
@@ -609,11 +609,11 @@ function SignupFormContent() {
 
               {/* Feature List */}
               {features.length > 0 && (
-                <div className="mb-5 pt-4 border-t border-space-700/50">
+                <div className="mb-5 pt-4 border-t border-line">
                   <ul className="space-y-2">
                     {features.map((feature, i) => (
                       <li key={i} className="flex items-start gap-2 text-xs text-[var(--fs-txt)]">
-                        <CheckIcon className="h-3.5 w-3.5 text-success-400 flex-shrink-0 mt-0.5" />
+                        <CheckIcon className="h-3.5 w-3.5 text-[var(--fs-success)] flex-shrink-0 mt-0.5" />
                         {feature}
                       </li>
                     ))}
@@ -622,22 +622,22 @@ function SignupFormContent() {
               )}
 
               {/* Price Breakdown */}
-              <div className="border-t border-space-700/50 pt-4 space-y-2">
+              <div className="border-t border-line pt-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-[var(--fs-txt)]">Subtotal</span>
-                  <span className="text-white font-medium">
+                  <span className="text-ink font-medium">
                     {price === 0 ? 'Free' : `$${price.toFixed(2)}`}
                   </span>
                 </div>
                 {price > 0 && (
-                  <div className="flex justify-between text-sm text-success-400">
+                  <div className="flex justify-between text-sm text-[var(--fs-success)]">
                     <span>14-day free trial</span>
                     <span>-${price.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between items-center pt-2 border-t border-space-700/50">
-                  <span className="text-white font-semibold">Due Today</span>
-                  <span className="text-white font-bold text-lg">$0.00</span>
+                <div className="flex justify-between items-center pt-2 border-t border-line">
+                  <span className="text-ink font-semibold">Due Today</span>
+                  <span className="text-ink font-bold text-lg">$0.00</span>
                 </div>
               </div>
 

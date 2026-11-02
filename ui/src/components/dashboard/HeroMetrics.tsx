@@ -19,32 +19,13 @@ interface MetricProps {
   formatValue?: ((n: number) => string) | false
 }
 
+// Variant only tints the icon; the card itself stays a calm white surface.
 const variantStyles = {
-  primary: {
-    bg: 'from-primary-600 to-primary-500',
-    glow: 'shadow-primary-500/30',
-    iconBg: 'bg-white/20',
-  },
-  success: {
-    bg: 'from-success-600 to-success-500',
-    glow: 'shadow-success-500/30',
-    iconBg: 'bg-white/20',
-  },
-  warning: {
-    bg: 'from-warning-600 to-warning-500',
-    glow: 'shadow-warning-500/30',
-    iconBg: 'bg-white/20',
-  },
-  danger: {
-    bg: 'from-danger-600 to-danger-500',
-    glow: 'shadow-danger-500/30',
-    iconBg: 'bg-white/20',
-  },
-  accent: {
-    bg: 'from-accent-600 to-accent-500',
-    glow: 'shadow-accent-500/30',
-    iconBg: 'bg-white/20',
-  },
+  primary: { iconBg: 'bg-primary-50 dark:bg-primary-900/40', iconColor: 'text-primary-700 dark:text-primary-300' },
+  success: { iconBg: 'bg-success-50 dark:bg-success-900/40', iconColor: 'text-success-700 dark:text-success-300' },
+  warning: { iconBg: 'bg-warning-50 dark:bg-warning-900/40', iconColor: 'text-warning-700 dark:text-warning-300' },
+  danger: { iconBg: 'bg-accent-50 dark:bg-accent-900/40', iconColor: 'text-accent-700 dark:text-accent-300' },
+  accent: { iconBg: 'bg-accent-50 dark:bg-accent-900/40', iconColor: 'text-accent-700 dark:text-accent-300' },
 }
 
 // Animated counter hook
@@ -104,37 +85,29 @@ export function HeroMetric({
     : (formatValue === false ? value.toString() : formatValue(animatedValue))
 
   return (
-    <div className={clsx(
-      'relative overflow-hidden rounded-2xl p-6',
-      'bg-gradient-to-br', styles.bg,
-      'shadow-xl', styles.glow,
-      'transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl'
-    )}>
-      {/* Background decoration */}
-      <div className="absolute -right-4 -top-4 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
-      <div className="absolute -left-4 -bottom-4 w-24 h-24 bg-black/10 rounded-full blur-xl" />
-
-      <div className="relative flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-white/80">{title}</p>
-          <p className="mt-2 text-4xl font-bold text-white tracking-tight">
+    <div className="fs-card p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[13px] font-medium text-txt dark:text-space-400">{title}</p>
+          <p className="mt-2 text-[28px] font-semibold leading-none tracking-tight tabular-nums text-ink dark:text-white">
             {displayValue}{suffix}
           </p>
           {subtitle && (
-            <p className="mt-1 text-sm text-white/70">{subtitle}</p>
+            <p className="mt-2 text-[12.5px] text-mut">{subtitle}</p>
           )}
           {trend && (
             <div className={clsx(
-              'mt-2 inline-flex items-center gap-1 text-sm font-medium',
-              'px-2 py-0.5 rounded-full',
-              trend.isUp ? 'bg-white/20 text-white' : 'bg-black/20 text-white'
+              'mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-semibold',
+              trend.isUp
+                ? 'bg-success-50 text-success-700 dark:bg-success-900/40 dark:text-success-300'
+                : 'bg-space-100 text-space-600 dark:bg-space-800 dark:text-space-300'
             )}>
               {trend.isUp ? '↑' : '↓'} {Math.abs(trend.value)}%
             </div>
           )}
         </div>
-        <div className={clsx('p-3 rounded-xl', styles.iconBg)}>
-          <div className="w-8 h-8 text-white">{icon}</div>
+        <div className={clsx('shrink-0 rounded-lg p-2', styles.iconBg)}>
+          <div className={clsx('h-5 w-5', styles.iconColor)}>{icon}</div>
         </div>
       </div>
     </div>

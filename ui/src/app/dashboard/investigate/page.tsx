@@ -258,7 +258,7 @@ export default function InvestigatePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500">
+          <div className="p-3 rounded-xl bg-blue-500">
             <MagnifyingGlassIcon className="h-8 w-8 text-white" />
           </div>
           <div>
@@ -277,7 +277,7 @@ export default function InvestigatePage() {
             </button>
             <button
               onClick={() => setShowPdfExport(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-nebula-500 text-white hover:bg-nebula-600 rounded-lg"
+              className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white hover:bg-primary-600 rounded-lg"
             >
               <DocumentTextIcon className="h-5 w-5" />
               Export PDF
@@ -321,13 +321,13 @@ export default function InvestigatePage() {
                 onChange={(e) => setDomain(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleInvestigate()}
                 placeholder="Enter domain to investigate (e.g., suspicious-domain.com)"
-                className="w-full pl-10 pr-4 py-3 rounded-lg border border-space-200 dark:border-space-700 bg-white dark:bg-space-900 text-space-900 dark:text-white text-lg focus:ring-2 focus:ring-nebula-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 rounded-lg border border-space-200 dark:border-space-700 bg-white dark:bg-space-900 text-space-900 dark:text-white text-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
             <button
               onClick={() => handleInvestigate()}
               disabled={!domain || isLoading}
-              className="px-6 py-3 bg-nebula-500 text-white rounded-lg hover:bg-nebula-600 disabled:opacity-50 font-medium flex items-center gap-2"
+              className="px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50 font-medium flex items-center gap-2"
             >
               {isLoading && <ArrowPathIcon className="h-5 w-5 animate-spin" />}
               {isLoading ? 'Investigating...' : 'Investigate'}
@@ -409,7 +409,7 @@ export default function InvestigatePage() {
             onChange={(e) => setBulkDomains(e.target.value)}
             placeholder="Enter domains (one per line)&#10;example1.com&#10;example2.com&#10;example3.com"
             rows={8}
-            className="w-full p-4 rounded-lg border border-space-200 dark:border-space-700 bg-white dark:bg-space-900 text-space-900 dark:text-white font-mono text-sm focus:ring-2 focus:ring-nebula-500 focus:border-transparent"
+            className="w-full p-4 rounded-lg border border-space-200 dark:border-space-700 bg-white dark:bg-space-900 text-space-900 dark:text-white font-mono text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
           <div className="flex items-center justify-between mt-4">
             <p className="text-sm text-space-500">
@@ -418,7 +418,7 @@ export default function InvestigatePage() {
             <button
               onClick={handleBulkInvestigate}
               disabled={!bulkDomains.trim() || isLoading}
-              className="px-6 py-2 bg-nebula-500 text-white rounded-lg hover:bg-nebula-600 disabled:opacity-50 font-medium flex items-center gap-2"
+              className="px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50 font-medium flex items-center gap-2"
             >
               {isLoading && <ArrowPathIcon className="h-5 w-5 animate-spin" />}
               Investigate All
@@ -533,7 +533,7 @@ export default function InvestigatePage() {
                 <button
                   onClick={() => handleCreateListAndAdd(pendingAction.action === 'block' ? 'blocklist' : 'allowlist')}
                   disabled={actionLoading}
-                  className="w-full flex items-center justify-center gap-2 p-3 rounded-lg border-2 border-dashed border-space-300 dark:border-space-600 hover:border-nebula-500 dark:hover:border-nebula-500 hover:bg-nebula-50 dark:hover:bg-nebula-900/20 transition-colors text-space-600 dark:text-space-400 hover:text-nebula-600 dark:hover:text-nebula-400 disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-2 p-3 rounded-lg border-2 border-dashed border-space-300 dark:border-space-600 hover:border-primary-500 dark:hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors text-space-600 dark:text-space-400 hover:text-primary-600 dark:hover:text-primary-400 disabled:opacity-50"
                 >
                   <PlusIcon className="h-5 w-5" />
                   Create new {pendingAction.action === 'block' ? 'blocklist' : 'allowlist'}

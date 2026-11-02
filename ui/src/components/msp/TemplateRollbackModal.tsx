@@ -128,7 +128,7 @@ export default function TemplateRollbackModal({
                         {result.message}
                       </p>
                       {result.applyJobId && (
-                        <p className="mt-2 text-sm text-indigo-600 dark:text-indigo-400">
+                        <p className="mt-2 text-sm text-primary-600 dark:text-primary-400">
                           Re-applying to clients in progress...
                         </p>
                       )}
@@ -138,8 +138,8 @@ export default function TemplateRollbackModal({
                   <>
                     {/* Loading State */}
                     <div className="text-center">
-                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900">
-                        <ArrowPathIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400 animate-spin" />
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900">
+                        <ArrowPathIcon className="h-6 w-6 text-primary-600 dark:text-primary-400 animate-spin" />
                       </div>
                       <Dialog.Title
                         as="h3"
@@ -189,7 +189,7 @@ export default function TemplateRollbackModal({
                         </div>
                         <div className="flex justify-between mb-2">
                           <span className="text-gray-500 dark:text-gray-400">Rollback To:</span>
-                          <span className="text-indigo-600 dark:text-indigo-400">v{targetVersionNumber}</span>
+                          <span className="text-primary-600 dark:text-primary-400">v{targetVersionNumber}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500 dark:text-gray-400">New Version:</span>
@@ -206,7 +206,7 @@ export default function TemplateRollbackModal({
                             type="checkbox"
                             checked={reapplyToClients}
                             onChange={(e) => setReapplyToClients(e.target.checked)}
-                            className="h-4 w-4 mt-1 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded"
+                            className="h-4 w-4 mt-1 text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600 rounded"
                           />
                           <span className="ml-3">
                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -229,7 +229,7 @@ export default function TemplateRollbackModal({
                     <div className="mt-6 sm:flex sm:flex-row-reverse sm:gap-3">
                       <button
                         type="button"
-                        className="inline-flex w-full justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 sm:w-auto"
+                        className="inline-flex w-full justify-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 sm:w-auto"
                         onClick={handleRollback}
                       >
                         <ArrowPathIcon className="h-4 w-4 mr-2" />

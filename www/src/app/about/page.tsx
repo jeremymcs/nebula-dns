@@ -125,10 +125,10 @@ export default function AboutPage() {
             {values.map((value, index) => (
               <div
                 key={index}
-                className="fs-card rounded-[14px] p-6 hover:border-primary-700/50 transition-all"
+                className="fs-card rounded-[14px] p-6 hover:border-primary-500/50 transition-all"
               >
                 {value.accent === 'purple' ? (
-                  <div className="h-12 w-12 rounded-xl bg-primary-900/50 border border-primary-800/50 flex items-center justify-center text-primary-400 mb-4">
+                  <div className="h-12 w-12 rounded-xl bg-primary-500/10 border border-primary-500/30 flex items-center justify-center text-brand mb-4">
                     {value.icon}
                   </div>
                 ) : (
@@ -157,7 +157,7 @@ export default function AboutPage() {
                 key={stat.label}
                 className="fs-card rounded-[14px] p-6 text-center"
               >
-                <div className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400 mb-2">
+                <div className="text-4xl font-bold text-ink mb-2">
                   {stat.value}
                 </div>
                 <div className="text-[var(--fs-txt)] text-sm">
@@ -188,7 +188,7 @@ export default function AboutPage() {
             {team.map((member, index) => (
               <div
                 key={index}
-                className="fs-card rounded-[14px] p-6 text-center hover:border-primary-700/50 transition-all"
+                className="fs-card rounded-[14px] p-6 text-center hover:border-primary-500/50 transition-all"
               >
                 <div className={`inline-flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br ${member.gradient} text-white text-2xl font-bold mb-4`}>
                   {member.initials}
@@ -196,7 +196,7 @@ export default function AboutPage() {
                 <h3 className="text-lg font-semibold text-ink mb-1">
                   {member.name}
                 </h3>
-                <div className="text-sm text-primary-400 mb-3">
+                <div className="text-sm text-brand mb-3">
                   {member.role}
                 </div>
                 <p className="text-sm text-[var(--fs-txt)] leading-relaxed">
@@ -223,16 +223,16 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="relative pl-8 border-l-2 border-primary-700 space-y-10">
+          <div className="relative pl-8 border-l-2 border-primary-500/30 space-y-10">
             {milestones.map((milestone, index) => (
               <div key={index} className="relative">
                 {/* Dot marker */}
                 <div className="absolute -left-[2.3rem] top-1 h-5 w-5 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 border-2 border-space-950 flex items-center justify-center">
-                  <div className="h-2 w-2 rounded-full bg-white" />
+                  <div className="h-2 w-2 rounded-full bg-panel" />
                 </div>
 
                 <div className="fs-card rounded-[14px] p-6">
-                  <div className="text-xs font-semibold text-primary-400 uppercase tracking-widest mb-1">
+                  <div className="text-xs font-semibold text-brand uppercase tracking-widest mb-1">
                     {milestone.date}
                   </div>
                   <h3 className="text-lg font-bold text-ink mb-1">

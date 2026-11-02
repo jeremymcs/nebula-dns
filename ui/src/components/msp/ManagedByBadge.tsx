@@ -48,12 +48,12 @@ export function ManagedByBadge({ mspInfo, className = '' }: ManagedByBadgeProps)
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full
-                   bg-indigo-50 dark:bg-indigo-900/30
-                   text-indigo-700 dark:text-indigo-300
+                   bg-primary-50 dark:bg-primary-900/30
+                   text-primary-700 dark:text-primary-300
                    text-sm font-medium
-                   hover:bg-indigo-100 dark:hover:bg-indigo-900/50
+                   hover:bg-primary-100 dark:hover:bg-primary-900/50
                    transition-colors duration-150
-                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                   focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
@@ -73,7 +73,7 @@ export function ManagedByBadge({ mspInfo, className = '' }: ManagedByBadgeProps)
           {/* Header */}
           <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-2">
-              <ShieldCheckIcon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              <ShieldCheckIcon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
               <span className="font-semibold text-gray-900 dark:text-white">
                 Managed Service
               </span>
@@ -102,7 +102,7 @@ export function ManagedByBadge({ mspInfo, className = '' }: ManagedByBadgeProps)
                 </label>
                 <a
                   href={`mailto:${mspInfo.mspContactEmail}`}
-                  className="mt-1 inline-flex items-center gap-1.5 text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
+                  className="mt-1 inline-flex items-center gap-1.5 text-sm text-primary-600 dark:text-primary-400 hover:underline"
                 >
                   <EnvelopeIcon className="h-4 w-4" />
                   {mspInfo.mspContactEmail}
@@ -117,7 +117,7 @@ export function ManagedByBadge({ mspInfo, className = '' }: ManagedByBadgeProps)
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 w-full px-4 py-2
-                           bg-indigo-600 hover:bg-indigo-700
+                           bg-primary-600 hover:bg-primary-700
                            text-white text-sm font-medium
                            rounded-md transition-colors duration-150"
               >

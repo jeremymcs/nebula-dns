@@ -87,7 +87,7 @@ export function TopBlockedList({ data, isLoading, limit = 5 }: TopBlockedListPro
                   {/* Progress bar */}
                   <div className="mt-1.5 h-1.5 bg-space-100 dark:bg-space-700 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-gradient-to-r from-danger-500 to-danger-400 rounded-full transition-all duration-500"
+                      className="h-full bg-danger-600 rounded-full transition-all duration-500"
                       style={{ width: `${percentage}%` }}
                     />
                   </div>

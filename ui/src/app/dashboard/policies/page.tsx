@@ -654,8 +654,8 @@ export default function PoliciesPage() {
               <div className={clsx(
                 'p-6 relative overflow-hidden',
                 policy.isDefault
-                  ? 'bg-gradient-to-br from-primary-600 to-accent-600'
-                  : 'bg-gradient-to-br from-space-100 to-space-50 dark:from-space-800 dark:to-space-900'
+                  ? 'bg-primary-600'
+                  : 'bg-surface'
               )}>
                 {/* Background decoration */}
                 <div className="absolute -right-4 -top-4 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
@@ -663,7 +663,7 @@ export default function PoliciesPage() {
                 <div className="relative flex items-start justify-between">
                   <div className={clsx(
                     'p-3.5 rounded-xl transition-transform group-hover:scale-110 duration-300',
-                    policy.isDefault ? 'bg-white/20' : 'bg-white dark:bg-space-700 shadow-sm'
+                    policy.isDefault ? 'bg-white/20' : 'bg-panel shadow-sm'
                   )}>
                     <ShieldCheckIcon className={clsx(
                       'h-6 w-6',

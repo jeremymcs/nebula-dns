@@ -30,7 +30,7 @@ export default function WhiteLabelSettingsPage() {
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl shadow-lg shadow-purple-500/25">
+            <div className="p-3 bg-primary-600 rounded-xl shadow-lg shadow-primary-500/25">
               <PaintBrushIcon className="h-8 w-8 text-white" />
             </div>
             <div>
@@ -45,7 +45,7 @@ export default function WhiteLabelSettingsPage() {
         </div>
 
         {/* MSP Badge */}
-        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl p-4 text-white">
+        <div className="bg-success-600 rounded-xl p-4 text-white">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/20 rounded-lg">
               <PaintBrushIcon className="h-5 w-5" />

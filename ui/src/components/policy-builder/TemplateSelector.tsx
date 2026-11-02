@@ -68,13 +68,13 @@ export function TemplateSelector({ onSelect, onStartBlank, onClose }: TemplateSe
             {/* Blank Template */}
             <button
               onClick={onStartBlank}
-              className="flex items-start gap-4 p-4 rounded-xl border-2 border-dashed border-space-300 dark:border-space-600 hover:border-nebula-500 hover:bg-nebula-500/5 transition-all text-left group"
+              className="flex items-start gap-4 p-4 rounded-xl border-2 border-dashed border-space-300 dark:border-space-600 hover:border-primary-500 hover:bg-primary-500/5 transition-all text-left group"
             >
-              <div className="p-3 rounded-lg bg-space-100 dark:bg-space-700 group-hover:bg-nebula-500/20">
-                <DocumentPlusIcon className="h-6 w-6 text-space-500 group-hover:text-nebula-500" />
+              <div className="p-3 rounded-lg bg-space-100 dark:bg-space-700 group-hover:bg-primary-500/20">
+                <DocumentPlusIcon className="h-6 w-6 text-space-500 group-hover:text-primary-500" />
               </div>
               <div>
-                <h3 className="font-semibold text-space-900 dark:text-white group-hover:text-nebula-500">
+                <h3 className="font-semibold text-space-900 dark:text-white group-hover:text-primary-500">
                   Start from Scratch
                 </h3>
                 <p className="text-sm text-space-500 mt-1">

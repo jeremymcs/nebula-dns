@@ -30,9 +30,9 @@ interface MemberDetailPanelProps {
 const CATEGORY_OPTIONS = [
   { id: 'adult', label: 'Adult Content', color: 'bg-danger-500' },
   { id: 'gambling', label: 'Gambling', color: 'bg-amber-500' },
-  { id: 'gaming', label: 'Gaming', color: 'bg-purple-500' },
+  { id: 'gaming', label: 'Gaming', color: 'bg-primary-500' },
   { id: 'social-media', label: 'Social Media', color: 'bg-blue-500' },
-  { id: 'streaming', label: 'Streaming', color: 'bg-pink-500' },
+  { id: 'streaming', label: 'Streaming', color: 'bg-accent-500' },
   { id: 'shopping', label: 'Shopping', color: 'bg-success-500' },
   { id: 'news', label: 'News', color: 'bg-space-500' },
 ]
@@ -148,7 +148,7 @@ export function MemberDetailPanel({ member, onClose, onSave }: MemberDetailPanel
             {/* Bedtime */}
             <div className="bg-space-50 dark:bg-space-900/50 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-3">
-                <MoonIcon className="h-5 w-5 text-purple-500" />
+                <MoonIcon className="h-5 w-5 text-primary-500" />
                 <h3 className="font-medium text-space-900 dark:text-white">Bedtime</h3>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -214,7 +214,7 @@ export function MemberDetailPanel({ member, onClose, onSave }: MemberDetailPanel
                   onClick={() => setRestrictions({ ...restrictions, safeSearch: !restrictions.safeSearch })}
                   className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${restrictions.safeSearch ? 'bg-success-500' : 'bg-space-200 dark:bg-space-600'}`}
                 >
-                  <span className={`${restrictions.safeSearch ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`} />
+                  <span className={`${restrictions.safeSearch ? 'translate-x-5' : 'translate-x-0'} inline-block h-5 w-5 transform rounded-full bg-panel shadow ring-0 transition duration-200 ease-in-out`} />
                 </button>
               </div>
             </div>

@@ -107,9 +107,9 @@ function AcceptInvitationContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-space-950 via-space-900 to-indigo-950 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-space-950 flex items-center justify-center p-4">
         <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full mx-auto"></div>
+          <div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full mx-auto"></div>
           <p className="mt-4 text-space-600 dark:text-space-400">Loading invitation...</p>
         </div>
       </div>
@@ -118,7 +118,7 @@ function AcceptInvitationContent() {
 
   if (error || !invitationInfo) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-space-950 via-space-900 to-indigo-950 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-space-950 flex items-center justify-center p-4">
         <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
           <div className="w-16 h-16 bg-danger-100 dark:bg-danger-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
             <ExclamationTriangleIcon className="w-8 h-8 text-danger-600 dark:text-danger-400" />
@@ -131,7 +131,7 @@ function AcceptInvitationContent() {
           </p>
           <Link
             href="/login"
-            className="inline-flex items-center justify-center px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="inline-flex items-center justify-center px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
           >
             Go to Login
           </Link>
@@ -142,7 +142,7 @@ function AcceptInvitationContent() {
 
   if (invitationInfo.isExpired) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-space-950 via-space-900 to-indigo-950 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-space-950 flex items-center justify-center p-4">
         <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
           <div className="w-16 h-16 bg-warning-100 dark:bg-warning-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
             <ExclamationTriangleIcon className="w-8 h-8 text-warning-600 dark:text-warning-400" />
@@ -155,7 +155,7 @@ function AcceptInvitationContent() {
           </p>
           <Link
             href="/login"
-            className="inline-flex items-center justify-center px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="inline-flex items-center justify-center px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
           >
             Go to Login
           </Link>
@@ -166,7 +166,7 @@ function AcceptInvitationContent() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-space-950 via-space-900 to-indigo-950 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-space-950 flex items-center justify-center p-4">
         <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
           <div className="w-16 h-16 bg-success-100 dark:bg-success-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircleIcon className="w-8 h-8 text-success-600 dark:text-success-400" />
@@ -180,7 +180,7 @@ function AcceptInvitationContent() {
           </p>
           <Link
             href="/login"
-            className="inline-flex items-center justify-center px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="inline-flex items-center justify-center px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
           >
             Log In Now
           </Link>
@@ -190,19 +190,19 @@ function AcceptInvitationContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-space-950 via-space-900 to-indigo-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-space-950 flex items-center justify-center p-4">
       <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-8 max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-            <ShieldCheckIcon className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+          <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <ShieldCheckIcon className="w-8 h-8 text-primary-600 dark:text-primary-400" />
           </div>
           <h1 className="text-2xl font-bold text-space-900 dark:text-white mb-2">
             Join Your Family
           </h1>
           <p className="text-space-600 dark:text-space-400">
             <strong>{invitationInfo.invitedByName}</strong> has invited you to join the{' '}
-            <strong>{invitationInfo.tenantName}</strong> family on Nebula DNS.
+            <strong>{invitationInfo.tenantName}</strong> family on Flux Shield.
           </p>
         </div>
 
@@ -234,7 +234,7 @@ function AcceptInvitationContent() {
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2.5 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 text-space-900 dark:text-white placeholder:text-space-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="w-full px-4 py-2.5 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 text-space-900 dark:text-white placeholder:text-space-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
               placeholder="Enter your name"
               required
             />
@@ -253,7 +253,7 @@ function AcceptInvitationContent() {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2.5 pr-10 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 text-space-900 dark:text-white placeholder:text-space-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-2.5 pr-10 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 text-space-900 dark:text-white placeholder:text-space-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 placeholder="At least 8 characters"
                 required
                 minLength={8}
@@ -284,7 +284,7 @@ function AcceptInvitationContent() {
               id="confirmPassword"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-2.5 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 text-space-900 dark:text-white placeholder:text-space-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="w-full px-4 py-2.5 border border-space-300 dark:border-space-600 rounded-lg bg-white dark:bg-space-700 text-space-900 dark:text-white placeholder:text-space-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
               placeholder="Confirm your password"
               required
               minLength={8}
@@ -300,7 +300,7 @@ function AcceptInvitationContent() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            className="w-full py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
           >
             {submitting ? (
               <>
@@ -331,7 +331,7 @@ function AcceptInvitationContent() {
         {/* Footer */}
         <p className="mt-6 text-center text-sm text-space-500 dark:text-space-400">
           Already have an account?{' '}
-          <Link href="/login" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+          <Link href="/login" className="text-primary-600 dark:text-primary-400 hover:underline">
             Log in
           </Link>
         </p>
@@ -344,9 +344,9 @@ export default function AcceptFamilyInvitationPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gradient-to-br from-space-950 via-space-900 to-indigo-950 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-space-950 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-space-800 rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-            <div className="animate-spin w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full mx-auto"></div>
+            <div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full mx-auto"></div>
             <p className="mt-4 text-space-600 dark:text-space-400">Loading...</p>
           </div>
         </div>

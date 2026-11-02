@@ -16,7 +16,7 @@ export const PolicyFlowCanvas = dynamic(
     loading: () => (
       <div className="bg-white dark:bg-space-800 rounded-xl border border-space-200 dark:border-space-700 p-8">
         <div className="flex flex-col items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nebula-500" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500" />
           <p className="mt-4 text-space-500">Loading policy canvas...</p>
         </div>
       </div>

@@ -14,7 +14,7 @@ export const OnboardingWizard = dynamic(
     loading: () => (
       <div className="min-h-screen bg-space-50 dark:bg-space-900 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nebula-500" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500" />
           <p className="text-space-500">Loading setup wizard...</p>
         </div>
       </div>

@@ -290,8 +290,8 @@ export default function ListsPage() {
                 <div className="flex items-center">
                   <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${
                     list.type === 'allowlist'
-                      ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30'
-                      : 'bg-gradient-to-br from-red-500/20 to-rose-500/20 border border-red-500/30'
+                      ? 'bg-green-500 border border-green-500/30'
+                      : 'bg-red-500 border border-red-500/30'
                   }`}>
                     {list.type === 'allowlist' ? (
                       <CheckCircleIcon className="h-6 w-6 text-success-500" />

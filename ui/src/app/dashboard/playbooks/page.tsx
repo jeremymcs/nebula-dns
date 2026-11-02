@@ -233,7 +233,7 @@ export default function PlaybooksPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500">
+          <div className="p-3 rounded-xl bg-amber-500">
             <BoltIcon className="h-8 w-8 text-white" />
           </div>
           <div>
@@ -243,7 +243,7 @@ export default function PlaybooksPage() {
         </div>
         <button
           onClick={() => setIsBuilderOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-nebula-500 text-white rounded-lg hover:bg-nebula-600"
+          className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
         >
           <PlusIcon className="h-5 w-5" />
           Create Playbook
@@ -314,7 +314,7 @@ export default function PlaybooksPage() {
             <div className="flex items-center justify-between p-3 bg-space-50 dark:bg-space-900 rounded-lg">
               <div className="flex items-center gap-2">
                 {currentExecution.status === 'running' ? (
-                  <ArrowPathIcon className="h-5 w-5 text-nebula-500 animate-spin" />
+                  <ArrowPathIcon className="h-5 w-5 text-primary-500 animate-spin" />
                 ) : currentExecution.status === 'completed' ? (
                   <CheckCircleIcon className="h-5 w-5 text-success-500" />
                 ) : (
@@ -322,7 +322,7 @@ export default function PlaybooksPage() {
                 )}
                 <span className={clsx(
                   'font-medium capitalize',
-                  currentExecution.status === 'running' && 'text-nebula-500',
+                  currentExecution.status === 'running' && 'text-primary-500',
                   currentExecution.status === 'completed' && 'text-success-500',
                   currentExecution.status === 'failed' && 'text-danger-500'
                 )}>
@@ -343,7 +343,7 @@ export default function PlaybooksPage() {
                   animate={{ opacity: 1 }}
                   className={clsx(
                     'flex items-center gap-3 p-3 rounded-lg border',
-                    step.status === 'running' && 'bg-nebula-50 dark:bg-nebula-900/20 border-nebula-300 dark:border-nebula-700',
+                    step.status === 'running' && 'bg-primary-50 dark:bg-primary-900/20 border-primary-300 dark:border-primary-700',
                     step.status === 'completed' && 'bg-success-50 dark:bg-success-900/20 border-success-300 dark:border-success-700',
                     step.status === 'failed' && 'bg-danger-50 dark:bg-danger-900/20 border-danger-300 dark:border-danger-700',
                     step.status === 'pending' && 'bg-space-50 dark:bg-space-900 border-space-200 dark:border-space-700'
@@ -351,7 +351,7 @@ export default function PlaybooksPage() {
                 >
                   <span className={clsx(
                     'w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium',
-                    step.status === 'running' && 'bg-nebula-500 text-white',
+                    step.status === 'running' && 'bg-primary-500 text-white',
                     step.status === 'completed' && 'bg-success-500 text-white',
                     step.status === 'failed' && 'bg-danger-500 text-white',
                     step.status === 'pending' && 'bg-space-200 dark:bg-space-700 text-space-600 dark:text-space-400'
@@ -366,7 +366,7 @@ export default function PlaybooksPage() {
                     {step.stepName}
                   </span>
                   {step.status === 'running' && (
-                    <ArrowPathIcon className="h-4 w-4 text-nebula-500 animate-spin" />
+                    <ArrowPathIcon className="h-4 w-4 text-primary-500 animate-spin" />
                   )}
                   {step.status === 'completed' && (
                     <CheckCircleIcon className="h-4 w-4 text-success-500" />
@@ -383,7 +383,7 @@ export default function PlaybooksPage() {
               <div className="flex justify-end">
                 <button
                   onClick={() => setShowExecutionModal(false)}
-                  className="px-4 py-2 bg-nebula-500 text-white rounded-lg hover:bg-nebula-600"
+                  className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
                 >
                   Close
                 </button>

@@ -67,14 +67,14 @@ const openings = [
   {
     title: 'Security Researcher',
     department: 'Security',
-    deptColor: 'text-primary-400 bg-primary-900/40 border border-primary-800/50',
+    deptColor: 'text-brand bg-primary-500/10 border border-primary-500/30',
     location: 'Remote',
     description: 'Analyze emerging threat intelligence, curate and maintain blocklists, reverse-engineer malware infrastructure, and continuously improve our detection and prevention capabilities.',
   },
   {
     title: 'Customer Success Manager',
     department: 'Success',
-    deptColor: 'text-success-400 bg-success-900/40 border border-success-800/50',
+    deptColor: 'text-[var(--fs-success)] bg-success-900/40 border border-success-800/50',
     location: 'Remote',
     description: 'Guide enterprise customers through onboarding, help them get maximum value from Flux Shield, and serve as their advocate as we build the product they need.',
   },
@@ -99,8 +99,8 @@ export default function CareersPage() {
           <p className="fs-eyebrow mb-4">
             CAREERS
           </p>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-ink leading-tight">
+            <span className="text-brand">
               Join the Team
             </span>{' '}
             Building the Future of DNS
@@ -120,7 +120,7 @@ export default function CareersPage() {
             </a>
             <Link
               href="/about"
-              className="border border-space-700 text-[var(--fs-txt)] hover:text-white hover:border-space-500 rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
+              className="border border-line text-[var(--fs-txt)] hover:text-ink hover:border-line rounded-xl font-semibold px-6 py-3 transition-all inline-flex items-center gap-2"
             >
               Learn About Us
             </Link>
@@ -152,7 +152,7 @@ export default function CareersPage() {
                 <div
                   className={
                     value.variant === 'purple'
-                      ? 'h-12 w-12 rounded-xl bg-primary-900/50 border border-primary-800/50 flex items-center justify-center text-primary-400 mb-4'
+                      ? 'h-12 w-12 rounded-xl bg-primary-500/10 border border-primary-500/30 flex items-center justify-center text-brand mb-4'
                       : 'h-12 w-12 rounded-xl bg-accent-900/50 border border-accent-800/50 flex items-center justify-center text-accent-400 mb-4'
                   }
                 >
@@ -189,7 +189,7 @@ export default function CareersPage() {
             {openings.map((job, index) => (
               <div
                 key={index}
-                className="fs-card rounded-[14px] p-6 hover:border-primary-700/50 transition-all group"
+                className="fs-card rounded-[14px] p-6 hover:border-primary-500/50 transition-all group"
               >
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                   <div className="flex-1">
@@ -214,7 +214,7 @@ export default function CareersPage() {
                   <div className="shrink-0">
                     <a
                       href={`mailto:careers@shield.fluxlabs.net?subject=Application: ${job.title}`}
-                      className="text-primary-400 hover:text-primary-300 font-semibold text-sm inline-flex items-center gap-1 transition-colors"
+                      className="text-brand hover:text-brand font-semibold text-sm inline-flex items-center gap-1 transition-colors"
                     >
                       Apply Now
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -233,7 +233,7 @@ export default function CareersPage() {
       <div className="py-16 sm:py-20 border-t border-[var(--fs-line)]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="fs-card rounded-[14px] p-10 text-center">
-            <div className="h-12 w-12 rounded-xl bg-primary-900/50 border border-primary-800/50 flex items-center justify-center text-primary-400 mx-auto mb-6">
+            <div className="h-12 w-12 rounded-xl bg-primary-500/10 border border-primary-500/30 flex items-center justify-center text-brand mx-auto mb-6">
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
@@ -268,7 +268,7 @@ export default function CareersPage() {
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-ink mb-4">
             Come build the future of{' '}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-400">
+            <span className="text-brand">
               DNS security
             </span>
           </h2>

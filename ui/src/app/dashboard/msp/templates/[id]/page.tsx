@@ -73,7 +73,7 @@ export default function TemplateDetailPage() {
   if (templateLoading) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
       </div>
     )
   }
@@ -84,7 +84,7 @@ export default function TemplateDetailPage() {
         <h2 className="text-lg font-medium text-gray-900 dark:text-white">Template not found</h2>
         <button
           onClick={() => router.push('/dashboard/msp/templates')}
-          className="mt-4 text-indigo-600 hover:text-indigo-500"
+          className="mt-4 text-primary-600 hover:text-primary-500"
         >
           Back to templates
         </button>
@@ -120,7 +120,7 @@ export default function TemplateDetailPage() {
           </button>
           <button
             onClick={() => setShowApplyModal(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
           >
             <PlayIcon className="h-4 w-4 mr-2" />
             Apply to Clients
@@ -203,7 +203,7 @@ export default function TemplateDetailPage() {
             onClick={() => setActiveTab('overview')}
             className={`${
               activeTab === 'overview'
-                ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
             } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
           >
@@ -213,7 +213,7 @@ export default function TemplateDetailPage() {
             onClick={() => setActiveTab('versions')}
             className={`${
               activeTab === 'versions'
-                ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
             } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
           >
@@ -223,7 +223,7 @@ export default function TemplateDetailPage() {
             onClick={() => setActiveTab('clients')}
             className={`${
               activeTab === 'clients'
-                ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
             } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
           >
@@ -330,7 +330,7 @@ export default function TemplateDetailPage() {
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
           {clientsLoading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
             </div>
           ) : clientsData?.clients.length === 0 ? (
             <div className="text-center py-12">

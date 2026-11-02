@@ -34,7 +34,7 @@ export default function CrossClientReportingPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg shadow-emerald-500/25">
+          <div className="p-3 bg-success-600 rounded-xl shadow-lg shadow-success-500/25">
             <ChartBarIcon className="h-8 w-8 text-white" />
           </div>
           <div>

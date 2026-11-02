@@ -63,7 +63,7 @@ export function NetworkActivitySection({ activity, className }: NetworkActivityS
       {/* Timeline */}
       <div className="bg-space-50 dark:bg-space-800 rounded-lg p-4">
         <div className="flex items-center gap-2 mb-3">
-          <ClockIcon className="h-4 w-4 text-nebula-500" />
+          <ClockIcon className="h-4 w-4 text-primary-500" />
           <h5 className="font-medium text-space-700 dark:text-space-300">Timeline</h5>
         </div>
         <div className="space-y-2 text-sm">
@@ -81,7 +81,7 @@ export function NetworkActivitySection({ activity, className }: NetworkActivityS
       {/* Top clients */}
       <div className="bg-space-50 dark:bg-space-800 rounded-lg p-4">
         <div className="flex items-center gap-2 mb-3">
-          <ComputerDesktopIcon className="h-4 w-4 text-nebula-500" />
+          <ComputerDesktopIcon className="h-4 w-4 text-primary-500" />
           <h5 className="font-medium text-space-700 dark:text-space-300">Top Clients</h5>
         </div>
         <div className="space-y-2">
@@ -100,7 +100,7 @@ export function NetworkActivitySection({ activity, className }: NetworkActivityS
         {activity.zones.map((zone) => (
           <span
             key={zone}
-            className="px-2 py-1 text-xs rounded-full bg-nebula-500/10 text-nebula-600 dark:text-nebula-400"
+            className="px-2 py-1 text-xs rounded-full bg-primary-500/10 text-primary-600 dark:text-primary-400"
           >
             {zone}
           </span>

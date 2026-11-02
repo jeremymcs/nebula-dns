@@ -45,7 +45,7 @@ export default function TemplatesPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
           <p className="text-space-500">Loading templates...</p>
         </div>
       </div>
@@ -66,7 +66,7 @@ export default function TemplatesPage() {
           </p>
           <button
             onClick={() => mutate()}
-            className="flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600"
+            className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
           >
             <ArrowPathIcon className="h-4 w-4" />
             Retry
@@ -80,7 +80,7 @@ export default function TemplatesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-teal-500">
+        <div className="p-3 rounded-xl bg-green-500">
           <RectangleStackIcon className="h-8 w-8 text-white" />
         </div>
         <div>

@@ -76,24 +76,24 @@ export function SetupMethodSelector({ platform, selected, onSelect }: SetupMetho
           className={clsx(
             'w-full p-4 rounded-xl border-2 text-left transition-all flex items-center gap-4',
             selected === method.id
-              ? 'border-nebula-500 bg-nebula-500/10'
-              : 'border-space-200 dark:border-space-700 hover:border-nebula-300 dark:hover:border-nebula-700'
+              ? 'border-primary-500 bg-primary-500/10'
+              : 'border-space-200 dark:border-space-700 hover:border-primary-300 dark:hover:border-primary-700'
           )}
         >
           <div className={clsx(
             'p-3 rounded-xl',
-            method.recommended ? 'bg-nebula-500/10' : 'bg-space-100 dark:bg-space-700'
+            method.recommended ? 'bg-primary-500/10' : 'bg-space-100 dark:bg-space-700'
           )}>
             <method.icon className={clsx(
               'h-6 w-6',
-              method.recommended ? 'text-nebula-500' : 'text-space-500'
+              method.recommended ? 'text-primary-500' : 'text-space-500'
             )} />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-space-900 dark:text-white">{method.name}</h3>
               {method.recommended && (
-                <span className="px-2 py-0.5 text-xs bg-nebula-500 text-white rounded-full">
+                <span className="px-2 py-0.5 text-xs bg-primary-500 text-white rounded-full">
                   Recommended
                 </span>
               )}

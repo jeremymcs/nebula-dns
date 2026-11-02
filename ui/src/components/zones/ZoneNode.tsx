@@ -69,7 +69,7 @@ export function ZoneNode({ zone, x, y, isSelected, onClick, onAction }: ZoneNode
       animate={{ opacity: 1, scale: 1 }}
       className={clsx(
         'absolute w-44 bg-white dark:bg-space-800 rounded-xl border-2 shadow-lg cursor-pointer transition-all',
-        isSelected ? 'ring-2 ring-nebula-500 ring-offset-2 border-nebula-500' : getHealthBorder(zone.health),
+        isSelected ? 'ring-2 ring-primary-500 ring-offset-2 border-primary-500' : getHealthBorder(zone.health),
         'hover:shadow-xl hover:scale-105'
       )}
       style={{ left: x, top: y }}
@@ -84,8 +84,8 @@ export function ZoneNode({ zone, x, y, isSelected, onClick, onAction }: ZoneNode
 
       {/* Header */}
       <div className="px-3 py-2 border-b border-space-100 dark:border-space-700 flex items-center gap-2">
-        <div className="p-1.5 rounded-lg bg-nebula-500/10">
-          <Icon className="h-4 w-4 text-nebula-500" />
+        <div className="p-1.5 rounded-lg bg-primary-500/10">
+          <Icon className="h-4 w-4 text-primary-500" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-medium text-sm text-space-900 dark:text-white truncate">{zone.name}</p>

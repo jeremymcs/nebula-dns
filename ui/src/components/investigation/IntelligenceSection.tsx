@@ -70,7 +70,7 @@ export function IntelligenceSection({ intel, className }: IntelligenceSectionPro
             className="bg-space-50 dark:bg-space-800 rounded-lg p-4"
           >
             <div className="flex items-center gap-2 mb-3">
-              <section.icon className="h-4 w-4 text-nebula-500" />
+              <section.icon className="h-4 w-4 text-primary-500" />
               <h5 className="font-medium text-space-700 dark:text-space-300">{section.title}</h5>
             </div>
             <dl className="space-y-2">

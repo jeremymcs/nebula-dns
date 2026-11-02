@@ -174,8 +174,8 @@ export default function ApplyTemplateModal({
                   <>
                     {/* Initial Selection State */}
                     <div>
-                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900">
-                        <PlayIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900">
+                        <PlayIcon className="h-6 w-6 text-primary-600 dark:text-primary-400" />
                       </div>
                       <div className="mt-3 text-center sm:mt-5">
                         <Dialog.Title
@@ -203,7 +203,7 @@ export default function ApplyTemplateModal({
                             name="applyMode"
                             checked={applyMode === 'all'}
                             onChange={() => setApplyMode('all')}
-                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600"
+                            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600"
                           />
                           <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                             All clients using this template ({clients.length})
@@ -217,7 +217,7 @@ export default function ApplyTemplateModal({
                               name="applyMode"
                               checked={applyMode === 'outdated'}
                               onChange={() => setApplyMode('outdated')}
-                              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600"
+                              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600"
                             />
                             <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                               Only outdated clients ({outdatedClients.length})
@@ -231,7 +231,7 @@ export default function ApplyTemplateModal({
                             name="applyMode"
                             checked={applyMode === 'selected'}
                             onChange={() => setApplyMode('selected')}
-                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600"
+                            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600"
                           />
                           <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                             Select specific clients
@@ -252,7 +252,7 @@ export default function ApplyTemplateModal({
                               type="checkbox"
                               checked={selectedClientIds.includes(client.clientId)}
                               onChange={() => handleClientToggle(client.clientId)}
-                              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded"
+                              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600 rounded"
                             />
                             <span className="ml-3 text-sm text-gray-700 dark:text-gray-300">
                               {client.clientName}
@@ -281,7 +281,7 @@ export default function ApplyTemplateModal({
                       </button>
                       <button
                         type="button"
-                        className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         onClick={handleApply}
                         disabled={!canApply}
                       >
@@ -295,8 +295,8 @@ export default function ApplyTemplateModal({
                     <div className="text-center">
                       {jobStatus?.status === 'in_progress' || jobStatus?.status === 'pending' ? (
                         <>
-                          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900">
-                            <ArrowPathIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400 animate-spin" />
+                          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900">
+                            <ArrowPathIcon className="h-6 w-6 text-primary-600 dark:text-primary-400 animate-spin" />
                           </div>
                           <Dialog.Title
                             as="h3"
@@ -312,7 +312,7 @@ export default function ApplyTemplateModal({
                           {/* Progress bar */}
                           <div className="mt-4 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                             <div
-                              className="bg-indigo-600 h-2 rounded-full transition-all duration-500"
+                              className="bg-primary-600 h-2 rounded-full transition-all duration-500"
                               style={{
                                 width: `${
                                   jobStatus

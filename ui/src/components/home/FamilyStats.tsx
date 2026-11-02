@@ -53,9 +53,9 @@ const categoryColors: Record<string, { bg: string; text: string; icon: string }>
     icon: 'text-accent-600 dark:text-accent-400',
   },
   gaming: {
-    bg: 'bg-purple-50 dark:bg-purple-900/20',
-    text: 'text-purple-700 dark:text-purple-300',
-    icon: 'text-purple-600 dark:text-purple-400',
+    bg: 'bg-primary-50 dark:bg-primary-900/20',
+    text: 'text-primary-700 dark:text-primary-300',
+    icon: 'text-primary-600 dark:text-primary-400',
   },
   malware: {
     bg: 'bg-danger-50 dark:bg-danger-900/20',

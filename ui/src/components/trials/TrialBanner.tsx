@@ -49,8 +49,8 @@ export function TrialBanner({ className, onClose, dismissible = false }: TrialBa
         className={clsx(
           'relative px-4 py-3 rounded-lg',
           isUrgent
-            ? 'bg-gradient-to-r from-warning-500/10 to-danger-500/10 border border-warning-500/20'
-            : 'bg-gradient-to-r from-accent-500/10 to-primary-500/10 border border-accent-500/20',
+            ? 'bg-warning-600 border border-warning-500/20'
+            : 'bg-accent-500 border border-accent-500/20',
           className
         )}
       >

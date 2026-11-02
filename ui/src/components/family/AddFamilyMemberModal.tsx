@@ -93,7 +93,7 @@ export function AddFamilyMemberModal({ isOpen, onClose, onSave }: AddFamilyMembe
                 className={clsx(
                   'w-12 h-12 text-2xl rounded-xl flex items-center justify-center transition-all',
                   avatar === a
-                    ? 'bg-nebula-100 dark:bg-nebula-900/30 ring-2 ring-nebula-500 scale-110'
+                    ? 'bg-primary-100 dark:bg-primary-900/30 ring-2 ring-primary-500 scale-110'
                     : 'bg-space-100 dark:bg-space-700 hover:bg-space-200 dark:hover:bg-space-600'
                 )}
               >
@@ -115,7 +115,7 @@ export function AddFamilyMemberModal({ isOpen, onClose, onSave }: AddFamilyMembe
                 className={clsx(
                   'w-full p-3 rounded-xl text-left transition-all flex items-center justify-between',
                   role === r.value
-                    ? 'bg-nebula-100 dark:bg-nebula-900/30 ring-2 ring-nebula-500'
+                    ? 'bg-primary-100 dark:bg-primary-900/30 ring-2 ring-primary-500'
                     : 'bg-space-100 dark:bg-space-700 hover:bg-space-200 dark:hover:bg-space-600'
                 )}
               >
@@ -127,12 +127,12 @@ export function AddFamilyMemberModal({ isOpen, onClose, onSave }: AddFamilyMembe
                   className={clsx(
                     'w-5 h-5 rounded-full border-2 flex items-center justify-center',
                     role === r.value
-                      ? 'border-nebula-500 bg-nebula-500'
+                      ? 'border-primary-500 bg-primary-500'
                       : 'border-space-300 dark:border-space-600'
                   )}
                 >
                   {role === r.value && (
-                    <div className="w-2 h-2 rounded-full bg-white" />
+                    <div className="w-2 h-2 rounded-full bg-panel" />
                   )}
                 </div>
               </button>
