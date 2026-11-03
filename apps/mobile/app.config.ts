@@ -22,7 +22,7 @@ const config: ExpoConfig = {
   android: {
     package: 'net.fluxlabs.shield',
     adaptiveIcon: {
-      backgroundColor: '#1E3B78',
+      backgroundColor: '#FFFFFF',
       foregroundImage: './assets/images/android-icon-foreground.png',
       backgroundImage: './assets/images/android-icon-background.png',
       monochromeImage: './assets/images/android-icon-monochrome.png',
@@ -40,7 +40,8 @@ const config: ExpoConfig = {
       {
         image: './assets/images/splash-icon.png',
         resizeMode: 'contain',
-        backgroundColor: '#1E3B78',
+        imageWidth: 160,
+        backgroundColor: '#FFFFFF',
       },
     ],
     'expo-secure-store',

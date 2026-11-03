@@ -38,6 +38,7 @@ export const metadata: Metadata = {
   },
   description: PRODUCT_META_DESCRIPTION,
   applicationName: PRODUCT_NAME,
+  manifest: '/site.webmanifest',
   icons: {
     icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
     apple: '/apple-touch-icon.png',
@@ -48,6 +49,11 @@ export const metadata: Metadata = {
     description: PRODUCT_META_DESCRIPTION,
     type: 'website',
     url: SITE_URL,
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: PRODUCT_NAME }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/og-image.png'],
   },
 }
 

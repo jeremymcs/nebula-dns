@@ -45,6 +45,11 @@ export const metadata: Metadata = {
     description: PRODUCT_META_DESCRIPTION,
     type: 'website',
     url: APP_ORIGIN,
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: PRODUCT_NAME }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/og-image.png'],
   },
 }
 

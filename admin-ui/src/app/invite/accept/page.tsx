@@ -20,7 +20,6 @@ import {
 import {
   SunIcon,
   MoonIcon,
-  ShieldCheckIcon,
   CheckCircleIcon,
   XCircleIcon,
   EyeIcon,
@@ -30,6 +29,7 @@ import { CheckIcon } from '@heroicons/react/24/solid'
 import Link from 'next/link'
 import { ADMIN_PORTAL_NAME, PRODUCT_NAME } from '@/lib/branding'
 import { ProductFooter } from '@/components/ProductFooter'
+import { ShieldMark } from '@/components/ShieldMark'
 
 /**
  * Theme toggle button for light/dark mode
@@ -395,9 +395,7 @@ export default function AcceptInvitePage() {
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20">
           {/* Logo */}
           <div className="flex items-center gap-4 mb-8">
-            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-warning-500 to-danger-500 flex items-center justify-center shadow-2xl shadow-warning-500/30">
-              <ShieldCheckIcon className="h-8 w-8 text-white" />
-            </div>
+            <ShieldMark className="h-14 w-14" />
             <div>
               <h1 className="text-3xl font-bold text-white">{PRODUCT_NAME}</h1>
               <p className="text-warning-300 font-medium">{ADMIN_PORTAL_NAME}</p>
@@ -443,9 +441,7 @@ export default function AcceptInvitePage() {
 
         {/* Mobile Logo */}
         <div className="lg:hidden flex items-center gap-3 mb-10">
-          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-warning-500 to-danger-500 flex items-center justify-center shadow-lg shadow-warning-500/25">
-            <ShieldCheckIcon className="h-7 w-7 text-white" />
-          </div>
+          <ShieldMark className="h-12 w-12" />
           <div>
             <span className="text-2xl font-bold text-space-900 dark:text-white">{PRODUCT_NAME}</span>
             <span className="block text-sm text-warning-500 font-medium">{ADMIN_PORTAL_NAME}</span>
