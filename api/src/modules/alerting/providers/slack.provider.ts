@@ -108,10 +108,10 @@ export class SlackProvider implements AlertProvider {
       id: 'test-alert',
       type: 'system_health',
       severity: 'info',
-      title: 'Nebula DNS Test Alert',
+      title: 'Flux Shield Test Alert',
       message:
-        'This is a test alert from Nebula DNS. If you see this, your Slack integration is working!',
-      source: 'nebula-dns-test',
+        'This is a test alert from Flux Shield. If you see this, your Slack integration is working!',
+      source: 'flux-shield-test',
       timestamp: new Date(),
     };
 

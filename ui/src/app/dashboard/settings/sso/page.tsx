@@ -114,7 +114,7 @@ export default function SsoSettingsPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'nebula-dns-sp-signing-cert.pem'
+    a.download = 'flux-shield-sp-signing-cert.pem'
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -328,7 +328,7 @@ export default function SsoSettingsPage() {
                   Configure these values in your Identity Provider:
                 </p>
                 <div className="space-y-2 text-sm">
-                  <div><span className="text-blue-600 dark:text-blue-400">Entity ID:</span> <code className="bg-blue-100 dark:bg-blue-800 px-2 py-0.5 rounded">{`nebuladns-sp`}</code></div>
+                  <div><span className="text-blue-600 dark:text-blue-400">Entity ID:</span> <code className="bg-blue-100 dark:bg-blue-800 px-2 py-0.5 rounded">{`flux-shield-sp`}</code></div>
                   <div><span className="text-blue-600 dark:text-blue-400">ACS URL:</span> <code className="bg-blue-100 dark:bg-blue-800 px-2 py-0.5 rounded">{API_URL}/sso/saml/callback</code></div>
                   <div><span className="text-blue-600 dark:text-blue-400">Metadata:</span> <a href={`${API_URL}/sso/saml/metadata`} target="_blank" className="text-blue-600 dark:text-blue-400 hover:underline">Download XML</a></div>
                 </div>

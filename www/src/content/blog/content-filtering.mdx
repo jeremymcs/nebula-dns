@@ -1,7 +1,7 @@
 ---
 title: "A Complete Guide to Content Filtering with DNS"
 date: "2026-02-05"
-author: "Nebula DNS Team"
+author: "Flux Labs Team"
 excerpt: "Content filtering at the DNS level is one of the most effective ways to protect your network. Learn how category-based filtering works and how to set it up."
 category: "Guide"
 ---
@@ -18,7 +18,7 @@ The DNS-based approach also provides perfect visibility. Every DNS query is logg
 
 ## Understanding Content Categories
 
-Nebula DNS categorizes over 500 million domains into more than 20 distinct categories, each maintained and updated in real-time by our threat intelligence team. Here's a breakdown of the major categories and their common use cases:
+Flux Shield sorts millions of domains into more than 20 categories, updated continuously from threat intelligence feeds. Here's a breakdown of the major categories and their common use cases:
 
 **Security Categories** form the foundation of any filtering policy. Malware & Phishing blocks domains known to distribute malware or conduct phishing attacks - this should be enabled for every policy. Botnet C&C blocks known command and control servers used by botnets and malware. Cryptomining blocks cryptocurrency mining scripts that consume CPU resources. These categories protect against active threats and should be universally blocked.
 
@@ -50,7 +50,7 @@ Different organizations have different content filtering needs. Let's explore ho
 
 ## How to Configure Content Filtering Policies
 
-Setting up content filtering in Nebula DNS is straightforward but deserves careful thought. Start by defining your objectives - are you primarily focused on security, compliance, productivity, or some combination? Your objectives will guide which categories to block.
+Setting up content filtering in Flux Shield is straightforward but deserves careful thought. Start by defining your objectives - are you primarily focused on security, compliance, productivity, or some combination? Your objectives will guide which categories to block.
 
 Begin by creating a **baseline security policy** that blocks all Security-related categories - Malware & Phishing, Botnet C&C, Cryptomining, and Spam. Every organization should start here. This policy can be assigned to all locations and user groups as your foundation.
 
@@ -62,15 +62,15 @@ Don't forget to configure **custom allow and block lists** to handle organizatio
 
 ## SafeSearch Enforcement
 
-One of the most valuable features of DNS-based content filtering is the ability to enforce SafeSearch across search engines and platforms. When enabled, Nebula DNS automatically redirects search engine queries to their safe search variants - Google Safe Search, Bing Safe Search, YouTube Restricted Mode, and DuckDuckGo Safe Search.
+One of the most valuable features of DNS-based content filtering is the ability to enforce SafeSearch across search engines and platforms. When enabled, Flux Shield automatically redirects search engine queries to their safe search variants - Google Safe Search, Bing Safe Search, YouTube Restricted Mode, and DuckDuckGo Safe Search.
 
 This enforcement happens at the DNS level and is impossible for users to disable (unlike browser-based SafeSearch which can be turned off). For schools complying with CIPA requirements, this is essential. For workplaces, it adds another layer of protection against inappropriate content. For families, it ensures children can use search engines and YouTube without encountering explicit material.
 
-The technical implementation is elegant - when a query for google.com is received, Nebula DNS returns the IP address for forcesafesearch.google.com instead. The user sees no difference except that safe search is enforced on all queries. This works across all devices and browsers with no configuration required.
+The technical implementation is elegant - when a query for google.com is received, Flux Shield returns the IP address for forcesafesearch.google.com instead. The user sees no difference except that safe search is enforced on all queries. This works across all devices and browsers with no configuration required.
 
 ## Monitoring and Refining Your Filtering
 
-Effective content filtering isn't a set-it-and-forget-it proposition. The **Reports** section in Nebula DNS provides crucial insights for refining your policies. The Category Report shows which categories are being blocked most frequently - if you see thousands of blocks for a category you allow, you might have a policy misconfiguration or a compromised device.
+Effective content filtering isn't a set-it-and-forget-it proposition. The **Reports** section in Flux Shield provides crucial insights for refining your policies. The Category Report shows which categories are being blocked most frequently - if you see thousands of blocks for a category you allow, you might have a policy misconfiguration or a compromised device.
 
 The **Blocked Queries Report** lists specific domains that were blocked and which policy rule triggered the block. This helps you identify false positives - legitimate business tools miscategorized. When you find these, add them to your allow list to prevent future disruptions.
 
@@ -78,4 +78,4 @@ The **User Activity Report** (available with the Agents add-on) shows filtering 
 
 Set up **automated alerts** for unusual patterns - like a sudden spike in blocked malware queries, which could indicate an active attack. Regular review of these analytics ensures your filtering stays aligned with organizational needs and adapts to changing threats.
 
-DNS-based content filtering represents the perfect balance of effectiveness, efficiency, and ease of deployment. With Nebula DNS, you get enterprise-grade filtering without enterprise complexity - no hardware appliances, no endpoint agents, no performance impact. Just powerful, policy-driven control over what content reaches your network. Start your free trial today and experience how simple comprehensive content filtering can be.
+DNS-based content filtering represents the perfect balance of effectiveness, efficiency, and ease of deployment. With Flux Shield, you get enterprise-grade filtering without enterprise complexity - no hardware appliances, no endpoint agents, no performance impact. Just powerful, policy-driven control over what content reaches your network. Start your free trial today and experience how simple comprehensive content filtering can be.

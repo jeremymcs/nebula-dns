@@ -322,7 +322,7 @@ describe('SlackProvider', () => {
       const callArgs = mockHttpPost.mock.calls[0];
       const payload = JSON.parse(callArgs[1] as string);
 
-      expect(payload.text).toContain('Nebula DNS Test Alert');
+      expect(payload.text).toContain('Flux Shield Test Alert');
       expect(payload.blocks[0].text.text).toContain(':information_source:');
 
       mockHttpPost.mockRestore();

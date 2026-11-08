@@ -144,7 +144,7 @@ export class SiemService {
       hecUrl: this.encryptSecret(dto.hecUrl),
       hecToken: this.encryptSecret(dto.hecToken),
       index: dto.index || 'main',
-      sourceType: dto.sourceType || 'nebuladns:logs',
+      sourceType: dto.sourceType || 'fluxshield:logs',
     };
 
     const integration = this.siemRepository.create({
@@ -169,7 +169,7 @@ export class SiemService {
     const configEncrypted = {
       url: this.encryptSecret(dto.url),
       apiKey: this.encryptSecret(dto.apiKey),
-      indexPattern: dto.indexPattern || 'nebuladns-logs',
+      indexPattern: dto.indexPattern || 'fluxshield-logs',
     };
 
     const integration = this.siemRepository.create({
@@ -193,7 +193,7 @@ export class SiemService {
     const configEncrypted = {
       workspaceId: this.encryptSecret(dto.workspaceId),
       sharedKey: this.encryptSecret(dto.sharedKey),
-      logType: dto.logType || 'Nebula DNS_Logs',
+      logType: dto.logType || 'FluxShield_Logs',
     };
 
     const integration = this.siemRepository.create({
@@ -389,11 +389,11 @@ export class SiemService {
       const testEvent = {
         event: {
           type: 'test',
-          message: 'Nebula DNS SIEM integration test',
+          message: 'Flux Shield SIEM integration test',
           timestamp: new Date().toISOString(),
         },
         index: integration.configEncrypted.index || 'main',
-        sourcetype: integration.configEncrypted.sourceType || 'nebuladns:logs',
+        sourcetype: integration.configEncrypted.sourceType || 'fluxshield:logs',
       };
 
       await this.httpPost(hecUrl, JSON.stringify(testEvent), {
@@ -480,13 +480,13 @@ export class SiemService {
         sharedKeyEncrypted,
       );
 
-      const logType = integration.configEncrypted.logType || 'Nebula DNS_Test';
+      const logType = integration.configEncrypted.logType || 'FluxShield_Test';
 
       // Send a test log entry
       const testLog = [
         {
           type: 'test',
-          message: 'Nebula DNS SIEM integration test',
+          message: 'Flux Shield SIEM integration test',
           timestamp: new Date().toISOString(),
         },
       ];
@@ -531,7 +531,7 @@ export class SiemService {
     const startTime = Date.now();
     try {
       const { host, port, protocol } = integration.configEncrypted;
-      const testMessage = `<14>1 ${new Date().toISOString()} nebuladns test - - - Nebula DNS SIEM integration test`;
+      const testMessage = `<14>1 ${new Date().toISOString()} fluxshield test - - - Flux Shield SIEM integration test`;
 
       if (protocol === 'udp') {
         await this.sendUdp(host, parseInt(port), testMessage);
@@ -623,7 +623,7 @@ export class SiemService {
     const hecToken = this.decryptSecret(integration.configEncrypted.hecToken);
     const index = integration.configEncrypted.index || 'main';
     const sourceType =
-      integration.configEncrypted.sourceType || 'nebuladns:logs';
+      integration.configEncrypted.sourceType || 'fluxshield:logs';
 
     const events = logs.map((log) => ({
       event: log,
@@ -647,7 +647,7 @@ export class SiemService {
     const url = this.decryptSecret(integration.configEncrypted.url);
     const apiKey = this.decryptSecret(integration.configEncrypted.apiKey);
     const indexPattern =
-      integration.configEncrypted.indexPattern || 'nebuladns-logs';
+      integration.configEncrypted.indexPattern || 'fluxshield-logs';
 
     const today = new Date().toISOString().split('T')[0].replace(/-/g, '.');
     const indexName = `${indexPattern}-${today}`;
@@ -675,7 +675,7 @@ export class SiemService {
       integration.configEncrypted.workspaceId,
     );
     const sharedKey = this.decryptSecret(integration.configEncrypted.sharedKey);
-    const logType = integration.configEncrypted.logType || 'Nebula DNS_Logs';
+    const logType = integration.configEncrypted.logType || 'FluxShield_Logs';
 
     const body = JSON.stringify(logs);
     const contentLength = Buffer.byteLength(body, 'utf8');
@@ -719,7 +719,7 @@ export class SiemService {
   private formatCEF(log: any): string {
     const severity = log.action === 'blocked' ? 7 : 3;
     return (
-      `CEF:0|Nebula DNS|DNS-Filter|1.0|${log.action}|DNS Query ${log.action}|${severity}|` +
+      `CEF:0|Flux Labs|Flux Shield|1.0|${log.action}|DNS Query ${log.action}|${severity}|` +
       `src=${log.clientIp} request=${log.domain} requestMethod=DNS ` +
       `cs1=${log.category || 'unknown'} cs1Label=Category ` +
       `cs2=${log.locationId || 'unknown'} cs2Label=LocationID`
@@ -728,7 +728,7 @@ export class SiemService {
 
   private formatLeef(log: any): string {
     return (
-      `LEEF:2.0|Nebula DNS|DNS-Filter|1.0|${log.action}|` +
+      `LEEF:2.0|Flux Labs|Flux Shield|1.0|${log.action}|` +
       `src=${log.clientIp}\tdomain=${log.domain}\taction=${log.action}\t` +
       `category=${log.category || 'unknown'}\tlocationId=${log.locationId || 'unknown'}`
     );

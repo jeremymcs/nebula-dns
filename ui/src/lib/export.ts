@@ -95,7 +95,7 @@ function getDateString(): string {
 export async function exportToPdf(data: ReportData, options: ExportOptions = {}): Promise<Blob> {
   const { jsPDF, autoTable } = await loadJsPdf()
   const doc = new jsPDF()
-  const title = options.title || 'Nebula DNS Security Report'
+  const title = options.title || 'Flux Shield Security Report'
   const dateRange = options.dateRange || 'Last 7 days'
   const sections = options.includeSections || {
     summary: true,
@@ -233,7 +233,7 @@ export async function exportToPdf(data: ReportData, options: ExportOptions = {})
     doc.setFontSize(8)
     doc.setTextColor(156, 163, 175)
     doc.text(
-      `Nebula DNS Security Platform | Page ${i} of ${pageCount}`,
+      `Flux Shield by Flux Labs | Page ${i} of ${pageCount}`,
       doc.internal.pageSize.width / 2,
       doc.internal.pageSize.height - 10,
       { align: 'center' }
@@ -311,7 +311,7 @@ export async function exportToJson(data: ReportData, options: ExportOptions = {}
       generated: new Date().toISOString(),
       dateRange: options.dateRange || 'Last 7 days',
       reportType: options.reportType || 'overview',
-      title: options.title || 'Nebula DNS Security Report',
+      title: options.title || 'Flux Shield Security Report',
     },
     data,
   }
@@ -348,7 +348,7 @@ export async function exportReport(
       throw new Error(`Unsupported export format: ${format}`)
   }
 
-  const filename = `nebula-report-${getDateString()}.${extension}`
+  const filename = `flux-shield-report-${getDateString()}.${extension}`
   downloadBlob(blob, filename)
 }
 

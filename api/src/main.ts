@@ -1,5 +1,5 @@
 /**
- * Nebula DNS - Enterprise DNS Security Platform
+ * Flux Shield - DNS Security Platform by Flux Labs
  * Copyright (c) 2026 Jeremy McSpadden <jeremy@fluxlabs.net>
  *
  * API Bootstrap Entry Point
@@ -75,11 +75,11 @@ async function bootstrap() {
 
   // Swagger documentation
   const config = new DocumentBuilder()
-    .setTitle('Nebula DNS API')
+    .setTitle('Flux Shield API')
     .setDescription(
       `
 ## Overview
-Nebula DNS is a multi-tenant, enterprise-grade DNS security and content filtering platform. This API provides programmatic access to all platform features including policy management, analytics, and user administration.
+Flux Shield, by Flux Labs, is a multi-tenant DNS security and content filtering platform. This API provides programmatic access to all platform features including policy management, analytics, and user administration.
 
 ## Authentication
 All endpoints (except /auth/login and /health) require a valid JWT token. Include the token in the Authorization header:
@@ -134,13 +134,13 @@ Response includes pagination metadata:
     )
     .setVersion('1.0.0')
     .setContact(
-      'Nebula DNS Support',
-      'https://nebuladns.io/support',
-      'support@nebuladns.io',
+      'Flux Shield Support',
+      'https://shield.fluxlabs.net/contact',
+      'support@shield.fluxlabs.net',
     )
-    .setLicense('Proprietary', 'https://nebuladns.io/license')
+    .setLicense('Proprietary', 'https://shield.fluxlabs.net/terms')
     .addServer('http://localhost:4010', 'Development Server')
-    .addServer('https://api.nebuladns.io', 'Production Server')
+    .addServer('https://api.shield.fluxlabs.net', 'Production Server')
     .addBearerAuth(
       {
         type: 'http',
@@ -193,14 +193,14 @@ Response includes pagination metadata:
         tagsSorter: 'alpha',
         operationsSorter: 'alpha',
       },
-      customSiteTitle: 'Nebula DNS API Documentation',
+      customSiteTitle: 'Flux Shield API Documentation',
     });
   }
 
   const port = process.env.PORT || 4010;
   await app.listen(port);
 
-  logger.log(`Nebula DNS API running on port ${port}`);
+  logger.log(`Flux Shield API running on port ${port}`);
   if (process.env.NODE_ENV !== 'production') {
     logger.log(`Swagger docs available at http://localhost:${port}/api/docs`);
   }

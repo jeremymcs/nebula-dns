@@ -1,30 +1,30 @@
 ---
-title: "Getting Started with Nebula DNS in 5 Minutes"
+title: "Getting Started with Flux Shield in 5 Minutes"
 date: "2026-02-10"
-author: "Nebula DNS Team"
+author: "Flux Labs Team"
 excerpt: "Set up DNS security for your organization in just 5 minutes. This step-by-step guide walks you through account creation, DNS configuration, and your first policy."
 category: "Tutorial"
 ---
 
-Protecting your organization with DNS security shouldn't require weeks of planning, complex software deployments, or extensive training. With Nebula DNS, you can have enterprise-grade DNS security up and running in less time than it takes to grab a coffee. This tutorial will walk you through every step, from creating your account to monitoring your first protected DNS queries.
+Protecting your organization with DNS security shouldn't require weeks of planning, complex software deployments, or extensive training. With Flux Shield, you can have enterprise-grade DNS security up and running in less time than it takes to grab a coffee. This tutorial will walk you through every step, from creating your account to monitoring your first protected DNS queries.
 
 ## Create Your Account
 
-Visit **nebula-dns.com/signup** and click "Start Free Trial" - no credit card required for your 14-day trial. Enter your business email address, create a strong password, and provide some basic information about your organization. You'll receive a verification email within seconds - click the link to activate your account.
+Once Flux Labs sets up your organization, you'll receive an invite email. Click the link, create a strong password, and you're in.
 
-Once verified, you'll land in your dashboard. Take a moment to explore - you'll see sections for Policies, Locations, Reports, and Settings. Don't worry if it seems empty right now; we'll populate it shortly. The dashboard is designed to be intuitive, with contextual help available throughout.
+Once you're signed in, you'll land in your dashboard. Take a moment to explore - you'll see sections for Policies, Locations, Reports, and Settings. Don't worry if it seems empty right now; we'll populate it shortly. The dashboard is designed to be intuitive, with contextual help available throughout.
 
 ## Configure Your DNS
 
 This is where the magic happens, and it's remarkably simple. In your dashboard, navigate to **Locations** and click **"Add Location"**. Give your location a descriptive name like "Main Office" or "HQ Network" and select your timezone. The system will generate two unique DNS server addresses for your location - these are your protected DNS resolvers.
 
-Now you have two options for deployment. For **network-wide protection**, update your router or DHCP server to use the Nebula DNS servers we just generated. Every device that connects to your network will automatically be protected. This is the recommended approach for offices, schools, and other centralized networks. For **individual device protection**, configure each device's network settings to use the Nebula DNS servers. This works great for remote workers, traveling employees, or mixed environments.
+Now you have two options for deployment. For **network-wide protection**, update your router or DHCP server to use the Flux Shield servers we just generated. Every device that connects to your network will automatically be protected. This is the recommended approach for offices, schools, and other centralized networks. For **individual device protection**, configure each device's network settings to use the Flux Shield servers. This works great for remote workers, traveling employees, or mixed environments.
 
-To verify everything is working, open a web browser and visit **test.nebula-dns.com/check**. If you see a green checkmark and "Protected by Nebula DNS", congratulations - you're up and running! If not, double-check that you've entered the DNS servers correctly and that DNS requests aren't being overridden by local settings.
+To verify everything is working, add a test domain to a block list, then open it in a web browser. If you see the Flux Shield block page, congratulations - you're up and running! If not, double-check that you've entered the DNS servers correctly and that DNS requests aren't being overridden by local settings.
 
 ## Create Your First Policy
 
-Now that DNS queries are flowing through Nebula DNS, let's create a security policy. Navigate to **Policies** in your dashboard and click **"Create Policy"**. Give your policy a name like "Default Security" or "Company-Wide Protection".
+Now that DNS queries are flowing through Flux Shield, let's create a security policy. Navigate to **Policies** in your dashboard and click **"Create Policy"**. Give your policy a name like "Default Security" or "Company-Wide Protection".
 
 Start with the basics by enabling **Malware & Phishing Protection** - this is the foundation of DNS security and blocks known malicious domains in real-time. Next, enable **Category-Based Filtering** and select categories appropriate for your organization. Most businesses start with blocking Adult Content, Gambling, and Illegal Activities. Schools often add Social Media and Gaming during school hours. You can always adjust these later.
 
@@ -34,7 +34,7 @@ Once you're satisfied with your policy configuration, assign it to the location 
 
 ## Monitor Your Traffic
 
-The real power of Nebula DNS becomes apparent in the **Reports** section. Here you'll see real-time analytics about your DNS traffic. The **Dashboard Overview** shows total queries, blocked threats, top blocked categories, and query trends over time. The **Threat Intelligence** tab displays recent malicious domains that were blocked before they could harm your network.
+The real power of Flux Shield becomes apparent in the **Reports** section. Here you'll see real-time analytics about your DNS traffic. The **Dashboard Overview** shows total queries, blocked threats, top blocked categories, and query trends over time. The **Threat Intelligence** tab displays recent malicious domains that were blocked before they could harm your network.
 
 Click into **Query Logs** to see individual DNS queries - what was requested, when, the action taken (allowed or blocked), and which policy rule applied. This granular visibility is invaluable for troubleshooting ("Why can't I access this site?") and security investigations ("Which device tried to contact this malware domain?").
 
@@ -42,18 +42,18 @@ The **Reports** section also offers pre-built report templates. Generate a weekl
 
 ## Next Steps
 
-Congratulations - you now have enterprise-grade DNS security protecting your organization! But you're just getting started with what Nebula DNS can do. Here are some recommended next steps to maximize your protection:
+Congratulations - you now have enterprise-grade DNS security protecting your organization! But you're just getting started with what Flux Shield can do. Here are some recommended next steps to maximize your protection:
 
 **Create location-specific policies.** Maybe your finance department needs stricter controls than your marketing team. Navigate to Policies, create a new policy with different rules, and assign it to specific locations or groups.
 
 **Set up custom allow/block lists.** Add domains you always want to allow (like your company's SaaS tools) or always want to block (like that time-wasting site everyone visits). Go to Lists and create your custom entries - you can even bulk import thousands of domains via CSV.
 
-**Enable DNS-over-HTTPS for remote workers.** If you have employees working from home or traveling, configure the Nebula DNS client app on their devices. This ensures they're protected even when not on your corporate network, with all DNS traffic encrypted via DoH.
+**Enable DNS-over-HTTPS for remote workers.** If you have employees working from home or traveling, configure the Flux Shield client app on their devices. This ensures they're protected even when not on your corporate network, with all DNS traffic encrypted via DoH.
 
-**Configure SIEM integration.** If your organization uses a Security Information and Event Management system, integrate Nebula DNS logs. Go to Settings > Integrations and connect to Splunk, Azure Sentinel, or others to correlate DNS security events with other security data.
+**Configure SIEM integration.** If your organization uses a Security Information and Event Management system, integrate Flux Shield logs. Go to Settings > Integrations and connect to Splunk, Azure Sentinel, or others to correlate DNS security events with other security data.
 
 **Set up alert notifications.** Define thresholds that trigger email or webhook notifications - like if a single device makes more than 100 blocked queries in an hour, potentially indicating malware. These early warnings can help you catch incidents before they escalate.
 
-**Review your analytics weekly.** Make it a habit to check your Nebula DNS dashboard every Monday. Look for unusual patterns, new categories being accessed, or locations with high block rates. This ongoing visibility helps you refine policies and identify security trends.
+**Review your analytics weekly.** Make it a habit to check your Flux Shield dashboard every Monday. Look for unusual patterns, new categories being accessed, or locations with high block rates. This ongoing visibility helps you refine policies and identify security trends.
 
-DNS security is one of the most cost-effective, high-impact security measures you can implement. With Nebula DNS now protecting your organization, you've eliminated a major attack vector and gained unprecedented visibility into network activity. As you get comfortable with the platform, explore advanced features like geo-blocking, custom block pages, and API-based policy automation. Welcome to the future of DNS security!
+DNS security is one of the most cost-effective, high-impact security measures you can implement. With Flux Shield now protecting your organization, you've eliminated a major attack vector and gained unprecedented visibility into network activity. As you get comfortable with the platform, explore advanced features like geo-blocking, custom block pages, and API-based policy automation. Welcome to the future of DNS security!
