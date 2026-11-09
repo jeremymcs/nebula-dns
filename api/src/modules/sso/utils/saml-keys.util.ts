@@ -27,8 +27,8 @@ export interface CertificateOptions {
  * Default certificate options
  */
 const DEFAULT_CERT_OPTIONS: Required<CertificateOptions> = {
-  commonName: 'Nebula DNS SAML Service Provider',
-  organization: 'Nebula DNS',
+  commonName: 'Flux Shield SAML Service Provider',
+  organization: 'Flux Labs',
   country: 'US',
   validityDays: 365 * 3, // 3 years
 };

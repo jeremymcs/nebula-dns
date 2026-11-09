@@ -850,7 +850,7 @@ export class WebhooksService implements OnModuleInit {
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'User-Agent': 'Nebula DNS-Webhook/1.0',
+      'User-Agent': 'FluxShield-Webhook/1.0',
       'X-Webhook-Event': eventType,
       'X-Webhook-Timestamp': new Date().toISOString(),
       'X-Idempotency-Key': idempotencyKey,

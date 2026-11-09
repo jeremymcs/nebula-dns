@@ -46,7 +46,7 @@ describe('SsoService', () => {
       const config: Record<string, string> = {
         SSO_ENCRYPTION_KEY: 'test-sso-key-1234567890-minimum-32-bytes',
         API_URL: 'https://api.nebuladns.example.com',
-        SAML_SP_ENTITY_ID: 'nebuladns-sp',
+        SAML_SP_ENTITY_ID: 'flux-shield-sp',
         JWT_REFRESH_EXPIRES_IN: '7d',
       };
       return config[key] || defaultValue;

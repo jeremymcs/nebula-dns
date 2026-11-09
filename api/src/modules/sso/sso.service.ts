@@ -148,7 +148,7 @@ export class SsoService {
     const callbackUrl = `${this.configService.get('API_URL')}/sso/saml/callback`;
     const entityId = this.configService.get(
       'SAML_SP_ENTITY_ID',
-      'nebuladns-sp',
+      'flux-shield-sp',
     );
 
     const samlConfig: SamlConfig = {
@@ -251,8 +251,8 @@ export class SsoService {
     ) {
       this.logger.log(`Generating SAML signing keys for tenant: ${tenantId}`);
       const keyPair = generateSigningKeyPair({
-        commonName: `Nebula DNS SP - ${tenantId}`,
-        organization: 'Nebula DNS',
+        commonName: `Flux Shield SP - ${tenantId}`,
+        organization: 'Flux Labs',
         country: 'US',
       });
       config.samlSigningCert = keyPair.certificate;
@@ -771,7 +771,7 @@ export class SsoService {
   async getSpMetadata(tenantId?: string): Promise<string> {
     const entityId = this.configService.get(
       'SAML_SP_ENTITY_ID',
-      'nebuladns-sp',
+      'flux-shield-sp',
     );
     const acsUrl = `${this.configService.get('API_URL')}/sso/saml/callback`;
     const sloUrl = `${this.configService.get('API_URL')}/sso/saml/logout`;
@@ -868,8 +868,8 @@ export class SsoService {
 
     // Generate new key pair
     const keyPair = generateSigningKeyPair({
-      commonName: `Nebula DNS SP - ${tenantId}`,
-      organization: 'Nebula DNS',
+      commonName: `Flux Shield SP - ${tenantId}`,
+      organization: 'Flux Labs',
       country: 'US',
     });
 
@@ -932,7 +932,7 @@ export class SsoService {
 
     const entityId = this.configService.get(
       'SAML_SP_ENTITY_ID',
-      'nebuladns-sp',
+      'flux-shield-sp',
     );
     const acsUrl = `${this.configService.get('API_URL')}/sso/saml/callback`;
 
@@ -994,7 +994,7 @@ export class SsoService {
 
     const entityId = this.configService.get(
       'SAML_SP_ENTITY_ID',
-      'nebuladns-sp',
+      'flux-shield-sp',
     );
 
     // Build the LogoutRequest XML

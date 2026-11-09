@@ -80,7 +80,7 @@ const fallbackPosts: BlogPost[] = [
     readTime: '6 min read',
   },
   {
-    slug: 'nebula-dns-v1-3-release',
+    slug: 'flux-shield-v1-3-release',
     title: 'Flux Shield v1.3: Enhanced Analytics and Enterprise SSO',
     date: '2026-02-01',
     author: 'Jeremy McSpadden',

@@ -699,7 +699,7 @@ export class TrialsService {
     </div>
 
     <p style="font-size: 14px; color: #6b7280;">
-      Thank you for trying Nebula DNS ${tierNames[trial.trialTier]}!
+      Thank you for trying Flux Shield ${tierNames[trial.trialTier]}!
     </p>
   </div>
 </body>
@@ -721,7 +721,7 @@ export class TrialsService {
       msp: 'MSP',
     };
 
-    const subject = `Welcome to Nebula DNS ${tierNames[tier]}!`;
+    const subject = `Welcome to Flux Shield ${tierNames[tier]}!`;
     const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -738,7 +738,7 @@ export class TrialsService {
     <p style="font-size: 16px;">Hi ${tenant.name},</p>
 
     <p style="font-size: 16px;">
-      Thank you for subscribing to <strong>Nebula DNS ${tierNames[tier]}</strong>!
+      Thank you for subscribing to <strong>Flux Shield ${tierNames[tier]}</strong>!
       Your subscription is now active.
     </p>
 

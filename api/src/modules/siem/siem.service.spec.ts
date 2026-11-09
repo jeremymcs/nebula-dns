@@ -55,7 +55,7 @@ describe('SiemService', () => {
         hecUrl: 'https://splunk.example.com:8088/services/collector',
         hecToken: 'test-token-123',
         index: 'main',
-        sourceType: 'nebuladns:logs',
+        sourceType: 'fluxshield:logs',
       };
 
       const mockIntegration = {
@@ -83,7 +83,7 @@ describe('SiemService', () => {
         name: 'Test Elastic',
         url: 'https://elastic.example.com:9200',
         apiKey: 'test-api-key',
-        indexPattern: 'nebuladns-logs',
+        indexPattern: 'fluxshield-logs',
       };
 
       const mockIntegration = {
@@ -110,7 +110,7 @@ describe('SiemService', () => {
         name: 'Test Sentinel',
         workspaceId: 'workspace-123',
         sharedKey: 'shared-key-abc',
-        logType: 'Nebula DNS_Logs',
+        logType: 'FluxShield_Logs',
       };
 
       const mockIntegration = {

@@ -47,7 +47,7 @@ export class ApiKeysController {
   @ApiOperation({
     summary: 'Create a new API key',
     description:
-      'Creates a new API key for programmatic access to the Nebula DNS API. The full API key is only returned once at creation time - store it securely.',
+      'Creates a new API key for programmatic access to the Flux Shield API. The full API key is only returned once at creation time - store it securely.',
   })
   @ApiResponse({
     status: 201,
