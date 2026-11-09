@@ -56,7 +56,7 @@ jobs:
 
   e2e-tests:
     name: E2E Tests (Chromium) shard ${{ matrix.shard }}/3
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Playwright 1.57 has no browser build for ubuntu-latest (26.04)
     needs: changes
     if: |
       github.event_name != 'pull_request' && (
@@ -117,7 +117,7 @@ jobs:
 
   e2e-edge-tests:
     name: Edge Case E2E Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Playwright 1.57 has no browser build for ubuntu-latest (26.04)
     needs: changes
     if: |
       github.event_name == 'pull_request' && (
@@ -172,7 +172,7 @@ jobs:
 
   security-e2e-tests:
     name: Security E2E Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Playwright 1.57 has no browser build for ubuntu-latest (26.04)
     needs: changes
     if: |
       github.event_name == 'pull_request' && (
